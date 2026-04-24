@@ -1,0 +1,34 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build to artifacts
+        run: dotnet build src/Autogrid/Autogrid.csproj -c Release -o "${{ github.workspace }}/artifacts/Release"
+
+      - name: Zip extension files
+        shell: pwsh
+        run: |
+          $zip = "autogrid-${{ github.ref_name }}.zip"
+          Compress-Archive -LiteralPath @(
+            "artifacts/Release/extension.yaml",
+            "artifacts/Release/Autogrid.dll"
+          ) -DestinationPath $zip -Force
+          Write-Host "Created $zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: autogrid-${{ github.ref_name }}
+          path: autogrid-${{ github.ref_name }}.zip
