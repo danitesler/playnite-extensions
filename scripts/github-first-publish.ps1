@@ -7,10 +7,10 @@
   cd repo root
   gh auth login
   ./scripts/github-first-publish.ps1
-  ./scripts/github-first-publish.ps1 -RepoName My-Autogrid-Fork
+  ./scripts/github-first-publish.ps1 -RepoName my-playnite-extensions
 #>
 param(
-    [string] $RepoName = "playnite-autogrid"
+    [string] $RepoName = "playnite-extensions"
 )
 
 $ErrorActionPreference = "Stop"
@@ -35,7 +35,7 @@ if (git remote get-url origin 2>$null) {
 } else {
     Write-Host "Creating private repo $RepoName and pushing main..."
     git checkout main 2>$null
-    & $gh repo create $RepoName --private --source=. --remote=origin --push -d "Playnite extension: auto-adjust desktop grid column width"
+    & $gh repo create $RepoName --private --source=. --remote=origin --push -d "Playnite extensions monorepo"
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 

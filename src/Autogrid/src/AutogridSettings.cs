@@ -30,17 +30,17 @@ namespace Autogrid
             set => SetValue(ref viewportAdjustPx, ClampViewportAdjust(value));
         }
 
-        private bool logDebugMeasurements;
-        public bool LogDebugMeasurements
+        private bool showTopPanelSettingsButton;
+        public bool ShowTopPanelSettingsButton
         {
-            get => logDebugMeasurements;
-            set => SetValue(ref logDebugMeasurements, value);
+            get => showTopPanelSettingsButton;
+            set => SetValue(ref showTopPanelSettingsButton, value);
         }
 
         private bool enabledOriginal;
         private int targetColumnsOriginal;
         private int viewportAdjustPxOriginal;
-        private bool logDebugMeasurementsOriginal;
+        private bool showTopPanelSettingsButtonOriginal;
 
         public AutogridSettings()
         {
@@ -55,7 +55,7 @@ namespace Autogrid
                 Enabled = saved.Enabled;
                 TargetColumns = saved.TargetColumns;
                 ViewportAdjustPx = saved.ViewportAdjustPx;
-                LogDebugMeasurements = saved.LogDebugMeasurements;
+                ShowTopPanelSettingsButton = saved.ShowTopPanelSettingsButton;
             }
 
             TargetColumns = System.Math.Max(1, System.Math.Min(20, TargetColumns));
@@ -72,7 +72,7 @@ namespace Autogrid
             enabledOriginal = Enabled;
             targetColumnsOriginal = TargetColumns;
             viewportAdjustPxOriginal = ViewportAdjustPx;
-            logDebugMeasurementsOriginal = LogDebugMeasurements;
+            showTopPanelSettingsButtonOriginal = ShowTopPanelSettingsButton;
         }
 
         public void CancelEdit()
@@ -80,13 +80,15 @@ namespace Autogrid
             Enabled = enabledOriginal;
             TargetColumns = targetColumnsOriginal;
             ViewportAdjustPx = viewportAdjustPxOriginal;
-            LogDebugMeasurements = logDebugMeasurementsOriginal;
+            ShowTopPanelSettingsButton = showTopPanelSettingsButtonOriginal;
+            plugin?.UpdateTopPanelItemVisibility();
         }
 
         public void EndEdit()
         {
             ViewportAdjustPx = ClampViewportAdjust(ViewportAdjustPx);
             plugin.SavePluginSettings(this);
+            plugin.UpdateTopPanelItemVisibility();
         }
 
         public bool VerifySettings(out List<string> errors)

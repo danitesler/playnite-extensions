@@ -1,0 +1,30 @@
+---
+description: CI and scripts for Playnite WPF extensions (Windows runner, packaging hints).
+globs:
+  - ".github/workflows/**/*.yml"
+  - "scripts/**/*.ps1"
+alwaysApply: false
+---
+
+# Playnite extension CI and packaging
+
+## GitHub Actions
+
+- Build **Playnite WPF** plugins on **`windows-latest`** (not Ubuntu-only) so **`Microsoft.NET.Sdk.WindowsDesktop`** / WPF resolve correctly.
+- Use a supported **`setup-dotnet`** SDK (e.g. 8.x) to build **`net462`** projects.
+
+## Build vs release artifacts
+
+- Extension profiles live in **`src/extensions.json`**. Prefer script calls with **`-Extension <key>`**.
+- **Validation** (`scripts/validate-extension.ps1 -Extension <key>`): checks AddonId, versions, URLs, expected PackageUrl, and build output when requested.
+- **Build** (`scripts/build-plugin.ps1 -Extension <key>`): `dotnet build` and a **build drop** under **`artifacts/builds/<key>/`** (copy of **`bin/<Configuration>/net462/`**; the folder is cleared and repopulated each run). No Toolbox, no **`artifacts/releases/`**.
+- **Release packaging** (`scripts/package-release.ps1 -Extension <key>`): optional **`-VerifyInstaller`** (Toolbox **`verify installer`** on the extension's installer manifest), then a **release drop** under **`artifacts/releases/<key>/`** with a release zip (**`extension.yaml`** + primary **`.dll`**) and a Toolbox-generated **`.pext`**. Requires existing build output; does not compile.
+- **One-shot local / package workflow:** **`scripts/build-artifacts.ps1 -Extension <key> -VerifyInstaller`** runs validation, optional verify, build, and package. Package-only builds may allow the expected `PackageUrl` before the release asset is uploaded; use **`-StrictInstallerVerification`** after publishing.
+- Before publishing, run **Toolbox manifest verification** and fail on errors:
+  - **`Toolbox.exe verify installer src/<PluginName>/info/InstallerManifest.yaml`**
+- **`InstallerManifest.yaml`** lives under **`src/<PluginName>/info/`**. Raw GitHub links must use the matching path from the extension profile.
+
+## Links
+
+- [Toolbox — packing extensions](https://playnite.link/docs/tutorials/toolbox.html#packing-extensions)
+- [PlayniteAddonDatabase](https://github.com/JosefNemec/PlayniteAddonDatabase)

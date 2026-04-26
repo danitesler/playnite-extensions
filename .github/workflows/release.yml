@@ -1,9 +1,16 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      extension:
+        description: "Extension key from src/extensions.json"
+        required: true
+        default: "autogrid"
+      configuration:
+        description: "Build configuration"
+        required: true
+        default: "Release"
 
 jobs:
   build:
@@ -15,20 +22,77 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Build to artifacts
-        run: dotnet build src/Autogrid/Autogrid.csproj -c Release -o "${{ github.workspace }}/artifacts/Release"
-
-      - name: Zip extension files
+      - name: Resolve extension metadata
         shell: pwsh
         run: |
-          $zip = "autogrid-${{ github.ref_name }}.zip"
-          Compress-Archive -LiteralPath @(
-            "artifacts/Release/extension.yaml",
-            "artifacts/Release/Autogrid.dll"
-          ) -DestinationPath $zip -Force
-          Write-Host "Created $zip"
+          $ErrorActionPreference = "Stop"
+          $profiles = Get-Content -Raw src/extensions.json | ConvertFrom-Json
+          $extension = $profiles.extensions | Where-Object { $_.key -eq "${{ inputs.extension }}" } | Select-Object -First 1
+          if (-not $extension) {
+            throw "Extension '${{ inputs.extension }}' not found in src/extensions.json"
+          }
+
+          $manifest = Get-Content -Path $extension.extensionManifest
+          $version = (($manifest | Where-Object { $_ -match "^Version:\s*(.+)$" }) -replace "^Version:\s*", "").Trim()
+          $slug = if ($extension.slug) { $extension.slug } else { $extension.key }
+          "EXTENSION_SLUG=$slug" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "EXTENSION_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Resolve Playnite Toolbox
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $toolboxCandidates = @(
+            "$Env:ProgramFiles\Playnite\Toolbox.exe",
+            "${Env:ProgramFiles(x86)}\Playnite\Toolbox.exe",
+            "$Env:LOCALAPPDATA\Programs\Playnite\Toolbox.exe"
+          ) | Where-Object { $_ -and (Test-Path $_) }
+
+          if ($toolboxCandidates.Count -gt 0) {
+            $toolbox = $toolboxCandidates[0]
+            "TOOLBOX_EXE=$toolbox" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Write-Host "Using installed Toolbox: $toolbox"
+            exit 0
+          }
+
+          Write-Host "Playnite Toolbox not found on runner; downloading latest Playnite archive."
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/JosefNemec/Playnite/releases/latest"
+          $archiveAsset = $release.assets | Where-Object { $_.name -match "\.(zip|7z)$" } | Select-Object -First 1
+          if (-not $archiveAsset) {
+            throw "Unable to resolve Playnite archive asset (.zip or .7z) from latest release."
+          }
+
+          $archivePath = Join-Path $env:RUNNER_TEMP $archiveAsset.name
+          $extractPath = Join-Path $env:RUNNER_TEMP "Playnite"
+          Invoke-WebRequest -Uri $archiveAsset.browser_download_url -OutFile $archivePath
+
+          if ($archiveAsset.name -match "\.zip$") {
+            Expand-Archive -Path $archivePath -DestinationPath $extractPath -Force
+          }
+          else {
+            $sevenZip = "C:\Program Files\7-Zip\7z.exe"
+            if (-not (Test-Path $sevenZip)) {
+              throw "7z.exe not found at $sevenZip. Cannot extract Playnite .7z package."
+            }
+            New-Item -ItemType Directory -Path $extractPath -Force | Out-Null
+            & $sevenZip x $archivePath "-o$extractPath" -y | Out-Null
+          }
+
+          $toolbox = Get-ChildItem -Path $extractPath -Filter "Toolbox.exe" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $toolbox) {
+            throw "Toolbox.exe not found after Playnite extraction. Cannot run manifest verification."
+          }
+
+          "TOOLBOX_EXE=$toolbox" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Host "Resolved Toolbox: $toolbox"
+
+      - name: Verify, build, and package artifacts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          ./scripts/build-artifacts.ps1 -Extension "${{ inputs.extension }}" -Configuration "${{ inputs.configuration }}" -VerifyInstaller -ToolboxExe "$env:TOOLBOX_EXE"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: autogrid-${{ github.ref_name }}
-          path: autogrid-${{ github.ref_name }}.zip
+          name: ${{ env.EXTENSION_SLUG }}-package-${{ env.EXTENSION_VERSION }}
+          path: artifacts/releases/${{ env.EXTENSION_SLUG }}/*

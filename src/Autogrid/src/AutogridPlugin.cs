@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 using Playnite.SDK;
 using Playnite.SDK.Events;
@@ -11,7 +14,6 @@ namespace Autogrid
     {
         private static readonly Guid PluginId = Guid.Parse("7F3E9B82-4D1C-4E8A-9F2B-6C5A891D0E2F");
 
-        private static readonly ILogger Logger = LogManager.GetLogger();
         private readonly AutogridSettings settings;
         private Window hookedWindow;
         private DispatcherTimer debounceTimer;
@@ -19,13 +21,15 @@ namespace Autogrid
         private bool handlersAttached;
         private double lastWindowActualWidth = double.NaN;
         private double lastWindowActualHeight = double.NaN;
-        private DateTime lastDebugMeasurementLogUtc = DateTime.MinValue;
+        private TopPanelItem autogridTopPanelItem;
+        private bool settingsApplyPosted;
 
         public override Guid Id => PluginId;
 
         public AutogridPlugin(IPlayniteAPI api) : base(api)
         {
             settings = new AutogridSettings(this);
+            settings.PropertyChanged += OnSettingsPropertyChanged;
             Properties = new GenericPluginProperties
             {
                 HasSettings = true
@@ -42,6 +46,35 @@ namespace Autogrid
             return new AutogridSettingsView();
         }
 
+        public override IEnumerable<TopPanelItem> GetTopPanelItems()
+        {
+            if (autogridTopPanelItem == null)
+            {
+                autogridTopPanelItem = new TopPanelItem
+                {
+                    Title = "Autogrid",
+                    Icon = new TextBlock
+                    {
+                        Text = "\uE713",
+                        FontSize = 20,
+                        FontFamily = new System.Windows.Media.FontFamily("Segoe MDL2 Assets")
+                    },
+                    Activated = () => OpenSettingsView()
+                };
+            }
+
+            autogridTopPanelItem.Visible = settings.ShowTopPanelSettingsButton;
+            yield return autogridTopPanelItem;
+        }
+
+        internal void UpdateTopPanelItemVisibility()
+        {
+            if (autogridTopPanelItem != null)
+            {
+                autogridTopPanelItem.Visible = settings.ShowTopPanelSettingsButton;
+            }
+        }
+
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
         {
             PlayniteApi.MainView.UIDispatcher.BeginInvoke(
@@ -51,7 +84,51 @@ namespace Autogrid
 
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
+            settings.PropertyChanged -= OnSettingsPropertyChanged;
             DetachWindowHooks();
+        }
+
+        private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (reflectionBroken)
+            {
+                return;
+            }
+
+            var n = e.PropertyName;
+            if (n != null &&
+                n != nameof(AutogridSettings.TargetColumns) &&
+                n != nameof(AutogridSettings.ViewportAdjustPx) &&
+                n != nameof(AutogridSettings.Enabled))
+            {
+                return;
+            }
+
+            RequestApplyFromSettings();
+        }
+
+        private void RequestApplyFromSettings()
+        {
+            if (reflectionBroken || settingsApplyPosted)
+            {
+                return;
+            }
+
+            settingsApplyPosted = true;
+            PlayniteApi.MainView.UIDispatcher.BeginInvoke(
+                new Action(() =>
+                {
+                    settingsApplyPosted = false;
+                    try
+                    {
+                        ApplyAutogrid();
+                    }
+                    catch
+                    {
+                        reflectionBroken = true;
+                    }
+                }),
+                DispatcherPriority.Normal);
         }
 
         private void AttachWhenReady()
@@ -73,9 +150,9 @@ namespace Autogrid
                     app.Activated += OnApplicationActivatedOnce;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Logger.Error(ex, "Autogrid failed to schedule main window hook.");
+                // ignore
             }
         }
 
@@ -89,9 +166,9 @@ namespace Autogrid
                     TryHookMainWindow(Application.Current.MainWindow);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                Logger.Error(ex, "Autogrid failed on application activated.");
+                // ignore
             }
         }
 
@@ -105,12 +182,11 @@ namespace Autogrid
             hookedWindow = window;
             debounceTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(100)
+                Interval = TimeSpan.FromMilliseconds(50)
             };
             debounceTimer.Tick += DebounceTimerOnTick;
 
             window.SizeChanged += OnWindowLayoutHint;
-            window.LayoutUpdated += OnWindowLayoutHint;
             window.StateChanged += OnWindowLayoutHint;
             window.Closed += MainWindowOnClosed;
 
@@ -140,9 +216,8 @@ namespace Autogrid
             {
                 ApplyAutogrid();
             }
-            catch (Exception ex)
+            catch
             {
-                Logger.Error(ex, "Autogrid apply failed.");
                 reflectionBroken = true;
             }
         }
@@ -174,7 +249,6 @@ namespace Autogrid
             if (!GridLayoutService.TryGetGridLayoutInputs(appSettings, out var spacing, out var currentWidth))
             {
                 reflectionBroken = true;
-                Logger.Warn("Autogrid: could not read GridItemWidth/GridItemSpacing via reflection. Disabling apply until restart.");
                 return;
             }
 
@@ -198,29 +272,6 @@ namespace Autogrid
             lastWindowActualWidth = window.ActualWidth;
             lastWindowActualHeight = window.ActualHeight;
 
-            if (settings.LogDebugMeasurements)
-            {
-                var now = DateTime.UtcNow;
-                if ((now - lastDebugMeasurementLogUtc).TotalMilliseconds >= 500)
-                {
-                    lastDebugMeasurementLogUtc = now;
-                    Logger.Info(
-                        string.Format(
-                            System.Globalization.CultureInfo.InvariantCulture,
-                            "Autogrid debug: viewport={0:F0} panel={1:F0} scroll={2:F0} adjustPx={3} gridSpacing={4} perTileMargin={5:F1} targetW={6:F0} currentW={7:F0} cols={8} winSizeChanged={9}",
-                            metrics.Viewport,
-                            metrics.PanelWidth,
-                            metrics.ScrollWidth,
-                            settings.ViewportAdjustPx,
-                            spacing,
-                            perTileMargin,
-                            target,
-                            currentWidth,
-                            settings.TargetColumns,
-                            windowSizeChanged));
-                }
-            }
-
             if (!windowSizeChanged && Math.Abs(currentWidth - target) < 0.01)
             {
                 return;
@@ -229,7 +280,6 @@ namespace Autogrid
             if (!GridLayoutService.TrySetGridItemWidth(appSettings, target))
             {
                 reflectionBroken = true;
-                Logger.Warn("Autogrid: could not set GridItemWidth via reflection. Disabling apply until restart.");
             }
         }
 
@@ -246,7 +296,6 @@ namespace Autogrid
             if (hookedWindow != null && handlersAttached)
             {
                 hookedWindow.SizeChanged -= OnWindowLayoutHint;
-                hookedWindow.LayoutUpdated -= OnWindowLayoutHint;
                 hookedWindow.StateChanged -= OnWindowLayoutHint;
                 hookedWindow.Closed -= MainWindowOnClosed;
             }

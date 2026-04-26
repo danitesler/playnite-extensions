@@ -1,0 +1,56 @@
+---
+description: Conventions for Playnite .NET extensions (WPF, SDK, manifest, settings, threading).
+globs:
+  - "**/*.cs"
+  - "**/*.xaml"
+  - "**/extension.yaml"
+  - "**/*.csproj"
+alwaysApply: false
+---
+
+# Playnite .NET extensions
+
+Official docs: [Introduction to Playnite extensions](https://playnite.link/docs/tutorials/extensions/intro.html), [Plugins](https://playnite.link/docs/tutorials/extensions/plugins.html).
+
+## Project shape
+
+- In this monorepo, each extension lives under **`src/<PluginName>/`** and is registered in **`src/extensions.json`**.
+- Keep extension-owned files together: **`.csproj`**, **`Directory.Build.props`**, **`src/`**, and **`info/extension.yaml`** / installer metadata.
+- **Target**: `net462` (or Playnite-supported TFM), **`UseWPF`**: true for UI plugins.
+- **PlayniteSDK** NuGet: use **`PrivateAssets=all`** (and typically **`CopyLocalLockFileAssemblies`**: false) unless you have a reason not to.
+
+## extension.yaml
+
+- **`Id`**: stable **AddonId** for life of the add-on; must match **InstallerManifest.yaml** and any **PlayniteAddonDatabase** listing.
+- **`Module`**: primary DLL name (e.g. `MyPlugin.dll`).
+- **`Type`**: e.g. `GenericPlugin`, `MetadataPlugin`, `LibraryPlugin` — must match base class / SDK expectations.
+- **`Version`**: keep in sync with **`Directory.Build.props`** / assembly version and **installer manifest** packages when you ship.
+
+## Logging
+
+- Use **`LogManager.GetLogger()`** from **Playnite.SDK**. Do not assume **`IPlayniteAPI.CreateLogger`** exists.
+
+## UI thread and WPF
+
+- Touch the visual tree, **MainWindow**, or controls from **`PlayniteApi.MainView.UIDispatcher`** (e.g. `BeginInvoke` with appropriate priority).
+- Gate behavior by view when relevant (**`DesktopView`**, Fullscreen, etc.) using **`PlayniteApi.MainView.ActiveDesktopView`** (or the API your scenario needs).
+
+## Settings
+
+- Implement **`ISettings`** with **`BeginEdit`**, **`CancelEdit`**, **`EndEdit`**; persist via **`SavePluginSettings`** on the plugin instance.
+- Use **`VerifySettings`** for validation messages.
+- Settings **UserControl** returned from **`GetSettingsView`** should bind to the same settings object the plugin uses.
+
+## Reflection and Playnite internals
+
+- Prefer public APIs; if you reflect into Playnite or **`AppSettings`**, expect breakage on Playnite upgrades. Use a **clear disable path** (e.g. a `reflectionBroken` flag) and log once rather than spamming exceptions.
+
+## Runtime testing
+
+- **Plugins are not hot-reloaded**: replace **`*.dll`** then **restart Playnite** to verify changes.
+- Test both **Desktop** and **Fullscreen** if the feature applies to both.
+
+## Shipping (overview)
+
+- Use **`scripts/validate-extension.ps1 -Extension <key>`** before shipping.
+- See repo **`README.md`** (Publish / Release) and skill **`playnite-extension-release`** for **Toolbox** **`.pext`**, per-extension **`InstallerManifest.yaml`**, and **PlayniteAddonDatabase**.

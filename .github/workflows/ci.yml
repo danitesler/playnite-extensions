@@ -16,8 +16,18 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Restore
-        run: dotnet restore Autogrid.sln
+      - name: Validate and build extensions
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $profiles = Get-Content -Raw src/extensions.json | ConvertFrom-Json
+          foreach ($extension in $profiles.extensions) {
+            Write-Host "Validating $($extension.key)..."
+            ./scripts/validate-extension.ps1 -Extension $extension.key -Mode Ci
 
-      - name: Build
-        run: dotnet build Autogrid.sln -c Release --no-restore
+            Write-Host "Restoring $($extension.project)..."
+            dotnet restore $extension.project
+
+            Write-Host "Building $($extension.project)..."
+            dotnet build $extension.project -c Release --no-restore
+          }
