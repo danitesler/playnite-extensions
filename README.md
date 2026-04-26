@@ -11,7 +11,7 @@ While donations aren't expected, they're super appreciated! If you've found my w
 Support this work on [Ko-fi](https://ko-fi.com/danitesler).
 
 
-### Generic Addons
+## Generic Addons
 
 | Icon | Name | Description | Latest Release | Source code |
 | --- | --- | --- | --- | --- |
