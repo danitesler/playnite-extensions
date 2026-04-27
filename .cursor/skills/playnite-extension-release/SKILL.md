@@ -1,56 +1,71 @@
 ---
 name: playnite-extension-release
-description: Packages and publishes Playnite add-ons (.pext, InstallerManifest.yaml, Toolbox verify, GitHub Releases, PlayniteAddonDatabase). Use when publishing, versioning, add-on browser submission, PackageUrl/AddonId questions, or creating artifacts/releases. Requires Release build output (or run playnite-extension-build first).
+description: Playnite extension releases — .pext, zip, Toolbox verify, InstallerManifest, artifacts/releases. Use for packaging, version bumps at ship time, or upload-ready drops. Compiling or fixing builds — use playnite-extension-build.
 ---
 
 # Playnite extension — release
 
-## Preconditions
+## Scope (details the short `description` points at)
 
-- The extension is registered in **`src/extensions.json`**.
-- **Release** (or chosen configuration) output exists under the profile's **`outputPath`** (primary **`.dll`**, **`extension.yaml`** in that folder).
-- **This repo:** run **`.\scripts\build-plugin.ps1 -Extension <key>`** first, or use **`.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`** for a one-shot validate + build + package.
+- **Use this skill** for any “package a release,” “create `.pext` / zip for GitHub,” `InstallerManifest` / `PackageUrl` alignment at **ship time**, or “what to run to produce **`artifacts/releases/`**” (see **What to run**).
+- **Do not** use for everyday compile, MSBuild, or WPF build fixes — use **`playnite-extension-build`**. Release packaging **does not compile**; it expects **Release** (or chosen config) output where the profile’s **`outputPath`** points (from **`src\extensions.json`**).
+- **Toolbox:** scripts locate **`Toolbox.exe`** or bootstrap Playnite; set **`$env:TOOLBOX_EXE`** if resolution fails. Verify steps need a working Toolbox.
 
-## Release artifact layout
+## What to run
 
-- Per run, write user-facing artifacts under:
-  - **`artifacts/releases/<key>/`**
-- That folder should contain at least:
-  - A **zip** of **`extension.yaml`** + the primary **`.dll`** (convenience download).
-  - A **`.pext`** produced by **Playnite Toolbox** **`pack`** (see below).
+From repo root (PowerShell), using the extension **key** from **`src\extensions.json`**:
 
-## Script (this repo)
+**Full path (validate → build → package):**
 
-- **`.\scripts\validate-extension.ps1 -Extension <key> -Mode Package`** — checks AddonId, versions, URLs, expected **`PackageUrl`**, and metadata consistency.
-- **`.\scripts\package-release.ps1 -Extension <key>`** — optional **`-VerifyInstaller`** (Toolbox **`verify installer`**), then zip + **`.pext`** into **`artifacts/releases/<key>/...`**. Does not compile; use **`build-plugin.ps1`** first.
-- **`.\scripts\package-release.ps1 -Extension <key> -VerifyInstaller -VerifyOnly`** — verify the extension's installer manifest only (no packaging).
-- **`.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`** — orchestrates validation, optional verify, build, then package. Package-only runs allow an expected-but-unpublished `PackageUrl`; use **`-StrictInstallerVerification`** after the GitHub Release asset is uploaded.
+```powershell
+.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller
+```
 
-## Pack for users
+- `-VerifyInstaller` runs Toolbox **verify installer** (with **`-AllowUnpublishedPackageUrl`**-style behavior via the script) before the build+pack. After the **`.pext`** is on the release URL, re-verify with **`-StrictInstallerVerification`** if the workflow needs a strict `PackageUrl` check.
 
-1. Ensure **Release** output: **`extension.yaml`** + **`YourPlugin.dll`** (and any other packaged files) in the build output directory.
-2. Use **Playnite Toolbox** to create a **`.pext`**: [Toolbox — packing extensions](https://playnite.link/docs/tutorials/toolbox.html#packing-extensions).
-3. Attach **`.pext`** to a **GitHub Release** (or other HTTPS host). The download URL must be stable for updates.
+**Package only** (already built; no compile):
 
-## Installer manifest
+```powershell
+.\scripts\package-release.ps1 -Extension <key>
+```
 
-**`InstallerManifest.yaml`** lives under **`src/<PluginName>/info/`**:
+- Optional: **`-VerifyInstaller`** on **`package-release.ps1`** (Toolbox **verify** + zip + **`.pext`**). **`-VerifyOnly`** = verify manifest only, no packaging.
+- **Validation** of metadata: **`.\scripts\validate-extension.ps1 -Extension <key> -Mode Package`**
 
-- **`AddonId`**: must match **`extension.yaml`** **`Id`** exactly (stable forever).
-- **`Packages`**: each entry needs **`Version`**, **`RequiredApiVersion`** (Playnite / SDK level), **`ReleaseDate`**, **`PackageUrl`** (HTTPS to **`.pext`**), **`Changelog`**.
+- **Per-run drop:** **`artifacts\releases\<key>\`** — release zip (**`extension.yaml`** + primary **`.dll`**) and Toolbox-generated **`.pext`**
+- **Installer manifest:** **`src\<PluginName>\info\InstallerManifest.yaml`** — must stay aligned with **`extension.yaml`** (especially **`AddonId`**, **`Packages[].Version`**, **`PackageUrl`**, **`RequiredApiVersion`**, **`ReleaseDate`**, **`Changelog`**) when you cut a release. **`PackageUrl`** must eventually point at the published **`.pext`**.
 
-Keep **`extension.yaml` `Version`** and assembly / **`Directory.Build.props`** aligned with **`Packages[].Version`** when you cut a release.
+**Manual Toolbox** (if not using scripts): [Toolbox — packing extensions](https://playnite.link/docs/tutorials/toolbox.html#packing-extensions)
 
-## In-app add-on browser
+## Version bumps (only when cutting a release)
 
-- Submit a YAML file to **[PlayniteAddonDatabase](https://github.com/JosefNemec/PlayniteAddonDatabase)** under the correct **`addons/`** subtree (e.g. **`addons/generic/`** for generic plugins).
-- **`InstallerManifestUrl`** should point at the **raw** per-extension installer manifest, e.g. `https://raw.githubusercontent.com/<owner>/<repo>/main/src/<PluginName>/info/InstallerManifest.yaml`.
+- **Do not** bump semver during ordinary development unless the user asked to **ship** (GitHub Release, publish **`.pext`**, or explicit “cut **x.y.z**”).
+- **Before changing version fields:** read current **`extension.yaml`** `Version` and **`Directory.Build.props`**; tell the user what is live; suggest next semver; **ask** for the exact string (unless they already gave it verbatim in the same message).
+- **After they confirm:** align **`extension.yaml`**, **`Directory.Build.props`**, **`InstallerManifest.yaml`** (including **`PackageUrl`** and tag per **`src\extensions.json`** `tagPattern`), and addon database YAML if you maintain it; then run validation / **`build-artifacts.ps1`** / **`package-release.ps1`** as needed.
 
-## Direct install link (optional)
+Rule: **`.cursor/rules/playnite-extension-versioning.mdc`**
 
-- `playnite://playnite/installaddon/<AddonId>` (see database README for details).
+## End of every release-related reply (required)
+
+After any release attempt the agent makes (`package-release.ps1`, `build-artifacts.ps1` for packaging, `validate-extension -Mode Package`, or failure before success), end with this block (same headline lines for searchability):
+
+**Success (exit 0 / package succeeded):**
+
+```text
+✅ success - release packaged
+Extension: <key>
+Output: artifacts/releases/<key>/
+```
+
+**Failure:**
+
+```text
+❌ error - not release
+Reason: <one line: first error, exit code, Toolbox path, or validation message>
+```
+
+If several keys were packaged, list them under `Extension:` or repeat the block per key.
 
 ## See also
 
-- Skill: **`playnite-extension-build`**
-- Rule: **`.cursor/rules/playnite-ci-packaging.mdc`**
+`playnite-extension-build` (compile, **`artifacts/builds/<key>/`**). Rules: **`playnite-extensions.mdc`**, **`playnite-ci-packaging.mdc`**, **`playnite-extension-versioning.mdc`**.

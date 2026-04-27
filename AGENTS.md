@@ -7,6 +7,7 @@ This repository is a reusable **Playnite extension monorepo**. Each extension ow
 ## Current extensions
 
 - **Autogrid** (`autogrid`) — GenericPlugin, `net462`, WPF. Extension-specific notes live in **`src/Autogrid/AGENTS.md`**.
+- **GameHoverDetails** (`gamehoverdetails`) — GenericPlugin, `net462`, WPF: hover popup with name, short description, and platforms. Notes in **`src/GameHoverDetails/AGENTS.md`**.
 
 ## Repository layout
 
@@ -29,12 +30,15 @@ This repository is a reusable **Playnite extension monorepo**. Each extension ow
 
 The package flow is intentionally **package-only**: it creates `.pext` and `.zip` artifacts and prints the expected GitHub Release tag / `PackageUrl`, but it does not create a GitHub Release.
 
+**Version bumps:** change shipped semver (**`extension.yaml`**, **`Directory.Build.props`**, **`InstallerManifest.yaml`** / **`PackageUrl`**) only when explicitly **cutting a release** / **publishing to GitHub**—not for ordinary feature work. Before editing versions: state current version, suggest next semver, ask for the target string. See **`.cursor/rules/playnite-extension-versioning.mdc`** and skill **`playnite-extension-release`**.
+
 ## Cursor rules (project)
 
 Under **`.cursor/rules/`** (apply when matching files are in context):
 
 - **`playnite-extensions.mdc`** — Playnite .NET / WPF / `extension.yaml` / settings / threading / reflection cautions.
 - **`playnite-ci-packaging.mdc`** — GitHub Actions on Windows, scripts / packaging hints.
+- **`playnite-extension-versioning.mdc`** — When to bump extension semver; ask user; release-only policy.
 
 Copy these rules into other Playnite plugin repos if you want the same agent behavior.
 

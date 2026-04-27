@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 using Playnite.SDK;
 using Playnite.SDK.Events;
@@ -21,7 +19,6 @@ namespace Autogrid
         private bool handlersAttached;
         private double lastWindowActualWidth = double.NaN;
         private double lastWindowActualHeight = double.NaN;
-        private TopPanelItem autogridTopPanelItem;
         private bool settingsApplyPosted;
 
         public override Guid Id => PluginId;
@@ -44,35 +41,6 @@ namespace Autogrid
         public override System.Windows.Controls.UserControl GetSettingsView(bool firstRunSettings)
         {
             return new AutogridSettingsView();
-        }
-
-        public override IEnumerable<TopPanelItem> GetTopPanelItems()
-        {
-            if (autogridTopPanelItem == null)
-            {
-                autogridTopPanelItem = new TopPanelItem
-                {
-                    Title = "Autogrid",
-                    Icon = new TextBlock
-                    {
-                        Text = "\uE713",
-                        FontSize = 20,
-                        FontFamily = new System.Windows.Media.FontFamily("Segoe MDL2 Assets")
-                    },
-                    Activated = () => OpenSettingsView()
-                };
-            }
-
-            autogridTopPanelItem.Visible = settings.ShowTopPanelSettingsButton;
-            yield return autogridTopPanelItem;
-        }
-
-        internal void UpdateTopPanelItemVisibility()
-        {
-            if (autogridTopPanelItem != null)
-            {
-                autogridTopPanelItem.Visible = settings.ShowTopPanelSettingsButton;
-            }
         }
 
         public override void OnApplicationStarted(OnApplicationStartedEventArgs args)
