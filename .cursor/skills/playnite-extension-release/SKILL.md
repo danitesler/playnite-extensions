@@ -68,4 +68,4 @@ If several keys were packaged, list them under `Extension:` or repeat the block 
 
 ## See also
 
-`playnite-extension-build` (compile, **`artifacts/builds/<key>/`**). Rules: **`playnite-extensions.mdc`**, **`playnite-ci-packaging.mdc`**, **`playnite-extension-versioning.mdc`**.
+`playnite-extension-build` (compile, **`artifacts/builds/<key>/`**). Rules: **`playnite-extensions.mdc`**, **`playnite-ci-packaging.mdc`**, **`playnite-extension-versioning.mdc`**, **`playnite-github-releases-per-extension.mdc`** (one GitHub Release per extension; no umbrella releases).

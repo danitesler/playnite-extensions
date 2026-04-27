@@ -30,6 +30,8 @@ This repository is a reusable **Playnite extension monorepo**. Each extension ow
 
 The package flow is intentionally **package-only**: it creates `.pext` and `.zip` artifacts and prints the expected GitHub Release tag / `PackageUrl`, but it does not create a GitHub Release.
 
+**GitHub Releases:** ship **each add-on separately**—one GitHub Release per extension (its own tag per **`tagPattern`**, title, notes, and **`.pext`**). Do not combine multiple extensions into a single umbrella release. If two extensions would share the same tag (same semver + pattern), use a **distinct** `tagPattern` / version plan so tags stay unique—never attach another extension’s asset to a release meant for a different add-on.
+
 **Version bumps:** change shipped semver (**`extension.yaml`**, **`Directory.Build.props`**, **`InstallerManifest.yaml`** / **`PackageUrl`**) only when explicitly **cutting a release** / **publishing to GitHub**—not for ordinary feature work. Before editing versions: state current version, suggest next semver, ask for the target string. See **`.cursor/rules/playnite-extension-versioning.mdc`** and skill **`playnite-extension-release`**.
 
 ## Cursor rules (project)
@@ -39,6 +41,7 @@ Under **`.cursor/rules/`** (apply when matching files are in context):
 - **`playnite-extensions.mdc`** — Playnite .NET / WPF / `extension.yaml` / settings / threading / reflection cautions.
 - **`playnite-ci-packaging.mdc`** — GitHub Actions on Windows, scripts / packaging hints.
 - **`playnite-extension-versioning.mdc`** — When to bump extension semver; ask user; release-only policy.
+- **`playnite-github-releases-per-extension.mdc`** — One GitHub Release per add-on; no combined umbrella releases; tag collision guidance.
 
 Copy these rules into other Playnite plugin repos if you want the same agent behavior.
 
