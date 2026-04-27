@@ -17,7 +17,7 @@ Each add-on has its own **GitHub Release** and **`.pext`** installer. Browse [**
 | Icon | Name | Description | Releases | Source |
 | --- | --- | --- | --- | --- |
 | <img src="https://raw.githubusercontent.com/danitesler/playnite-extensions/main/src/Autogrid/info/icon.png" alt="Autogrid" width="80" height="80" /> | **Autogrid** (`autogrid`) | Keeps the desktop **grid** near a target column count as you resize the window. | [Releases](https://github.com/danitesler/playnite-extensions/releases) | [Source](https://github.com/danitesler/playnite-extensions/tree/main/src/Autogrid) |
-| <img src="https://raw.githubusercontent.com/danitesler/playnite-extensions/main/src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="80" height="80" /> | **GameHoverDetails** (`gamehoverdetails`) | **Hover** popup beside library tiles with the details you care about (up to five fields, same kinds as Playnite’s details panel). | [Releases](https://github.com/danitesler/playnite-extensions/releases) | [Source](https://github.com/danitesler/playnite-extensions/tree/main/src/GameHoverDetails) |
+| <img src="https://raw.githubusercontent.com/danitesler/playnite-extensions/main/src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="80" height="80" /> | **GameHoverDetails** (`gamehoverdetails`) | **Mouse Hover** brief info popup beside library tiles with quick details. | [Releases](https://github.com/danitesler/playnite-extensions/releases) | [Source](https://github.com/danitesler/playnite-extensions/tree/main/src/GameHoverDetails) |
 
 ## Installation
 
