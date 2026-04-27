@@ -1,5 +1,20 @@
 # Playnite Generic Add-on Manifest Template
 
+## File naming (this repo)
+
+Save the **add-on manifest** (the YAML you copy into [PlayniteAddonDatabase](https://github.com/JosefNemec/PlayniteAddonDatabase)) under the extension’s `info/` folder as:
+
+**`danitesler_<extension-key>.yaml`**
+
+- **`<extension-key>`** is the lowercase **`key`** from **`src/extensions.json`** (e.g. `autogrid` → `danitesler_autogrid.yaml`).
+- **Do not** embed the Playnite **`AddonId`** or its hex/characters suffix in the filename—the **`AddonId`** field inside the YAML is the stable ID; the filename is only for humans and PRs.
+
+Example paths:
+
+- `src/Autogrid/info/danitesler_autogrid.yaml`
+- `src/GameHoverDetails/info/danitesler_gamehoverdetails.yaml`
+
+---
 
 ```yaml
 AddonId: YourAddonId_here
@@ -9,13 +24,13 @@ Author: Your Github name
 ShortDescription: "One-sentence description shown in Playnite add-on list."
 InstallerManifestUrl: https://raw.githubusercontent.com/your-user/your-repo/main/src/YourExtension/info/InstallerManifest.yaml
 SourceUrl: https://github.com/your-user/your-repo
-# Optional fields:
-# Description: |-
-#   Longer multi-line description.
-# Tags: ["Tag1", "Tag2"]
+Description: |-
+Longer multi-line description.
+Tags: ["Tag1", "Tag2"]
+IconUrl: https://raw.githubusercontent.com/your-user/your-repo/main/src/YourExtension/info/icon.png
+# Optional
 # Links:
-#   Website: https://example.com
-# IconUrl: https://raw.githubusercontent.com/your-user/your-repo/main/src/YourExtension/info/icon.png
+# Website: https://example.com
 # Screenshots:
 #   - Thumbnail: https://raw.githubusercontent.com/your-user/your-repo/main/screenshots/thumb1.jpg
 #     Image: https://raw.githubusercontent.com/your-user/your-repo/main/screenshots/full1.jpg

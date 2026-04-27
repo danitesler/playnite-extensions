@@ -41,7 +41,7 @@ From repo root (PowerShell), using the extension **key** from **`src\extensions.
 
 - **Do not** bump semver during ordinary development unless the user asked to **ship** (GitHub Release, publish **`.pext`**, or explicit “cut **x.y.z**”).
 - **Before changing version fields:** read current **`extension.yaml`** `Version` and **`Directory.Build.props`**; tell the user what is live; suggest next semver; **ask** for the exact string (unless they already gave it verbatim in the same message).
-- **After they confirm:** align **`extension.yaml`**, **`Directory.Build.props`**, **`InstallerManifest.yaml`** (including **`PackageUrl`** and tag per **`src\extensions.json`** `tagPattern`), and addon database YAML if you maintain it; then run validation / **`build-artifacts.ps1`** / **`package-release.ps1`** as needed.
+- **After they confirm:** align **`extension.yaml`**, **`Directory.Build.props`**, **`InstallerManifest.yaml`** (including **`PackageUrl`** and tag per **`src\extensions.json`** `tagPattern`), and the add-on database manifest (`danitesler_<key>.yaml` under `src/<Plugin>/info/`, extension **key** from `extensions.json`, no AddonId suffix in the filename) if you maintain it; then run validation / **`build-artifacts.ps1`** / **`package-release.ps1`** as needed.
 
 Rule: **`.cursor/rules/playnite-extension-versioning.mdc`**
 

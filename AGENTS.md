@@ -16,7 +16,7 @@ This repository is a reusable **Playnite extension monorepo**. Each extension ow
 | Extension index | `src/extensions.json` |
 | Extension project | `src/<PluginName>/<PluginName>.csproj` |
 | Extension source | `src/<PluginName>/src/` |
-| Extension manifests | `src/<PluginName>/info/` |
+| Extension manifests | `src/<PluginName>/info/` (incl. `danitesler_<key>.yaml` for PlayniteAddonDatabase PRs) |
 | Build scripts | `scripts/*.ps1` |
 | Package artifacts | `artifacts/releases/<key>/` |
 | Build artifacts | `artifacts/builds/<key>/` |
