@@ -35,6 +35,15 @@ From repo root (PowerShell), using the extension **key** from **`src\extensions.
 - **Per-run drop:** **`artifacts\releases\<key>\`** — release zip (**`extension.yaml`** + primary **`.dll`**) and Toolbox-generated **`.pext`**
 - **Installer manifest:** **`src\<PluginName>\info\InstallerManifest.yaml`** — must stay aligned with **`extension.yaml`** (especially **`AddonId`**, **`Packages[].Version`**, **`PackageUrl`**, **`RequiredApiVersion`**, **`ReleaseDate`**, **`Changelog`**) when you cut a release. **`PackageUrl`** must eventually point at the published **`.pext`**.
 
+### Installer manifest — cumulative `Packages` (all add-ons)
+
+When adding or editing **`InstallerManifest.yaml`** for **any** extension in **`src/extensions.json`**:
+
+- **`Packages`** is a **version history list**, not “latest only.” On each ship, **prepend** a new `- Version: …` block at the **top** (newest first), matching common upstream manifests (multi-version **`Packages`** lists, e.g. [Apollo Sync `manifest.yaml`](https://github.com/sharkusmanch/playnite-apollo-sync/blob/master/manifest.yaml)).
+- **Do not remove** prior shipped entries unless there is explicit maintainer intent to drop a broken artifact from the manifest.
+- Keep every block self-consistent for that release: **`RequiredApiVersion`**, **`ReleaseDate`**, **`PackageUrl`**, **`Changelog`**.
+- **Repo validation** (`validate-extension`, `package-release` expectations) reads the **first** package’s **`PackageUrl`** as the one that must match the current **`extension.yaml`** `Version` and this repo’s **`tagPattern`** / **`.pext`** naming — always keep **newest first**.
+
 **Manual Toolbox** (if not using scripts): [Toolbox — packing extensions](https://playnite.link/docs/tutorials/toolbox.html#packing-extensions)
 
 ## Version bumps (only when cutting a release)
