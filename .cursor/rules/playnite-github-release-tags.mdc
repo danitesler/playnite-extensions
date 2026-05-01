@@ -1,0 +1,41 @@
+---
+description: GitHub Release tag naming for monorepo extensions — per-key prefix (GameHoverDetails style).
+globs:
+  - "src/extensions.json"
+  - "**/InstallerManifest.yaml"
+  - "scripts/package-release.ps1"
+  - "scripts/build-artifacts.ps1"
+alwaysApply: false
+---
+
+# GitHub Release tags — `{key}-v{version}`
+
+## Canonical pattern (this monorepo)
+
+Each extension’s GitHub Release **tag** must match that extension’s **`tagPattern`** in **`src/extensions.json`**, with placeholders **`{version}`** (semver from **`extension.yaml`**) and optional **`{key}`** (extension **key**, lowercased in patterns today).
+
+**Standard form:** **`{key}-v{version}`** — lowercase extension key, hyphen, literal **`v`**, then the shipped semver.
+
+Examples:
+
+- `gamehoverdetails-v1.0.1`
+- `autogrid-v1.0.1`
+
+## Why
+
+Bare tags like **`v1.0.1`** collide across add-ons in one repo (only one tag can exist). Prefixing by extension key keeps **tags**, **`PackageUrl`** download paths, and **`gh release create`** unambiguous.
+
+## Agent checklist
+
+1. **`src/extensions.json`** — set **`tagPattern`** to **`{key}-v{version}`** (or the same idea with `{key}` resolved for that row). Do not ship new extensions with a shared bare **`v{version}`** pattern.
+2. **`InstallerManifest.yaml`** — every **`PackageUrl`** path segment after **`.../releases/download/`** must equal the **Git tag** for that package’s version (same string **`tagPattern`** produces for that semver).
+3. **Releases** — `gh release create` (or API) must use that exact tag string; assets must match **`Get-ExpectedPextName`** / Toolbox output for that version.
+
+## Renaming an already-published tag
+
+If a release used the wrong tag (e.g. bare **`v1.0.1`** for Autogrid), prefer **`gh release edit <old-tag> --tag <new-tag>`** so the release moves to the prefixed tag, then **delete** the obsolete lightweight tag on the remote if GitHub left it behind.
+
+## See also
+
+- **`.cursor/rules/playnite-github-releases-per-extension.mdc`** — one release per add-on; no umbrella releases.
+- **`.cursor/skills/playnite-extension-release/SKILL.md`** — packaging and **`PackageUrl`**.

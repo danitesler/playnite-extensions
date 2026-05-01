@@ -91,7 +91,7 @@ if (Test-Path $installerPath) {
     }
 
     if ($Mode -eq "Package" -and $profile.releaseBaseUrl) {
-        $tagPattern = if ($profile.tagPattern) { $profile.tagPattern } else { "v{version}" }
+        $tagPattern = if ($profile.tagPattern) { $profile.tagPattern } else { "{key}-v{version}" }
         $tag = $tagPattern.Replace("{version}", $manifest.Version).Replace("{key}", $profile.key)
         $expectedPext = Get-ExpectedPextName -AddonId $manifest.Id -Version $manifest.Version
         $expectedPackageUrl = "$($profile.releaseBaseUrl)/$tag/$expectedPext"

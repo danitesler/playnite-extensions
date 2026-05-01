@@ -149,7 +149,7 @@ try {
     & $ToolboxExe pack $buildOutput $releaseDrop
 
     $expectedPext = Get-ExpectedPextName -AddonId $manifest.Id -Version $version
-    $tagPattern = if ($profile.tagPattern) { $profile.tagPattern } else { "v{version}" }
+    $tagPattern = if ($profile.tagPattern) { $profile.tagPattern } else { "{key}-v{version}" }
     $tag = $tagPattern.Replace("{version}", $version).Replace("{key}", $profile.key)
     $expectedPackageUrl = "$($profile.releaseBaseUrl)/$tag/$expectedPext"
 

@@ -18,7 +18,7 @@ param(
     [string]$SourceUrl = "",
     [string]$RawBaseUrl = "",
     [string]$ReleaseBaseUrl = "",
-    [string]$TagPattern = "{key}/v{version}"
+    [string]$TagPattern = "{key}-v{version}"
 )
 
 $ErrorActionPreference = "Stop"
