@@ -79,14 +79,14 @@ if (Test-Path $installerPath) {
         Add-ValidationError $errors "Installer RequiredApiVersion '$installerRequiredApi' does not match profile requiredApiVersion '$($profile.requiredApiVersion)'."
     }
 
-    if ($profile.rawBaseUrl) {
+    if ($profile.rawBaseUrl -and $installerManifestUrl) {
         $expectedInstallerUrl = "$($profile.rawBaseUrl)/$($profile.installerManifest)"
         if ($installerManifestUrl -ne $expectedInstallerUrl) {
             Add-ValidationError $errors "InstallerManifestUrl '$installerManifestUrl' does not match expected '$expectedInstallerUrl'."
         }
     }
 
-    if ($profile.sourceUrl -and $sourceUrl -ne $profile.sourceUrl) {
+    if ($profile.sourceUrl -and $sourceUrl -and $sourceUrl -ne $profile.sourceUrl) {
         Add-ValidationError $errors "SourceUrl '$sourceUrl' does not match profile sourceUrl '$($profile.sourceUrl)'."
     }
 

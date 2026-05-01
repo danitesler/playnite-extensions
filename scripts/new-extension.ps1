@@ -172,21 +172,13 @@ Links:
 
 @"
 AddonId: $AddonId
-Type: $databaseType
-Name: $Name
-Author: $Author
-ShortDescription: "$Description"
-InstallerManifestUrl: $installerUrl
-SourceUrl: $source
-Description: |
-  $Description
 Packages:
   - Version: $Version
     RequiredApiVersion: $RequiredApiVersion
     ReleaseDate: $((Get-Date).ToString("yyyy-MM-dd"))
     PackageUrl: $packageUrl
     Changelog:
-      - Initial release.
+      - Initial release
 "@ | Set-Content -Path (Join-Path $repoRoot $installerPath) -Encoding UTF8
 
 @"

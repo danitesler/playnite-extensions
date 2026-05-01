@@ -35,6 +35,13 @@ From repo root (PowerShell), using the extension **key** from **`src\extensions.
 - **Per-run drop:** **`artifacts\releases\<key>\`** — release zip (**`extension.yaml`** + primary **`.dll`**) and Toolbox-generated **`.pext`**
 - **Installer manifest:** **`src\<PluginName>\info\InstallerManifest.yaml`** — must stay aligned with **`extension.yaml`** (especially **`AddonId`**, **`Packages[].Version`**, **`PackageUrl`**, **`RequiredApiVersion`**, **`ReleaseDate`**, **`Changelog`**) when you cut a release. **`PackageUrl`** must eventually point at the published **`.pext`**.
 
+### Installer manifest — minimal shape (Apollo-style, all add-ons)
+
+Ship **`InstallerManifest.yaml`** as a **thin** file: **`AddonId`** plus **`Packages`** only (same idea as [Apollo Sync `manifest.yaml`](https://github.com/sharkusmanch/playnite-apollo-sync/blob/master/manifest.yaml)).
+
+- **Do not** duplicate marketing or discovery fields here (**`Type`**, **`Name`**, **`Author`**, **`ShortDescription`**, long **`Description`**, **`InstallerManifestUrl`**, **`SourceUrl`**). Those belong in **`extension.yaml`**, the add-on database YAML (**`danitesler_<key>.yaml`**), and **`README`** as appropriate.
+- **`Changelog`** entries: short **`-`** bullets per line (no need to repeat the semver prefix on every line unless it helps readers).
+
 ### Installer manifest — cumulative `Packages` (all add-ons)
 
 When adding or editing **`InstallerManifest.yaml`** for **any** extension in **`src/extensions.json`**:
