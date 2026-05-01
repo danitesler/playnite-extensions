@@ -66,6 +66,8 @@ namespace GameHoverDetails
         }
 
         /// <summary>UI binding for "Enable hover details" (inverse of <see cref="HoverDisabled"/>).</summary>
+        /// <remarks>Not serialized — persists via <see cref="HoverDisabled"/> only. Dual properties deserialize in arbitrary order and could corrupt the backing field.</remarks>
+        [DontSerialize]
         public bool HoverDetailsEnabled
         {
             get => !hoverDisabled;
@@ -80,6 +82,8 @@ namespace GameHoverDetails
         }
 
         /// <summary>UI binding for "Show field titles in hover".</summary>
+        /// <remarks>Not serialized — persists via <see cref="HideFieldTitlesInHover"/> only.</remarks>
+        [DontSerialize]
         public bool HoverTitlesInHover
         {
             get => !hideFieldTitlesInHover;
@@ -115,6 +119,7 @@ namespace GameHoverDetails
             }
         }
 
+        [DontSerialize]
         public int SelectedFieldCount => selectedFieldKeys.Count;
 
         internal IPlayniteAPI TryGetPlayniteApi() => plugin?.GetPlayniteApi();
@@ -127,7 +132,7 @@ namespace GameHoverDetails
             : this()
         {
             this.plugin = plugin ?? throw new System.ArgumentNullException(nameof(plugin));
-            var saved = plugin.LoadPluginSettings<GameHoverDetailsSettings>();
+            var saved = plugin.LoadPluginSettings<GameHoverDetailsPersistedState>();
             if (saved != null)
             {
                 hoverWidth = ClampWidth(saved.HoverWidth);
@@ -236,10 +241,9 @@ namespace GameHoverDetails
                 return true;
             }
 
-            if (!disabledFieldKeysOrder.Remove(key))
-            {
-                return false;
-            }
+            // Key is not selected; it should appear in the disabled pool after Coalesce, but tolerate
+            // legacy or inconsistent state (still list it in GetAddableKeys) instead of failing the add.
+            disabledFieldKeysOrder.Remove(key);
 
             var ins = System.Math.Max(0, System.Math.Min(enabledInsertIndex, selectedFieldKeys.Count));
             selectedFieldKeys.Insert(ins, key);
@@ -304,7 +308,22 @@ namespace GameHoverDetails
             HoverFieldBlockSpacingDip = ClampFieldBlockSpacingDip(HoverFieldBlockSpacingDip);
             SelectedFieldKeys = NormalizeKeys(SelectedFieldKeys);
             CoalesceDisabledOrder();
-            plugin.SavePluginSettings(this);
+            plugin.SavePluginSettings(ToPersistedState());
+        }
+
+        private GameHoverDetailsPersistedState ToPersistedState()
+        {
+            return new GameHoverDetailsPersistedState
+            {
+                HoverWidth = HoverWidth,
+                ShowDelayMs = ShowDelayMs,
+                HoverFieldBlockSpacingDip = HoverFieldBlockSpacingDip,
+                HoverDisabled = HoverDisabled,
+                HideFieldTitlesInHover = HideFieldTitlesInHover,
+                ShowFieldInlineIconsInHover = ShowFieldInlineIconsInHover,
+                SelectedFieldKeys = new List<string>(SelectedFieldKeys),
+                DisabledFieldKeysOrder = new List<string>(DisabledFieldKeysOrder)
+            };
         }
 
         public bool VerifySettings(out List<string> errors)

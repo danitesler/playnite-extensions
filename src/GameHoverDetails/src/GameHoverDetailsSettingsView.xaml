@@ -5,11 +5,32 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              d:DesignHeight="520" d:DesignWidth="760"
+             DataContextChanged="UserControl_DataContextChanged"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded">
     <UserControl.Resources>
         <FontFamily x:Key="HoverFieldIconFont">Segoe MDL2 Assets</FontFamily>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <Style x:Key="HoverPreviewFieldLabel" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Foreground" Value="#98989D" />
+            <Setter Property="LineHeight" Value="14" />
+            <Setter Property="Typography.Capitals" Value="AllSmallCaps" />
+        </Style>
+        <!-- Playnite themes often give ItemsControl a ScrollViewer; override so the Fields list only scrolls on the outer RootScrollViewer. -->
+        <Style x:Key="FieldsListNonScrollingItemsControlStyle" TargetType="ItemsControl">
+            <Setter Property="OverridesDefaultStyle" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <StackPanel IsItemsHost="True"
+                                    Focusable="False"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -37,7 +58,7 @@
                            Opacity="0.75"
                            FontSize="11.5"
                            LineHeight="16"
-                           Text="Choose whether text rows show the field name (for example Publisher) and a small catalog icon beside the value. Cover, background, small tile art, and platform logo strips are not affected." />
+                           Text="Row titles and catalog icons beside values (game-art and platform rows unchanged)." />
                 <CheckBox Content="Show titles"
                           Foreground="{DynamicResource TextBrush}"
                           IsChecked="{Binding HoverTitlesInHover, Mode=TwoWay}" />
@@ -55,7 +76,7 @@
                            Opacity="0.75"
                            FontSize="11.5"
                            LineHeight="16"
-                           Text="How long the pointer rests on a game before the hover opens, how wide the panel is, and how much vertical space sits between each field block in the hover." />
+                           Text="Open delay, panel width, and vertical gap between field blocks." />
                 <Label Margin="0,0,0,4"
                        Content="Tooltip appear delay"
                        Foreground="{DynamicResource TextBrush}" />
@@ -102,7 +123,7 @@
                            Opacity="0.75"
                            FontSize="11.5"
                            LineHeight="16"
-                           Text="Top to bottom in the tooltip. ↑ / ↓ reorder, Remove removes a row, then choose a field below to add." />
+                           Text="Tooltip order top→bottom; ↑↓ reorder, Remove row; Add field stays open for multiple picks." />
 
                 <Border Padding="10,10,10,12"
                         HorizontalAlignment="Stretch"
@@ -110,25 +131,63 @@
                         CornerRadius="3"
                         BorderBrush="#5C5C64">
                     <StackPanel>
-                        <ListBox x:Name="FieldsList"
-                                 MinHeight="120"
-                                 MaxHeight="240"
-                                 Padding="0"
-                                 Margin="0"
-                                 HorizontalAlignment="Stretch"
-                                 HorizontalContentAlignment="Stretch"
-                                 SelectionMode="Single"
-                                 Foreground="{DynamicResource TextBrush}"
-                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                 VirtualizingStackPanel.IsVirtualizing="False">
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem">
-                                    <Setter Property="Padding" Value="2,4,4,4" />
-                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                                    <Setter Property="Margin" Value="0" />
+                        <Label Margin="0,0,0,4"
+                               Content="Add a field"
+                               Foreground="{DynamicResource TextBrush}" />
+                        <ComboBox x:Name="AddFieldCombo"
+                                  HorizontalContentAlignment="Left"
+                                  HorizontalAlignment="Stretch"
+                                  MinHeight="32"
+                                  Margin="0,0,0,12"
+                                  Foreground="{DynamicResource TextBrush}"
+                                  DropDownClosed="AddFieldCombo_DropDownClosed"
+                                  PreviewKeyDown="AddFieldCombo_PreviewKeyDown">
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem">
+                                    <EventSetter Event="PreviewMouseLeftButtonDown"
+                                                 Handler="AddFieldComboItem_PreviewMouseLeftButtonDown" />
+                                    <EventSetter Event="PreviewMouseLeftButtonUp"
+                                                 Handler="AddFieldComboItem_PreviewMouseLeftButtonUp" />
                                 </Style>
-                            </ListBox.ItemContainerStyle>
-                            <ListBox.ItemTemplate>
+                            </ComboBox.ItemContainerStyle>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid MinHeight="26">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontFamily="{StaticResource HoverFieldIconFont}"
+                                                   FontSize="15"
+                                                   Foreground="{DynamicResource TextBrush}"
+                                                   Opacity="0.92"
+                                                   Text="{Binding SettingsGlyph}" />
+                                        <TextBlock Grid.Column="1"
+                                                   VerticalAlignment="Center"
+                                                   Margin="8,0,0,0"
+                                                   Foreground="{DynamicResource TextBrush}"
+                                                   Text="{Binding DisplayName}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <ItemsControl x:Name="FieldsList"
+                                      Style="{StaticResource FieldsListNonScrollingItemsControlStyle}"
+                                      Margin="0"
+                                      Padding="0"
+                                      HorizontalAlignment="Stretch"
+                                      Foreground="{DynamicResource TextBrush}">
+                            <ItemsControl.ItemContainerStyle>
+                                <Style TargetType="ContentPresenter">
+                                    <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                </Style>
+                            </ItemsControl.ItemContainerStyle>
+                            <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Grid Margin="0,2">
                                         <Grid.ColumnDefinitions>
@@ -177,71 +236,42 @@
                                         </StackPanel>
                                     </Grid>
                                 </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-
-                        <Label Margin="0,14,0,4"
-                               Content="Add a field"
-                               Foreground="{DynamicResource TextBrush}" />
-                        <ComboBox x:Name="AddFieldCombo"
-                                  HorizontalContentAlignment="Left"
-                                  HorizontalAlignment="Stretch"
-                                  MinHeight="32"
-                                  Foreground="{DynamicResource TextBrush}"
-                                  SelectionChanged="AddFieldCombo_SelectionChanged">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid MinHeight="26">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="26" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   FontFamily="{StaticResource HoverFieldIconFont}"
-                                                   FontSize="15"
-                                                   Foreground="{DynamicResource TextBrush}"
-                                                   Opacity="0.92"
-                                                   Text="{Binding SettingsGlyph}" />
-                                        <TextBlock Grid.Column="1"
-                                                   VerticalAlignment="Center"
-                                                   Margin="8,0,0,0"
-                                                   Foreground="{DynamicResource TextBrush}"
-                                                   Text="{Binding DisplayName}"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Live preview: Display + Timing & size (width, delay, spacing, titles, icons, enable) -->
+        <!-- Live preview: Display + Timing & size (width, spacing, titles, icons, enable) -->
         <StackPanel Grid.Column="1"
-                    Margin="8,16,16,16"
-                    VerticalAlignment="Top">
+                    Margin="6,16,8,16"
+                    VerticalAlignment="Top"
+                    ClipToBounds="False">
             <TextBlock Text="Preview"
                        Foreground="{DynamicResource TextBrush}"
                        FontWeight="SemiBold"
                        Margin="0,0,0,8" />
-            <TextBlock Margin="0,0,0,10"
-                       Foreground="{DynamicResource TextBrush}"
-                       Opacity="0.8"
-                       FontSize="11"
-                       Text="{Binding ShowDelayMs, StringFormat='Delay {0} ms'}" />
 
             <Border HorizontalAlignment="Left"
                     MinWidth="120"
                     MaxWidth="216"
                     Width="{Binding HoverWidth}"
-                    CornerRadius="4"
+                    CornerRadius="8"
                     BorderThickness="1"
-                    BorderBrush="#646468"
+                    BorderBrush="#48484E"
                     Background="#1C1C1E"
-                    Padding="12,10">
+                    Padding="14,12"
+                    Margin="0,0,4,0"
+                    UseLayoutRounding="True"
+                    SnapsToDevicePixels="True">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="14"
+                                      ShadowDepth="2"
+                                      Opacity="0.32"
+                                      Direction="270"
+                                      Color="Black" />
+                </Border.Effect>
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Opacity" Value="1" />
@@ -255,48 +285,167 @@
                 <ItemsControl x:Name="PreviewFieldsList">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="{Binding OuterMargin}"
-                                    Background="Transparent">
+                            <Border Background="Transparent"
+                                    Margin="{Binding ContentBlockMargin}">
                                 <StackPanel>
-                                    <TextBlock FontWeight="SemiBold"
-                                               FontSize="12"
-                                               Foreground="White"
-                                               Margin="0,0,0,4"
-                                               Text="{Binding DisplayName}"
-                                               Visibility="{Binding DataContext.HoverTitlesInHover, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}" />
-                                    <Grid>
+                                    <Border Height="1"
+                                            Margin="{Binding SeparatorMargin}"
+                                            Background="#3C3C40"
+                                            Visibility="{Binding ShowTopSeparator, Converter={StaticResource BoolToVis}}" />
+
+                                    <!-- Game art (stacked); hidden when Icon is the only field — hover uses name beside icon. -->
+                                    <StackPanel Margin="{Binding ContinuationRowOutermostMargin}"
+                                                Visibility="{Binding ShowArtVerticalStack, Converter={StaticResource BoolToVis}}">
+                                        <Image Stretch="Uniform"
+                                               HorizontalAlignment="Left"
+                                               MaxWidth="{Binding PreviewArtMaxWidth}"
+                                               MaxHeight="{Binding PreviewArtMaxHeight}"
+                                               Source="{Binding PreviewArt}" />
+                                        <TextBlock Margin="0,4,0,0"
+                                                   FontSize="13"
+                                                   Foreground="#E6E6E6"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   LineHeight="18"
+                                                   MaxHeight="54"
+                                                   ClipToBounds="True"
+                                                   Text="{Binding SampleValue}"
+                                                   Visibility="{Binding ShowSampleText, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+
+                                    <!-- Icon-only + art: game name beside icon (matches hover vertical alignment). -->
+                                    <Grid Margin="{Binding ContinuationRowOutermostMargin}"
+                                          Visibility="{Binding ShowIconBesideGameNameRow, Converter={StaticResource BoolToVis}}">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="22" />
+                                            <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   FontFamily="{StaticResource HoverFieldIconFont}"
-                                                   FontSize="14"
-                                                   Foreground="#D2D2D8"
-                                                   VerticalAlignment="Top"
-                                                   Margin="0,1,6,0"
-                                                   Text="{Binding GlyphText}"
-                                                   Visibility="{Binding ShowInlineGlyph, Converter={StaticResource BoolToVis}}" />
-                                        <StackPanel Grid.Column="{Binding ValueContentColumn}"
-                                                    Grid.ColumnSpan="{Binding ValueContentColumnSpan}">
+                                        <Image Grid.Column="0"
+                                               Width="40"
+                                               Height="40"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Left"
+                                               Stretch="Uniform"
+                                               MaxWidth="{Binding PreviewArtMaxWidth}"
+                                               MaxHeight="{Binding PreviewArtMaxHeight}"
+                                               Source="{Binding PreviewArt}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Margin="10,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="13"
+                                                   Foreground="#E6E6E6"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   LineHeight="18"
+                                                   MaxHeight="54"
+                                                   MaxWidth="{Binding BesideIconNameMaxWidth}"
+                                                   ClipToBounds="True"
+                                                   Text="{Binding BesideIconGameName}" />
+                                    </Grid>
+
+                                    <!-- Title + icon + value (stat row) -->
+                                    <Grid Margin="{Binding ContinuationRowOutermostMargin}"
+                                          Visibility="{Binding ShowStatRowLayout, Converter={StaticResource BoolToVis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="32" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0"
+                                                Width="32"
+                                                Height="32"
+                                                CornerRadius="16"
+                                                Background="#3A3A3E"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock FontFamily="{StaticResource HoverFieldIconFont}"
+                                                       FontSize="15"
+                                                       Foreground="#D2D2D8"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Text="{Binding GlyphText}" />
+                                        </Border>
+                                        <StackPanel Grid.Column="1"
+                                                    Margin="10,0,0,0">
+                                            <TextBlock Margin="0,0,0,4"
+                                                       Style="{StaticResource HoverPreviewFieldLabel}"
+                                                       MaxWidth="{Binding StatTextMaxWidth}"
+                                                       Text="{Binding DisplayName}" />
                                             <TextBlock FontSize="13"
                                                        Foreground="#E6E6E6"
                                                        TextWrapping="Wrap"
                                                        TextTrimming="CharacterEllipsis"
                                                        LineHeight="18"
                                                        MaxHeight="54"
+                                                       MaxWidth="{Binding StatTextMaxWidth}"
                                                        ClipToBounds="True"
                                                        Text="{Binding SampleValue}"
                                                        Visibility="{Binding ShowSampleText, Converter={StaticResource BoolToVis}}" />
-                                            <Image Stretch="Uniform"
-                                                   HorizontalAlignment="Left"
-                                                   MaxWidth="{Binding PreviewArtMaxWidth}"
-                                                   MaxHeight="{Binding PreviewArtMaxHeight}"
-                                                   Margin="0,2,0,0"
-                                                   Source="{Binding PreviewArt}"
-                                                   Visibility="{Binding ShowPreviewArt, Converter={StaticResource BoolToVis}}" />
                                         </StackPanel>
                                     </Grid>
+
+                                    <!-- Title + value (no icon) -->
+                                    <StackPanel Visibility="{Binding ShowTitleBodyNoIconLayout, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Margin="{Binding PreviewFieldTitleMargin}"
+                                                   Style="{StaticResource HoverPreviewFieldLabel}"
+                                                   Text="{Binding DisplayName}" />
+                                        <TextBlock FontSize="13"
+                                                   Foreground="#E6E6E6"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   LineHeight="18"
+                                                   MaxHeight="54"
+                                                   ClipToBounds="True"
+                                                   Text="{Binding SampleValue}"
+                                                   Visibility="{Binding ShowSampleText, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+
+                                    <!-- Icon chip + value (no title) -->
+                                    <Grid Margin="{Binding ContinuationRowOutermostMargin}"
+                                          Visibility="{Binding ShowChipValueNoTitleLayout, Converter={StaticResource BoolToVis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="32" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0"
+                                                Width="32"
+                                                Height="32"
+                                                CornerRadius="16"
+                                                Background="#3A3A3E"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Left">
+                                            <TextBlock FontFamily="{StaticResource HoverFieldIconFont}"
+                                                       FontSize="15"
+                                                       Foreground="#D2D2D8"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       Text="{Binding GlyphText}" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1"
+                                                   Margin="10,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="13"
+                                                   Foreground="#E6E6E6"
+                                                   TextWrapping="Wrap"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   LineHeight="18"
+                                                   MaxHeight="54"
+                                                   MaxWidth="{Binding StatTextMaxWidth}"
+                                                   ClipToBounds="True"
+                                                   Text="{Binding SampleValue}"
+                                                   Visibility="{Binding ShowSampleText, Converter={StaticResource BoolToVis}}" />
+                                    </Grid>
+
+                                    <!-- Value only -->
+                                    <TextBlock Margin="{Binding ContinuationRowOutermostMargin}"
+                                               FontSize="13"
+                                               Foreground="#E6E6E6"
+                                               TextWrapping="Wrap"
+                                               TextTrimming="CharacterEllipsis"
+                                               LineHeight="18"
+                                               MaxHeight="54"
+                                               ClipToBounds="True"
+                                               Text="{Binding SampleValue}"
+                                               Visibility="{Binding ShowValueOnlyLayout, Converter={StaticResource BoolToVis}}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

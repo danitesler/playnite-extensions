@@ -70,6 +70,23 @@ namespace GameHoverDetails
             header.MaxWidth = innerMax;
         }
 
+        /// <summary>
+        /// Muted field title (hover + settings preview): small caps, secondary color.
+        /// </summary>
+        public static void ConfigureFieldLabelTextBlock(TextBlock label, double innerMax)
+        {
+            label.FontWeight = FontWeights.Normal;
+            label.FontSize = 10.5;
+            label.Foreground = new SolidColorBrush(Color.FromRgb(152, 152, 157));
+            label.LineHeight = 14;
+            label.MaxHeight = label.LineHeight * MaxValueLines;
+            label.TextWrapping = TextWrapping.Wrap;
+            label.TextTrimming = TextTrimming.CharacterEllipsis;
+            label.ClipToBounds = true;
+            label.MaxWidth = innerMax;
+            Typography.SetCapitals(label, FontCapitals.AllSmallCaps);
+        }
+
         public static void SetHeaderText(TextBlock header, string label, double innerMax)
         {
             var text = label ?? string.Empty;

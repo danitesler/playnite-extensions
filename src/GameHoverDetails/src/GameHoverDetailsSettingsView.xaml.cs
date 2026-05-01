@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +18,13 @@ namespace GameHoverDetails
 
         private GameHoverDetailsSettings boundSettings;
         private bool suppressAddComboSelectionChanged;
+        /// <summary>Set when an add was triggered from item PreviewMouseDown so matching PreviewMouseUp does not dismiss the dropdown.</summary>
+        private bool addFieldComboItemHandledMouseDown;
+        private bool fieldsListWheelHooked;
         private Game previewSampleGame;
+
+        /// <summary>Stable ItemsSource for Add field — sync in place so the open dropdown does not close/reopen on each add.</summary>
+        private readonly ObservableCollection<AddFieldOption> addFieldComboItems = new ObservableCollection<AddFieldOption>();
 
         private sealed class AddFieldOption
         {
@@ -59,16 +66,31 @@ namespace GameHoverDetails
                 string sampleValue,
                 string glyphText,
                 bool showInlineGlyph,
-                Thickness outerMargin,
+                bool showFieldTitleRow,
+                bool showTopSeparator,
+                double separatorPadDip,
+                bool isLastBlock,
+                double fieldBlockSpacingDip,
                 ImageSource previewArt,
-                double previewInnerContentWidthDip)
+                double previewInnerContentWidthDip,
+                bool showIconBesideGameName,
+                string besideIconGameName)
             {
                 DisplayName = displayName;
                 SampleValue = sampleValue ?? string.Empty;
                 GlyphText = glyphText;
                 ShowInlineGlyph = showInlineGlyph;
-                OuterMargin = outerMargin;
+                ShowFieldTitleRow = showFieldTitleRow;
+                ShowTopSeparator = showTopSeparator;
+                SeparatorPadDip = separatorPadDip;
+                ContentBlockMargin = new Thickness(0, 0, 0, isLastBlock ? 0 : fieldBlockSpacingDip * 0.5);
                 PreviewArt = previewArt;
+                ShowIconBesideGameName = showIconBesideGameName;
+                BesideIconGameName = besideIconGameName ?? string.Empty;
+                BesideIconNameMaxWidth = showIconBesideGameName
+                    ? System.Math.Max(48.0, previewInnerContentWidthDip - 40.0 - 10.0)
+                    : 0;
+                StatTextMaxWidth = System.Math.Max(48.0, previewInnerContentWidthDip - 32.0 - 10.0);
                 if (previewArt != null)
                 {
                     switch (fieldKey)
@@ -93,16 +115,44 @@ namespace GameHoverDetails
             public string SampleValue { get; }
             public string GlyphText { get; }
             public bool ShowInlineGlyph { get; }
-            public Thickness OuterMargin { get; }
+            /// <summary>Title row matches hover: off for game-art keys (Icon, cover, background).</summary>
+            public bool ShowFieldTitleRow { get; }
+            public bool ShowTopSeparator { get; }
+            public double SeparatorPadDip { get; }
+            /// <summary>Bottom half-inset after each block (pairs with separator + next block top half); zero on last row (matches hover after <c>TrimLastContentBottomMargin</c>).</summary>
+            public Thickness ContentBlockMargin { get; }
+            public Thickness SeparatorMargin => new Thickness(0, SeparatorPadDip, 0, SeparatorPadDip);
             public ImageSource PreviewArt { get; }
             public bool ShowPreviewArt => PreviewArt != null;
             public bool ShowSampleText => !ShowPreviewArt || !string.IsNullOrWhiteSpace(SampleValue);
             public double PreviewArtMaxWidth { get; }
             public double PreviewArtMaxHeight { get; }
+            public double StatTextMaxWidth { get; }
+            /// <summary>When Icon is the only selected field and art loads, hover shows game name beside the icon (vertically centered).</summary>
+            public bool ShowIconBesideGameName { get; }
+            public string BesideIconGameName { get; }
+            public double BesideIconNameMaxWidth { get; }
+            public bool ShowArtVerticalStack => ShowPreviewArt && !ShowIconBesideGameName;
+            public bool ShowIconBesideGameNameRow => ShowIconBesideGameName;
 
-            /// <summary>Game art in the real hover is full inner width; no 22px glyph gutter.</summary>
-            public int ValueContentColumn => ShowPreviewArt ? 0 : 1;
-            public int ValueContentColumnSpan => ShowPreviewArt ? 2 : 1;
+            public bool ShowStatRowLayout => !ShowPreviewArt && ShowFieldTitleRow && ShowInlineGlyph;
+
+            public bool ShowTitleBodyNoIconLayout => !ShowPreviewArt && ShowFieldTitleRow && !ShowInlineGlyph;
+
+            public bool ShowChipValueNoTitleLayout => !ShowPreviewArt && !ShowFieldTitleRow && ShowInlineGlyph;
+
+            public bool ShowValueOnlyLayout => !ShowPreviewArt && !ShowFieldTitleRow && !ShowInlineGlyph;
+
+            private const double FieldTitleToValueGapDip = 4;
+
+            /// <summary>Muted title row: after a separator, top padding matches hover <c>AppendTextDetailInner</c> label <c>topInset</c> (half of field spacing).</summary>
+            public Thickness PreviewFieldTitleMargin =>
+                new Thickness(0, ShowTopSeparator ? SeparatorPadDip : 0, 0, FieldTitleToValueGapDip);
+
+            /// <summary>Stat/chip row: whole grid gets top inset after a divider (hover applies <c>topInset</c> on the outer grid).</summary>
+            public Thickness ContinuationRowOutermostMargin =>
+                new Thickness(0, ShowTopSeparator ? SeparatorPadDip : 0, 0, 0);
+
         }
 
         public GameHoverDetailsSettingsView()
@@ -112,19 +162,37 @@ namespace GameHoverDetails
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            if (FieldsList != null)
+            if (FieldsList != null && !fieldsListWheelHooked)
             {
                 FieldsList.PreviewMouseWheel += FieldsList_PreviewMouseWheel;
+                fieldsListWheelHooked = true;
             }
 
-            boundSettings = DataContext as GameHoverDetailsSettings;
-            if (boundSettings == null)
+            TryAttachSettings();
+        }
+
+        private void UserControl_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TryAttachSettings();
+        }
+
+        /// <summary>Subscribe to settings and refresh lists; safe if <see cref="DataContext"/> is set after <see cref="UserControl.Loaded"/>.</summary>
+        private void TryAttachSettings()
+        {
+            if (boundSettings != null)
+            {
+                boundSettings.PropertyChanged -= BoundSettingsOnPropertyChanged;
+                boundSettings = null;
+            }
+
+            var s = DataContext as GameHoverDetailsSettings;
+            if (s == null)
             {
                 return;
             }
 
-            boundSettings.PropertyChanged -= BoundSettingsOnPropertyChanged;
-            boundSettings.PropertyChanged += BoundSettingsOnPropertyChanged;
+            boundSettings = s;
+            s.PropertyChanged += BoundSettingsOnPropertyChanged;
             TryPickPreviewSampleGame();
             RefreshFieldsList();
             RefreshAddCombo();
@@ -133,9 +201,10 @@ namespace GameHoverDetails
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            if (FieldsList != null)
+            if (FieldsList != null && fieldsListWheelHooked)
             {
                 FieldsList.PreviewMouseWheel -= FieldsList_PreviewMouseWheel;
+                fieldsListWheelHooked = false;
             }
 
             if (boundSettings != null)
@@ -149,12 +218,12 @@ namespace GameHoverDetails
 
         private void FieldsList_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (RootScrollViewer == null || !(sender is ListBox listBox))
+            if (RootScrollViewer == null || !(sender is FrameworkElement listHost))
             {
                 return;
             }
 
-            var inner = FindVisualChild<ScrollViewer>(listBox);
+            var inner = FindVisualChild<ScrollViewer>(listHost);
             if (inner == null || inner.ScrollableHeight <= InnerScrollEpsilon)
             {
                 var delta = e.Delta;
@@ -210,23 +279,26 @@ namespace GameHoverDetails
 
             var spacing = (double)System.Math.Max(4, System.Math.Min(36, boundSettings.HoverFieldBlockSpacingDip));
             var showGlyph = boundSettings.ShowFieldInlineIconsInHover;
+            var showTitles = boundSettings.HoverTitlesInHover;
             var api = boundSettings.TryGetPlayniteApi();
             var game = previewSampleGame;
             var previewChromeWidth = System.Math.Min(216, System.Math.Max(120, boundSettings.HoverWidth));
-            var previewInnerContentWidth = System.Math.Max(48.0, previewChromeWidth - 24.0);
+            const double chromeHorizontalPadding = 28.0;
+            var previewInnerContentWidth = System.Math.Max(48.0, previewChromeWidth - chromeHorizontalPadding);
+            var separatorPad = spacing * 0.5;
             var rows = new List<PreviewFieldRow>();
-            var index = 0;
-            foreach (var key in boundSettings.SelectedFieldKeys)
+            var keyList = boundSettings.SelectedFieldKeys.Where(HoverFieldCatalog.IsKnownKey).ToList();
+            var iconOnlyBesideName = keyList.Count == 1 && keyList[0] == "Icon";
+            for (var i = 0; i < keyList.Count; i++)
             {
-                if (!HoverFieldCatalog.IsKnownKey(key))
-                {
-                    continue;
-                }
+                var key = keyList[i];
+                var isLastBlock = i == keyList.Count - 1;
 
                 var displayName = HoverFieldCatalog.GetDisplayName(key);
                 var glyph = HoverFieldCatalog.GetSettingsGlyph(key);
                 var inline = showGlyph && !HoverFieldCatalog.IsGameArtImageField(key);
-                var margin = index == 0 ? new Thickness(0) : new Thickness(0, spacing, 0, 0);
+                var showFieldTitleRow = showTitles && !HoverFieldCatalog.IsGameArtImageField(key);
+                var showTopSeparator = i > 0;
 
                 string sample;
                 ImageSource art = null;
@@ -256,8 +328,28 @@ namespace GameHoverDetails
                     sample = HoverPreviewSampleText.ForKey(key);
                 }
 
-                rows.Add(new PreviewFieldRow(key, displayName, sample, glyph, inline, margin, art, previewInnerContentWidth));
-                index++;
+                var showBesideName = iconOnlyBesideName && key == "Icon" && art != null;
+                var besideName = !showBesideName
+                    ? string.Empty
+                    : game != null
+                        ? HoverFieldFormatter.Format("Name", game, api)
+                        : HoverPreviewSampleText.ForKey("Name");
+
+                rows.Add(new PreviewFieldRow(
+                    key,
+                    displayName,
+                    sample,
+                    glyph,
+                    inline,
+                    showFieldTitleRow,
+                    showTopSeparator,
+                    separatorPad,
+                    isLastBlock,
+                    spacing,
+                    art,
+                    previewInnerContentWidth,
+                    showBesideName,
+                    besideName));
             }
 
             PreviewFieldsList.ItemsSource = rows;
@@ -395,16 +487,52 @@ namespace GameHoverDetails
                 return;
             }
 
+            if (!ReferenceEquals(AddFieldCombo.ItemsSource, addFieldComboItems))
+            {
+                AddFieldCombo.ItemsSource = addFieldComboItems;
+            }
+
             suppressAddComboSelectionChanged = true;
             try
             {
-                var options = boundSettings.GetAddableKeys()
+                var desired = boundSettings.GetAddableKeys()
                     .Select(k => new AddFieldOption(k, HoverFieldCatalog.GetDisplayName(k)))
                     .OrderBy(o => o.DisplayName, StringComparer.CurrentCultureIgnoreCase)
                     .ToList();
-                AddFieldCombo.ItemsSource = options;
+
+                var desiredKeys = new HashSet<string>(desired.Select(o => o.Key));
+                for (var i = addFieldComboItems.Count - 1; i >= 0; i--)
+                {
+                    if (!desiredKeys.Contains(addFieldComboItems[i].Key))
+                    {
+                        addFieldComboItems.RemoveAt(i);
+                    }
+                }
+
+                var currentKeys = new HashSet<string>(addFieldComboItems.Select(o => o.Key));
+                foreach (var opt in desired)
+                {
+                    if (currentKeys.Contains(opt.Key))
+                    {
+                        continue;
+                    }
+
+                    var insert = 0;
+                    while (insert < addFieldComboItems.Count &&
+                           string.Compare(
+                               addFieldComboItems[insert].DisplayName,
+                               opt.DisplayName,
+                               StringComparison.CurrentCultureIgnoreCase) < 0)
+                    {
+                        insert++;
+                    }
+
+                    addFieldComboItems.Insert(insert, opt);
+                    currentKeys.Add(opt.Key);
+                }
+
                 AddFieldCombo.SelectedIndex = -1;
-                AddFieldCombo.IsEnabled = options.Count > 0;
+                AddFieldCombo.IsEnabled = addFieldComboItems.Count > 0;
             }
             finally
             {
@@ -412,9 +540,17 @@ namespace GameHoverDetails
             }
         }
 
-        private void AddFieldCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        /// <summary>
+        /// Add from keyboard without using <see cref="ComboBox.SelectionChanged"/> (that path closes the popup).
+        /// </summary>
+        private void AddFieldCombo_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (suppressAddComboSelectionChanged || boundSettings == null)
+            if (suppressAddComboSelectionChanged || boundSettings == null || AddFieldCombo == null || !AddFieldCombo.IsDropDownOpen)
+            {
+                return;
+            }
+
+            if (e.Key != Key.Return && e.Key != Key.Enter)
             {
                 return;
             }
@@ -424,26 +560,86 @@ namespace GameHoverDetails
                 return;
             }
 
+            TryAddFieldFromCombo(opt);
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// Intercept item clicks before the ComboBox applies selection and closes the dropdown (avoids flicker).
+        /// </summary>
+        private void AddFieldComboItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (suppressAddComboSelectionChanged || boundSettings == null || AddFieldCombo == null)
+            {
+                return;
+            }
+
+            if (!(sender is ComboBoxItem item) || !(item.Content is AddFieldOption opt))
+            {
+                return;
+            }
+
+            addFieldComboItemHandledMouseDown = true;
+            TryAddFieldFromCombo(opt);
+            e.Handled = true;
+        }
+
+        private void AddFieldComboItem_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (!addFieldComboItemHandledMouseDown)
+            {
+                return;
+            }
+
+            addFieldComboItemHandledMouseDown = false;
+            e.Handled = true;
+        }
+
+        private void AddFieldCombo_DropDownClosed(object sender, EventArgs e)
+        {
+            addFieldComboItemHandledMouseDown = false;
+        }
+
+        /// <summary>
+        /// WPF often closes the dropdown when <see cref="RefreshAddCombo"/> removes the picked row from <see cref="addFieldComboItems"/>.
+        /// Reopen after layout so multiple fields can be added without reopening the menu.
+        /// </summary>
+        private void ScheduleReopenAddFieldDropDownIfNeeded()
+        {
+            if (AddFieldCombo == null)
+            {
+                return;
+            }
+
+            void Reopen()
+            {
+                if (AddFieldCombo == null || addFieldComboItems.Count == 0 || !AddFieldCombo.IsEnabled)
+                {
+                    return;
+                }
+
+                AddFieldCombo.IsDropDownOpen = true;
+            }
+
+            AddFieldCombo.Dispatcher.BeginInvoke((Action)Reopen, DispatcherPriority.Loaded);
+            AddFieldCombo.Dispatcher.BeginInvoke((Action)Reopen, DispatcherPriority.ApplicationIdle);
+        }
+
+        private void TryAddFieldFromCombo(AddFieldOption opt)
+        {
+            if (boundSettings == null || opt == null)
+            {
+                return;
+            }
+
             boundSettings.EnableFieldAt(opt.Key, boundSettings.SelectedFieldKeys.Count);
 
-            // Reopen after the combo finishes closing so the user can add several fields in one go.
-            Dispatcher.BeginInvoke(
-                DispatcherPriority.ContextIdle,
-                new Action(() =>
-                {
-                    if (AddFieldCombo == null || boundSettings == null)
-                    {
-                        return;
-                    }
+            if (AddFieldCombo != null && addFieldComboItems.Count > 0)
+            {
+                AddFieldCombo.IsDropDownOpen = true;
+            }
 
-                    if (!AddFieldCombo.IsEnabled || AddFieldCombo.Items.Count == 0)
-                    {
-                        return;
-                    }
-
-                    AddFieldCombo.Focus();
-                    AddFieldCombo.IsDropDownOpen = true;
-                }));
+            ScheduleReopenAddFieldDropDownIfNeeded();
         }
 
         private void EnabledMoveUp_Click(object sender, RoutedEventArgs e)

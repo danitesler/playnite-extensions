@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Threading;
 using Playnite.SDK;
 using Playnite.SDK.Models;
@@ -19,14 +18,38 @@ namespace GameHoverDetails
     {
         private static readonly ILogger Logger = LogManager.GetLogger();
 
-        private const double ChromePadding = 24;
+        /// <summary>Horizontal inner inset: must match <see cref="EnsurePopupShell"/> stack margin (14 + 14).</summary>
+        private const double ChromePadding = 28;
         private const double PlacementGapDip = 8;
         private const double EnterAnimationMs = 80;
         private const double HideDebounceMs = 70;
 
         private static readonly FontFamily HoverFieldInlineIconFontFamily = new FontFamily("Segoe MDL2 Assets");
+
+        private static readonly SolidColorBrush SeparatorLineBrush = FreezeBrush(Color.FromRgb(60, 60, 64));
+        private static readonly SolidColorBrush GlyphChipBackgroundBrush = FreezeBrush(Color.FromRgb(58, 58, 62));
+        private static readonly SolidColorBrush GlyphChipGlyphBrush = FreezeBrush(Color.FromRgb(210, 210, 215));
+        private static readonly SolidColorBrush BodyTextBrush = FreezeBrush(Color.FromRgb(230, 230, 230));
+
+        private static SolidColorBrush FreezeBrush(Color c)
+        {
+            var b = new SolidColorBrush(c);
+            b.Freeze();
+            return b;
+        }
+
         private const double LabelToValueGapDip = 4;
         private const double FirstBlockHeaderTopDip = 0;
+        private const double GlyphChipSizeDip = 32;
+        private const double GlyphChipGlyphFontSize = 15;
+        private const double StatRowGlyphToTextGapDip = 10;
+        private const double ChromeCornerRadiusDip = 8;
+
+        /// <summary>Half of field block spacing: used above and below each divider and as top/bottom inset per block so the spacing slider affects both sides.</summary>
+        private double FieldBlockSpacingHalfDip()
+        {
+            return FieldBlockSpacingDip() * 0.5;
+        }
 
         private double FieldBlockSpacingDip()
         {
@@ -59,29 +82,6 @@ namespace GameHoverDetails
         private Storyboard enterStoryboard;
         private int layoutInvokeGeneration;
         private string lastBuiltFieldsFingerprint;
-
-        #region agent log
-        private const string DebugLogPath = @"h:\My Drive\GDev\Playnite Extensions\debug-b1c60f.log";
-
-        private static long DbgUnixMs()
-        {
-            return (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
-        }
-
-        private static void DbgLog(string hypothesisId, string location, string message, string dataJson)
-        {
-            try
-            {
-                var line = "{\"sessionId\":\"b1c60f\",\"timestamp\":" + DbgUnixMs() + ",\"hypothesisId\":\"" + hypothesisId + "\",\"location\":\"" + location + "\",\"message\":\"" + message + "\",\"data\":" + dataJson + "}\n";
-                File.AppendAllText(DebugLogPath, line);
-            }
-            catch
-            {
-                // ignore debug log failures
-            }
-        }
-
-        #endregion
 
         public GameHoverDetailsHoverService(Window mainWindow, IPlayniteAPI playniteApi, GameHoverDetailsSettings settings)
         {
@@ -122,9 +122,6 @@ namespace GameHoverDetails
         {
             if (attached || broken)
             {
-                // #region agent log
-                DbgLog("H5", "Attach", "skipped", "{\"attached\":" + (attached ? "true" : "false") + ",\"broken\":" + (broken ? "true" : "false") + "}");
-                // #endregion
                 return;
             }
 
@@ -192,9 +189,6 @@ namespace GameHoverDetails
         {
             if (broken)
             {
-                // #region agent log
-                DbgLog("H5", "PreviewMouseMove", "early_broken", "{}");
-                // #endregion
                 return;
             }
 
@@ -221,9 +215,6 @@ namespace GameHoverDetails
                 }
                 else
                 {
-                    // #region agent log
-                    DbgLog("H2", "PreviewMouseMove", "no_game_arm_hide", "{\"hitType\":\"" + (hit == null ? "null" : hit.GetType().Name) + "\"}");
-                    // #endregion
                     showDelayTimer?.Stop();
                     pendingShowGame = null;
                     pendingShowAnchor = null;
@@ -318,15 +309,9 @@ namespace GameHoverDetails
                 TryResolveGameAndAnchor(hit, playniteApi, out g, out unused);
                 if (g != null)
                 {
-                    // #region agent log
-                    DbgLog("H2", "HideTick", "skip_hide_has_game", "{\"gameId\":\"" + g.Id.ToString() + "\"}");
-                    // #endregion
                     return;
                 }
 
-                // #region agent log
-                DbgLog("H2", "HideTick", "calling_HidePopup", "{}");
-                // #endregion
                 HidePopup();
             }
             catch (Exception ex)
@@ -343,9 +328,6 @@ namespace GameHoverDetails
             }
 
             broken = true;
-            // #region agent log
-            DbgLog("H1", "LatchBroken", "detach", "{\"exType\":\"" + ex.GetType().Name + "\"}");
-            // #endregion
             Logger.Error(ex, "GameHoverDetails hover UI disabled after an error.");
             try
             {
@@ -512,9 +494,6 @@ namespace GameHoverDetails
             lastShownGame = null;
             lastShownAnchor = null;
             lastBuiltFieldsFingerprint = null;
-            // #region agent log
-            DbgLog("H2", "HidePopup", "cleared", "{}");
-            // #endregion
         }
 
         /// <summary>
@@ -614,6 +593,7 @@ namespace GameHoverDetails
             if (!canSkipContentRebuild)
             {
                 contentStack.Children.Clear();
+                var onlyIconSelected = orderedKeys.Count == 1 && orderedKeys[0] == "Icon";
                 foreach (var key in orderedKeys)
                 {
                     var isFirstBlock = contentStack.Children.Count == 0;
@@ -622,7 +602,7 @@ namespace GameHoverDetails
                         case "Icon":
                         case "CoverImage":
                         case "BackgroundImage":
-                            TryAppendGameArtRow(key, game, innerMax, isFirstBlock);
+                            TryAppendGameArtRow(key, game, innerMax, isFirstBlock, onlyIconSelected);
                             break;
                         case "Platform":
                             AppendPlatformRow(game, key, innerMax, isFirstBlock);
@@ -632,6 +612,8 @@ namespace GameHoverDetails
                             break;
                     }
                 }
+
+                TrimLastContentBottomMargin(contentStack);
 
                 lastBuiltFieldsFingerprint = fieldsFingerprint;
             }
@@ -671,13 +653,6 @@ namespace GameHoverDetails
 
             var runEnterAnimation = !sameGameContinue;
             var invokeGen = ++layoutInvokeGeneration;
-            // #region agent log
-            DbgLog(
-                "H4",
-                "ShowOrUpdatePopup",
-                "before_layout_invoke",
-                "{\"gameChanged\":" + (gameChanged ? "true" : "false") + ",\"sameGameContinue\":" + (sameGameContinue ? "true" : "false") + ",\"canSkip\":" + (canSkipContentRebuild ? "true" : "false") + ",\"popupOpen\":" + (popup.IsOpen ? "true" : "false") + ",\"opacity\":" + chromeBorder.Opacity.ToString(System.Globalization.CultureInfo.InvariantCulture) + ",\"invokeGen\":" + invokeGen + "}");
-            // #endregion
             dispatcher.BeginInvoke(
                 new Action(() => AfterPopupLayout(runEnterAnimation, invokeGen)),
                 DispatcherPriority.Loaded);
@@ -687,21 +662,11 @@ namespace GameHoverDetails
         {
             if (invokedGeneration != layoutInvokeGeneration)
             {
-                // #region agent log
-                DbgLog("H3", "AfterPopupLayout", "stale_generation", "{\"invokeGen\":" + invokedGeneration + ",\"currentGen\":" + layoutInvokeGeneration + "}");
-                // #endregion
                 return;
             }
 
             if (broken || popup?.Child == null || !popup.IsOpen)
             {
-                // #region agent log
-                DbgLog(
-                    "H3",
-                    "AfterPopupLayout",
-                    "early_exit",
-                    "{\"broken\":" + (broken ? "true" : "false") + ",\"childNull\":" + (popup?.Child == null ? "true" : "false") + ",\"popupOpen\":" + (popup != null && popup.IsOpen ? "true" : "false") + ",\"opacity\":" + (chromeBorder != null ? chromeBorder.Opacity.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1") + "}");
-                // #endregion
                 return;
             }
 
@@ -826,90 +791,183 @@ namespace GameHoverDetails
             }
         }
 
-        private void AppendTextDetailRow(string key, Game game, double innerMax, bool isFirstBlock)
+        private static void TrimLastContentBottomMargin(Panel panel)
+        {
+            if (panel.Children.Count == 0)
+            {
+                return;
+            }
+
+            if (!(panel.Children[panel.Children.Count - 1] is FrameworkElement last))
+            {
+                return;
+            }
+
+            var m = last.Margin;
+            if (m.Bottom <= 0.01)
+            {
+                return;
+            }
+
+            last.Margin = new Thickness(m.Left, m.Top, m.Right, 0);
+        }
+
+        private void AppendFieldBlockSeparator(bool isFirstBlock)
+        {
+            if (isFirstBlock)
+            {
+                return;
+            }
+
+            var pad = FieldBlockSpacingHalfDip();
+            contentStack.Children.Add(
+                new Border
+                {
+                    Height = 1,
+                    Margin = new Thickness(0, pad, 0, pad),
+                    Background = SeparatorLineBrush,
+                    IsHitTestVisible = false
+                });
+        }
+
+        private Border CreateGlyphChip(string glyph)
+        {
+            var glyphTb = new TextBlock
+            {
+                Text = glyph,
+                FontFamily = HoverFieldInlineIconFontFamily,
+                FontSize = GlyphChipGlyphFontSize,
+                Foreground = GlyphChipGlyphBrush,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false
+            };
+
+            return new Border
+            {
+                Width = GlyphChipSizeDip,
+                Height = GlyphChipSizeDip,
+                CornerRadius = new CornerRadius(GlyphChipSizeDip / 2),
+                Background = GlyphChipBackgroundBrush,
+                Child = glyphTb,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                IsHitTestVisible = false
+            };
+        }
+
+        /// <summary>Text/stat row layouts (separator is caller's responsibility).</summary>
+        private void AppendTextDetailInner(string key, Game game, double innerMax, bool isFirstBlock)
         {
             var showTitle = !settings.HideFieldTitlesInHover;
             var useInlineGlyph = settings.ShowFieldInlineIconsInHover && !HoverFieldCatalog.IsGameArtImageField(key);
-
-            var blockTop = isFirstBlock ? FirstBlockHeaderTopDip : FieldBlockSpacingDip();
-            var def = HoverFieldCatalog.All.FirstOrDefault(d => d.Key == key);
-            var labelText = def?.DisplayName ?? key;
+            var labelText = HoverFieldCatalog.GetDisplayName(key);
             var valueText = HoverFieldFormatter.Format(key, game, playniteApi);
-            var bodyFg = new SolidColorBrush(Color.FromRgb(230, 230, 230));
+            var topInset = isFirstBlock ? FirstBlockHeaderTopDip : FieldBlockSpacingHalfDip();
+            var bottomInset = FieldBlockSpacingHalfDip();
+            var textMaxStat = Math.Max(48, innerMax - GlyphChipSizeDip - StatRowGlyphToTextGapDip);
 
-            var bodyTop = blockTop;
-            if (showTitle)
+            if (showTitle && useInlineGlyph)
             {
-                var header = new TextBlock
-                {
-                    FontWeight = FontWeights.SemiBold,
-                    FontSize = 12,
-                    Foreground = Brushes.White,
-                    Margin = new Thickness(0, blockTop, 0, LabelToValueGapDip)
-                };
-                HoverDetailValuePresenter.ConfigureHeaderTextBlock(header, innerMax);
-                HoverDetailValuePresenter.SetHeaderText(header, labelText, innerMax);
-                contentStack.Children.Add(header);
-                bodyTop = 0;
-            }
-
-            const double glyphColDip = 22;
-            const double glyphPadDip = 8;
-            var bodyBottom = FieldBlockSpacingDip();
-
-            if (useInlineGlyph)
-            {
-                var textMax = Math.Max(48, innerMax - glyphColDip - glyphPadDip);
                 var row = new Grid
                 {
                     MaxWidth = innerMax,
-                    Margin = new Thickness(0, bodyTop, 0, bodyBottom)
+                    Margin = new Thickness(0, topInset, 0, bottomInset)
                 };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(glyphColDip) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(GlyphChipSizeDip) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-                var glyphTb = new TextBlock
-                {
-                    Text = HoverFieldCatalog.GetSettingsGlyph(key),
-                    FontFamily = HoverFieldInlineIconFontFamily,
-                    FontSize = 15,
-                    Foreground = new SolidColorBrush(Color.FromRgb(210, 210, 215)),
-                    VerticalAlignment = VerticalAlignment.Top,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 2, glyphPadDip, 0),
-                    IsHitTestVisible = false
-                };
-                Grid.SetColumn(glyphTb, 0);
+                var chip = CreateGlyphChip(HoverFieldCatalog.GetSettingsGlyph(key));
+                Grid.SetColumn(chip, 0);
+
+                var label = new TextBlock { Margin = new Thickness(0, 0, 0, LabelToValueGapDip) };
+                HoverDetailValuePresenter.ConfigureFieldLabelTextBlock(label, textMaxStat);
+                HoverDetailValuePresenter.SetHeaderText(label, labelText, textMaxStat);
 
                 var body = new TextBlock();
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, textMax, bodyFg);
+                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, textMaxStat, BodyTextBrush);
                 HoverDetailValuePresenter.SetBodyContent(body, valueText);
-                Grid.SetColumn(body, 1);
-                row.Children.Add(glyphTb);
-                row.Children.Add(body);
+
+                var textCol = new StackPanel { Margin = new Thickness(StatRowGlyphToTextGapDip, 0, 0, 0) };
+                textCol.Children.Add(label);
+                textCol.Children.Add(body);
+                Grid.SetColumn(textCol, 1);
+
+                row.Children.Add(chip);
+                row.Children.Add(textCol);
                 contentStack.Children.Add(row);
+                return;
             }
-            else
+
+            if (showTitle && !useInlineGlyph)
             {
+                var label = new TextBlock { Margin = new Thickness(0, topInset, 0, LabelToValueGapDip) };
+                HoverDetailValuePresenter.ConfigureFieldLabelTextBlock(label, innerMax);
+                HoverDetailValuePresenter.SetHeaderText(label, labelText, innerMax);
+
+                var body = new TextBlock { Margin = new Thickness(0, 0, 0, bottomInset) };
+                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, innerMax, BodyTextBrush);
+                HoverDetailValuePresenter.SetBodyContent(body, valueText);
+
+                contentStack.Children.Add(label);
+                contentStack.Children.Add(body);
+                return;
+            }
+
+            if (useInlineGlyph)
+            {
+                var row = new Grid
+                {
+                    MaxWidth = innerMax,
+                    Margin = new Thickness(0, topInset, 0, bottomInset)
+                };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(GlyphChipSizeDip) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                var chip = CreateGlyphChip(HoverFieldCatalog.GetSettingsGlyph(key));
+                Grid.SetColumn(chip, 0);
+
                 var body = new TextBlock
                 {
-                    Margin = new Thickness(0, bodyTop, 0, bodyBottom)
+                    VerticalAlignment = VerticalAlignment.Center
                 };
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, innerMax, bodyFg);
+                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, textMaxStat, BodyTextBrush);
                 HoverDetailValuePresenter.SetBodyContent(body, valueText);
-                contentStack.Children.Add(body);
+                Grid.SetColumn(body, 1);
+                body.Margin = new Thickness(StatRowGlyphToTextGapDip, 0, 0, 0);
+
+                row.Children.Add(chip);
+                row.Children.Add(body);
+                contentStack.Children.Add(row);
+                return;
             }
+
+            var bodyOnly = new TextBlock
+            {
+                Margin = new Thickness(0, topInset, 0, bottomInset)
+            };
+            HoverDetailValuePresenter.ConfigureBodyTextBlock(bodyOnly, innerMax, BodyTextBrush);
+            HoverDetailValuePresenter.SetBodyContent(bodyOnly, valueText);
+            contentStack.Children.Add(bodyOnly);
+        }
+
+        private void AppendTextDetailRow(string key, Game game, double innerMax, bool isFirstBlock)
+        {
+            AppendFieldBlockSeparator(isFirstBlock);
+            AppendTextDetailInner(key, game, innerMax, isFirstBlock);
         }
 
         private const double HoverIconBoxPx = 40;
 
-        private void TryAppendGameArtRow(string key, Game game, double innerMax, bool isFirstBlock)
+        private void TryAppendGameArtRow(string key, Game game, double innerMax, bool isFirstBlock, bool showGameNameBesideIcon)
         {
             var bmp = HoverBitmapLoader.TryLoadGameArt(key, game, playniteApi);
             if (bmp == null)
             {
                 return;
             }
+
+            AppendFieldBlockSeparator(isFirstBlock);
 
             double maxW;
             double maxH;
@@ -929,50 +987,78 @@ namespace GameHoverDetails
                     break;
             }
 
-            var top = isFirstBlock ? FirstBlockHeaderTopDip : FieldBlockSpacingDip();
-            var img = new Image
+            var top = isFirstBlock ? FirstBlockHeaderTopDip : FieldBlockSpacingHalfDip();
+            var bottom = FieldBlockSpacingHalfDip();
+
+            if (key == "Icon" && showGameNameBesideIcon)
+            {
+                var textMax = Math.Max(48, innerMax - HoverIconBoxPx - StatRowGlyphToTextGapDip);
+                var row = new Grid
+                {
+                    MaxWidth = innerMax,
+                    Margin = new Thickness(0, top, 0, bottom)
+                };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                var img = new Image
+                {
+                    Source = bmp,
+                    Stretch = Stretch.Uniform,
+                    MaxWidth = maxW,
+                    MaxHeight = maxH,
+                    Width = HoverIconBoxPx,
+                    Height = HoverIconBoxPx,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    IsHitTestVisible = false
+                };
+                Grid.SetColumn(img, 0);
+
+                var nameTb = new TextBlock
+                {
+                    Margin = new Thickness(StatRowGlyphToTextGapDip, 0, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                HoverDetailValuePresenter.ConfigureBodyTextBlock(nameTb, textMax, BodyTextBrush);
+                HoverDetailValuePresenter.SetBodyContent(nameTb, HoverFieldFormatter.Format("Name", game, playniteApi));
+                Grid.SetColumn(nameTb, 1);
+
+                row.Children.Add(img);
+                row.Children.Add(nameTb);
+                contentStack.Children.Add(row);
+                return;
+            }
+
+            var imgOnly = new Image
             {
                 Source = bmp,
                 Stretch = Stretch.Uniform,
                 MaxWidth = maxW,
                 MaxHeight = maxH,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, top, 0, FieldBlockSpacingDip()),
+                Margin = new Thickness(0, top, 0, bottom),
                 IsHitTestVisible = false
             };
 
-            contentStack.Children.Add(img);
+            contentStack.Children.Add(imgOnly);
         }
 
         private void AppendPlatformRow(Game game, string key, double innerMax, bool isFirstBlock)
         {
+            AppendFieldBlockSeparator(isFirstBlock);
+
             var showTitle = !settings.HideFieldTitlesInHover;
-            var blockTop = isFirstBlock ? FirstBlockHeaderTopDip : FieldBlockSpacingDip();
-            var def = HoverFieldCatalog.All.FirstOrDefault(d => d.Key == key);
-            var labelText = def?.DisplayName ?? key;
+            var labelText = HoverFieldCatalog.GetDisplayName(key);
 
-            var bodyTop = blockTop;
-            if (showTitle)
-            {
-                var header = new TextBlock
-                {
-                    FontWeight = FontWeights.SemiBold,
-                    FontSize = 12,
-                    Foreground = Brushes.White,
-                    Margin = new Thickness(0, blockTop, 0, LabelToValueGapDip)
-                };
-                HoverDetailValuePresenter.ConfigureHeaderTextBlock(header, innerMax);
-                HoverDetailValuePresenter.SetHeaderText(header, labelText, innerMax);
-                contentStack.Children.Add(header);
-                bodyTop = 0;
-            }
-
+            var topInset = isFirstBlock ? FirstBlockHeaderTopDip : FieldBlockSpacingHalfDip();
+            var bottomInset = FieldBlockSpacingHalfDip();
             var panel = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 MaxWidth = innerMax,
-                Margin = new Thickness(0, bodyTop, 0, FieldBlockSpacingDip())
+                Margin = new Thickness(0, topInset, 0, bottomInset)
             };
 
             if (game.Platforms != null)
@@ -1002,60 +1088,20 @@ namespace GameHoverDetails
 
             if (panel.Children.Count > 0)
             {
+                if (showTitle)
+                {
+                    var label = new TextBlock { Margin = new Thickness(0, topInset, 0, LabelToValueGapDip) };
+                    HoverDetailValuePresenter.ConfigureFieldLabelTextBlock(label, innerMax);
+                    HoverDetailValuePresenter.SetHeaderText(label, labelText, innerMax);
+                    contentStack.Children.Add(label);
+                    panel.Margin = new Thickness(0, 0, 0, bottomInset);
+                }
+
                 contentStack.Children.Add(panel);
                 return;
             }
 
-            var valueText = HoverFieldFormatter.Format(key, game, playniteApi);
-            var bodyFg = new SolidColorBrush(Color.FromRgb(230, 230, 230));
-            var useInlineGlyph = settings.ShowFieldInlineIconsInHover && !HoverFieldCatalog.IsGameArtImageField(key);
-
-            const double glyphColDip = 22;
-            const double glyphPadDip = 8;
-            var bodyBottom = FieldBlockSpacingDip();
-
-            if (useInlineGlyph)
-            {
-                var textMax = Math.Max(48, innerMax - glyphColDip - glyphPadDip);
-                var row = new Grid
-                {
-                    MaxWidth = innerMax,
-                    Margin = new Thickness(0, bodyTop, 0, bodyBottom)
-                };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(glyphColDip) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-                var glyphTb = new TextBlock
-                {
-                    Text = HoverFieldCatalog.GetSettingsGlyph(key),
-                    FontFamily = HoverFieldInlineIconFontFamily,
-                    FontSize = 15,
-                    Foreground = new SolidColorBrush(Color.FromRgb(210, 210, 215)),
-                    VerticalAlignment = VerticalAlignment.Top,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 2, glyphPadDip, 0),
-                    IsHitTestVisible = false
-                };
-                Grid.SetColumn(glyphTb, 0);
-
-                var body = new TextBlock();
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, textMax, bodyFg);
-                HoverDetailValuePresenter.SetBodyContent(body, valueText);
-                Grid.SetColumn(body, 1);
-                row.Children.Add(glyphTb);
-                row.Children.Add(body);
-                contentStack.Children.Add(row);
-            }
-            else
-            {
-                var body = new TextBlock
-                {
-                    Margin = new Thickness(0, bodyTop, 0, bodyBottom)
-                };
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, innerMax, bodyFg);
-                HoverDetailValuePresenter.SetBodyContent(body, valueText);
-                contentStack.Children.Add(body);
-            }
+            AppendTextDetailInner(key, game, innerMax, isFirstBlock);
         }
 
         private void ChromeBorderOnPointerOverChrome(object sender, MouseEventArgs e)
@@ -1094,13 +1140,21 @@ namespace GameHoverDetails
             chromeBorder = new Border
             {
                 Background = new SolidColorBrush(Color.FromRgb(28, 28, 30)),
-                BorderBrush = new SolidColorBrush(Color.FromRgb(64, 64, 68)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(72, 72, 78)),
                 BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
+                CornerRadius = new CornerRadius(ChromeCornerRadiusDip),
                 Child = contentStack,
                 IsHitTestVisible = true,
                 RenderTransform = chromeFlyTransform,
-                RenderTransformOrigin = new Point(0, 0)
+                RenderTransformOrigin = new Point(0, 0),
+                Effect = new DropShadowEffect
+                {
+                    Color = Colors.Black,
+                    BlurRadius = 14,
+                    ShadowDepth = 2,
+                    Opacity = 0.32,
+                    Direction = 270
+                }
             };
             chromeBorder.PreviewMouseMove += ChromeBorderOnPointerOverChrome;
             chromeBorder.MouseEnter += ChromeBorderOnPointerOverChrome;
