@@ -138,7 +138,12 @@ namespace GameHoverDetails
             showDelayTimer.Tick += ShowDelayTimerOnTick;
 
             mainWindow.PreviewMouseMove += MainWindowOnPreviewMouseMove;
+            mainWindow.StateChanged += MainWindowOnStateChanged;
             mainWindow.Closed += MainWindowOnClosed;
+            if (Application.Current != null)
+            {
+                Application.Current.Deactivated += ApplicationOnDeactivated;
+            }
 
             attached = true;
         }
@@ -151,7 +156,12 @@ namespace GameHoverDetails
             }
 
             mainWindow.PreviewMouseMove -= MainWindowOnPreviewMouseMove;
+            mainWindow.StateChanged -= MainWindowOnStateChanged;
             mainWindow.Closed -= MainWindowOnClosed;
+            if (Application.Current != null)
+            {
+                Application.Current.Deactivated -= ApplicationOnDeactivated;
+            }
 
             hideDebounceTimer?.Stop();
             if (hideDebounceTimer != null)
@@ -160,6 +170,14 @@ namespace GameHoverDetails
             }
 
             hideDebounceTimer = null;
+
+            showDelayTimer?.Stop();
+            if (showDelayTimer != null)
+            {
+                showDelayTimer.Tick -= ShowDelayTimerOnTick;
+            }
+
+            showDelayTimer = null;
 
             StopEnterStoryboard();
             HidePopup();
@@ -183,6 +201,37 @@ namespace GameHoverDetails
         private void MainWindowOnClosed(object sender, EventArgs e)
         {
             Detach();
+        }
+
+        private void ApplicationOnDeactivated(object sender, EventArgs e)
+        {
+            HidePopupForForegroundLoss();
+        }
+
+        private void MainWindowOnStateChanged(object sender, EventArgs e)
+        {
+            if (mainWindow.WindowState == WindowState.Minimized)
+            {
+                HidePopupForForegroundLoss();
+            }
+        }
+
+        private void HidePopupForForegroundLoss()
+        {
+            if (broken)
+            {
+                return;
+            }
+
+            try
+            {
+                hideDebounceTimer?.Stop();
+                HidePopup();
+            }
+            catch (Exception ex)
+            {
+                LatchBroken(ex);
+            }
         }
 
         private void MainWindowOnPreviewMouseMove(object sender, MouseEventArgs e)

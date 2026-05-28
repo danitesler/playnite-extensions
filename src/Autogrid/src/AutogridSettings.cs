@@ -4,6 +4,12 @@ using Playnite.SDK.Data;
 
 namespace Autogrid
 {
+    public enum GridSizingMode
+    {
+        Columns,
+        Rows
+    }
+
     public class AutogridSettings : ObservableObject, ISettings
     {
         [DontSerialize]
@@ -16,11 +22,25 @@ namespace Autogrid
             set => SetValue(ref enabled, value);
         }
 
+        private GridSizingMode sizingMode = GridSizingMode.Columns;
+        public GridSizingMode SizingMode
+        {
+            get => sizingMode;
+            set => SetValue(ref sizingMode, value);
+        }
+
         private int targetColumns = 8;
         public int TargetColumns
         {
             get => targetColumns;
             set => SetValue(ref targetColumns, value);
+        }
+
+        private int targetRows = 4;
+        public int TargetRows
+        {
+            get => targetRows;
+            set => SetValue(ref targetRows, value);
         }
 
         private int viewportAdjustPx;
@@ -31,7 +51,9 @@ namespace Autogrid
         }
 
         private bool enabledOriginal;
+        private GridSizingMode sizingModeOriginal;
         private int targetColumnsOriginal;
+        private int targetRowsOriginal;
         private int viewportAdjustPxOriginal;
 
         public AutogridSettings()
@@ -45,11 +67,14 @@ namespace Autogrid
             if (saved != null)
             {
                 Enabled = saved.Enabled;
+                SizingMode = saved.SizingMode;
                 TargetColumns = saved.TargetColumns;
+                TargetRows = saved.TargetRows;
                 ViewportAdjustPx = saved.ViewportAdjustPx;
             }
 
             TargetColumns = System.Math.Max(1, System.Math.Min(20, TargetColumns));
+            TargetRows = System.Math.Max(1, System.Math.Min(10, TargetRows));
             viewportAdjustPx = ClampViewportAdjust(viewportAdjustPx);
         }
 
@@ -61,20 +86,26 @@ namespace Autogrid
         public void BeginEdit()
         {
             enabledOriginal = Enabled;
+            sizingModeOriginal = SizingMode;
             targetColumnsOriginal = TargetColumns;
+            targetRowsOriginal = TargetRows;
             viewportAdjustPxOriginal = ViewportAdjustPx;
         }
 
         public void CancelEdit()
         {
             Enabled = enabledOriginal;
+            SizingMode = sizingModeOriginal;
             TargetColumns = targetColumnsOriginal;
+            TargetRows = targetRowsOriginal;
             ViewportAdjustPx = viewportAdjustPxOriginal;
         }
 
         public void EndEdit()
         {
             ViewportAdjustPx = ClampViewportAdjust(ViewportAdjustPx);
+            TargetColumns = System.Math.Max(1, System.Math.Min(20, TargetColumns));
+            TargetRows = System.Math.Max(1, System.Math.Min(10, TargetRows));
             plugin.SavePluginSettings(this);
         }
 
@@ -84,6 +115,11 @@ namespace Autogrid
             if (TargetColumns < 1 || TargetColumns > 20)
             {
                 errors.Add("Target columns must be between 1 and 20.");
+            }
+
+            if (TargetRows < 1 || TargetRows > 10)
+            {
+                errors.Add("Target rows must be between 1 and 10.");
             }
 
             if (ViewportAdjustPx < -200 || ViewportAdjustPx > 200)

@@ -15,10 +15,12 @@ namespace Autogrid
         private readonly AutogridSettings settings;
         private Window hookedWindow;
         private DispatcherTimer debounceTimer;
+        private DispatcherTimer saveSettingsTimer;
+        private object pendingSaveAppSettings;
         private bool reflectionBroken;
         private bool handlersAttached;
-        private double lastWindowActualWidth = double.NaN;
-        private double lastWindowActualHeight = double.NaN;
+        private bool startupApplyComplete;
+        private int startupApplyAttemptsRemaining;
         private bool settingsApplyPosted;
 
         public override Guid Id => PluginId;
@@ -47,12 +49,13 @@ namespace Autogrid
         {
             PlayniteApi.MainView.UIDispatcher.BeginInvoke(
                 new Action(AttachWhenReady),
-                DispatcherPriority.ApplicationIdle);
+                DispatcherPriority.Loaded);
         }
 
         public override void OnApplicationStopped(OnApplicationStoppedEventArgs args)
         {
             settings.PropertyChanged -= OnSettingsPropertyChanged;
+            FlushPendingAppSettingsSave();
             DetachWindowHooks();
         }
 
@@ -65,7 +68,9 @@ namespace Autogrid
 
             var n = e.PropertyName;
             if (n != null &&
+                n != nameof(AutogridSettings.SizingMode) &&
                 n != nameof(AutogridSettings.TargetColumns) &&
+                n != nameof(AutogridSettings.TargetRows) &&
                 n != nameof(AutogridSettings.ViewportAdjustPx) &&
                 n != nameof(AutogridSettings.Enabled))
             {
@@ -96,7 +101,7 @@ namespace Autogrid
                         reflectionBroken = true;
                     }
                 }),
-                DispatcherPriority.Normal);
+                DispatcherPriority.Loaded);
         }
 
         private void AttachWhenReady()
@@ -155,10 +160,95 @@ namespace Autogrid
             debounceTimer.Tick += DebounceTimerOnTick;
 
             window.SizeChanged += OnWindowLayoutHint;
+            window.LayoutUpdated += OnWindowLayoutHint;
             window.StateChanged += OnWindowLayoutHint;
+            window.Loaded += WindowOnLoadedOnce;
+            window.ContentRendered += WindowOnContentRenderedOnce;
             window.Closed += MainWindowOnClosed;
 
             handlersAttached = true;
+            BeginStartupApply();
+        }
+
+        private void WindowOnLoadedOnce(object sender, RoutedEventArgs e)
+        {
+            if (hookedWindow != null)
+            {
+                hookedWindow.Loaded -= WindowOnLoadedOnce;
+            }
+
+            TryApplyStartupNow();
+        }
+
+        private void WindowOnContentRenderedOnce(object sender, EventArgs e)
+        {
+            if (hookedWindow != null)
+            {
+                hookedWindow.ContentRendered -= WindowOnContentRenderedOnce;
+            }
+
+            TryApplyStartupNow();
+        }
+
+        private void BeginStartupApply()
+        {
+            if (reflectionBroken || !settings.Enabled)
+            {
+                return;
+            }
+
+            startupApplyComplete = false;
+            startupApplyAttemptsRemaining = 8;
+            TryApplyStartupNow();
+        }
+
+        private void TryApplyStartupNow()
+        {
+            if (startupApplyComplete || reflectionBroken || !settings.Enabled)
+            {
+                return;
+            }
+
+            if (TryApplyOnce())
+            {
+                startupApplyComplete = true;
+                return;
+            }
+
+            if (startupApplyAttemptsRemaining <= 0)
+            {
+                startupApplyComplete = true;
+                return;
+            }
+
+            startupApplyAttemptsRemaining--;
+            PlayniteApi.MainView.UIDispatcher.BeginInvoke(
+                new Action(TryApplyStartupNow),
+                DispatcherPriority.Render);
+        }
+
+        private bool TryApplyOnce()
+        {
+            try
+            {
+                return ApplyAutogrid();
+            }
+            catch
+            {
+                reflectionBroken = true;
+                return false;
+            }
+        }
+
+        private void RequestDebouncedApply()
+        {
+            if (reflectionBroken || !settings.Enabled)
+            {
+                return;
+            }
+
+            debounceTimer?.Stop();
+            debounceTimer?.Start();
         }
 
         private void MainWindowOnClosed(object sender, EventArgs e)
@@ -168,13 +258,17 @@ namespace Autogrid
 
         private void OnWindowLayoutHint(object sender, EventArgs e)
         {
-            if (reflectionBroken || !settings.Enabled)
+            if (!startupApplyComplete)
             {
+                if (TryApplyOnce())
+                {
+                    startupApplyComplete = true;
+                }
+
                 return;
             }
 
-            debounceTimer?.Stop();
-            debounceTimer?.Start();
+            RequestDebouncedApply();
         }
 
         private void DebounceTimerOnTick(object sender, EventArgs e)
@@ -190,69 +284,133 @@ namespace Autogrid
             }
         }
 
-        private void ApplyAutogrid()
+        private bool ApplyAutogrid()
         {
             if (!settings.Enabled || reflectionBroken)
             {
-                return;
+                return false;
             }
 
             if (PlayniteApi.MainView.ActiveDesktopView != DesktopView.Grid)
             {
-                return;
+                return false;
             }
 
             var window = hookedWindow ?? Application.Current?.MainWindow;
             if (window == null)
             {
-                return;
+                return false;
             }
 
             var appSettings = GridLayoutService.TryResolveAppSettings(window);
             if (appSettings == null)
             {
-                return;
+                return false;
             }
 
             if (!GridLayoutService.TryGetGridLayoutInputs(appSettings, out var spacing, out var currentWidth))
             {
                 reflectionBroken = true;
-                return;
+                return false;
             }
 
             var metrics = GridLayoutService.ResolveViewportMetrics(window, PlayniteApi, settings.ViewportAdjustPx);
-            var perTileMargin = GridLayoutService.GetHorizontalMarginPerTile(appSettings, spacing);
-            var target = GridLayoutService.ComputeTargetGridItemWidth(
-                metrics.Viewport,
-                settings.TargetColumns,
-                perTileMargin);
+            double target;
+            if (settings.SizingMode == GridSizingMode.Rows)
+            {
+                if (metrics.PickedScrollViewer == null ||
+                    !GridLayoutService.TryMeasureTileVerticalPitch(metrics.PickedScrollViewer, out var tileMeasurements))
+                {
+                    return false;
+                }
+
+                var verticalMargin = GridLayoutService.GetVerticalMarginPerTile(appSettings, spacing);
+                target = GridLayoutService.ComputeTargetGridItemWidthForRows(
+                    metrics.ViewportHeight,
+                    settings.TargetRows,
+                    verticalMargin,
+                    currentWidth,
+                    tileMeasurements);
+            }
+            else
+            {
+                var perTileMargin = GridLayoutService.GetHorizontalMarginPerTile(appSettings, spacing);
+                target = GridLayoutService.ComputeTargetGridItemWidth(
+                    metrics.Viewport,
+                    settings.TargetColumns,
+                    perTileMargin);
+            }
 
             if (target <= 0)
             {
-                return;
+                return false;
             }
 
-            var windowSizeChanged =
-                double.IsNaN(lastWindowActualWidth) ||
-                double.IsNaN(lastWindowActualHeight) ||
-                Math.Abs(window.ActualWidth - lastWindowActualWidth) > 0.5 ||
-                Math.Abs(window.ActualHeight - lastWindowActualHeight) > 0.5;
-            lastWindowActualWidth = window.ActualWidth;
-            lastWindowActualHeight = window.ActualHeight;
-
-            if (!windowSizeChanged && Math.Abs(currentWidth - target) < 0.01)
+            if (Math.Abs(currentWidth - target) < 0.01)
             {
-                return;
+                return true;
             }
 
             if (!GridLayoutService.TrySetGridItemWidth(appSettings, target))
             {
                 reflectionBroken = true;
+                return false;
+            }
+
+            ScheduleSaveAppSettings(appSettings);
+            return true;
+        }
+
+        private void ScheduleSaveAppSettings(object appSettings)
+        {
+            pendingSaveAppSettings = appSettings;
+            if (saveSettingsTimer == null)
+            {
+                saveSettingsTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(250)
+                };
+                saveSettingsTimer.Tick += SaveSettingsTimerOnTick;
+            }
+
+            saveSettingsTimer.Stop();
+            saveSettingsTimer.Start();
+        }
+
+        private void SaveSettingsTimerOnTick(object sender, EventArgs e)
+        {
+            saveSettingsTimer?.Stop();
+            var appSettings = pendingSaveAppSettings;
+            pendingSaveAppSettings = null;
+            if (appSettings != null)
+            {
+                GridLayoutService.TrySaveAppSettings(appSettings);
+            }
+        }
+
+        private void FlushPendingAppSettingsSave()
+        {
+            saveSettingsTimer?.Stop();
+            var appSettings = pendingSaveAppSettings;
+            pendingSaveAppSettings = null;
+            if (appSettings != null)
+            {
+                GridLayoutService.TrySaveAppSettings(appSettings);
             }
         }
 
         private void DetachWindowHooks()
         {
+            FlushPendingAppSettingsSave();
+
+            if (saveSettingsTimer != null)
+            {
+                saveSettingsTimer.Tick -= SaveSettingsTimerOnTick;
+            }
+
+            saveSettingsTimer = null;
+            pendingSaveAppSettings = null;
+
             debounceTimer?.Stop();
             if (debounceTimer != null)
             {
@@ -264,12 +422,16 @@ namespace Autogrid
             if (hookedWindow != null && handlersAttached)
             {
                 hookedWindow.SizeChanged -= OnWindowLayoutHint;
+                hookedWindow.LayoutUpdated -= OnWindowLayoutHint;
                 hookedWindow.StateChanged -= OnWindowLayoutHint;
+                hookedWindow.Loaded -= WindowOnLoadedOnce;
+                hookedWindow.ContentRendered -= WindowOnContentRenderedOnce;
                 hookedWindow.Closed -= MainWindowOnClosed;
             }
 
             hookedWindow = null;
             handlersAttached = false;
+            startupApplyComplete = false;
 
             try
             {

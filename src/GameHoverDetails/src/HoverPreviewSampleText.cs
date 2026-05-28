@@ -56,7 +56,7 @@ namespace GameHoverDetails
                 case "RecentActivity":
                     return "April 10, 2026";
                 case "LastPlayed":
-                    return "April 15, 2026";
+                    return "Played 2 hours ago";
                 case "CompletionStatus":
                     return "Playing";
                 case "UserScore":
