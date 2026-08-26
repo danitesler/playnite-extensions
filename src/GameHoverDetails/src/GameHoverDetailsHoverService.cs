@@ -71,6 +71,10 @@ namespace GameHoverDetails
         private bool attached;
         private DispatcherTimer hideDebounceTimer;
         private DispatcherTimer showDelayTimer;
+        // 新增
+        private DispatcherTimer pollTimer;
+        private const double PollIntervalMs = 500;
+        // 新增结束
         private Game pendingShowGame;
         private FrameworkElement pendingShowAnchor;
         private Popup popup;
@@ -178,6 +182,15 @@ namespace GameHoverDetails
             }
 
             showDelayTimer = null;
+
+            // 新增：停止并清理轮询定时器
+            pollTimer?.Stop();
+            if (pollTimer != null)
+            {
+                pollTimer.Tick -= PollTimerOnTick;
+            }
+            pollTimer = null;
+            // 新增结束
 
             StopEnterStoryboard();
             HidePopup();
@@ -369,6 +382,67 @@ namespace GameHoverDetails
             }
         }
 
+        // 新增轮询检测方法
+        private void PollTimerOnTick(object sender, EventArgs e)
+        {
+            if (broken || popup == null || !popup.IsOpen)
+            {
+                pollTimer?.Stop();
+                return;
+            }
+
+            try
+            {
+                // 获取鼠标下的元素
+                var hit = Mouse.DirectlyOver as DependencyObject;
+                Game game;
+                FrameworkElement anchor;
+                TryResolveGameAndAnchor(hit, playniteApi, out game, out anchor);
+
+                if (game == null)
+                {
+                    // 鼠标不在任何游戏上 → 立即隐藏
+                    Logger.Debug("Poll: No game under cursor, hiding popup.");
+                    HidePopup();
+                    pollTimer?.Stop();
+                    return;
+                }
+
+                // 检查是否还在同一个游戏上
+                if (lastShownGame != null && game.Id != lastShownGame.Id)
+                {
+                    Logger.Debug($"Poll: Game changed from '{lastShownGame.Name}' to '{game.Name}', updating.");
+
+                    // 游戏已切换 → 更新显示
+                    // 注意：这里不调用 HidePopup，而是直接用新游戏更新
+                    // 但为了干净切换，先关闭再打开
+                    var anchorToUse = anchor ?? lastShownAnchor;
+                    if (anchorToUse != null)
+                    {
+                        // 直接更新为新游戏
+                        lastBuiltFieldsFingerprint = null;
+                        ShowOrUpdatePopup(game, anchorToUse);
+                    }
+                }
+
+                // 检查鼠标是否在 Popup 内部（保持打开）
+                var mousePos = Mouse.GetPosition(popup.Child);
+                if (popup.Child != null && mousePos.X >= 0 && mousePos.Y >= 0 &&
+                    mousePos.X <= popup.Child.RenderSize.Width &&
+                    mousePos.Y <= popup.Child.RenderSize.Height)
+                {
+                    // 鼠标在 Popup 内部 → 保持打开
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Poll timer error.");
+                HidePopup();
+                pollTimer?.Stop();
+            }
+        }
+
         private void LatchBroken(Exception ex)
         {
             if (broken)
@@ -525,6 +599,7 @@ namespace GameHoverDetails
             pendingShowGame = null;
             pendingShowAnchor = null;
             StopEnterStoryboard();
+            pollTimer?.Stop(); // 新增：停止轮询定时器
             if (popup != null)
             {
                 popup.IsOpen = false;
@@ -699,6 +774,15 @@ namespace GameHoverDetails
             popup.IsOpen = true;
             lastShownGame = game;
             lastShownAnchor = anchor;
+
+            // 新增：启动轮询定时器
+            pollTimer?.Stop();
+            if (pollTimer != null)
+            {
+                pollTimer.Interval = TimeSpan.FromMilliseconds(PollIntervalMs);
+                pollTimer.Start();
+            }
+            // 新增结束
 
             var runEnterAnimation = !sameGameContinue;
             var invokeGen = ++layoutInvokeGeneration;
@@ -1172,6 +1256,53 @@ namespace GameHoverDetails
             }
         }
 
+        // private void EnsurePopupShell()
+        // {
+        //     if (popup != null)
+        //     {
+        //         return;
+        //     }
+
+        //     contentStack = new StackPanel
+        //     {
+        //         Margin = new Thickness(14, 12, 14, 12),
+        //         IsHitTestVisible = true
+        //     };
+
+        //     chromeFlyTransform = new TranslateTransform();
+        //     chromeBorder = new Border
+        //     {
+        //         Background = new SolidColorBrush(Color.FromRgb(28, 28, 30)),
+        //         BorderBrush = new SolidColorBrush(Color.FromRgb(72, 72, 78)),
+        //         BorderThickness = new Thickness(1),
+        //         CornerRadius = new CornerRadius(ChromeCornerRadiusDip),
+        //         Child = contentStack,
+        //         IsHitTestVisible = true,
+        //         RenderTransform = chromeFlyTransform,
+        //         RenderTransformOrigin = new Point(0, 0),
+        //         Effect = new DropShadowEffect
+        //         {
+        //             Color = Colors.Black,
+        //             BlurRadius = 14,
+        //             ShadowDepth = 2,
+        //             Opacity = 0.32,
+        //             Direction = 270
+        //         }
+        //     };
+        //     chromeBorder.PreviewMouseMove += ChromeBorderOnPointerOverChrome;
+        //     chromeBorder.MouseEnter += ChromeBorderOnPointerOverChrome;
+
+        //     popup = new Popup
+        //     {
+        //         AllowsTransparency = true,
+        //         StaysOpen = true,
+        //         PopupAnimation = PopupAnimation.None,
+        //         Child = chromeBorder,
+        //         IsHitTestVisible = true
+        //     };
+        // }
+
+        // 新增修改
         private void EnsurePopupShell()
         {
             if (popup != null)
@@ -1211,11 +1342,18 @@ namespace GameHoverDetails
             popup = new Popup
             {
                 AllowsTransparency = true,
-                StaysOpen = true,
+                StaysOpen = true,  // ★ 保持 true，让悬停切换正常工作
                 PopupAnimation = PopupAnimation.None,
                 Child = chromeBorder,
                 IsHitTestVisible = true
             };
+
+            // ★ 新增：创建轮询定时器
+            pollTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(PollIntervalMs)
+            };
+            pollTimer.Tick += PollTimerOnTick;
         }
     }
 }

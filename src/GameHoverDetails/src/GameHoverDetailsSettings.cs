@@ -15,7 +15,7 @@ namespace GameHoverDetails
         private const int MaxFieldBlockSpacingDip = 36;
         private const int DefaultFieldBlockSpacingDip = 11;
 
-        private static readonly string[] FactoryDefaultSelectedKeys = { "Icon", "Name", "LastPlayed" };
+        private static readonly string[] FactoryDefaultSelectedKeys = { "Icon", "Name", "LastPlayed", "InstallSize", "UserScore" };
 
         [DontSerialize]
         private GameHoverDetailsPlugin plugin;

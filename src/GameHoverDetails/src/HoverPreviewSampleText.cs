@@ -1,11 +1,26 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using Playnite.SDK;  // ★ 新增
 
 namespace GameHoverDetails
 {
     /// <summary>Static placeholder lines for the settings preview (not live game data).</summary>
     internal static class HoverPreviewSampleText
     {
+        // ★ 新增：资源提供者
+        private static IResourceProvider _resources;
+
+        // ★ 新增：初始化方法
+        public static void Initialize(IResourceProvider resources)
+        {
+            _resources = resources;
+        }
+
+        private static string L(string key)
+        {
+            return _resources?.GetString(key) ?? key;
+        }
+
         public static string ForKey(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -13,6 +28,15 @@ namespace GameHoverDetails
                 return "—";
             }
 
+            // ★ 修改：优先从资源文件获取
+            var resourceKey = $"LOCGameHoverDetails_PreviewSample_{key}";
+            var localized = _resources?.GetString(resourceKey);
+            if (!string.IsNullOrEmpty(localized))
+            {
+                return localized;
+            }
+
+            // 回退到硬编码
             switch (key)
             {
                 case "Name":

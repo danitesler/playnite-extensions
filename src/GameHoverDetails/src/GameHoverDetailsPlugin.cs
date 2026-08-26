@@ -22,6 +22,11 @@ namespace GameHoverDetails
 
         public GameHoverDetailsPlugin(IPlayniteAPI api) : base(api)
         {
+            // ★ 初始化所有本地化类
+            HoverFieldCatalog.Initialize(api.Resources);
+            HoverPreviewSampleText.Initialize(api.Resources);
+            HoverFieldFormatter.Initialize(api.Resources);
+
             settings = new GameHoverDetailsSettings(this);
             settings.PropertyChanged += SettingsOnPropertyChanged;
             Properties = new GenericPluginProperties

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Playnite.SDK; // 新增
 
 namespace GameHoverDetails
 {
@@ -17,6 +18,15 @@ namespace GameHoverDetails
 
     internal static class HoverFieldCatalog
     {
+        // ★ 新增：存储资源提供者
+        private static IResourceProvider _resources;
+
+        // ★ 新增：初始化方法（在插件启动时调用）
+        public static void Initialize(IResourceProvider resources)
+        {
+            _resources = resources;
+        }
+
         /// <summary>Stable order matching Playnite details-panel columns (left to right).</summary>
         public static readonly IReadOnlyList<HoverFieldDefinition> All = new List<HoverFieldDefinition>
         {
@@ -77,8 +87,24 @@ namespace GameHoverDetails
             return key == "Icon" || key == "CoverImage" || key == "BackgroundImage";
         }
 
+        // public static string GetDisplayName(string key)
+        // {
+        //     var d = All.FirstOrDefault(x => x.Key == key);
+        //     return d?.DisplayName ?? key ?? string.Empty;
+        // }
+
+        // ★ 修改：获取本地化名称
         public static string GetDisplayName(string key)
         {
+            // 尝试从资源文件获取本地化名称
+            var resourceKey = $"LOCGameHoverDetails_Field_{key}";
+            var localized = _resources?.GetString(resourceKey);
+            if (!string.IsNullOrEmpty(localized))
+            {
+                return localized;
+            }
+
+            // 回退到硬编码名称
             var d = All.FirstOrDefault(x => x.Key == key);
             return d?.DisplayName ?? key ?? string.Empty;
         }
