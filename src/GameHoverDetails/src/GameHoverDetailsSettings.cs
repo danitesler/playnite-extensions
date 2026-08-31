@@ -90,6 +90,7 @@ namespace GameHoverDetails
         private bool hideIconChipBackground;
         private bool hideFieldDividers;
         private bool hidePanelBorder = true;
+        private bool hideEmptyFields;
         private double hoverBodyFontSize = DefaultBodyFontSize;
         private double hoverTitleFontSize = DefaultTitleFontSize;
         private string hoverIconStyle = IconStyleHugeIcons;
@@ -218,6 +219,13 @@ namespace GameHoverDetails
         /// <summary>Border color picker is only useful when the panel outline is shown.</summary>
         [DontSerialize]
         public bool ShowBorderColorControls => !hidePanelBorder;
+
+        /// <summary>When true, field blocks with no value are hidden from the hover panel.</summary>
+        public bool HideEmptyFields
+        {
+            get => hideEmptyFields;
+            set => SetValue(ref hideEmptyFields, value);
+        }
 
         /// <summary>Body / value text size in the hover panel (device-independent pixels).</summary>
         public double HoverBodyFontSize
@@ -600,6 +608,7 @@ namespace GameHoverDetails
                 hideIconChipBackground = saved.HideIconChipBackground;
                 hideFieldDividers = saved.HideFieldDividers ?? true;
                 hidePanelBorder = saved.HidePanelBorder ?? false;
+                hideEmptyFields = saved.HideEmptyFields ?? false;
                 hoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
                     ? LegacyMissingBodyFontSize
                     : ClampBodyFontSize(saved.HoverBodyFontSize.Value);
@@ -777,6 +786,7 @@ namespace GameHoverDetails
             HideIconChipBackground = saved.HideIconChipBackground;
             HideFieldDividers = saved.HideFieldDividers ?? true;
             HidePanelBorder = saved.HidePanelBorder ?? false;
+            HideEmptyFields = saved.HideEmptyFields ?? false;
             HoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
                 ? LegacyMissingBodyFontSize
                 : saved.HoverBodyFontSize.Value;
@@ -832,6 +842,7 @@ namespace GameHoverDetails
                 HideIconChipBackground = HideIconChipBackground,
                 HideFieldDividers = HideFieldDividers,
                 HidePanelBorder = HidePanelBorder,
+                HideEmptyFields = HideEmptyFields,
                 HoverBodyFontSize = HoverBodyFontSize,
                 HoverTitleFontSize = HoverTitleFontSize,
                 HoverIconStyle = HoverIconStyle,

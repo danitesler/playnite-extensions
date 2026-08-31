@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -8,6 +8,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
@@ -47,6 +48,18 @@ namespace GameHoverDetails
         private const double EnterAnimationMs = 80;
         private const double HideDebounceMs = 70;
 
+        /// <summary>Safety net for popups that outlive their trigger (plugin windows, overlays, view swaps).</summary>
+        private const double VisibilityWatchdogMs = 500;
+
+        /// <summary>A single odd visual tree must not kill hover until Playnite restarts.</summary>
+        private const int MaxConsecutiveHoverErrors = 5;
+
+        /// <summary>Last resort if a context menu opened but never reports Closing.</summary>
+        private const double ContextMenuSuppressMaxMs = 20000;
+
+        /// <summary>How long a menu may take to report <c>IsOpen</c> after ContextMenuOpening.</summary>
+        private const double ContextMenuOpenGraceMs = 1000;
+
         private const double ChromeCornerRadiusDip = 8;
         private const double FrostBlurRadius = 24;
         private const int FanartBackgroundDecodePx = 960;
@@ -57,9 +70,11 @@ namespace GameHoverDetails
         private readonly Dispatcher dispatcher;
 
         private bool broken;
+        private int consecutiveHoverErrors;
         private bool attached;
         private DispatcherTimer hideDebounceTimer;
         private DispatcherTimer showDelayTimer;
+        private DispatcherTimer visibilityWatchdogTimer;
         private Game pendingShowGame;
         private FrameworkElement pendingShowAnchor;
         private Popup popup;
@@ -80,7 +95,13 @@ namespace GameHoverDetails
         private string lastBuiltFieldsFingerprint;
         private HoverChromePalette palette;
         private bool settingsNotifyQueued;
-        private int hotkeyHideGeneration;
+        private int deferredHoverSyncGeneration;
+        private bool contextMenuOpen;
+        private bool contextMenuSeenOpen;
+        private DateTime contextMenuOpenedAtUtc;
+        private ContextMenu openLibraryContextMenu;
+        private readonly ContextMenuEventHandler contextMenuOpeningHandler;
+        private readonly ContextMenuEventHandler contextMenuClosingHandler;
 
         public GameHoverDetailsHoverService(Window mainWindow, IPlayniteAPI playniteApi, GameHoverDetailsSettings settings)
         {
@@ -88,6 +109,8 @@ namespace GameHoverDetails
             this.playniteApi = playniteApi ?? throw new ArgumentNullException(nameof(playniteApi));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             dispatcher = mainWindow.Dispatcher;
+            contextMenuOpeningHandler = MainWindowOnContextMenuOpening;
+            contextMenuClosingHandler = MainWindowOnContextMenuClosing;
         }
 
         public void NotifySettingsChanged()
@@ -159,6 +182,7 @@ namespace GameHoverDetails
                 return;
             }
 
+            consecutiveHoverErrors = 0;
             hideDebounceTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(HideDebounceMs)
@@ -171,10 +195,20 @@ namespace GameHoverDetails
             };
             showDelayTimer.Tick += ShowDelayTimerOnTick;
 
+            visibilityWatchdogTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(VisibilityWatchdogMs)
+            };
+            visibilityWatchdogTimer.Tick += VisibilityWatchdogOnTick;
+
             mainWindow.PreviewMouseMove += MainWindowOnPreviewMouseMove;
+            mainWindow.PreviewMouseWheel += MainWindowOnPreviewMouseWheel;
             mainWindow.PreviewKeyDown += MainWindowOnPreviewKeyDown;
             mainWindow.StateChanged += MainWindowOnStateChanged;
+            mainWindow.Deactivated += MainWindowOnDeactivated;
             mainWindow.Closed += MainWindowOnClosed;
+            mainWindow.AddHandler(FrameworkElement.ContextMenuOpeningEvent, contextMenuOpeningHandler, true);
+            mainWindow.AddHandler(FrameworkElement.ContextMenuClosingEvent, contextMenuClosingHandler, true);
             if (Application.Current != null)
             {
                 Application.Current.Deactivated += ApplicationOnDeactivated;
@@ -210,10 +244,15 @@ namespace GameHoverDetails
             }
 
             mainWindow.PreviewMouseMove -= MainWindowOnPreviewMouseMove;
+            mainWindow.PreviewMouseWheel -= MainWindowOnPreviewMouseWheel;
             mainWindow.PreviewKeyDown -= MainWindowOnPreviewKeyDown;
             mainWindow.StateChanged -= MainWindowOnStateChanged;
+            mainWindow.Deactivated -= MainWindowOnDeactivated;
             mainWindow.Closed -= MainWindowOnClosed;
-            hotkeyHideGeneration++;
+            mainWindow.RemoveHandler(FrameworkElement.ContextMenuOpeningEvent, contextMenuOpeningHandler);
+            mainWindow.RemoveHandler(FrameworkElement.ContextMenuClosingEvent, contextMenuClosingHandler);
+            ClearContextMenuSuppress();
+            deferredHoverSyncGeneration++;
             if (Application.Current != null)
             {
                 Application.Current.Deactivated -= ApplicationOnDeactivated;
@@ -234,6 +273,14 @@ namespace GameHoverDetails
             }
 
             showDelayTimer = null;
+
+            visibilityWatchdogTimer?.Stop();
+            if (visibilityWatchdogTimer != null)
+            {
+                visibilityWatchdogTimer.Tick -= VisibilityWatchdogOnTick;
+            }
+
+            visibilityWatchdogTimer = null;
 
             StopEnterStoryboard();
             HidePopup();
@@ -278,6 +325,14 @@ namespace GameHoverDetails
 
         private void ApplicationOnDeactivated(object sender, EventArgs e)
         {
+            ClearContextMenuSuppress();
+            HidePopupForForegroundLoss();
+        }
+
+        private void MainWindowOnDeactivated(object sender, EventArgs e)
+        {
+            // In-app plugin/dialog windows deactivate MainWindow but not Application.
+            ClearContextMenuSuppress();
             HidePopupForForegroundLoss();
         }
 
@@ -285,8 +340,211 @@ namespace GameHoverDetails
         {
             if (mainWindow.WindowState == WindowState.Minimized)
             {
+                ClearContextMenuSuppress();
                 HidePopupForForegroundLoss();
             }
+        }
+
+        private void MainWindowOnContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (e.Handled)
+            {
+                return;
+            }
+
+            contextMenuOpen = true;
+            contextMenuSeenOpen = false;
+            contextMenuOpenedAtUtc = DateTime.UtcNow;
+            openLibraryContextMenu = TryGetContextMenu(e);
+            HidePopupForForegroundLoss();
+        }
+
+        private void MainWindowOnContextMenuClosing(object sender, ContextMenuEventArgs e)
+        {
+            ClearContextMenuSuppress();
+        }
+
+        private void ClearContextMenuSuppress()
+        {
+            contextMenuOpen = false;
+            contextMenuSeenOpen = false;
+            openLibraryContextMenu = null;
+        }
+
+        /// <summary>
+        /// Hover is for the library under the pointer. Block only while a game context menu is open,
+        /// or while another window of this process (plugin dialog) is active or in the foreground.
+        /// Do not require MainWindow.IsActive — leaving Playnite and mousing back must work.
+        /// </summary>
+        private bool ShouldBlockHover()
+        {
+            return settings.IsHoverSuppressed()
+                || IsLibraryContextMenuBlocking()
+                || HasOtherApplicationWindowActive()
+                || IsOtherInProcessWindowForeground();
+        }
+
+        private bool IsLibraryContextMenuBlocking()
+        {
+            if (!contextMenuOpen)
+            {
+                return false;
+            }
+
+            // ContextMenuClosing does not always fire (Escape, click-through, menu rebuilt by a
+            // plugin). Without this bound the hover would stay blocked until Playnite restarts.
+            var elapsedMs = (DateTime.UtcNow - contextMenuOpenedAtUtc).TotalMilliseconds;
+            if (elapsedMs > ContextMenuSuppressMaxMs)
+            {
+                ClearContextMenuSuppress();
+                return false;
+            }
+
+            var menu = openLibraryContextMenu;
+            if (menu != null)
+            {
+                try
+                {
+                    if (menu.IsOpen)
+                    {
+                        contextMenuSeenOpen = true;
+                        return true;
+                    }
+                }
+                catch
+                {
+                    ClearContextMenuSuppress();
+                    return false;
+                }
+            }
+
+            if (contextMenuSeenOpen)
+            {
+                // Closed without ContextMenuClosing (common when the pointer leaves Playnite).
+                ClearContextMenuSuppress();
+                return false;
+            }
+
+            // Never reported open: the opening was cancelled, or the menu could not be resolved.
+            // Hold hover only for the moment WPF needs to show it, not for the full timeout.
+            if (elapsedMs > ContextMenuOpenGraceMs)
+            {
+                ClearContextMenuSuppress();
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool HasOtherApplicationWindowActive()
+        {
+            var app = Application.Current;
+            if (app == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                foreach (Window window in app.Windows)
+                {
+                    if (window == null || ReferenceEquals(window, mainWindow))
+                    {
+                        continue;
+                    }
+
+                    if (window.IsActive && window.IsVisible)
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Catches in-process windows that never reach <see cref="Application.Windows"/> (plugin
+        /// dialogs hosting WinForms/native content). Windows owned by *other* processes must not
+        /// block: leaving Playnite and mousing back over a tile has to keep working.
+        /// </summary>
+        private bool IsOtherInProcessWindowForeground()
+        {
+            try
+            {
+                var foreground = GetForegroundWindow();
+                if (foreground == IntPtr.Zero)
+                {
+                    return false;
+                }
+
+                if (foreground == new WindowInteropHelper(mainWindow).Handle)
+                {
+                    return false;
+                }
+
+                var wpfSource = HwndSource.FromHwnd(foreground);
+                if (wpfSource != null)
+                {
+                    // Ours, and identifiable: only real windows count. Popup HWNDs (this hover,
+                    // tooltips, menus, combo drop-downs) would otherwise make the panel hide and
+                    // re-show itself in a loop.
+                    return wpfSource.RootVisual is Window window
+                        && !ReferenceEquals(window, mainWindow)
+                        && window.IsVisible;
+                }
+
+                int processId;
+                GetWindowThreadProcessId(foreground, out processId);
+                return processId == CurrentProcessId;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static ContextMenu TryGetContextMenu(ContextMenuEventArgs e)
+        {
+            if (e == null)
+            {
+                return null;
+            }
+
+            if (e.Source is ContextMenu fromSource)
+            {
+                return fromSource;
+            }
+
+            if (e.OriginalSource is ContextMenu fromOriginal)
+            {
+                return fromOriginal;
+            }
+
+            var fe = e.Source as FrameworkElement ?? e.OriginalSource as FrameworkElement;
+            if (fe?.ContextMenu != null)
+            {
+                return fe.ContextMenu;
+            }
+
+            for (var current = e.OriginalSource as DependencyObject; current != null; current = GetTreeParent(current))
+            {
+                if (current is ContextMenu menu)
+                {
+                    return menu;
+                }
+
+                if (current is FrameworkElement currentFe && currentFe.ContextMenu != null)
+                {
+                    return currentFe.ContextMenu;
+                }
+            }
+
+            return null;
         }
 
         private void HidePopupForForegroundLoss()
@@ -303,7 +561,7 @@ namespace GameHoverDetails
             }
             catch (Exception ex)
             {
-                LatchBroken(ex);
+                HandleHoverError(ex);
             }
         }
 
@@ -314,6 +572,29 @@ namespace GameHoverDetails
                 return;
             }
 
+            QueueDeferredHoverSync();
+        }
+
+        /// <summary>
+        /// Details/list wheel scroll moves games under a still cursor — <see cref="UIElement.PreviewMouseMove"/>
+        /// does not fire. Sync after the scroll is applied so the open tooltip swaps content instead of blinking.
+        /// </summary>
+        private void MainWindowOnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (broken)
+            {
+                return;
+            }
+
+            QueueDeferredHoverSync();
+        }
+
+        /// <summary>
+        /// After Playnite handles a key or wheel (list scroll, F4/F9), hit-test the pointer.
+        /// Still over a game → keep the tooltip and switch content; otherwise hide.
+        /// </summary>
+        private void QueueDeferredHoverSync()
+        {
             var popupOpen = popup != null && popup.IsOpen;
             var showPending = pendingShowGame != null || (showDelayTimer != null && showDelayTimer.IsEnabled);
             if (!popupOpen && !showPending)
@@ -321,24 +602,20 @@ namespace GameHoverDetails
                 return;
             }
 
-            var generation = ++hotkeyHideGeneration;
+            var generation = ++deferredHoverSyncGeneration;
             dispatcher.BeginInvoke(
-                new Action(() => HidePopupIfPointerLeftGame(generation)),
+                new Action(() => DeferredHoverSync(generation)),
                 DispatcherPriority.ContextIdle);
         }
 
-        /// <summary>
-        /// After Playnite handles the key (F4/F9 overlays), hide only if the pointer is no longer on a game.
-        /// Still over a tile → keep the tooltip.
-        /// </summary>
-        private void HidePopupIfPointerLeftGame(int generation)
+        private void DeferredHoverSync(int generation)
         {
-            if (broken || !attached || generation != hotkeyHideGeneration)
+            if (broken || !attached || generation != deferredHoverSyncGeneration)
             {
                 return;
             }
 
-            if (settings.IsHoverSuppressed())
+            if (ShouldBlockHover())
             {
                 hideDebounceTimer?.Stop();
                 HidePopup();
@@ -349,10 +626,21 @@ namespace GameHoverDetails
             {
                 var hit = Mouse.DirectlyOver as DependencyObject;
                 Game game;
-                FrameworkElement unused;
-                TryResolveGameAndAnchor(hit, playniteApi, out game, out unused);
+                FrameworkElement anchor;
+                TryResolveGameAndAnchor(hit, playniteApi, out game, out anchor);
+                consecutiveHoverErrors = 0;
                 if (game != null)
                 {
+                    hideDebounceTimer?.Stop();
+                    if (IsAlreadyShowing(game, anchor))
+                    {
+                        showDelayTimer?.Stop();
+                        pendingShowGame = null;
+                        pendingShowAnchor = null;
+                        return;
+                    }
+
+                    ScheduleShowAfterDelay(game, anchor);
                     return;
                 }
 
@@ -361,18 +649,27 @@ namespace GameHoverDetails
             }
             catch (Exception ex)
             {
-                LatchBroken(ex);
+                HandleHoverError(ex);
             }
         }
 
         private void MainWindowOnPreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            TryHandlePointerHover();
+        }
+
+        /// <summary>
+        /// Resolve the game under the pointer and show, switch, or debounce-hide.
+        /// Switching while the popup is already open skips appear delay and enter fade.
+        /// </summary>
+        private void TryHandlePointerHover()
         {
             if (broken)
             {
                 return;
             }
 
-            if (settings.IsHoverSuppressed())
+            if (ShouldBlockHover())
             {
                 showDelayTimer?.Stop();
                 pendingShowGame = null;
@@ -387,10 +684,19 @@ namespace GameHoverDetails
                 Game game;
                 FrameworkElement anchor;
                 TryResolveGameAndAnchor(hit, playniteApi, out game, out anchor);
+                consecutiveHoverErrors = 0;
 
                 if (game != null)
                 {
                     hideDebounceTimer?.Stop();
+                    if (IsAlreadyShowing(game, anchor))
+                    {
+                        showDelayTimer?.Stop();
+                        pendingShowGame = null;
+                        pendingShowAnchor = null;
+                        return;
+                    }
+
                     ScheduleShowAfterDelay(game, anchor);
                 }
                 else
@@ -404,13 +710,27 @@ namespace GameHoverDetails
             }
             catch (Exception ex)
             {
-                LatchBroken(ex);
+                HandleHoverError(ex);
             }
+        }
+
+        /// <summary>
+        /// Every move over the same tile used to re-run the show pipeline (palette resolve, fanart
+        /// decode, placement, fade). Nothing about the panel changes, so skip the whole pass.
+        /// </summary>
+        private bool IsAlreadyShowing(Game game, FrameworkElement anchor)
+        {
+            return game != null
+                && popup != null
+                && popup.IsOpen
+                && lastShownGame != null
+                && lastShownGame.Id == game.Id
+                && ReferenceEquals(lastShownAnchor, anchor);
         }
 
         private void ScheduleShowAfterDelay(Game game, FrameworkElement anchor)
         {
-            if (settings.IsHoverSuppressed())
+            if (ShouldBlockHover())
             {
                 showDelayTimer?.Stop();
                 pendingShowGame = null;
@@ -421,7 +741,11 @@ namespace GameHoverDetails
             pendingShowGame = game;
             pendingShowAnchor = anchor;
             showDelayTimer?.Stop();
-            var delay = settings.ShowDelayMs;
+
+            // Appear delay is first-open only. An already-visible tooltip must swap
+            // content immediately — waiting restarts the fade and looks like blink.
+            var alreadyOpen = popup != null && popup.IsOpen;
+            var delay = alreadyOpen ? 0 : settings.ShowDelayMs;
             if (delay <= 0)
             {
                 pendingShowGame = null;
@@ -455,7 +779,7 @@ namespace GameHoverDetails
                     return;
                 }
 
-                if (settings.IsHoverSuppressed())
+                if (ShouldBlockHover())
                 {
                     pendingShowGame = null;
                     pendingShowAnchor = null;
@@ -469,7 +793,53 @@ namespace GameHoverDetails
             }
             catch (Exception ex)
             {
-                LatchBroken(ex);
+                HandleHoverError(ex);
+            }
+        }
+
+        /// <summary>
+        /// Last line of defence for a panel that outlived its trigger: a plugin window opened from the
+        /// context menu, the view switched, or the tile was recycled while the pointer never moved.
+        /// Runs only while the popup is open. Hides when the pointer is off games; switches content
+        /// when the pointer is over a different game (wheel scroll in details view).
+        /// </summary>
+        private void VisibilityWatchdogOnTick(object sender, EventArgs e)
+        {
+            if (broken || popup == null || !popup.IsOpen)
+            {
+                visibilityWatchdogTimer?.Stop();
+                return;
+            }
+
+            try
+            {
+                if (ShouldBlockHover() || lastShownGame == null)
+                {
+                    hideDebounceTimer?.Stop();
+                    HidePopup();
+                    return;
+                }
+
+                Game game;
+                FrameworkElement anchor;
+                TryResolveGameAndAnchor(Mouse.DirectlyOver as DependencyObject, playniteApi, out game, out anchor);
+                if (game == null)
+                {
+                    hideDebounceTimer?.Stop();
+                    HidePopup();
+                    return;
+                }
+
+                // Pointer is still on a game (possibly a different row after scroll).
+                // Switch content in place — hiding here is what made fast sweeps blink.
+                if (!IsAlreadyShowing(game, anchor))
+                {
+                    ScheduleShowAfterDelay(game, anchor);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleHoverError(ex);
             }
         }
 
@@ -485,10 +855,15 @@ namespace GameHoverDetails
                 hideDebounceTimer?.Stop();
                 var hit = Mouse.DirectlyOver as DependencyObject;
                 Game g;
-                FrameworkElement unused;
-                TryResolveGameAndAnchor(hit, playniteApi, out g, out unused);
-                if (g != null)
+                FrameworkElement anchor;
+                TryResolveGameAndAnchor(hit, playniteApi, out g, out anchor);
+                if (g != null && !ShouldBlockHover())
                 {
+                    if (!IsAlreadyShowing(g, anchor))
+                    {
+                        ScheduleShowAfterDelay(g, anchor);
+                    }
+
                     return;
                 }
 
@@ -496,19 +871,43 @@ namespace GameHoverDetails
             }
             catch (Exception ex)
             {
-                LatchBroken(ex);
+                HandleHoverError(ex);
             }
         }
 
-        private void LatchBroken(Exception ex)
+        /// <summary>
+        /// One unexpected element in a third-party view used to disable hover for the rest of the
+        /// session. Recover from isolated failures and only give up when they keep repeating.
+        /// </summary>
+        private void HandleHoverError(Exception ex)
         {
             if (broken)
             {
                 return;
             }
 
+            consecutiveHoverErrors++;
+            if (consecutiveHoverErrors < MaxConsecutiveHoverErrors)
+            {
+                Logger.Warn(
+                    ex,
+                    "GameHoverDetails hover error " + consecutiveHoverErrors + "/" + MaxConsecutiveHoverErrors + "; recovering.");
+                try
+                {
+                    hideDebounceTimer?.Stop();
+                    showDelayTimer?.Stop();
+                    HidePopup();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                return;
+            }
+
             broken = true;
-            Logger.Error(ex, "GameHoverDetails hover UI disabled after an error.");
+            Logger.Error(ex, "GameHoverDetails hover UI disabled after repeated errors.");
             try
             {
                 Detach();
@@ -533,9 +932,14 @@ namespace GameHoverDetails
                 return;
             }
 
+            if (IsHitOnMenu(hit))
+            {
+                return;
+            }
+
             Game resolvedGame = null;
             FrameworkElement outerGameFe = null;
-            for (var current = hit; current != null; current = VisualTreeHelper.GetParent(current))
+            for (var current = hit; current != null; current = GetTreeParent(current))
             {
                 if (!(current is FrameworkElement fe))
                 {
@@ -570,7 +974,7 @@ namespace GameHoverDetails
 
             if (!IsGridDesktopView(api))
             {
-                for (var current = hit; current != null; current = VisualTreeHelper.GetParent(current))
+                for (var current = hit; current != null; current = GetTreeParent(current))
                 {
                     if (ReferenceEquals(current, outerGameFe))
                     {
@@ -586,6 +990,56 @@ namespace GameHoverDetails
 
             game = resolvedGame;
             anchor = outerGameFe;
+        }
+
+        /// <summary>
+        /// Playnite game context-menu items often share the tile's <see cref="Game"/> DataContext.
+        /// Treat those hits as "not on a tile" so the hover cannot stick to the menu.
+        /// </summary>
+        private static bool IsHitOnMenu(DependencyObject hit)
+        {
+            for (var current = hit; current != null; current = GetTreeParent(current))
+            {
+                if (current is ContextMenu || current is MenuItem || current is Menu)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Parent of a hit-test or focus result. <see cref="VisualTreeHelper.GetParent"/> throws on
+        /// <see cref="ContentElement"/> (e.g. a <c>Run</c> inside a TextBlock).
+        /// </summary>
+        internal static DependencyObject GetTreeParent(DependencyObject child)
+        {
+            if (child == null)
+            {
+                return null;
+            }
+
+            if (child is Visual || child is Visual3D)
+            {
+                return VisualTreeHelper.GetParent(child);
+            }
+
+            if (child is FrameworkContentElement fce)
+            {
+                return fce.Parent;
+            }
+
+            if (child is ContentElement ce)
+            {
+                var parent = ContentOperations.GetParent(ce);
+                if (parent != null)
+                {
+                    return parent;
+                }
+            }
+
+            return LogicalTreeHelper.GetParent(child);
         }
 
         private static bool IsGridDesktopView(IPlayniteAPI api)
@@ -653,6 +1107,8 @@ namespace GameHoverDetails
         private void HidePopup()
         {
             showDelayTimer?.Stop();
+            hideDebounceTimer?.Stop();
+            visibilityWatchdogTimer?.Stop();
             pendingShowGame = null;
             pendingShowAnchor = null;
             StopEnterStoryboard();
@@ -775,7 +1231,7 @@ namespace GameHoverDetails
 
         private void ShowOrUpdatePopup(Game game, FrameworkElement anchor)
         {
-            if (settings.IsHoverSuppressed())
+            if (ShouldBlockHover())
             {
                 HidePopup();
                 return;
@@ -786,7 +1242,6 @@ namespace GameHoverDetails
             var wasOpen = popup.IsOpen;
             var previousId = lastShownGame?.Id;
             var sameGameContinue = wasOpen && previousId != null && previousId == game.Id;
-            var gameChanged = lastShownGame == null || lastShownGame.Id != game.Id;
 
             var orderedKeys = settings.GetOrderedSelectedKeys();
             var w = Math.Max(120, settings.ResolveHoverPanelWidth());
@@ -798,6 +1253,7 @@ namespace GameHoverDetails
                 + "\x1e" + (settings.HideIconChipBackground ? "1" : "0")
                 + "\x1e" + (settings.HideFieldDividers ? "1" : "0")
                 + "\x1e" + (settings.HidePanelBorder ? "1" : "0")
+                + "\x1e" + (settings.HideEmptyFields ? "1" : "0")
                 + "\x1e" + settings.HoverFieldBlockSpacingDip.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 + "\x1e" + settings.HoverFieldColumnCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 + "\x1e" + settings.HoverContentPaddingDip.ToString(System.Globalization.CultureInfo.InvariantCulture)
@@ -813,11 +1269,6 @@ namespace GameHoverDetails
                 lastShownGame != null &&
                 lastShownGame.Id == game.Id &&
                 lastBuiltFieldsFingerprint == fieldsFingerprint;
-
-            if (popup.IsOpen && gameChanged)
-            {
-                popup.IsOpen = false;
-            }
 
             chromeBorder.Width = w;
             chromeBorder.MinWidth = w;
@@ -843,12 +1294,20 @@ namespace GameHoverDetails
                 InvalidatePopupToContentHeight();
             }
 
+            if (contentStack.Children.Count == 0)
+            {
+                HidePopup();
+                return;
+            }
+
+            var needsReposition = true;
             if (anchor != null && anchor.IsVisible)
             {
                 var sameAnchorContinue = sameGameContinue
                     && popup.IsOpen
                     && ReferenceEquals(popup.PlacementTarget, anchor)
                     && popup.Placement == PlacementMode.Custom;
+                needsReposition = !sameAnchorContinue;
                 popup.PlacementTarget = anchor;
                 popup.Placement = PlacementMode.Custom;
                 if (!sameAnchorContinue)
@@ -869,7 +1328,9 @@ namespace GameHoverDetails
             }
 
             StopEnterStoryboard();
-            if (sameGameContinue)
+            // Fade only on first open. Switching games while open must stay at opacity 1 —
+            // dropping to 0 for the enter storyboard is the blink during fast details scroll.
+            if (wasOpen)
             {
                 chromeRoot.Opacity = 1;
                 chromeFlyTransform.X = 0;
@@ -883,12 +1344,32 @@ namespace GameHoverDetails
             popup.IsOpen = true;
             lastShownGame = game;
             lastShownAnchor = anchor;
+            StartVisibilityWatchdog();
 
-            var runEnterAnimation = !sameGameContinue;
+            // Switching games deliberately leaves the HWND alive: closing and reopening it is the
+            // teardown that makes the card blink during fast sweeps. The popup therefore keeps its
+            // old screen position until something asks WPF to re-place it, and the offsets above
+            // were reset to the value they already had, so nudge explicitly.
+            if (wasOpen && needsReposition)
+            {
+                NudgePopupToApplyNewSize();
+            }
+
+            var runEnterAnimation = !wasOpen;
             var invokeGen = ++layoutInvokeGeneration;
             dispatcher.BeginInvoke(
                 new Action(() => AfterPopupLayout(runEnterAnimation, invokeGen)),
                 DispatcherPriority.Loaded);
+        }
+
+        private void StartVisibilityWatchdog()
+        {
+            if (visibilityWatchdogTimer == null || visibilityWatchdogTimer.IsEnabled)
+            {
+                return;
+            }
+
+            visibilityWatchdogTimer.Start();
         }
 
         private void AfterPopupLayout(bool runEnterAnimation, int invokedGeneration)
@@ -1139,7 +1620,7 @@ namespace GameHoverDetails
             }
             catch (Exception ex)
             {
-                LatchBroken(ex);
+                HandleHoverError(ex);
             }
         }
 
@@ -1438,6 +1919,14 @@ namespace GameHoverDetails
 
         [DllImport("gdi32.dll", ExactSpelling = true)]
         private static extern bool DeleteObject(IntPtr hObject);
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern int GetWindowThreadProcessId(IntPtr hWnd, out int processId);
+
+        private static readonly int CurrentProcessId = System.Diagnostics.Process.GetCurrentProcess().Id;
 
         private HoverChromePalette Palette => palette ?? (palette = HoverChromePalette.Resolve(settings));
 

@@ -279,6 +279,7 @@ namespace GameHoverDetails
                 e.PropertyName == nameof(GameHoverDetailsSettings.HideIconChipBackground) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HideFieldDividers) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HidePanelBorder) ||
+                e.PropertyName == nameof(GameHoverDetailsSettings.HideEmptyFields) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HoverFieldBlockSpacingDip) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HoverFieldColumnCount) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HoverContentPaddingDip) ||
@@ -862,7 +863,7 @@ namespace GameHoverDetails
                     return match;
                 }
 
-                current = VisualTreeHelper.GetParent(current);
+                current = GameHoverDetailsHoverService.GetTreeParent(current);
             }
 
             return null;

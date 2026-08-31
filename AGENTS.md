@@ -44,6 +44,7 @@ Under **`.cursor/rules/`** (apply when matching files are in context):
 - **`playnite-extension-versioning.mdc`** — When to bump extension semver; ask user; release-only policy.
 - **`playnite-github-releases-per-extension.mdc`** — One GitHub Release per add-on; no combined umbrella releases; tag collision guidance.
 - **`playnite-github-release-tags.mdc`** — Release tag format **`{key}-v{version}`** and **`PackageUrl`** alignment.
+- **`playnite-localization.mdc`** — Translate every `Localization/*.xaml` locale when adding or changing UI strings (always apply).
 
 Copy these rules into other Playnite plugin repos if you want the same agent behavior.
 

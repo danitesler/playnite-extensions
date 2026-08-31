@@ -246,9 +246,32 @@ namespace GameHoverDetails
                     AppendPlatformRow(target, settings, palette, source, key, innerMax, isFirstBlock, compactCell);
                     break;
                 default:
+                    if (ShouldOmitEmptyText(settings, source, key))
+                    {
+                        return;
+                    }
+
                     AppendTextDetailRow(target, settings, palette, source, key, innerMax, isFirstBlock, compactCell);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Image-backed fields decide this themselves once they have loaded their art, so a
+        /// "Hide empty fields" check never decodes the same bitmap twice per hover.
+        /// </summary>
+        private static bool ShouldOmitEmptyText(
+            GameHoverDetailsSettings settings,
+            HoverFieldListSource source,
+            string key)
+        {
+            if (settings == null || source == null || !settings.HideEmptyFields)
+            {
+                return false;
+            }
+
+            var valueText = source.FormatValue != null ? source.FormatValue(key) : null;
+            return string.IsNullOrWhiteSpace(valueText) || valueText == HoverLoc.Empty;
         }
 
         private static bool IsFullWidthField(string key)
@@ -509,7 +532,7 @@ namespace GameHoverDetails
             var bmp = source.TryGetGameArt != null ? source.TryGetGameArt(key) : null;
             if (bmp == null)
             {
-                if (source.OmitEmptyArt)
+                if (source.OmitEmptyArt || settings.HideEmptyFields)
                 {
                     return;
                 }
@@ -614,6 +637,11 @@ namespace GameHoverDetails
                 : null;
             if (icons == null || icons.Count == 0)
             {
+                if (ShouldOmitEmptyText(settings, source, key))
+                {
+                    return;
+                }
+
                 AppendTextDetailRow(target, settings, palette, source, key, innerMax, isFirstBlock, compactCell);
                 return;
             }

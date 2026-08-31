@@ -26,6 +26,8 @@ namespace GameHoverDetails
         public bool? HideFieldDividers { get; set; }
         /// <summary>When true, hover panel has no outline. Null in legacy JSON — treated as false (on).</summary>
         public bool? HidePanelBorder { get; set; }
+        /// <summary>When true, field blocks with no value are omitted. Null in legacy JSON — treated as false.</summary>
+        public bool? HideEmptyFields { get; set; }
         /// <summary>Null in legacy JSON — treated as 13.</summary>
         public double? HoverBodyFontSize { get; set; }
         /// <summary>Null in legacy JSON — treated as 10.5.</summary>
