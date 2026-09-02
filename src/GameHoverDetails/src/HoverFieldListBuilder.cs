@@ -359,21 +359,14 @@ namespace GameHoverDetails
                 });
         }
 
-        private static Border CreateGlyphChip(GameHoverDetailsSettings settings, HoverChromePalette palette, string glyph)
+        private static Border CreateGlyphChip(GameHoverDetailsSettings settings, HoverChromePalette palette, string fieldKey)
         {
             var chip = GlyphChipSizeDip(settings);
-            var glyphTb = new TextBlock
-            {
-                Text = glyph,
-                FontFamily = HoverFieldCatalog.GetGlyphFontFamily(settings.HoverIconStyle),
-                FontSize = settings.HoverIconGlyphFontSize,
-                FontWeight = FontWeights.Normal,
-                Foreground = palette.GlyphChipGlyph,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                FlowDirection = FlowDirection.LeftToRight,
-                IsHitTestVisible = false
-            };
+            var glyph = HoverFieldCatalog.CreateGlyphVisual(
+                fieldKey,
+                settings.HoverIconStyle,
+                settings.HoverIconGlyphFontSize,
+                palette.GlyphChipGlyph);
 
             return new Border
             {
@@ -381,7 +374,7 @@ namespace GameHoverDetails
                 Height = chip,
                 CornerRadius = settings.ResolveIconChipCornerRadius(),
                 Background = palette.GlyphChipBackground,
-                Child = glyphTb,
+                Child = glyph,
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 FlowDirection = FlowDirection.LeftToRight,
@@ -426,7 +419,7 @@ namespace GameHoverDetails
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(chipSize) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-                var chip = CreateGlyphChip(settings, palette, HoverFieldCatalog.GetGlyph(key, settings.HoverIconStyle));
+                var chip = CreateGlyphChip(settings, palette, key);
                 Grid.SetColumn(chip, 0);
 
                 var label = new TextBlock { Margin = new Thickness(0, 0, 0, LabelToValueGapDip) };
@@ -473,7 +466,7 @@ namespace GameHoverDetails
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(chipSize) });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-                var chip = CreateGlyphChip(settings, palette, HoverFieldCatalog.GetGlyph(key, settings.HoverIconStyle));
+                var chip = CreateGlyphChip(settings, palette, key);
                 Grid.SetColumn(chip, 0);
 
                 var body = new TextBlock

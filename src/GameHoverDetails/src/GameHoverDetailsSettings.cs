@@ -52,6 +52,10 @@ namespace GameHoverDetails
         public const string IconStylePhosphor = "Phosphor";
         public const string IconStyleUnicons = "Unicons";
         public const string IconStyleHugeIcons = "HugeIcons";
+        public const string IconStyleSketchy = "Sketchy";
+        public const string IconStyleIconsax = "Iconsax";
+        public const string IconStylePixel = "Pixel";
+        public const string IconStylePixelarticons = "Pixelarticons";
         public const string IconChipShapeCircle = "Circle";
         public const string IconChipShapeRectangle = "Rectangle";
         public const string IconChipShapeRounded = "Rounded";
@@ -247,7 +251,7 @@ namespace GameHoverDetails
         [DontSerialize]
         public double HoverTitleLineHeight => HoverTitleFontSize * (14.0 / TitleLineHeightReferenceFontSize);
 
-        /// <summary>Catalog glyph family: HugeIcons (default), Unicons, or Phosphor.</summary>
+        /// <summary>Catalog glyph family: HugeIcons (default), Unicons, Phosphor, Sketchy, Iconsax, Pixel, or Pixelarticons.</summary>
         public string HoverIconStyle
         {
             get => hoverIconStyle;
@@ -1021,6 +1025,32 @@ namespace GameHoverDetails
                 || string.Equals(value, "Hugeicons", System.StringComparison.OrdinalIgnoreCase))
             {
                 return IconStyleHugeIcons;
+            }
+
+            if (string.Equals(value, IconStyleSketchy, System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "SketchyIcons", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return IconStyleSketchy;
+            }
+
+            if (string.Equals(value, IconStyleIconsax, System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "IconsaxBulk", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return IconStyleIconsax;
+            }
+
+            if (string.Equals(value, IconStylePixelarticons, System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "PixelArtIcons", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "pixelart-icons", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return IconStylePixelarticons;
+            }
+
+            if (string.Equals(value, IconStylePixel, System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "PixelIconLibrary", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "HackerNoon", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return IconStylePixel;
             }
 
             return IconStyleUnicons;

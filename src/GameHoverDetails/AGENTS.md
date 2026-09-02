@@ -27,7 +27,7 @@ Playnite **GenericPlugin** (`net462`, WPF). Hover popup anchored to a library ti
 | Field catalog / text | `HoverFieldCatalog.cs`, `HoverFieldFormatter.cs`, `HoverDetailValuePresenter.cs`, `HoverLoc.cs` |
 | Art decode | `HoverBitmapLoader.cs` (no cache — do not probe twice) |
 | Localization | `Localization/*.xaml` (Playnite Crowdin set; English fallback) |
-| Glyphs | `fonts/` Phosphor, Unicons Line, Huge Icons Stroke Rounded (MIT; copied next to the DLL, not embedded) |
+| Glyphs | `fonts/` Phosphor, Unicons Line, Huge Icons Stroke Rounded, Pixel Icon Library (copied next to the DLL). Sketchy Icons, Iconsax Bulk, and Pixelarticons are catalog path subsets in `HoverIconSvgCatalog.cs`. |
 | Manifest | `src/GameHoverDetails/info/extension.yaml` |
 
 ## Settings
@@ -55,7 +55,7 @@ Playnite **GenericPlugin** (`net462`, WPF). Hover popup anchored to a library ti
 | Regular text size | 14 | 9–20 |
 | Hide empty fields | off | Omit blocks with no value / no art |
 | Show titles | on | Title size nested, default 10 (8–16) |
-| Show icons | on | Huge Icons Stroke Rounded; also Unicons Line, Phosphor |
+| Show icons | on | Huge Icons Stroke Rounded; also Unicons, Phosphor, Sketchy Icons, Iconsax Bulk, Pixel Icon Library, Pixelarticons |
 | Icon size | 19 DIP | 8–40 chip; padding 0–16 around glyph (default 8; chip grows) |
 | Show icon background | on | Soft rounded default; Circle / Rectangle / Rounded / Squircle / Arch / Tile / Leaf; fill `#FF121212` |
 

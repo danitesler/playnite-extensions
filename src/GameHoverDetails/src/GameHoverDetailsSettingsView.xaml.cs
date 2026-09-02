@@ -39,18 +39,18 @@ namespace GameHoverDetails
 
         private sealed class AddFieldOption
         {
-            public AddFieldOption(string key, string displayName, string iconStyle)
+            public AddFieldOption(string key, string displayName, string iconStyle, Brush glyphBrush)
             {
                 Key = key;
                 DisplayName = displayName;
                 IconStyle = iconStyle ?? GameHoverDetailsSettings.IconStyleUnicons;
+                SettingsIcon = HoverFieldCatalog.CreateGlyphVisual(Key, IconStyle, 15, glyphBrush ?? Brushes.White);
             }
 
             public string Key { get; }
             public string DisplayName { get; }
             public string IconStyle { get; }
-            public string SettingsGlyph => HoverFieldCatalog.GetGlyph(Key, IconStyle);
-            public FontFamily GlyphFontFamily => HoverFieldCatalog.GetGlyphFontFamily(IconStyle);
+            public FrameworkElement SettingsIcon { get; }
 
             public override string ToString()
             {
@@ -60,13 +60,14 @@ namespace GameHoverDetails
 
         private sealed class EnabledFieldRow
         {
-            public EnabledFieldRow(string key, string displayName, int index, int count, string iconStyle)
+            public EnabledFieldRow(string key, string displayName, int index, int count, string iconStyle, Brush glyphBrush)
             {
                 Key = key;
                 DisplayName = displayName;
                 Index = index;
                 Count = count;
                 IconStyle = iconStyle ?? GameHoverDetailsSettings.IconStyleUnicons;
+                SettingsIcon = HoverFieldCatalog.CreateGlyphVisual(Key, IconStyle, 15, glyphBrush ?? Brushes.White);
             }
 
             public string Key { get; }
@@ -76,8 +77,7 @@ namespace GameHoverDetails
             public string IconStyle { get; }
             public bool CanMoveUp => Index > 0;
             public bool CanMoveDown => Index < Count - 1;
-            public string SettingsGlyph => HoverFieldCatalog.GetGlyph(Key, IconStyle);
-            public FontFamily GlyphFontFamily => HoverFieldCatalog.GetGlyphFontFamily(IconStyle);
+            public FrameworkElement SettingsIcon { get; }
         }
 
         public GameHoverDetailsSettingsView()
@@ -573,6 +573,9 @@ namespace GameHoverDetails
             }
         }
 
+        private Brush SettingsGlyphBrush =>
+            TryFindResource("TextBrush") as Brush ?? SystemColors.ControlTextBrush;
+
         private void RefreshFieldsList()
         {
             if (FieldsList == null || boundSettings == null)
@@ -583,8 +586,9 @@ namespace GameHoverDetails
             var keys = boundSettings.SelectedFieldKeys;
             var n = keys.Count;
             var style = boundSettings.HoverIconStyle;
+            var glyphBrush = SettingsGlyphBrush;
             FieldsList.ItemsSource = keys
-                .Select((k, i) => new EnabledFieldRow(k, HoverFieldCatalog.GetDisplayName(k), i, n, style))
+                .Select((k, i) => new EnabledFieldRow(k, HoverFieldCatalog.GetDisplayName(k), i, n, style, glyphBrush))
                 .ToList();
         }
 
@@ -646,8 +650,9 @@ namespace GameHoverDetails
                 }
 
                 var filter = (addFieldSearchText ?? string.Empty).Trim();
+                var glyphBrush = SettingsGlyphBrush;
                 var addable = boundSettings.GetAddableKeys()
-                    .Select(k => new AddFieldOption(k, HoverFieldCatalog.GetDisplayName(k), style))
+                    .Select(k => new AddFieldOption(k, HoverFieldCatalog.GetDisplayName(k), style, glyphBrush))
                     .ToList();
                 var desired = addable
                     .Where(o => MatchesAddFieldSearch(o, filter))
