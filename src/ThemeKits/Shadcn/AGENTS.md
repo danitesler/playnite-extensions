@@ -4,7 +4,7 @@
 
 A reusable **component layer** for Playnite desktop themes: shadcn/ui-style control templates plus a Constants template that maps shadcn's CSS variables onto Playnite's resource keys. It is not an add-on by itself. Themes opt in with `"themeKit": "src/ThemeKits/Shadcn"` in `src/extensions.json` and supply their own `palette.css`.
 
-Current consumers: **Shadcn UI Theme** (`src/ShadcnUiTheme`), and the **Chakra**, **Mui**, and **Primer** kits (`src/ThemeKits/<Kit>`), which extend this one.
+Current consumers: **Shadcn UI Theme** (`src/ShadcnUiTheme`), and the **Chakra**, **Mui**, **Primer**, and **Fluent** kits (`src/ThemeKits/<Kit>`), which extend this one.
 
 ## Kit inheritance
 
@@ -49,6 +49,7 @@ Optional keys (each falls back so older palettes render unchanged):
 | `ShadcnPrimaryButton` / `...Foreground` / `...Hover` | `--primary-button` / `-foreground` / `-hover` | primary, primary-foreground, primary-hover | Primer's green buttons when the accent is blue |
 | `ShadcnSecondaryHover` | `--secondary-hover` | accent | Primer default-button hover |
 | `ShadcnTabIndicator` | `--tab-indicator` | primary | underline tabs (Primer coral) |
+| `ShadcnStrongBorder` | `--border-strong` | input | Fluent input bottom edge, checkbox/radio outline, slider rail |
 | `ShadcnPopoverBorder` / `PopupBorderColor` | `--popover-border` | border | popup edges |
 | `ShadcnPrimaryTint` | (none) | primary/8 | Mui outlined-button hover, checkbox state layer |
 | `ShadcnTooltip` / `...Foreground` | `--tooltip` / `--tooltip-foreground` | popover | tooltips (`TooltipBackgroundBrush`) |
