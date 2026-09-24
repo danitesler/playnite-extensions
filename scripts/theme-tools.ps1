@@ -321,25 +321,50 @@ function Expand-ThemeTemplate {
                 return $match.Value
             }
 
-            if ($expr -notmatch "^(?<names>[A-Za-z0-9?-]+)(?:@(?<over>[A-Za-z0-9-]+))?(?:\|(?<fallback>[^/]+))?(?:/(?<alpha>\d{1,3}))?$") {
-                $errors.Add("unrecognized placeholder '$($match.Value)'") | Out-Null
-                return $match.Value
+            # expr = alt ( "?" alt )* ( "|" literal )?     alt = name ( "@" surface )? ( "~" )? ( "/" NN )?
+            $parts = $expr -split "\|", 2
+            $alts = @($parts[0] -split "\?")
+            $literal = if ($parts.Count -gt 1) { $parts[1] } else { $null }
+            $altPattern = "^(?<name>[A-Za-z0-9-]+)(?:@(?<over>[A-Za-z0-9-]+))?(?<keep>~)?(?:/(?<alpha>\d{1,3}))?$"
+            foreach ($alt in $alts) {
+                if ($alt -notmatch $altPattern) {
+                    $errors.Add("unrecognized placeholder '$($match.Value)'") | Out-Null
+                    return $match.Value
+                }
             }
-            $names = $Matches["names"] -split "\?"
-            $over = $Matches["over"]
-            $fallback = $Matches["fallback"]
-            $alphaPercent = $Matches["alpha"]
 
-            $color = $null
+            $finish = {
+                param($Color, $Over, [bool]$Keep, $AlphaPercent)
+                if (-not $Keep -and $Color.A -lt 1 -and $Color.A -gt 0) {
+                    # Flatten over the surface the color sits on: @name when given, else --background.
+                    $surface = $background
+                    if ($Over -and $Palette.Contains($Over)) {
+                        $surface = ConvertFrom-CssColor -Value $Palette[$Over] -Palette $Palette
+                        if ($surface.A -lt 1) { $surface = Merge-RgbaOver -Top $surface -Bottom $background }
+                    }
+                    $Color = Merge-RgbaOver -Top $Color -Bottom $surface
+                }
+                if ($AlphaPercent) {
+                    # Tailwind "/NN" semantics: scales whatever alpha the color already has.
+                    $Color = New-Rgba $Color.R $Color.G $Color.B ($Color.A * [int]$AlphaPercent / 100.0)
+                }
+                return $Color
+            }
+
             try {
-                foreach ($name in $names) {
-                    if ($Palette.Contains($name)) {
-                        $color = ConvertFrom-CssColor -Value $Palette[$name] -Palette $Palette
-                        break
+                foreach ($alt in $alts) {
+                    $null = $alt -match $altPattern
+                    if ($Palette.Contains($Matches["name"])) {
+                        $name = $Matches["name"]; $over = $Matches["over"]; $keep = [bool]$Matches["keep"]; $alpha = $Matches["alpha"]
+                        $color = & $finish (ConvertFrom-CssColor -Value $Palette[$name] -Palette $Palette) $over $keep $alpha
+                        return Format-XamlColor $color
                     }
                 }
-                if (-not $color -and $fallback) {
-                    $color = ConvertFrom-CssColor -Value $fallback
+                if ($literal) {
+                    $literalParts = $literal -split "/", 2
+                    $alpha = if ($literalParts.Count -gt 1) { $literalParts[1] } else { $null }
+                    $color = & $finish (ConvertFrom-CssColor -Value $literalParts[0]) $null $false $alpha
+                    return Format-XamlColor $color
                 }
             }
             catch {
@@ -347,25 +372,10 @@ function Expand-ThemeTemplate {
                 return $match.Value
             }
 
-            if (-not $color) {
-                $errors.Add("missing " + (($names | ForEach-Object { "--$_" }) -join " / ") + " for '$($match.Value)'") | Out-Null
-                return $match.Value
-            }
+            $wanted = $alts | ForEach-Object { "--" + ($_ -replace "[@~/].*$", "") }
+            $errors.Add("missing " + ($wanted -join " / ") + " for '$($match.Value)'") | Out-Null
+            return $match.Value
 
-            if ($color.A -lt 1 -and $color.A -gt 0) {
-                # Flatten over the surface the color sits on: @name when given, else --background.
-                $surface = $background
-                if ($over -and $Palette.Contains($over)) {
-                    $surface = ConvertFrom-CssColor -Value $Palette[$over] -Palette $Palette
-                    if ($surface.A -lt 1) { $surface = Merge-RgbaOver -Top $surface -Bottom $background }
-                }
-                $color = Merge-RgbaOver -Top $color -Bottom $surface
-            }
-            if ($alphaPercent) {
-                $color = New-Rgba $color.R $color.G $color.B ([int]$alphaPercent / 100.0)
-            }
-
-            return Format-XamlColor $color
         })
 
     if ($errors.Count -gt 0) {

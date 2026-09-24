@@ -4,7 +4,7 @@
 
 A reusable **component layer** for Playnite desktop themes: shadcn/ui-style control templates plus a Constants template that maps shadcn's CSS variables onto Playnite's resource keys. It is not an add-on by itself. Themes opt in with `"themeKit": "src/ThemeKits/Shadcn"` in `src/extensions.json` and supply their own `palette.css`.
 
-Current consumers: **Shadcn UI Theme** (`src/ShadcnUiTheme`), and the **Chakra** kit (`src/ThemeKits/Chakra`), which extends this one.
+Current consumers: **Shadcn UI Theme** (`src/ShadcnUiTheme`), and the **Chakra** and **Mui** kits (`src/ThemeKits/Chakra`, `src/ThemeKits/Mui`), which extend this one.
 
 ## Kit inheritance
 
@@ -40,7 +40,18 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`) in the Playnite 
 
 One `Color` + one `Brush` per shadcn variable: `Shadcn{Background,Foreground,Card,CardForeground,Popover,PopoverForeground,Primary,PrimaryForeground,Secondary,SecondaryForeground,Muted,MutedForeground,Accent,AccentForeground,Destructive,Border,Input,Ring,Sidebar,SidebarForeground,SidebarPrimary,SidebarPrimaryForeground,SidebarAccent,SidebarAccentForeground,SidebarBorder}{Color,Brush}`.
 
-Optional brand tint: `ShadcnPrimarySubtle` / `ShadcnPrimarySubtleForeground` from `--primary-subtle` / `--primary-subtle-foreground` (fall back to accent; used by the Chakra kit's toggles).
+Optional keys (each falls back so older palettes render unchanged):
+
+| Key | Palette var | Fallback | Used by |
+|-----|-------------|----------|---------|
+| `ShadcnPrimarySubtle` / `...Foreground` | `--primary-subtle` / `--primary-subtle-foreground` | accent | Chakra and Mui toggles |
+| `ShadcnPrimaryHover` | `--primary-hover` | primary/90 | primary buttons on hover |
+| `ShadcnPrimaryTint` | (none) | primary/8 | Mui outlined-button hover, checkbox state layer |
+| `ShadcnTooltip` / `...Foreground` | `--tooltip` / `--tooltip-foreground` | popover | tooltips (`TooltipBackgroundBrush`) |
+| `ShadcnFocusOverlay` | `--focus-overlay` | ring/30 | Mui focus state layer |
+| `ShadcnInputBackground` | `--input-background` | input/30 | input and checkbox fill |
+
+Translucent on purpose (`~` in the template, so Material-style white overlays lighten whatever surface they sit on): accent, accent/50, primary-subtle, sidebar-accent, input-background, focus-overlay.
 
 Derived keys, named after the Tailwind classes shadcn uses: `ShadcnInputBackground` (input/30), `ShadcnInputHover` (input/50), `ShadcnRingFocus` (ring/50), `ShadcnPrimaryHover` (primary/90), `ShadcnAccentSubtle` (accent/50), `ShadcnDestructiveSubtle` (destructive/60), `ShadcnOverlay` (background/60, for controls on game art), `ShadcnCardBorder` / `ShadcnPopoverBorder` (border composited over that surface).
 
@@ -53,14 +64,15 @@ Playnite's own palette keys (`TextColor`, `GlyphColor`, `PopupBackgroundBrush`, 
 | Placeholder | Result |
 |-------------|--------|
 | `{{name}}` | Color from `--name`: hex, `oklch()`, `hsl()`, `rgb()`, bare shadcn v3 `H S% L%`, `var(--other)`. Emitted as `#AARRGGBB`. |
-| `{{name/50}}` | Same color at 50% alpha. |
-| `{{a?b}}` | First variable that exists. |
+| `{{name/50}}` | Alpha scaled to 50% (Tailwind `/50`: multiplies whatever alpha the color has). |
 | `{{name@surface}}` | Palette alpha composited over `--surface` instead of `--background`. |
-| `{{name\|#F59E0B}}` | Literal fallback when the variable is missing. |
+| `{{name~}}` | Keep the palette's alpha (no flattening). |
+| `{{a/30?b@card?c~}}` | First variable that exists; modifiers belong to the alternative they follow. |
+| `{{name\|#F59E0B}}` | Literal fallback (optionally `\|#hex/NN`) when no alternative exists. |
 | `{{radius:md}}` | Radius scale from `--radius` (rem or px). |
 | `{{text:name\|Segoe UI}}` | Raw text (XML-escaped), with fallback. |
 
-Palette colors with alpha (v4 `--border: oklch(1 0 0 / 10%)`) are flattened to opaque colors: WPF popups are layered windows, so a translucent border would blend with whatever sits behind the popup. Unresolved placeholders fail the build.
+Palette colors with alpha (v4 `--border: oklch(1 0 0 / 10%)`) are flattened to opaque colors unless the placeholder says `~`: WPF popups are layered windows, so a translucent border would blend with whatever sits behind the popup. Unresolved placeholders fail the build.
 
 ## What the kit restyles
 

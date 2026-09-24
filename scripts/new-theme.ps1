@@ -33,7 +33,11 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "theme-tools.ps1")
 
 $repoRoot = Get-RepoRoot
-$dirName = ($Name -replace "[^A-Za-z0-9]", "")
+# "Material UI Theme" -> MaterialUiTheme: all-caps words become Pascal case, like the existing folders.
+$dirName = -join (($Name -split "[^A-Za-z0-9]+" | Where-Object { $_ }) | ForEach-Object {
+        if ($_.Length -gt 1 -and $_ -ceq $_.ToUpperInvariant()) { $_.Substring(0, 1) + $_.Substring(1).ToLowerInvariant() }
+        else { $_.Substring(0, 1).ToUpperInvariant() + $_.Substring(1) }
+    })
 if (-not $dirName -or $dirName[0] -match "[0-9]") {
     throw "Name '$Name' must start with a letter."
 }
