@@ -6,7 +6,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Key,
 
-    # Folder under src/ThemeKits/ that provides the component overlay and Constants template.
+    # Folder under src/ThemeKits/ that provides the component overlay and Constants template (kits can extend other kits).
     [string]$Kit = "Shadcn",
 
     # Start from another theme's palette.css (extension key). Defaults to the first theme that uses the same kit.
@@ -41,8 +41,9 @@ $Key = $Key.ToLowerInvariant()
 $themeRoot = Join-Path $repoRoot "src/$dirName"
 $kitPath = "src/ThemeKits/$Kit"
 
-if (-not (Test-Path (Join-Path $repoRoot "$kitPath/$Mode"))) {
-    throw "Kit '$Kit' has no $Mode overlay at $kitPath/$Mode."
+$kitChain = Get-ThemeKitChain -KitPath $kitPath
+if (-not ($kitChain | Where-Object { Test-Path (Join-Path $repoRoot "$_/$Mode") })) {
+    throw "Kit '$Kit' (and its base kits) has no $Mode overlay."
 }
 if (Test-Path $themeRoot) {
     throw "Theme directory already exists at $themeRoot"

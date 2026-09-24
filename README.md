@@ -24,6 +24,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | Icon | Name | Description |
 | --- | --- | --- |
 | <img src="https://raw.githubusercontent.com/danitesler/playnite-extensions/main/src/ShadcnUiTheme/info/icon.png" alt="Shadcn UI Theme" width="80" height="80" /> | **Shadcn UI Theme** (`shadcnuitheme`) | A fully dark desktop theme in the style of [shadcn/ui](https://ui.shadcn.com).<br><br>• Near-black zinc surfaces, thin borders, rounded controls<br>• shadcn-style buttons, inputs, selects, tabs, menus, and a dashboard-style sidebar |
+| <img src="https://raw.githubusercontent.com/danitesler/playnite-extensions/main/src/ChakraUiTheme/info/icon.png" alt="Chakra UI Theme" width="80" height="80" /> | **Chakra UI Theme** (`chakrauitheme`) | A fully dark desktop theme in the style of [Chakra UI](https://chakra-ui.com).<br><br>• Near-black surfaces with Chakra's teal accent<br>• Borderless filled buttons, underline tabs, and Chakra's 2px focus ring |
 
 ## Installation
 

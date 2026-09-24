@@ -4,7 +4,11 @@
 
 A reusable **component layer** for Playnite desktop themes: shadcn/ui-style control templates plus a Constants template that maps shadcn's CSS variables onto Playnite's resource keys. It is not an add-on by itself. Themes opt in with `"themeKit": "src/ThemeKits/Shadcn"` in `src/extensions.json` and supply their own `palette.css`.
 
-Current consumers: **Shadcn UI Theme** (`src/ShadcnUiTheme`).
+Current consumers: **Shadcn UI Theme** (`src/ShadcnUiTheme`), and the **Chakra** kit (`src/ThemeKits/Chakra`), which extends this one.
+
+## Kit inheritance
+
+A kit can extend another with `kit.json` → `{ "extends": "src/ThemeKits/<Base>" }`. The build copies the base kit's `<Mode>/` overlay, then the derived kit's (same path = the derived file replaces the base file whole), and renders the nearest `Constants.template.xaml` up the chain. LICENSE notices from every kit in the chain ship in the package. A new design system with mostly the same control shapes should extend this kit and override only what differs; one with different shapes everywhere should be a standalone kit.
 
 ## How Playnite loads a theme (drives every rule below)
 
@@ -19,7 +23,7 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`) in the Playnite 
 
 | Path | Role |
 |------|------|
-| `Constants.template.xaml` | Token contract. Rendered with a theme's `palette.css` into the build's `Constants.xaml`. |
+| `Constants.template.xaml` | Token contract. Rendered with a theme's `palette.css` into the build's `Constants.xaml`. Derived kits reuse it. |
 | `Desktop/**` | Overlay files, same relative paths as Playnite's `Themes/Desktop/Default/`. Copied into every theme on this kit. |
 | `LICENSE-Playnite.txt` | Templates are derived from Playnite's Default theme (MIT). |
 
@@ -35,6 +39,8 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`) in the Playnite 
 ## Token contract (`Constants.template.xaml`)
 
 One `Color` + one `Brush` per shadcn variable: `Shadcn{Background,Foreground,Card,CardForeground,Popover,PopoverForeground,Primary,PrimaryForeground,Secondary,SecondaryForeground,Muted,MutedForeground,Accent,AccentForeground,Destructive,Border,Input,Ring,Sidebar,SidebarForeground,SidebarPrimary,SidebarPrimaryForeground,SidebarAccent,SidebarAccentForeground,SidebarBorder}{Color,Brush}`.
+
+Optional brand tint: `ShadcnPrimarySubtle` / `ShadcnPrimarySubtleForeground` from `--primary-subtle` / `--primary-subtle-foreground` (fall back to accent; used by the Chakra kit's toggles).
 
 Derived keys, named after the Tailwind classes shadcn uses: `ShadcnInputBackground` (input/30), `ShadcnInputHover` (input/50), `ShadcnRingFocus` (ring/50), `ShadcnPrimaryHover` (primary/90), `ShadcnAccentSubtle` (accent/50), `ShadcnDestructiveSubtle` (destructive/60), `ShadcnOverlay` (background/60, for controls on game art), `ShadcnCardBorder` / `ShadcnPopoverBorder` (border composited over that surface).
 

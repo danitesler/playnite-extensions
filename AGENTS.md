@@ -15,8 +15,12 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 ## Current themes
 
 - **Shadcn UI Theme** (`shadcnuitheme`) — Desktop theme, theme API 2.9.0 (Playnite 10.45+), fully dark shadcn/ui zinc palette on the **Shadcn** kit. Notes in **`src/ShadcnUiTheme/AGENTS.md`**.
+- **Chakra UI Theme** (`chakrauitheme`) — Desktop theme, theme API 2.9.0, fully dark Chakra UI v3 tokens with teal on the **Chakra** kit. Notes in **`src/ChakraUiTheme/AGENTS.md`**.
 
-Theme kits: **Shadcn** (`src/ThemeKits/Shadcn`) — shadcn/ui component styles + Constants template. Notes in **`src/ThemeKits/Shadcn/AGENTS.md`**.
+Theme kits (a kit can extend another via `kit.json` `"extends"`):
+
+- **Shadcn** (`src/ThemeKits/Shadcn`) — shadcn/ui component styles + the shared Constants template. Notes in **`src/ThemeKits/Shadcn/AGENTS.md`**.
+- **Chakra** (`src/ThemeKits/Chakra`) — extends Shadcn; overrides buttons, toggles, inputs, tabs, and the focus ring with Chakra UI styles. Notes in **`src/ThemeKits/Chakra/AGENTS.md`**.
 
 ## Repository layout
 
@@ -28,7 +32,7 @@ Theme kits: **Shadcn** (`src/ThemeKits/Shadcn`) — shadcn/ui component styles +
 | Extension manifests | `src/<PluginName>/info/` (incl. `danitesler_<key>.yaml` for PlayniteAddonDatabase PRs) |
 | Theme palette | `src/<ThemeName>/palette.css` (shadcn CSS variables) |
 | Theme manifests | `src/<ThemeName>/info/` (`theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`) |
-| Theme kit | `src/ThemeKits/<Kit>/` (`Constants.template.xaml`, `<Mode>/` overlay XAML) |
+| Theme kit | `src/ThemeKits/<Kit>/` (`Constants.template.xaml`, `<Mode>/` overlay XAML, optional `kit.json` with `extends`) |
 | Playnite theme API snapshot | `scripts/data/playnite-theme-api.json` (loadable file paths + resource keys per Playnite release) |
 | Build scripts | `scripts/*.ps1` |
 | Package artifacts | `artifacts/releases/<key>/` |
@@ -41,7 +45,7 @@ Theme kits: **Shadcn** (`src/ThemeKits/Shadcn`) — shadcn/ui component styles +
 - Package one extension: **`.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`**
 - Scaffold a new extension: **`.\scripts\new-extension.ps1 -Name MyPlugin -Key myplugin -Type GenericPlugin -Author <name>`**
 - Build one theme (compose + static checks): **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy]`** (`build-plugin.ps1` forwards themes here)
-- Scaffold a new theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-PaletteCss <shadcn theme .css>]`**
+- Scaffold a new theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-Kit Shadcn|Chakra] [-PaletteCss <theme .css>]`**
 - Refresh the theme API snapshot for a new Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <Playnite checkout> -PlayniteVersion <tag>`**
 
 Validation, packaging, and CI branch on **`kind`**: themes package to **`.pthm`**, have no Directory.Build.props or Module, and are validated by composing the theme and checking every XAML file against the API snapshot.

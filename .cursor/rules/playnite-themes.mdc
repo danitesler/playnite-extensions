@@ -14,8 +14,9 @@ alwaysApply: false
 ## Shape
 
 - A theme is an add-on with **`"kind": "theme"`** in **`src/extensions.json`**. It has no `.csproj`: **`extensionManifest`** points at **`info/theme.yaml`**, **`outputPath`** is **`artifacts/builds/<key>`**, packages are **`.pthm`**, database `Type` is **`ThemeDesktop`** / **`ThemeFullscreen`**, and **`requiredApiVersion`** is the **theme API** version (not the SDK version).
-- Themes share a **kit** (`"themeKit": "src/ThemeKits/<Kit>"`): overlay XAML under `<Kit>/<Mode>/` plus `Constants.template.xaml`. A theme supplies **`palette.css`** (shadcn CSS variables) and, only when needed, **`themeDir`** overrides that replace kit files.
-- Build output is composed, never hand-edited: kit overlay → `Constants.xaml` rendered from template + palette → theme overrides → `theme.yaml`. Edit sources, not **`artifacts/builds/`**.
+- Themes share a **kit** (`"themeKit": "src/ThemeKits/<Kit>"`): overlay XAML under `<Kit>/<Mode>/` plus `Constants.template.xaml`. A theme supplies **`palette.css`** (CSS variables in the kit's vocabulary) and, only when needed, **`themeDir`** overrides that replace kit files.
+- A new design system that shares most control shapes gets a kit that **extends** an existing one (`kit.json` → `"extends"`) and overrides only the differing files. An override replaces the base file whole, so it must keep every key the base file defined.
+- Build output is composed, never hand-edited: base kit overlay → derived kit overlay → `Constants.xaml` rendered from template + palette → theme overrides → `theme.yaml`. Edit sources, not **`artifacts/builds/`**.
 
 ## Hard rules (Playnite fails silently otherwise)
 
@@ -28,7 +29,7 @@ alwaysApply: false
 
 ## Commands
 
-- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-PaletteCss theme.css | -CopyPaletteFrom <key>]`**
+- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-Kit <Kit>] [-PaletteCss theme.css | -CopyPaletteFrom <key>]`**
 - Build + checks: **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy] [-DeployPath <Themes folder>]`** (also reached via `build-plugin.ps1`)
 - Validate / package: same as plugins (`validate-extension.ps1`, `build-artifacts.ps1 -VerifyInstaller`); they branch on `kind`.
 - New Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <checkout> -PlayniteVersion <tag>`**, then review Default-theme diffs for every kit file.

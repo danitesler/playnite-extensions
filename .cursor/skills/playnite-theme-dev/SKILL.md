@@ -22,6 +22,10 @@ description: Playnite theme work — new theme from a shadcn palette, palette sw
 
 Edit `palette.css`, rebuild. Missing variables fall back per the template (`sidebar` → `card`, `popover` → `card`, ...); anything unresolved fails the build with the variable name.
 
+## New design system (not just new colors)
+
+If it shares most control shapes with an existing kit, create `src/ThemeKits/<Name>/kit.json` with `{ "extends": "src/ThemeKits/Shadcn" }` and add only the files it draws differently under `<Name>/Desktop/` (see `src/ThemeKits/Chakra`). Map the design system's tokens onto the kit's variable names in the theme's `palette.css`, with a comment naming each source token. Scaffold with `-Kit <Name>`.
+
 ## Restyle one control
 
 - **For every theme on a kit:** edit or add `src/ThemeKits/<Kit>/Desktop/<Default path>.xaml`. Start from Playnite's Default file at the tag in `scripts/data/playnite-theme-api.json`, keep part names, include only the styles you change.
