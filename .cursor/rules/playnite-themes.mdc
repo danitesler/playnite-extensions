@@ -1,0 +1,43 @@
+---
+description: Playnite theme add-ons in this monorepo — kits, palettes, overlay XAML, theme.yaml, .pthm packaging.
+globs:
+  - "src/ThemeKits/**"
+  - "src/*/palette.css"
+  - "**/theme.yaml"
+  - "scripts/*theme*.ps1"
+  - "scripts/data/playnite-theme-api.json"
+alwaysApply: false
+---
+
+# Playnite themes (monorepo policy)
+
+## Shape
+
+- A theme is an add-on with **`"kind": "theme"`** in **`src/extensions.json`**. It has no `.csproj`: **`extensionManifest`** points at **`info/theme.yaml`**, **`outputPath`** is **`artifacts/builds/<key>`**, packages are **`.pthm`**, database `Type` is **`ThemeDesktop`** / **`ThemeFullscreen`**, and **`requiredApiVersion`** is the **theme API** version (not the SDK version).
+- Themes share a **kit** (`"themeKit": "src/ThemeKits/<Kit>"`): overlay XAML under `<Kit>/<Mode>/` plus `Constants.template.xaml`. A theme supplies **`palette.css`** (shadcn CSS variables) and, only when needed, **`themeDir`** overrides that replace kit files.
+- Build output is composed, never hand-edited: kit overlay → `Constants.xaml` rendered from template + palette → theme overrides → `theme.yaml`. Edit sources, not **`artifacts/builds/`**.
+
+## Hard rules (Playnite fails silently otherwise)
+
+- XAML paths must match Playnite's Default theme (**`scripts/data/playnite-theme-api.json`**); other files are ignored.
+- Theme files are **overlays**: include only restyled keys. Keep **`PART_*`** and other names Playnite code looks up.
+- Reference kit/theme tokens with **`DynamicResource`**. **`StaticResource`** only for Playnite keys or keys defined earlier in the same file — Playnite parses each theme file alone before merging.
+- No hard-coded colors in kit XAML; add a token to the Constants template.
+- No **`Fonts/`** folder (Toolbox pack drops it).
+- Keep **`ThemeApiVersion`** as low as the kit allows (2.9.0 = Playnite 10.45+); raising it hides the theme from older Playnite. Major must match Playnite's.
+
+## Commands
+
+- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-PaletteCss theme.css | -CopyPaletteFrom <key>]`**
+- Build + checks: **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy] [-DeployPath <Themes folder>]`** (also reached via `build-plugin.ps1`)
+- Validate / package: same as plugins (`validate-extension.ps1`, `build-artifacts.ps1 -VerifyInstaller`); they branch on `kind`.
+- New Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <checkout> -PlayniteVersion <tag>`**, then review Default-theme diffs for every kit file.
+
+## Versioning and releases
+
+Same policy as plugins (**`playnite-extension-versioning.mdc`**, **`playnite-github-releases-per-extension.mdc`**): bump **`theme.yaml`** `Version` + **`InstallerManifest.yaml`** only when cutting a release; tag **`{key}-v{version}`**; one GitHub Release per theme with its **`.pthm`**.
+
+## See also
+
+- **`src/ThemeKits/<Kit>/AGENTS.md`** — token contract, placeholder syntax, restyled controls.
+- Skill **`playnite-theme-dev`** — step-by-step for new themes, palette swaps, and control overrides.

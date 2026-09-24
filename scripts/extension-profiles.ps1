@@ -127,7 +127,23 @@ function Get-ExpectedPextName {
         [string]$Version
     )
 
-    return "{0}_{1}.pext" -f $AddonId, ($Version -replace "\.", "_")
+    return Get-ExpectedPackageName -AddonId $AddonId -Version $Version -PackageExtension ".pext"
+}
+
+function Get-ExpectedPackageName {
+    # Toolbox names packages <Id>_<version with dots as underscores>: .pext for plugins, .pthm for themes.
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$AddonId,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Version,
+
+        [ValidateSet(".pext", ".pthm")]
+        [string]$PackageExtension = ".pext"
+    )
+
+    return "{0}_{1}{2}" -f $AddonId, ($Version -replace "\.", "_"), $PackageExtension
 }
 
 function Get-PlayniteToolboxExe {

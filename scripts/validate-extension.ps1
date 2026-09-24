@@ -9,6 +9,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "theme-tools.ps1")
 
 function Add-ValidationError {
     param(
@@ -38,7 +39,11 @@ function Get-XmlProperty {
 }
 
 $profile = Get-ExtensionProfile -Extension $Extension
-$manifest = Get-ExtensionManifestInfo -Profile $profile
+$kind = Get-ExtensionKind $profile
+$isTheme = $kind -eq "theme"
+$manifest = if ($isTheme) { Get-ThemeManifestInfo -Profile $profile } else { Get-ExtensionManifestInfo -Profile $profile }
+$manifestName = Split-Path -Leaf $manifest.Path
+$packageExtension = if ($isTheme) { ".pthm" } else { ".pext" }
 $errors = [System.Collections.Generic.List[string]]::new()
 
 $installerPath = Join-RepoPath $profile.installerManifest
@@ -50,12 +55,56 @@ $databasePath = if ($profile.databaseManifest) { Join-RepoPath $profile.database
 $directoryBuildPropsPath = if ($profile.directoryBuildProps) { Join-RepoPath $profile.directoryBuildProps } else { "" }
 $outputPath = Join-RepoPath (($profile.outputPath -replace "/Release/", "/$Configuration/") -replace "\\Release\\", "\$Configuration\")
 
-if (-not $manifest.Id) { Add-ValidationError $errors "extension.yaml is missing Id." }
-if (-not $manifest.Name) { Add-ValidationError $errors "extension.yaml is missing Name." }
-if (-not $manifest.Version) { Add-ValidationError $errors "extension.yaml is missing Version." }
-if (-not $manifest.Module) { Add-ValidationError $errors "extension.yaml is missing Module." }
+if (-not $manifest.Id) { Add-ValidationError $errors "$manifestName is missing Id." }
+if (-not $manifest.Name) { Add-ValidationError $errors "$manifestName is missing Name." }
+if (-not $manifest.Version) { Add-ValidationError $errors "$manifestName is missing Version." }
 if ($profile.addonId -and $manifest.Id -and $manifest.Id -ne $profile.addonId) {
-    Add-ValidationError $errors "Profile addonId '$($profile.addonId)' does not match extension.yaml Id '$($manifest.Id)'."
+    Add-ValidationError $errors "Profile addonId '$($profile.addonId)' does not match $manifestName Id '$($manifest.Id)'."
+}
+
+if ($isTheme) {
+    $parsedVersion = $null
+    if ($manifest.Version -and -not [System.Version]::TryParse($manifest.Version, [ref]$parsedVersion)) {
+        Add-ValidationError $errors "theme.yaml Version '$($manifest.Version)' is not a numeric version; Toolbox refuses to pack it."
+    }
+    if ($manifest.Mode -notin @("Desktop", "Fullscreen")) {
+        Add-ValidationError $errors "theme.yaml Mode must be Desktop or Fullscreen (got '$($manifest.Mode)')."
+    }
+    if (-not $manifest.ThemeApiVersion) {
+        Add-ValidationError $errors "theme.yaml is missing ThemeApiVersion."
+    }
+    elseif ($profile.requiredApiVersion -and $manifest.ThemeApiVersion -ne $profile.requiredApiVersion) {
+        Add-ValidationError $errors "theme.yaml ThemeApiVersion '$($manifest.ThemeApiVersion)' does not match profile requiredApiVersion '$($profile.requiredApiVersion)'."
+    }
+
+    if ($manifest.Mode -in @("Desktop", "Fullscreen")) {
+        $api = Get-PlayniteThemeApiData -Mode $manifest.Mode
+        $supported = [System.Version]$api.ApiVersion
+        $declared = $null
+        if ($manifest.ThemeApiVersion -and [System.Version]::TryParse($manifest.ThemeApiVersion, [ref]$declared)) {
+            if ($declared.Major -ne $supported.Major -or $declared -gt $supported) {
+                Add-ValidationError $errors "ThemeApiVersion $declared will not load on Playnite $($api.PlayniteVersion) (theme API $supported): major must match and it must not be newer."
+            }
+        }
+
+        # Compose into a scratch folder and run the same checks build-theme.ps1 runs.
+        $scratch = Join-Path ([System.IO.Path]::GetTempPath()) ("playnite-theme-validate-" + [guid]::NewGuid().ToString("N"))
+        try {
+            Invoke-ThemeCompose -Profile $profile -OutDir $scratch | Out-Null
+            foreach ($themeError in @(Test-ThemeOverlay -Directory $scratch -Mode $manifest.Mode)) {
+                Add-ValidationError $errors $themeError
+            }
+        }
+        catch {
+            Add-ValidationError $errors "Theme compose failed: $($_.Exception.Message)"
+        }
+        finally {
+            if (Test-Path $scratch) { Remove-Item -Path $scratch -Recurse -Force }
+        }
+    }
+}
+elseif (-not $manifest.Module) {
+    Add-ValidationError $errors "extension.yaml is missing Module."
 }
 
 if (Test-Path $installerPath) {
@@ -68,11 +117,11 @@ if (Test-Path $installerPath) {
     $sourceUrl = Get-YamlScalar -Lines $installerLines -Key "SourceUrl"
 
     if ($installerAddonId -ne $manifest.Id) {
-        Add-ValidationError $errors "Installer AddonId '$installerAddonId' does not match extension.yaml Id '$($manifest.Id)'."
+        Add-ValidationError $errors "Installer AddonId '$installerAddonId' does not match $manifestName Id '$($manifest.Id)'."
     }
 
     if ($installerVersion -ne $manifest.Version) {
-        Add-ValidationError $errors "Installer package Version '$installerVersion' does not match extension.yaml Version '$($manifest.Version)'."
+        Add-ValidationError $errors "Installer package Version '$installerVersion' does not match $manifestName Version '$($manifest.Version)'."
     }
 
     if ($profile.requiredApiVersion -and $installerRequiredApi -ne $profile.requiredApiVersion) {
@@ -93,8 +142,8 @@ if (Test-Path $installerPath) {
     if ($Mode -eq "Package" -and $profile.releaseBaseUrl) {
         $tagPattern = if ($profile.tagPattern) { $profile.tagPattern } else { "{key}-v{version}" }
         $tag = $tagPattern.Replace("{version}", $manifest.Version).Replace("{key}", $profile.key)
-        $expectedPext = Get-ExpectedPextName -AddonId $manifest.Id -Version $manifest.Version
-        $expectedPackageUrl = "$($profile.releaseBaseUrl)/$tag/$expectedPext"
+        $expectedPackage = Get-ExpectedPackageName -AddonId $manifest.Id -Version $manifest.Version -PackageExtension $packageExtension
+        $expectedPackageUrl = "$($profile.releaseBaseUrl)/$tag/$expectedPackage"
         if ($packageUrl -ne $expectedPackageUrl) {
             Add-ValidationError $errors "PackageUrl '$packageUrl' does not match expected '$expectedPackageUrl'."
         }
@@ -109,7 +158,15 @@ if ($databasePath -and (Test-Path $databasePath)) {
     $databaseIconUrl = Get-YamlScalar -Lines $databaseLines -Key "IconUrl"
 
     if ($databaseAddonId -ne $manifest.Id) {
-        Add-ValidationError $errors "Database AddonId '$databaseAddonId' does not match extension.yaml Id '$($manifest.Id)'."
+        Add-ValidationError $errors "Database AddonId '$databaseAddonId' does not match $manifestName Id '$($manifest.Id)'."
+    }
+
+    if ($isTheme) {
+        $databaseType = Get-YamlScalar -Lines $databaseLines -Key "Type"
+        $expectedType = "Theme$($manifest.Mode)"
+        if ($databaseType -ne $expectedType) {
+            Add-ValidationError $errors "Database Type '$databaseType' should be '$expectedType' for a $($manifest.Mode) theme."
+        }
     }
 
     if ($profile.rawBaseUrl) {
@@ -131,7 +188,7 @@ elseif ($databasePath) {
     Add-ValidationError $errors "Database manifest not found at $databasePath"
 }
 
-if ($directoryBuildPropsPath) {
+if ($directoryBuildPropsPath -and -not $isTheme) {
     $propsVersion = Get-XmlProperty -Path $directoryBuildPropsPath -PropertyName "Version"
     $assemblyVersion = Get-XmlProperty -Path $directoryBuildPropsPath -PropertyName "AssemblyVersion"
     $fileVersion = Get-XmlProperty -Path $directoryBuildPropsPath -PropertyName "FileVersion"
@@ -149,7 +206,14 @@ if ($directoryBuildPropsPath) {
     }
 }
 
-if ($RequireBuildOutput) {
+if ($RequireBuildOutput -and $isTheme) {
+    foreach ($required in @("theme.yaml", "Constants.xaml")) {
+        if (-not (Test-Path (Join-Path $outputPath $required))) {
+            Add-ValidationError $errors "Expected $required in theme build output at $outputPath. Run build-theme.ps1 first."
+        }
+    }
+}
+elseif ($RequireBuildOutput) {
     $modulePath = Join-Path $outputPath $manifest.Module
     $outputManifest = Join-Path $outputPath "extension.yaml"
     if (-not (Test-Path $modulePath)) {
@@ -172,5 +236,10 @@ Write-Host "Extension validation passed for '$Extension' ($Mode)."
 Write-Host "  Name: $($manifest.Name)"
 Write-Host "  AddonId: $($manifest.Id)"
 Write-Host "  Version: $($manifest.Version)"
-Write-Host "  Module: $($manifest.Module)"
+if ($isTheme) {
+    Write-Host "  Theme: $($manifest.Mode), API $($manifest.ThemeApiVersion)"
+}
+else {
+    Write-Host "  Module: $($manifest.Module)"
+}
 

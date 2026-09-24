@@ -33,6 +33,7 @@ From repo root (PowerShell), using the extension **key** from **`src\extensions.
 - **Validation** of metadata: **`.\scripts\validate-extension.ps1 -Extension <key> -Mode Package`**
 
 - **Per-run drop:** **`artifacts\releases\<key>\`** — release zip (**`extension.yaml`** + primary **`.dll`**) and Toolbox-generated **`.pext`**
+- **Themes** (`"kind": "theme"`): same commands. The build step composes the theme (`build-theme.ps1`), the zip holds the whole build drop, Toolbox packs a **`.pthm`**, and **`PackageUrl`** / **`RequiredApiVersion`** use the `.pthm` name and the **theme API** version from **`theme.yaml`**.
 - **Installer manifest:** **`src\<PluginName>\info\InstallerManifest.yaml`** — must stay aligned with **`extension.yaml`** (especially **`AddonId`**, **`Packages[].Version`**, **`PackageUrl`**, **`RequiredApiVersion`**, **`ReleaseDate`**, **`Changelog`**) when you cut a release. **`PackageUrl`** must eventually point at the published **`.pext`**.
 
 ### Installer manifest — minimal shape (Apollo-style, all add-ons)

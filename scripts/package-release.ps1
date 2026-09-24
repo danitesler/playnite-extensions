@@ -13,6 +13,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "theme-tools.ps1")
 
 if ($VerifyOnly) {
     $VerifyInstaller = $true
@@ -22,7 +23,8 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 Push-Location $repoRoot
 try {
     $profile = Get-ExtensionProfile -Extension $Extension
-    $manifest = Get-ExtensionManifestInfo -Profile $profile
+    $isTheme = (Get-ExtensionKind $profile) -eq "theme"
+    $manifest = if ($isTheme) { Get-ThemeManifestInfo -Profile $profile } else { Get-ExtensionManifestInfo -Profile $profile }
 
     if (-not $ProjectOutputPath) {
         $ProjectOutputPath = ($profile.outputPath -replace "/Release/", "/$Configuration/") -replace "\\Release\\", "\$Configuration\"
@@ -36,7 +38,7 @@ try {
 
     $extensionManifestFull = Join-RepoPath $ExtensionManifest
     if (-not (Test-Path $extensionManifestFull)) {
-        throw "extension.yaml not found at $extensionManifestFull"
+        throw "Manifest not found at $extensionManifestFull"
     }
 
     $version = $manifest.Version
@@ -45,7 +47,7 @@ try {
     }
 
     $module = $manifest.Module
-    if (-not $module) {
+    if (-not $module -and -not $isTheme) {
         throw "Unable to resolve Module from $extensionManifestFull"
     }
 
@@ -118,27 +120,37 @@ try {
         throw "Build output folder not found at $buildOutput. Run build-plugin.ps1 first."
     }
 
-    $dllPath = Join-Path $buildOutput $module
-    $outputManifest = Join-Path $buildOutput "extension.yaml"
-    if (-not (Test-Path $dllPath)) {
-        throw "Expected module not found at $dllPath"
-    }
-    if (-not (Test-Path $outputManifest)) {
-        throw "Expected extension manifest not found at $outputManifest"
-    }
-
     $slug = if ($profile.slug) { $profile.slug } else { $profile.key }
     $releaseDrop = Join-Path $repoRoot "artifacts/releases/$slug"
     New-Item -ItemType Directory -Path $releaseDrop -Force | Out-Null
 
-    $zipName = "{0}-{1}.zip" -f $extensionName.ToLowerInvariant(), $version
-    $zipPath = Join-Path $releaseDrop $zipName
-    Compress-Archive -LiteralPath @($outputManifest, $dllPath) -DestinationPath $zipPath -Force
+    if ($isTheme) {
+        # The theme build drop is the whole theme; ship all of it in the zip.
+        $zipName = "{0}-{1}.zip" -f $slug, $version
+        $zipPath = Join-Path $releaseDrop $zipName
+        Compress-Archive -Path (Join-Path $buildOutput "*") -DestinationPath $zipPath -Force
+        $packageExtension = ".pthm"
+    }
+    else {
+        $dllPath = Join-Path $buildOutput $module
+        $outputManifest = Join-Path $buildOutput "extension.yaml"
+        if (-not (Test-Path $dllPath)) {
+            throw "Expected module not found at $dllPath"
+        }
+        if (-not (Test-Path $outputManifest)) {
+            throw "Expected extension manifest not found at $outputManifest"
+        }
 
-    Write-Host "Packing .pext with Playnite Toolbox..."
+        $zipName = "{0}-{1}.zip" -f $extensionName.ToLowerInvariant(), $version
+        $zipPath = Join-Path $releaseDrop $zipName
+        Compress-Archive -LiteralPath @($outputManifest, $dllPath) -DestinationPath $zipPath -Force
+        $packageExtension = ".pext"
+    }
+
+    Write-Host "Packing $packageExtension with Playnite Toolbox..."
     & $ToolboxExe pack $buildOutput $releaseDrop
 
-    $expectedPext = Get-ExpectedPextName -AddonId $manifest.Id -Version $version
+    $expectedPext = Get-ExpectedPackageName -AddonId $manifest.Id -Version $version -PackageExtension $packageExtension
     $tagPattern = if ($profile.tagPattern) { $profile.tagPattern } else { "{key}-v{version}" }
     $tag = $tagPattern.Replace("{version}", $version).Replace("{key}", $profile.key)
     $expectedPackageUrl = "$($profile.releaseBaseUrl)/$tag/$expectedPext"
@@ -149,7 +161,7 @@ try {
     Write-Host "  Release drop: $releaseDrop"
     Write-Host "Manual GitHub Release details:"
     Write-Host "  Tag: $tag"
-    Write-Host "  Expected .pext: $expectedPext"
+    Write-Host "  Expected ${packageExtension}: $expectedPext"
     Write-Host "  PackageUrl: $expectedPackageUrl"
 }
 finally {

@@ -9,6 +9,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "theme-tools.ps1")
+
+# Themes have no project to compile; build-theme.ps1 composes their build drop instead.
+if ((Get-ExtensionKind (Get-ExtensionProfile -Extension $Extension)) -eq "theme") {
+    & (Join-Path $PSScriptRoot "build-theme.ps1") -Extension $Extension
+    return
+}
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 Push-Location $repoRoot
