@@ -35,6 +35,10 @@ No per-theme overrides. For one, add `"themeDir": "src/Fluent2Theme/theme"` to t
 
 Fluent's brand ramp is swappable: `createDarkTheme(brandVariants)` in Fluent UI gives any accent. Copy `palette.css` and replace the brand values (`--primary*`, `--primary-button*`, `--primary-subtle*`, `--sidebar-primary*`). Teams' dark theme (`teamsDarkTheme`) uses the same token names.
 
+## Layout
+
+Fluent kit shell, Windows 11 style: the window is the base layer (`#1F1F1F`) with a compact 48px NavigationView rail (brand pill on the selected item) and a 48px title-bar row: search centered, subtle 32px icon buttons with 20px Fluent icons, Windows 11 caption buttons in the corner. The library sits on a `#292929` content layer with a rounded top-left corner.
+
 ## Build and try it
 
 ```powershell
@@ -45,3 +49,5 @@ Fluent's brand ramp is swappable: `createDarkTheme(brandVariants)` in Fluent UI 
 ## Not verified yet
 
 Built and statically checked on Linux; **not yet loaded in Playnite**. Beyond the checklist in `src/ShadcnUiTheme/AGENTS.md`, check: the focus underline animation on text boxes and dropdowns (and that it resets when focus leaves), the curved bottom edge at the corners, and the white 2px focus outline on buttons next to panel edges.
+
+Layout checks: the content layer's rounded corner with the background image on (details view), the corner going square with the rail on the right or hidden, the centered search shrinking in narrow windows, caption buttons flush with the corner (also maximized), and the rail's brand pill.

@@ -1,0 +1,103 @@
+<!--
+    Overlay on Playnite Default/Views/MainWindow.xaml.
+    shadcn "inset" layout (blocks sidebar-07 / dashboard-01): the window is the sidebar surface and the active view
+    sits on a rounded-xl background card inset 8px from the window (m-2, ml-0 next to the sidebar). No borders:
+    the two surfaces are the only structure.
+    Four corner masks in the frame color round the card over whatever the view draws (the library background image
+    runs to the edges); masking four corners is cheaper than clipping the whole view.
+    PART_Sidebar, PART_ContentView and PART_Notifications are Playnite's parts.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="ShadcnInsetCorner" TargetType="{x:Type Path}">
+        <Setter Property="Data" Value="{DynamicResource ShadcnInsetCornerGeometry}" />
+        <Setter Property="Fill" Value="{DynamicResource ShadcnSidebarBrush}" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+    </Style>
+
+    <Style TargetType="{x:Type MainWindow}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type MainWindow}">
+                    <Border Background="{DynamicResource ShadcnSidebarBrush}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid>
+                            <Grid.Resources>
+                                <Storyboard x:Key="VisibilityOn">
+                                    <ThicknessAnimationUsingKeyFrames Storyboard.TargetProperty="Margin"
+                                                                      Storyboard.TargetName="PART_Notifications">
+                                        <SplineThicknessKeyFrame KeyTime="00:00:00" Value="-260,0,0,0" />
+                                        <SplineThicknessKeyFrame KeyTime="0:0:0.10" Value="0,0,0,0" />
+                                    </ThicknessAnimationUsingKeyFrames>
+                                </Storyboard>
+                                <Storyboard x:Key="VisibilityOff">
+                                    <ThicknessAnimationUsingKeyFrames Storyboard.TargetProperty="Margin"
+                                                                      Storyboard.TargetName="PART_Notifications">
+                                        <SplineThicknessKeyFrame KeyTime="00:00:00" Value="0,0,0,0" />
+                                        <SplineThicknessKeyFrame KeyTime="0:0:0.10" Value="-260,0,0,0" />
+                                    </ThicknessAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </Grid.Resources>
+
+                            <DockPanel>
+                                <Sidebar x:Name="PART_Sidebar" Panel.ZIndex="999"
+                                         DockPanel.Dock="{Settings SidebarPosition}" />
+                                <Grid x:Name="Inset" Margin="0,8,8,8">
+                                    <Border Background="{DynamicResource ShadcnBackgroundBrush}"
+                                            CornerRadius="{DynamicResource ShadcnRadiusXl}" />
+                                    <ContentControl Name="PART_ContentView" />
+                                    <Path Style="{StaticResource ShadcnInsetCorner}"
+                                          HorizontalAlignment="Left" VerticalAlignment="Top" />
+                                    <Path Style="{StaticResource ShadcnInsetCorner}"
+                                          HorizontalAlignment="Right" VerticalAlignment="Top">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleX="-1" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                    <Path Style="{StaticResource ShadcnInsetCorner}"
+                                          HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleY="-1" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                    <Path Style="{StaticResource ShadcnInsetCorner}"
+                                          HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                        <Path.RenderTransform>
+                                            <ScaleTransform ScaleX="-1" ScaleY="-1" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                </Grid>
+                            </DockPanel>
+
+                            <NotificationPanel x:Name="PART_Notifications"
+                                               WindowChrome.IsHitTestVisibleInChrome="True"
+                                               Width="260"
+                                               HorizontalAlignment="Left" VerticalAlignment="Stretch"
+                                               AnimatedVisibility.Visibility="{Settings NotificationPanelVisible}"
+                                               AnimatedVisibility.Visible="{StaticResource VisibilityOn}"
+                                               AnimatedVisibility.Collapsed="{StaticResource VisibilityOff}" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Right">
+                            <Setter Property="Margin" Value="8,8,0,8" TargetName="Inset" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Top">
+                            <Setter Property="Margin" Value="8,0,8,8" TargetName="Inset" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Bottom">
+                            <Setter Property="Margin" Value="8,8,8,0" TargetName="Inset" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Settings ShowSidebar}" Value="False">
+                            <Setter Property="Margin" Value="8" TargetName="Inset" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

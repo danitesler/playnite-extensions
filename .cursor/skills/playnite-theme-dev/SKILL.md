@@ -26,11 +26,21 @@ Edit `palette.css`, rebuild. Missing variables fall back per the template (`side
 
 If it shares most control shapes with an existing kit, create `src/ThemeKits/<Name>/kit.json` with `{ "extends": "src/ThemeKits/Shadcn" }` and add only the files it draws differently under `<Name>/Desktop/` (see `src/ThemeKits/Chakra`). Map the design system's tokens onto the kit's variable names in the theme's `palette.css`, with a comment naming each source token. Scaffold with `-Kit <Name>`.
 
+A design system is more than colors. Give the kit:
+
+1. **Metrics** in `Desktop/Common.xaml`: the system's button, input, menu, list, card and tooltip spacing and component radii (copy the key list from the Shadcn kit's `Common.xaml`; every key must be present).
+2. **Its own shell**: how the system lays out an app (inset card, app bar + drawer, header band, title bar + rail, ...) in `Views/MainWindow.xaml`, `Views/Sidebar.xaml`, `Views/TopPanel.xaml`, `DerivedStyles/MainWindowStyle.xaml`, `CustomControls/SidebarItem.xaml`, `CustomControls/TopPanelItem.xaml`. Keep every `PART_*`; reserve the window buttons' width on the top bar's right.
+3. **Its icon set** in `Desktop/Media.xaml` when it has one (all `ShadcnIcon*` keys + `ShadcnIconTemplate`), with the icon package's license file in the kit folder.
+4. **Its slider**: rail, range and thumb from the system's spec; keep the range in the decrease button and set `Track.Thumb` last.
+
+Borders and dividers: use the system's borderless variants where they exist (ghost / subtle / text / invisible) and leave layout separators out.
+
 ## Restyle one control
 
 - **For every theme on a kit:** edit or add `src/ThemeKits/<Kit>/Desktop/<Default path>.xaml`. Start from Playnite's Default file at the tag in `scripts/data/playnite-theme-api.json`, keep part names, include only the styles you change.
 - **For one theme only:** set `"themeDir": "src/<Theme>/theme"` in its profile and put the file there; it replaces the kit's copy.
 - Colors come from tokens (`{DynamicResource Shadcn...Brush}`). Need a new one? Add a `Color` + `Brush` pair with a placeholder in `Constants.template.xaml`.
+- Spacing comes from the metric keys (`ShadcnButtonPadding`, `ShadcnInputPadding`, `ShadcnMenuItemPadding`, ...); a kit changes them in its `Common.xaml` rather than replacing the control.
 
 ## Reading build errors
 
@@ -41,6 +51,7 @@ If it shares most control shapes with an existing kit, create `src/ThemeKits/<Na
 | `references unknown resource 'X'` | Typo, or a key missing from this Playnite version / the Constants template. |
 | `still contains an unrendered {{placeholder}}` / `Template rendering failed` | Palette lacks the variable; add it or a fallback in the template. |
 | `ThemeApiVersion ... will not load` | Declared API is newer than the snapshot's Playnite, or major differs. |
+| `is not well-formed XML: An XML comment cannot contain '--'` | A comment mentions a CSS variable (`--name`); reword it. |
 
 ## When it builds but looks wrong in Playnite
 

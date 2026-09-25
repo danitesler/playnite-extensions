@@ -22,11 +22,11 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 
 Theme kits (a kit can extend another via `kit.json` `"extends"`):
 
-- **Shadcn** (`src/ThemeKits/Shadcn`) — shadcn/ui component styles + the shared Constants template. Notes in **`src/ThemeKits/Shadcn/AGENTS.md`**.
-- **Chakra** (`src/ThemeKits/Chakra`) — extends Shadcn; overrides buttons, toggles, inputs, tabs, and the focus ring with Chakra UI styles. Notes in **`src/ThemeKits/Chakra/AGENTS.md`**.
-- **Mui** (`src/ThemeKits/Mui`) — extends Shadcn; Material buttons (uppercase), inputs, tabs, checkbox/radio, slider, progress, tooltip, and focus state layer. Notes in **`src/ThemeKits/Mui/AGENTS.md`**.
-- **Primer** (`src/ThemeKits/Primer`) — extends Shadcn; GitHub buttons (green primary), inputs, UnderlineNav tabs, radio, progress, tooltip, and inside focus outline. Notes in **`src/ThemeKits/Primer/AGENTS.md`**.
-- **Fluent** (`src/ThemeKits/Fluent`) — extends Shadcn; Fluent 2 buttons, underline inputs and dropdowns with animated focus line, TabList indicator, checkbox/radio, slider, and white focus outline. Notes in **`src/ThemeKits/Fluent/AGENTS.md`**.
+- **Shadcn** (`src/ThemeKits/Shadcn`) — shadcn/ui component styles, the inset-dashboard shell, lucide icons, the control-metric keys, and the shared Constants template. Notes in **`src/ThemeKits/Shadcn/AGENTS.md`**.
+- **Chakra** (`src/ThemeKits/Chakra`) — extends Shadcn; flat shell with a segmented top bar and teal subtle states, Chakra md metrics, subtle inputs, buttons, toggles, tabs, slider, and the focus ring. Notes in **`src/ThemeKits/Chakra/AGENTS.md`**.
+- **Mui** (`src/ThemeKits/Mui`) — extends Shadcn; app bar + mini drawer shell, Material icons, MUI metrics, text/contained buttons (uppercase), filled inputs, tabs, checkbox/radio, slider, progress, tooltip, and focus state layer. Notes in **`src/ThemeKits/Mui/AGENTS.md`**.
+- **Primer** (`src/ThemeKits/Primer`) — extends Shadcn; GitHub header-band shell with NavList sidebar, Octicons, Primer metrics, buttons (green primary), inputs, UnderlineNav tabs, radio, slider, progress, tooltip, and inside focus outline. Notes in **`src/ThemeKits/Primer/AGENTS.md`**.
+- **Fluent** (`src/ThemeKits/Fluent`) — extends Shadcn; Windows 11 shell (compact rail, title-bar row with centered search, content layer), Fluent System Icons, Fluent metrics, buttons, underline inputs and dropdowns with animated focus line, TabList indicator, checkbox/radio, slider, and white focus outline. Notes in **`src/ThemeKits/Fluent/AGENTS.md`**.
 
 ## Repository layout
 
@@ -38,7 +38,7 @@ Theme kits (a kit can extend another via `kit.json` `"extends"`):
 | Extension manifests | `src/<PluginName>/info/` (incl. `danitesler_<key>.yaml` for PlayniteAddonDatabase PRs) |
 | Theme palette | `src/<ThemeName>/palette.css` (shadcn CSS variables) |
 | Theme manifests | `src/<ThemeName>/info/` (`theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`) |
-| Theme kit | `src/ThemeKits/<Kit>/` (`Constants.template.xaml`, `<Mode>/` overlay XAML, optional `kit.json` with `extends`) |
+| Theme kit | `src/ThemeKits/<Kit>/` (`Constants.template.xaml`, `<Mode>/` overlay XAML incl. shell views, `Common.xaml` metrics and `Media.xaml` icons, optional `kit.json` with `extends`, `LICENSE-*.txt` for bundled assets) |
 | Playnite theme API snapshot | `scripts/data/playnite-theme-api.json` (loadable file paths + resource keys per Playnite release) |
 | Build scripts | `scripts/*.ps1` |
 | Package artifacts | `artifacts/releases/<key>/` |

@@ -21,14 +21,18 @@ No per-theme overrides yet. To change one control for this theme only, add `"the
 | Role | Hex | Used for |
 |------|-----|----------|
 | background | `#09090B` | window and library background |
-| card / popover / sidebar | `#18181B` | sidebar, menus, tooltips, cards, search panel |
-| secondary / muted / accent | `#27272A` | hover and selected rows, tab list, slider track |
-| border (white 10%) | `#222223` page, `#2F2F32` on card/popover | separators, popup edges |
+| card / popover / sidebar | `#18181B` | window frame and sidebar, menus, cards, header search |
+| secondary / muted / accent | `#27272A` | buttons, hover and selected rows, tab list, slider track |
+| border (white 10%) | `#222223` page, `#2F2F32` on card/popover | popup edges, dialog separators (panel separators are transparent) |
 | input (white 15%) | `#2E2E30` | control borders |
 | ring | `#71717B` | focus borders, scroll thumb hover |
-| foreground / muted-foreground | `#FAFAFA` / `#9F9FA9` | text / secondary text |
+| foreground / muted-foreground | `#FAFAFA` / `#9F9FA9` | text and icons, tooltips (inverted) / secondary text |
 | primary / primary-foreground | `#E4E4E7` / `#18181B` | Play button, default buttons, checked boxes, Playnite `GlyphColor` |
 | destructive | `#FF6467` | close-button hover, warnings, negative ratings |
+
+## Layout
+
+shadcn's inset dashboard (Shadcn kit shell): the window frame is the sidebar color (`#18181B`) and the library sits on a rounded-xl `#09090B` card inset 8px. The 48px header lives inside the card: borderless filled search on the left, ghost 32px icon buttons (lucide, 16px) on the right, window buttons in the same row. The sidebar has no fill or border: 32px rounded-md items, a white logo tile for the main menu. No separators anywhere; buttons are the borderless `secondary` variant, tooltips the inverted v4 chip.
 
 ## Build and try it
 
@@ -42,3 +46,5 @@ Portable Playnite: add `-DeployPath <Playnite folder>\Themes`.
 ## Not verified yet
 
 Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope); **not yet loaded in Playnite**. First run on Windows should cover: main library (grid, details, list), game context menu, top panel dropdowns, settings window tabs, game edit dialog, search (Ctrl+F), a progress dialog, and keyboard focus on buttons and inputs. If Playnite rejects the theme it falls back to Default and logs the XAML error in `playnite.log`.
+
+Layout checks: the inset card's rounded corners over the library background image (details view), the window buttons centered in the card header, sidebar at each position (Settings → Appearance → Layout), the search placeholder hiding while typing, lucide icons in the top bar and on Library / Statistics, and slider ranges ending under the thumb (grid zoom slider).

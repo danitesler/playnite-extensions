@@ -17,13 +17,16 @@ alwaysApply: false
 - Themes share a **kit** (`"themeKit": "src/ThemeKits/<Kit>"`): overlay XAML under `<Kit>/<Mode>/` plus `Constants.template.xaml`. A theme supplies **`palette.css`** (CSS variables in the kit's vocabulary) and, only when needed, **`themeDir`** overrides that replace kit files.
 - A new design system that shares most control shapes gets a kit that **extends** an existing one (`kit.json` → `"extends"`) and overrides only the differing files. An override replaces the base file whole, so it must keep every key the base file defined.
 - Build output is composed, never hand-edited: base kit overlay → derived kit overlay → `Constants.xaml` rendered from template + palette → theme overrides → `theme.yaml`. Edit sources, not **`artifacts/builds/`**.
+- Each kit owns three layers: **colors** (palette → `Constants.xaml`), **metrics** (paddings, component radii, icon size in its `Common.xaml`, read by kit controls with `DynamicResource`), and **shell** (`Views/MainWindow.xaml`, `Views/Sidebar.xaml`, `Views/TopPanel.xaml`, `DerivedStyles/MainWindowStyle.xaml`, `CustomControls/SidebarItem.xaml`, `CustomControls/TopPanelItem.xaml`, optionally `Views/Library.xaml`). Different design systems should differ in shell and icon set (`Media.xaml`), not only in color.
 
 ## Hard rules (Playnite fails silently otherwise)
 
 - XAML paths must match Playnite's Default theme (**`scripts/data/playnite-theme-api.json`**); other files are ignored.
 - Theme files are **overlays**: include only restyled keys. Keep **`PART_*`** and other names Playnite code looks up.
 - Reference kit/theme tokens with **`DynamicResource`**. **`StaticResource`** only for Playnite keys or keys defined earlier in the same file — Playnite parses each theme file alone before merging.
-- No hard-coded colors in kit XAML; add a token to the Constants template.
+- No hard-coded colors in kit XAML; add a token to the Constants template. No layout dividers: panel separators stay transparent unless a palette asks for them.
+- Icon resources Playnite copies (`Media.xaml` menu and sidebar icons) must stay `TextBlock` glyphs; vector icons go through `DataTemplate`s and kit templates.
+- No `--` inside XML comments (it is invalid XML; the validator rejects it).
 - No **`Fonts/`** folder (Toolbox pack drops it).
 - Keep **`ThemeApiVersion`** as low as the kit allows (2.9.0 = Playnite 10.45+); raising it hides the theme from older Playnite. Major must match Playnite's.
 
@@ -40,5 +43,5 @@ Same policy as plugins (**`playnite-extension-versioning.mdc`**, **`playnite-git
 
 ## See also
 
-- **`src/ThemeKits/<Kit>/AGENTS.md`** — token contract, placeholder syntax, restyled controls.
+- **`src/ThemeKits/<Kit>/AGENTS.md`** — token contract, control metrics, shell, icon set, placeholder syntax, restyled controls.
 - Skill **`playnite-theme-dev`** — step-by-step for new themes, palette swaps, and control overrides.
