@@ -57,6 +57,21 @@ if (-not $manifest.Module) { Add-ValidationError $errors "extension.yaml is miss
 if ($profile.addonId -and $manifest.Id -and $manifest.Id -ne $profile.addonId) {
     Add-ValidationError $errors "Profile addonId '$($profile.addonId)' does not match extension.yaml Id '$($manifest.Id)'."
 }
+if (-not $manifest.Type) {
+    Add-ValidationError $errors "extension.yaml is missing Type."
+}
+elseif ($profile.pluginType -and $manifest.Type -ne $profile.pluginType) {
+    Add-ValidationError $errors "Profile pluginType '$($profile.pluginType)' does not match extension.yaml Type '$($manifest.Type)'."
+}
+$expectedDatabaseType = ""
+if ($manifest.Type) {
+    try {
+        $expectedDatabaseType = Get-AddonDatabaseType -PluginType $manifest.Type
+    }
+    catch {
+        Add-ValidationError $errors "extension.yaml Type '$($manifest.Type)' is not GenericPlugin, MetadataPlugin, or LibraryPlugin."
+    }
+}
 
 if (Test-Path $installerPath) {
     $installerLines = Get-Content -Path $installerPath
@@ -107,9 +122,14 @@ if ($databasePath -and (Test-Path $databasePath)) {
     $databaseInstallerManifestUrl = Get-YamlScalar -Lines $databaseLines -Key "InstallerManifestUrl"
     $databaseSourceUrl = Get-YamlScalar -Lines $databaseLines -Key "SourceUrl"
     $databaseIconUrl = Get-YamlScalar -Lines $databaseLines -Key "IconUrl"
+    $databaseType = Get-YamlScalar -Lines $databaseLines -Key "Type"
 
     if ($databaseAddonId -ne $manifest.Id) {
         Add-ValidationError $errors "Database AddonId '$databaseAddonId' does not match extension.yaml Id '$($manifest.Id)'."
+    }
+
+    if ($expectedDatabaseType -and $databaseType -ne $expectedDatabaseType) {
+        Add-ValidationError $errors "Database Type '$databaseType' should be '$expectedDatabaseType' for a $($manifest.Type)."
     }
 
     if ($profile.rawBaseUrl) {
@@ -162,8 +182,8 @@ if ($RequireBuildOutput) {
 
 if ($errors.Count -gt 0) {
     Write-Host "Extension validation failed for '$Extension':"
-    foreach ($error in $errors) {
-        Write-Host "  - $error"
+    foreach ($validationError in $errors) {
+        Write-Host "  - $validationError"
     }
     throw "Extension validation failed."
 }

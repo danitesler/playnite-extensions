@@ -36,14 +36,6 @@ function Convert-ToIdentifier {
     return $identifier
 }
 
-function Convert-ToDatabaseType {
-    param([string]$PluginType)
-    switch ($PluginType) {
-        "GenericPlugin" { return "Generic" }
-        "MetadataPlugin" { return "Metadata" }
-        "LibraryPlugin" { return "Library" }
-    }
-}
 
 $repoRoot = Get-RepoRoot
 $className = Convert-ToIdentifier $Name
@@ -54,7 +46,7 @@ $installerPath = "src/$className/info/InstallerManifest.yaml"
 $databasePath = "src/$className/info/danitesler_$($Key.ToLowerInvariant()).yaml"
 $propsPath = "src/$className/Directory.Build.props"
 $outputPath = "src/$className/bin/Release/net462"
-$databaseType = Convert-ToDatabaseType $Type
+$databaseType = Get-AddonDatabaseType -PluginType $Type
 
 if (-not $AddonId) {
     $AddonId = "{0}_{1}" -f $className, (([guid]::NewGuid()).ToString("N").Substring(0, 8).ToUpperInvariant())
@@ -80,18 +72,61 @@ $packageTag = $TagPattern.Replace("{key}", $Key).Replace("{version}", $Version)
 $packageUrlBase = if ($ReleaseBaseUrl) { $ReleaseBaseUrl } else { "https://github.com/<owner>/<repo>/releases/download" }
 $packageUrl = "$packageUrlBase/$packageTag/$(Get-ExpectedPextName -AddonId $AddonId -Version $Version)"
 $source = if ($SourceUrl) { $SourceUrl } else { "https://github.com/<owner>/<repo>" }
-$propertiesBlock = if ($Type -eq "GenericPlugin") {
-@"
-            Properties = new GenericPluginProperties
-            {
-                HasSettings = false
-            };
+$pluginGuid = ([guid]::NewGuid()).ToString().ToUpperInvariant()
+
+# Each Playnite plugin type has different abstract members; emit a skeleton that compiles as-is.
+switch ($Type) {
+    "GenericPlugin" {
+        $pluginUsings = @"
+using System;
+using Playnite.SDK;
+using Playnite.SDK.Plugins;
 "@
-}
-else {
-@"
-            // Add type-specific Playnite plugin properties and overrides here.
+        $pluginMembers = ""
+        $propertiesType = "GenericPluginProperties"
+    }
+    "MetadataPlugin" {
+        $pluginUsings = @"
+using System;
+using System.Collections.Generic;
+using Playnite.SDK;
+using Playnite.SDK.Plugins;
 "@
+        $pluginMembers = @"
+
+        public override string Name => "$Name";
+
+        // Fields this source can ever provide; Playnite lists the source only for these fields.
+        public override List<MetadataField> SupportedFields { get; } = new List<MetadataField>();
+
+        public override OnDemandMetadataProvider GetMetadataProvider(MetadataRequestOptions options)
+        {
+            return new ${className}MetadataProvider(options);
+        }
+
+"@
+        $propertiesType = "MetadataPluginProperties"
+    }
+    "LibraryPlugin" {
+        $pluginUsings = @"
+using System;
+using System.Collections.Generic;
+using Playnite.SDK;
+using Playnite.SDK.Models;
+using Playnite.SDK.Plugins;
+"@
+        $pluginMembers = @"
+
+        public override string Name => "$Name";
+
+        public override IEnumerable<GameMetadata> GetGames(LibraryGetGamesArgs args)
+        {
+            return new List<GameMetadata>();
+        }
+
+"@
+        $propertiesType = "LibraryPluginProperties"
+    }
 }
 
 @"
@@ -135,25 +170,49 @@ else {
 "@ | Set-Content -Path (Join-Path $repoRoot $propsPath) -Encoding UTF8
 
 @"
-using System;
-using Playnite.SDK;
-using Playnite.SDK.Plugins;
+$pluginUsings
 
 namespace $className
 {
     public class ${className}Plugin : $Type
     {
-        private static readonly Guid PluginId = Guid.Parse("$(([guid]::NewGuid()).ToString().ToUpperInvariant())");
+        private static readonly Guid PluginId = Guid.Parse("$pluginGuid");
 
         public override Guid Id => PluginId;
-
+$pluginMembers
         public ${className}Plugin(IPlayniteAPI api) : base(api)
         {
-$propertiesBlock
+            Properties = new $propertiesType
+            {
+                HasSettings = false
+            };
         }
     }
 }
 "@ | Set-Content -Path (Join-Path $extensionDir "src/${className}Plugin.cs") -Encoding UTF8
+
+if ($Type -eq "MetadataPlugin") {
+@"
+using System.Collections.Generic;
+using Playnite.SDK.Plugins;
+
+namespace $className
+{
+    // Playnite creates one provider per game per download; resolve lazily and cache per instance.
+    public class ${className}MetadataProvider : OnDemandMetadataProvider
+    {
+        private readonly MetadataRequestOptions options;
+
+        public ${className}MetadataProvider(MetadataRequestOptions options)
+        {
+            this.options = options;
+        }
+
+        public override List<MetadataField> AvailableFields { get; } = new List<MetadataField>();
+    }
+}
+"@ | Set-Content -Path (Join-Path $extensionDir "src/${className}MetadataProvider.cs") -Encoding UTF8
+}
 
 @"
 Id: $AddonId
