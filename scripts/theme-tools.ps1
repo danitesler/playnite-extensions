@@ -1,5 +1,8 @@
 # Shared helpers for Playnite theme add-ons (kind = "theme" in src/extensions.json).
 # Dot-source after extension-profiles.ps1.
+#
+# A theme is standalone: everything it ships lives under src/<Theme>/ (AGENTS.md, info/, src/). Nothing is shared
+# between themes at build time; these helpers only build and check one theme folder.
 
 $script:ThemeApiDataPath = Join-Path $PSScriptRoot "data/playnite-theme-api.json"
 $script:Invariant = [System.Globalization.CultureInfo]::InvariantCulture
@@ -49,18 +52,19 @@ function Get-PlayniteThemeApiData {
 }
 
 # ---------------------------------------------------------------------------------------------------------------
-# Palette (shadcn CSS variables)
+# Tokens: src/<Theme>/src/tokens.css holds the design system's CSS custom properties under their own names
 # ---------------------------------------------------------------------------------------------------------------
 
-function Read-ThemePalette {
+function Read-ThemeTokens {
     <#
-        Reads CSS custom properties from a shadcn-style stylesheet. Variables in :root are the base, variables in
-        .dark override them (themes here are dark-only). Returns an ordered name -> raw value map without "--".
+        Reads CSS custom properties from a theme's tokens.css. Declarations in :root and @theme blocks are the base;
+        blocks whose selector mentions "dark" (.dark, [data-theme="dark"], [data-color-mode="dark"], ...) override
+        them, because every theme here is dark. Returns an ordered name -> raw value map without the leading "--".
     #>
     param([Parameter(Mandatory = $true)] [string]$Path)
 
     if (-not (Test-Path $Path)) {
-        throw "Palette not found at $Path"
+        throw "Tokens not found at $Path"
     }
 
     $css = Get-Content -Raw -Path $Path
@@ -69,23 +73,20 @@ function Read-ThemePalette {
     $base = [ordered]@{}
     $dark = [ordered]@{}
     foreach ($block in [regex]::Matches($css, "([^{}]+)\{([^{}]*)\}")) {
-        $selector = $block.Groups[1].Value.Trim()
+        # The text before "{" can carry earlier statements (@import ...;); the selector is what follows the last ";".
+        $selector = ($block.Groups[1].Value -split ";")[-1].Trim()
         $target = $null
-        if ($selector -match "(^|[\s,])\.dark\b") { $target = $dark }
-        elseif ($selector -match ":root") { $target = $base }
+        if ($selector -match "dark") { $target = $dark }
+        elseif ($selector -match "(^|,)\s*:root\b" -or $selector -match "^@theme\b") { $target = $base }
         if ($null -eq $target) { continue }
 
-        foreach ($decl in [regex]::Matches($block.Groups[2].Value, "--([A-Za-z0-9-]+)\s*:\s*([^;]+);?")) {
+        foreach ($decl in [regex]::Matches($block.Groups[2].Value, "--([A-Za-z0-9_-]+)\s*:\s*([^;]+);?")) {
             $target[$decl.Groups[1].Value] = $decl.Groups[2].Value.Trim()
         }
     }
 
     foreach ($name in $dark.Keys) {
         $base[$name] = $dark[$name]
-    }
-
-    if ($base.Count -eq 0) {
-        throw "No CSS variables found in $Path (expected :root and/or .dark blocks)."
     }
 
     return $base
@@ -193,25 +194,26 @@ function ConvertFrom-Hsl {
 
 function ConvertFrom-CssColor {
     <#
-        Parses the color formats shadcn palettes use: #hex, oklch(), hsl(), rgb(), bare shadcn v3 "H S% L%",
-        transparent, and var(--name) references into $Palette.
+        Parses CSS colors: #hex (3, 4, 6, 8 digits), oklch(), hsl(), rgb(), bare "H S% L%" channels (shadcn v3 style),
+        transparent, and var(--name) references into $Tokens.
     #>
     param(
         [Parameter(Mandatory = $true)] [string]$Value,
-        $Palette = $null,
+        $Tokens = $null,
         [int]$Depth = 0
     )
 
     $v = $Value.Trim()
     if ($Depth -gt 8) { throw "Color reference loop at '$Value'" }
 
-    if ($v -match "^var\(\s*--([A-Za-z0-9-]+)\s*(?:,\s*(.+))?\)$") {
+    if ($v -match "^var\(\s*--([A-Za-z0-9_-]+)\s*(?:,\s*(.+))?\)$") {
         $ref = $Matches[1]
-        if ($Palette -and $Palette.Contains($ref)) {
-            return ConvertFrom-CssColor -Value $Palette[$ref] -Palette $Palette -Depth ($Depth + 1)
+        $fallback = $Matches[2]
+        if ($Tokens -and $Tokens.Contains($ref)) {
+            return ConvertFrom-CssColor -Value $Tokens[$ref] -Tokens $Tokens -Depth ($Depth + 1)
         }
-        if ($Matches[2]) {
-            return ConvertFrom-CssColor -Value $Matches[2] -Palette $Palette -Depth ($Depth + 1)
+        if ($fallback) {
+            return ConvertFrom-CssColor -Value $fallback -Tokens $Tokens -Depth ($Depth + 1)
         }
         throw "Unresolved var(--$ref)"
     }
@@ -239,7 +241,7 @@ function ConvertFrom-CssColor {
         }
     }
 
-    # shadcn v3 stored bare HSL channels: --background: 240 10% 3.9%;
+    # Bare HSL channels (shadcn v3 stored colors this way): --background: 240 10% 3.9%;
     if ($v -match "^-?[\d.]+(deg)?\s+[\d.]+%\s+[\d.]+%(\s*/\s*[\d.]+%?)?$") {
         $parsed = Split-CssColorArgs $v
         $alpha = if ($parsed.Alpha) { ConvertTo-CssNumber $parsed.Alpha } else { 1.0 }
@@ -264,118 +266,168 @@ function Format-XamlColor {
 }
 
 function ConvertTo-Px {
-    param([Parameter(Mandatory = $true)] [string]$Value)
+    <#
+        Length token -> px: rem (16px), px, bare numbers, var(--name) and calc() over those with + - * / and
+        parentheses (shadcn's radius scale is calc(var(--radius) - 4px)).
+    #>
+    param(
+        [Parameter(Mandatory = $true)] [string]$Value,
+        $Tokens = $null,
+        [int]$Depth = 0
+    )
 
-    $v = $Value.Trim()
-    if ($v -match "^([\d.]+)rem$") { return [double]::Parse($Matches[1], $script:Invariant) * 16 }
-    if ($v -match "^([\d.]+)px$") { return [double]::Parse($Matches[1], $script:Invariant) }
-    if ($v -match "^([\d.]+)$") { return [double]::Parse($Matches[1], $script:Invariant) }
-    throw "Unsupported length '$Value' (use rem or px)"
+    if ($Depth -gt 8) { throw "Length reference loop at '$Value'" }
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $expr = [regex]::Replace($Value.Trim(), "var\(\s*--([A-Za-z0-9_-]+)\s*(?:,\s*([^()]+))?\)", {
+            param($m)
+            $ref = $m.Groups[1].Value
+            if ($Tokens -and $Tokens.Contains($ref)) {
+                return (ConvertTo-Px -Value $Tokens[$ref] -Tokens $Tokens -Depth ($Depth + 1)).ToString($script:Invariant)
+            }
+            if ($m.Groups[2].Success) {
+                return (ConvertTo-Px -Value $m.Groups[2].Value -Tokens $Tokens -Depth ($Depth + 1)).ToString($script:Invariant)
+            }
+            $errors.Add("unresolved var(--$ref)") | Out-Null
+            return "0"
+        })
+    if ($errors.Count -gt 0) { throw ($errors -join "; ") }
+
+    $expr = $expr -replace "calc\(", "("
+    $expr = [regex]::Replace($expr, "(\d*\.?\d+)rem\b", { param($m) ([double]::Parse($m.Groups[1].Value, $script:Invariant) * 16).ToString($script:Invariant) })
+    $expr = [regex]::Replace($expr, "(\d*\.?\d+)px\b", '$1')
+    if ($expr -notmatch "^[\d.\s+\-*/()]+$") {
+        throw "Unsupported length '$Value' (use rem, px, var() or calc())"
+    }
+
+    return [double][System.Data.DataTable]::new().Compute($expr, "")
 }
 
 # ---------------------------------------------------------------------------------------------------------------
-# Template rendering
+# Template rendering (*.template.xaml + tokens.css -> *.xaml)
 # ---------------------------------------------------------------------------------------------------------------
+
+function Resolve-TemplateColor {
+    # One color alternative: name, then @surface flattening (last surface first), then /NN alpha.
+    param($Name, [string[]]$Surfaces, $AlphaPercent, $Tokens, [switch]$Literal)
+
+    $color = if ($Literal) { ConvertFrom-CssColor -Value $Name } else { ConvertFrom-CssColor -Value $Tokens[$Name] -Tokens $Tokens }
+
+    if ($Surfaces.Count -gt 0 -and $color.A -lt 1 -and $color.A -gt 0) {
+        # Flatten onto the surface the color sits on. A translucent surface needs its own base after it:
+        # {{divider@paper@background}} = divider over (paper over background). Fully transparent stays transparent.
+        $surface = ConvertFrom-CssColor -Value $Tokens[$Surfaces[-1]] -Tokens $Tokens
+        if ($surface.A -lt 1) {
+            throw "surface --$($Surfaces[-1]) is translucent; name the surface under it too (@$($Surfaces[-1])@<opaque token>)"
+        }
+        for ($i = $Surfaces.Count - 2; $i -ge 0; $i--) {
+            $surface = Merge-RgbaOver -Top (ConvertFrom-CssColor -Value $Tokens[$Surfaces[$i]] -Tokens $Tokens) -Bottom $surface
+        }
+        $color = Merge-RgbaOver -Top $color -Bottom $surface
+    }
+
+    if ($AlphaPercent) {
+        # Tailwind "/NN" semantics: scales whatever alpha the color already has.
+        $color = New-Rgba $color.R $color.G $color.B ($color.A * [int]$AlphaPercent / 100.0)
+    }
+
+    return $color
+}
 
 function Expand-ThemeTemplate {
     <#
-        Fills double-brace placeholders in a kit template from a palette map (Read-ThemePalette).
-        See src/ThemeKits/<Kit>/AGENTS.md for the syntax. Throws with every unresolved placeholder listed.
+        Fills the double-brace placeholders of a *.template.xaml from a token map (Read-ThemeTokens).
+
+          {{name}}               color from --name, alpha kept (#hex, oklch(), hsl(), rgb(), var(), transparent)
+          {{name@surface}}       translucent --name flattened onto --surface (chain surfaces: @paper@background)
+          {{name/60}}            alpha scaled to 60% (Tailwind "/60")
+          {{a?b@card?c/50}}      first alternative whose tokens all exist
+          {{name|#F59E0B}}       literal CSS color when no alternative exists (optionally "|#hex/NN")
+          {{px:name}}            length token in px as a plain number (rem, px, var(), calc(); below 0 clamps to 0)
+          {{text:name|Segoe UI}} raw token text, XML-escaped, with an optional fallback
+
+        Throws with every unresolved placeholder listed, each with its line and the x:Key on that line.
     #>
     param(
         [Parameter(Mandatory = $true)] [string]$Template,
-        [Parameter(Mandatory = $true)] $Palette
+        [Parameter(Mandatory = $true)] $Tokens,
+        [string]$SourceName = "template"
     )
 
-    if (-not $Palette.Contains("background")) {
-        throw "Palette must define --background (alpha colors are flattened over it)."
-    }
-    $background = ConvertFrom-CssColor -Value $Palette["background"] -Palette $Palette
-    if ($background.A -lt 1) {
-        throw "--background must be opaque."
-    }
-
-    $radius = 10.0
-    if ($Palette.Contains("radius")) {
-        $radius = ConvertTo-Px $Palette["radius"]
-    }
-    else {
-        Write-Warning "Palette has no --radius; using shadcn's default 0.625rem."
-    }
-    $radiusScale = @{ sm = $radius - 4; md = $radius - 2; lg = $radius; xl = $radius + 4 }
-
     $errors = [System.Collections.Generic.List[string]]::new()
+    $fail = {
+        param($Match, [string]$Reason)
+        $line = ([regex]::Matches($Template.Substring(0, $Match.Index), "\n")).Count + 1
+        $lineText = ($Template -split "\n")[$line - 1]
+        $key = if ($lineText -match 'x:Key="([^"]+)"') { " ($($Matches[1]))" } else { "" }
+        $errors.Add("${SourceName}:$line$key $($Match.Value): $Reason") | Out-Null
+        return $Match.Value
+    }
+
     $result = [regex]::Replace($Template, "\{\{\s*(.+?)\s*\}\}", {
             param($match)
             $expr = $match.Groups[1].Value
 
-            if ($expr -match "^radius:(sm|md|lg|xl)$") {
-                return ([Math]::Max([double]0, $radiusScale[$Matches[1]])).ToString($script:Invariant)
+            if ($expr -eq "TODO") {
+                return (& $fail $match "not mapped yet; name the design system's token for this key")
             }
 
-            if ($expr -match "^text:([A-Za-z0-9-]+)(?:\|(.*))?$") {
-                $name = $Matches[1]
-                if ($Palette.Contains($name)) { return [System.Security.SecurityElement]::Escape($Palette[$name].Trim('"', "'", ' ')) }
-                if ($null -ne $Matches[2]) { return [System.Security.SecurityElement]::Escape($Matches[2]) }
-                $errors.Add("missing --$name for '$($match.Value)'") | Out-Null
-                return $match.Value
+            if ($expr -match "^px:(?<name>[A-Za-z0-9_-]+)(?:\|(?<fallback>-?[\d.]+))?$") {
+                $name = $Matches["name"]
+                $fallback = $Matches["fallback"]
+                try {
+                    $px = if ($Tokens.Contains($name)) { ConvertTo-Px -Value $Tokens[$name] -Tokens $Tokens }
+                    elseif ($fallback) { [double]::Parse($fallback, $script:Invariant) }
+                    else { return (& $fail $match "missing --$name") }
+                    return ([Math]::Max([double]0, $px)).ToString($script:Invariant)
+                }
+                catch {
+                    return (& $fail $match $_.Exception.Message)
+                }
             }
 
-            # expr = alt ( "?" alt )* ( "|" literal )?     alt = name ( "@" surface )? ( "~" )? ( "/" NN )?
+            if ($expr -match "^text:(?<name>[A-Za-z0-9_-]+)(?:\|(?<fallback>.*))?$") {
+                $name = $Matches["name"]
+                if ($Tokens.Contains($name)) { return [System.Security.SecurityElement]::Escape($Tokens[$name].Trim('"', "'", ' ')) }
+                if ($Matches["fallback"]) { return [System.Security.SecurityElement]::Escape($Matches["fallback"]) }
+                return (& $fail $match "missing --$name")
+            }
+
+            # expr = alt ( "?" alt )* ( "|" literal )?     alt = name ( "@" surface )* ( "/" NN )?
             $parts = $expr -split "\|", 2
             $alts = @($parts[0] -split "\?")
             $literal = if ($parts.Count -gt 1) { $parts[1] } else { $null }
-            $altPattern = "^(?<name>[A-Za-z0-9-]+)(?:@(?<over>[A-Za-z0-9-]+))?(?<keep>~)?(?:/(?<alpha>\d{1,3}))?$"
-            foreach ($alt in $alts) {
+            $altPattern = "^(?<name>[A-Za-z0-9_-]+)(?<surfaces>(?:@[A-Za-z0-9_-]+)*)(?:/(?<alpha>\d{1,3}))?$"
+            $parsedAlts = foreach ($alt in $alts) {
                 if ($alt -notmatch $altPattern) {
-                    $errors.Add("unrecognized placeholder '$($match.Value)'") | Out-Null
-                    return $match.Value
+                    return (& $fail $match "unrecognized placeholder syntax")
                 }
-            }
-
-            $finish = {
-                param($Color, $Over, [bool]$Keep, $AlphaPercent)
-                if (-not $Keep -and $Color.A -lt 1 -and $Color.A -gt 0) {
-                    # Flatten over the surface the color sits on: @name when given, else --background.
-                    $surface = $background
-                    if ($Over -and $Palette.Contains($Over)) {
-                        $surface = ConvertFrom-CssColor -Value $Palette[$Over] -Palette $Palette
-                        if ($surface.A -lt 1) { $surface = Merge-RgbaOver -Top $surface -Bottom $background }
-                    }
-                    $Color = Merge-RgbaOver -Top $Color -Bottom $surface
+                [pscustomobject]@{
+                    Name     = $Matches["name"]
+                    Surfaces = @($Matches["surfaces"] -split "@" | Where-Object { $_ })
+                    Alpha    = $Matches["alpha"]
                 }
-                if ($AlphaPercent) {
-                    # Tailwind "/NN" semantics: scales whatever alpha the color already has.
-                    $Color = New-Rgba $Color.R $Color.G $Color.B ($Color.A * [int]$AlphaPercent / 100.0)
-                }
-                return $Color
             }
 
             try {
-                foreach ($alt in $alts) {
-                    $null = $alt -match $altPattern
-                    if ($Palette.Contains($Matches["name"])) {
-                        $name = $Matches["name"]; $over = $Matches["over"]; $keep = [bool]$Matches["keep"]; $alpha = $Matches["alpha"]
-                        $color = & $finish (ConvertFrom-CssColor -Value $Palette[$name] -Palette $Palette) $over $keep $alpha
-                        return Format-XamlColor $color
+                foreach ($alt in $parsedAlts) {
+                    $names = @($alt.Name) + $alt.Surfaces
+                    if (@($names | Where-Object { -not $Tokens.Contains($_) }).Count -eq 0) {
+                        return Format-XamlColor (Resolve-TemplateColor -Name $alt.Name -Surfaces $alt.Surfaces -AlphaPercent $alt.Alpha -Tokens $Tokens)
                     }
                 }
                 if ($literal) {
                     $literalParts = $literal -split "/", 2
                     $alpha = if ($literalParts.Count -gt 1) { $literalParts[1] } else { $null }
-                    $color = & $finish (ConvertFrom-CssColor -Value $literalParts[0]) $null $false $alpha
-                    return Format-XamlColor $color
+                    return Format-XamlColor (Resolve-TemplateColor -Name $literalParts[0] -Surfaces @() -AlphaPercent $alpha -Tokens $Tokens -Literal)
                 }
             }
             catch {
-                $errors.Add("'$($match.Value)': $($_.Exception.Message)") | Out-Null
-                return $match.Value
+                return (& $fail $match $_.Exception.Message)
             }
 
-            $wanted = $alts | ForEach-Object { "--" + ($_ -replace "[@~/].*$", "") }
-            $errors.Add("missing " + ($wanted -join " / ") + " for '$($match.Value)'") | Out-Null
-            return $match.Value
-
+            $wanted = $parsedAlts | ForEach-Object { (@($_.Name) + $_.Surfaces | ForEach-Object { "--$_" }) -join " + " }
+            return (& $fail $match ("missing " + ($wanted -join " / ")))
         })
 
     if ($errors.Count -gt 0) {
@@ -386,7 +438,7 @@ function Expand-ThemeTemplate {
 }
 
 # ---------------------------------------------------------------------------------------------------------------
-# Compose + validate
+# Build + checks
 # ---------------------------------------------------------------------------------------------------------------
 
 function Get-ThemeManifestInfo {
@@ -409,44 +461,27 @@ function Get-ThemeManifestInfo {
     }
 }
 
-function Get-ThemeKitChain {
-    <#
-        Resolves a kit and the kits it extends (kit.json "extends": "src/ThemeKits/<Base>"), base first.
-        A derived kit only holds the files that differ from its base.
-    #>
-    param([Parameter(Mandatory = $true)] [string]$KitPath)
+function Get-ThemeSourceDirectory {
+    param([Parameter(Mandatory = $true)] $Profile)
 
-    $chain = [System.Collections.Generic.List[string]]::new()
-    $current = $KitPath
-    while ($current) {
-        if ($chain.Contains($current) -or $chain.Count -gt 8) {
-            throw "Theme kit inheritance loop at $current"
-        }
-        $root = Join-RepoPath $current
-        if (-not (Test-Path $root)) {
-            throw "Theme kit not found at $current"
-        }
-        $chain.Insert(0, $current)
-
-        $kitJson = Join-Path $root "kit.json"
-        $current = $null
-        if (Test-Path $kitJson) {
-            $meta = Get-Content -Raw -Path $kitJson | ConvertFrom-Json
-            if ($meta.PSObject.Properties.Name -contains "extends" -and $meta.extends) {
-                $current = $meta.extends
-            }
-        }
+    if (-not ($Profile.PSObject.Properties.Name -contains "themeSource") -or -not $Profile.themeSource) {
+        throw "Theme profile '$($Profile.key)' has no themeSource (src/<Theme>/src)."
     }
 
-    return , $chain.ToArray()
+    $source = Join-RepoPath $Profile.themeSource
+    if (-not (Test-Path $source)) {
+        throw "themeSource not found at $source"
+    }
+
+    return $source
 }
 
-function Invoke-ThemeCompose {
+function Invoke-ThemeBuild {
     <#
-        Builds a loadable Playnite theme directory:
-          1. kit overlays, base kit first (<kit>/<Mode>/**), plus each kit's LICENSE*.txt notices
-          2. Constants.xaml rendered from the nearest kit's Constants.template.xaml + <palette>
-          3. theme overlay (<themeDir>/**), which wins over 1 and 2 file by file
+        Builds a loadable Playnite theme folder from one theme's sources (src/<Theme>/):
+          1. every file under themeSource at the same relative path, except tokens.css and *.template.xaml
+          2. each *.template.xaml rendered with themeSource/tokens.css into the same path without ".template"
+          3. info/LICENSE*.txt and NOTICE*.txt third-party notices, at the theme root
           4. theme.yaml
     #>
     param(
@@ -455,80 +490,66 @@ function Invoke-ThemeCompose {
     )
 
     $manifest = Get-ThemeManifestInfo -Profile $Profile
-    $mode = if ($manifest.Mode) { $manifest.Mode } else { "Desktop" }
+    $source = Get-ThemeSourceDirectory -Profile $Profile
 
     if (Test-Path $OutDir) {
         Get-ChildItem -Path $OutDir -Force | Remove-Item -Recurse -Force
     }
     New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 
-    $copyTree = {
-        param([string]$Source, [string]$Label)
-        foreach ($file in Get-ChildItem -Path $Source -Recurse -File) {
-            $relative = Get-RelativePathCompat -Root $Source -Path $file.FullName
-            $target = Join-Path $OutDir $relative
+    $templates = [System.Collections.Generic.List[object]]::new()
+    foreach ($file in Get-ChildItem -Path $source -Recurse -File) {
+        $relative = Get-RelativePathCompat -Root $source -Path $file.FullName
+        if ($file.Name -eq "tokens.css") { continue }
+        if ($file.Name -like "*.template.xaml") {
+            $templates.Add($file) | Out-Null
+            continue
+        }
+        $target = Join-Path $OutDir $relative
+        New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+        Copy-Item -Path $file.FullName -Destination $target -Force
+    }
+
+    if ($templates.Count -gt 0) {
+        $tokensPath = Join-Path $source "tokens.css"
+        $tokens = Read-ThemeTokens -Path $tokensPath
+        $tokensRel = ($Profile.themeSource.TrimEnd('/', '\')) + "/tokens.css"
+        foreach ($templateFile in $templates) {
+            $relative = Get-RelativePathCompat -Root $source -Path $templateFile.FullName
+            $outRelative = $relative -replace "\.template\.xaml$", ".xaml"
+            $target = Join-Path $OutDir $outRelative
             if (Test-Path $target) {
-                Write-Host "  $Label overrides $relative"
+                throw "Both $outRelative and $relative exist in $($Profile.themeSource); keep one."
             }
+            $sourceRel = ($Profile.themeSource.TrimEnd('/', '\')) + "/" + ($relative -replace "\\", "/")
+            $rendered = Expand-ThemeTemplate -Template (Get-Content -Raw -Path $templateFile.FullName) -Tokens $tokens -SourceName $sourceRel
+            $header = "<!-- Generated by scripts/build-theme.ps1 from $sourceRel and $tokensRel. Edit those, not this file. -->`n"
             New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
-            Copy-Item -Path $file.FullName -Destination $target -Force
+            Set-Content -Path $target -Value ($header + $rendered) -NoNewline -Encoding utf8
         }
     }
 
-    if ($Profile.themeKit) {
-        $template = $null
-        $templateKit = $null
-        $hasOverlay = $false
-        foreach ($kit in (Get-ThemeKitChain -KitPath $Profile.themeKit)) {
-            $kitRoot = Join-RepoPath $kit
-            $kitOverlay = Join-Path $kitRoot $mode
-            if (Test-Path $kitOverlay) {
-                & $copyTree $kitOverlay (Split-Path -Leaf $kit)
-                $hasOverlay = $true
-            }
-
-            # Kit templates derive from third-party XAML; their notices ship inside the package.
-            foreach ($notice in Get-ChildItem -Path $kitRoot -File -Filter "LICENSE*.txt") {
-                Copy-Item -Path $notice.FullName -Destination (Join-Path $OutDir $notice.Name) -Force
-            }
-
-            $candidate = Join-Path $kitRoot "Constants.template.xaml"
-            if (Test-Path $candidate) {
-                $template = $candidate
-                $templateKit = $kit
-            }
-        }
-        if (-not $hasOverlay) {
-            throw "Theme kit $($Profile.themeKit) (and its base kits) has no '$mode' overlay."
-        }
-
-        if ($Profile.palette -and $template) {
-            $palette = Read-ThemePalette -Path (Join-RepoPath $Profile.palette)
-            $rendered = Expand-ThemeTemplate -Template (Get-Content -Raw -Path $template) -Palette $palette
-            $header = "<!-- Generated by scripts/build-theme.ps1 from $templateKit/Constants.template.xaml and $($Profile.palette). Edit those, not this file. -->`n"
-            Set-Content -Path (Join-Path $OutDir "Constants.xaml") -Value ($header + $rendered) -NoNewline -Encoding utf8
-        }
-    }
-
-    if ($Profile.PSObject.Properties.Name -contains "themeDir" -and $Profile.themeDir) {
-        $themeDir = Join-RepoPath $Profile.themeDir
-        if (Test-Path $themeDir) {
-            & $copyTree $themeDir "theme"
-        }
+    # Third-party notices (Playnite's Default theme, icon sets) ship inside the package.
+    $infoDir = Split-Path -Parent $manifest.Path
+    foreach ($notice in Get-ChildItem -Path $infoDir -File | Where-Object { $_.Name -like "LICENSE*.txt" -or $_.Name -like "NOTICE*.txt" }) {
+        Copy-Item -Path $notice.FullName -Destination (Join-Path $OutDir $notice.Name) -Force
     }
 
     Copy-Item -Path $manifest.Path -Destination (Join-Path $OutDir "theme.yaml") -Force
     return $OutDir
 }
 
-function Test-ThemeOverlay {
+function Test-ThemeBuild {
     <#
-        Static checks for a composed theme directory. Playnite fails quietly on most of these, so they are the
-        closest thing to a compile step a theme has. Returns a list of error strings (empty = pass).
+        Static checks for a built theme folder. Playnite fails quietly on most of these, so they are the closest
+        thing to a compile step a theme has. Returns a list of error strings (empty = pass).
+        -ResourcePrefix: every x:Key the theme defines that Playnite does not must start with it (the design
+        system's name, e.g. "Primer"), so each theme keeps its own vocabulary.
     #>
     param(
         [Parameter(Mandatory = $true)] [string]$Directory,
-        [ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop"
+        [ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop",
+        [string]$ResourcePrefix = ""
     )
 
     $api = Get-PlayniteThemeApiData -Mode $Mode
@@ -568,8 +589,12 @@ function Test-ThemeOverlay {
 
         $keys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
         foreach ($m in [regex]::Matches($text, $keyPattern)) {
-            $keys.Add($m.Groups[1].Value) | Out-Null
-            $allOverlayKeys.Add($m.Groups[1].Value) | Out-Null
+            $key = $m.Groups[1].Value
+            $keys.Add($key) | Out-Null
+            $allOverlayKeys.Add($key) | Out-Null
+            if ($ResourcePrefix -and -not $playniteKeys.Contains($key) -and -not $key.StartsWith($ResourcePrefix, [System.StringComparison]::Ordinal)) {
+                $errors.Add("$relative defines '$key'. Keys a theme adds must start with '$ResourcePrefix' (its design system's name); Playnite's own keys keep theirs.") | Out-Null
+            }
         }
         $definedByFile[$relative] = $keys
     }

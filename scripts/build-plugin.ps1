@@ -11,7 +11,7 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
 . (Join-Path $PSScriptRoot "theme-tools.ps1")
 
-# Themes have no project to compile; build-theme.ps1 composes their build drop instead.
+# Themes have no project to compile; build-theme.ps1 builds their drop from src/<Theme>/src instead.
 if ((Get-ExtensionKind (Get-ExtensionProfile -Extension $Extension)) -eq "theme") {
     & (Join-Path $PSScriptRoot "build-theme.ps1") -Extension $Extension
     return

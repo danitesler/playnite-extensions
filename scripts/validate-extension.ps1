@@ -76,6 +76,11 @@ if ($isTheme) {
     elseif ($profile.requiredApiVersion -and $manifest.ThemeApiVersion -ne $profile.requiredApiVersion) {
         Add-ValidationError $errors "theme.yaml ThemeApiVersion '$($manifest.ThemeApiVersion)' does not match profile requiredApiVersion '$($profile.requiredApiVersion)'."
     }
+    foreach ($legacy in @("themeKit", "palette", "themeDir")) {
+        if ($profile.PSObject.Properties.Name -contains $legacy) {
+            Add-ValidationError $errors "Theme profile still has '$legacy'. Themes are standalone: sources live in themeSource (src/<Theme>/src)."
+        }
+    }
 
     if ($manifest.Mode -in @("Desktop", "Fullscreen")) {
         $api = Get-PlayniteThemeApiData -Mode $manifest.Mode
@@ -87,16 +92,16 @@ if ($isTheme) {
             }
         }
 
-        # Compose into a scratch folder and run the same checks build-theme.ps1 runs.
+        # Build into a scratch folder and run the same checks build-theme.ps1 runs.
         $scratch = Join-Path ([System.IO.Path]::GetTempPath()) ("playnite-theme-validate-" + [guid]::NewGuid().ToString("N"))
         try {
-            Invoke-ThemeCompose -Profile $profile -OutDir $scratch | Out-Null
-            foreach ($themeError in @(Test-ThemeOverlay -Directory $scratch -Mode $manifest.Mode)) {
+            Invoke-ThemeBuild -Profile $profile -OutDir $scratch | Out-Null
+            foreach ($themeError in @(Test-ThemeBuild -Directory $scratch -Mode $manifest.Mode -ResourcePrefix $profile.resourcePrefix)) {
                 Add-ValidationError $errors $themeError
             }
         }
         catch {
-            Add-ValidationError $errors "Theme compose failed: $($_.Exception.Message)"
+            Add-ValidationError $errors "Theme build failed: $($_.Exception.Message)"
         }
         finally {
             if (Test-Path $scratch) { Remove-Item -Path $scratch -Recurse -Force }

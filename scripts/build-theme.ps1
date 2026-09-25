@@ -26,10 +26,17 @@ $mode = if ($manifest.Mode) { $manifest.Mode } else { "Desktop" }
 $slug = if ($profile.slug) { $profile.slug } else { $profile.key }
 $buildDrop = Join-Path $repoRoot "artifacts/builds/$slug"
 
-Write-Host "Composing theme $($manifest.Name) $($manifest.Version) ($mode)..."
-Invoke-ThemeCompose -Profile $profile -OutDir $buildDrop | Out-Null
+Write-Host "Building theme $($manifest.Name) $($manifest.Version) ($mode) from $($profile.themeSource)..."
+try {
+    Invoke-ThemeBuild -Profile $profile -OutDir $buildDrop | Out-Null
+}
+catch {
+    Write-Host "Theme build failed for '$Extension':"
+    Write-Host $_.Exception.Message
+    throw "Theme build failed."
+}
 
-$errors = @(Test-ThemeOverlay -Directory $buildDrop -Mode $mode)
+$errors = @(Test-ThemeBuild -Directory $buildDrop -Mode $mode -ResourcePrefix $profile.resourcePrefix)
 if ($errors.Count -gt 0) {
     Write-Host "Theme checks failed for '$Extension':"
     foreach ($e in $errors) { Write-Host "  - $e" }
