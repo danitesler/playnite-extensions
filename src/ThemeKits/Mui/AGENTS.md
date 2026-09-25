@@ -35,7 +35,7 @@ Source: `mui/material-ui` `packages/mui-material/src` (`Button`, `AppBar`, `Tool
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | FilledInput (small, hidden label): white 9% fill (13% on hover), rounded top, 1px white 70% underline (text.primary on hover), 2px primary underline growing from the center on focus. The inherited select gets the same fill and underline through the field tokens. |
 | `DefaultControls/TabControl.xaml` | 48px uppercase tabs, text.secondary idle, primary text + 2px primary indicator when selected, no divider. |
 | `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | 18px outline icons (2px text.secondary), primary when checked, round hover state layer spilling past the control. |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 4px rail at 38% primary, 4px primary track to the thumb center, 20px filled thumb, primary 16% halo (8px on hover and focus, 14px while dragging). |
+| `DefaultControls/Slider.xaml` (SliderEx follows it) | 4px rail at 38% primary, 4px primary track to the thumb center, 20px filled thumb, primary 16% halo (8px on hover and focus, 14px while dragging). |
 | `DefaultControls/ProgressBar.xaml` | `LinearProgress`: square ends, rail = primary at half strength. |
 | `DefaultControls/ToolTip.xaml` | grey[700] @ 92%, no border, 4px 8px padding. |
 

@@ -46,6 +46,9 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`) in the Playnite 
 - **No layout dividers.** `PanelSeparatorColor` is transparent unless a palette sets `--panel-separator`; kit views draw none.
 - **Slider tracks:** set `Track.Thumb` last. Track stacks its parts in the order they are set, and the range (drawn by the decrease button, reaching half a thumb past it) must end under the thumb.
 - **`ScrollContentPresenter` clips.** Anything drawn outside an item (Primer's current-item bar) needs the gutter as the panel's margin, not the `ScrollViewer`'s padding.
+- **Inherit instead of copying.** Theme files merge one by one (Default then theme, in API order), so `BasedOn="{StaticResource {x:Type Slider}}"` in a later file resolves to the kit's own style. `SliderEx`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` and `TopPanelMenu` are one-line styles built that way; a derived kit that restyles `Slider` or `ContextMenu` gets them for free.
+- **Disabled state comes from `BaseStyle`** (Opacity 0.5). Styles `BasedOn` it must not add their own `IsEnabled` opacity trigger; the two multiply to 0.25. Only styles not based on it (`PasswordBox`) dim themselves.
+- **Cache masked layers.** An `OpacityMask` is recomputed whenever anything over it redraws; wrap masked art in an element with `BitmapCache` (see `Views/Library.xaml`) so scrolling the list does not re-mask it every frame.
 
 ## Shell (layout)
 
@@ -147,12 +150,12 @@ Palette colors with alpha (v4 `--border: oklch(1 0 0 / 10%)`) are flattened to o
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (+ `ShadcnBareTextBox` for hosts that draw their own chrome) |
 | `DefaultControls/ComboBox.xaml` | Select trigger, popover list, check on selected item |
 | `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | Checkbox, RadioGroup |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 6px muted track, range to the thumb center, 16px white thumb (`ShadcnSliderThumb`, `ShadcnSliderRangeButton`) |
+| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider (SliderEx is a one-line style BasedOn the kit Slider, so derived kits only replace `Slider.xaml`): 6px muted track, range to the thumb center, 16px white thumb (`ShadcnSliderThumb`, `ShadcnSliderRangeButton`) |
 | `DefaultControls/ProgressBar.xaml` | Progress (indeterminate = sliding segment) |
 | `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | ScrollArea scrollbar: 10px, no rail, rounded-full `border` thumb (`input` on hover and drag). Every derived kit replaces `ScrollViewer.xaml` with its own scrollbar; keep the keyed `ShadcnScrollThumb` style and set the Track's Thumb last so it draws over the page buttons. |
 | `DefaultControls/ToolTip.xaml` | Tooltip: inverted chip, no border |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | DropdownMenu |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | DropdownMenu surfaces |
+| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | DropdownMenu (the ContextMenu border is a shared-size scope, so icon, label and shortcut columns line up) |
+| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | DropdownMenu surfaces: one-line styles `BasedOn` the kit ContextMenu (so is `TopPanelMenu` in each `Views/TopPanel.xaml`) |
 | `DefaultControls/TabControl.xaml` | Tabs (muted list, raised active trigger, no border line) |
 | `DefaultControls/GroupBox.xaml` | Card without the border line |
 | `DefaultControls/ListBox.xaml` | Command / Select item states |

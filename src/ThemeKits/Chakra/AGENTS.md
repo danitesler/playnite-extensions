@@ -34,7 +34,7 @@ Source: `chakra-ui/chakra-ui` `packages/react/src/theme` (`recipes/button.ts`, `
 | `DefaultControls/ToggleButton.xaml` | Off = gray `subtle`; on = brand `subtle` (`ShadcnPrimarySubtle*`). |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input `subtle` variant: bg.muted fill, transparent 1px border (palette `--input-background`, `--input-border`); focus = `focusVisibleRing="inside"` (2px ring-colored edge). Keeps `ShadcnBareTextBox`. The inherited select and search box pick up the same fill and edge through the palette. |
 | `DefaultControls/TabControl.xaml` | `line` variant without the list's edge line: muted triggers, 2px primary indicator. |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | md `outline` variant: 8px rounded-full bg.emphasized track, colorPalette.solid range to the thumb center, 20px thumb (bg fill, 2px colorPalette.solid border), 3px focusRing/50 ring on keyboard focus. |
+| `DefaultControls/Slider.xaml` (SliderEx follows it) | md `outline` variant: 8px rounded-full bg.emphasized track, colorPalette.solid range to the thumb center, 20px thumb (bg fill, 2px colorPalette.solid border), 3px focusRing/50 ring on keyboard focus. |
 
 | `DefaultControls/ScrollViewer.xaml` | Chakra's scrollbar recipe: 12px, pill thumb in `border` at 25% (50% on hover and drag) over a faint pill rail. |
 

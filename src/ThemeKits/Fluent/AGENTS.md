@@ -45,7 +45,7 @@ Source: `@fluentui/react-theme` 9.2.2 `webDarkTheme`, and the style hooks of `@f
 | `DefaultControls/CheckBox.xaml` | 16px, 2px corners, transparent with an accessible edge; checked = compound brand fill, dark mark. |
 | `DefaultControls/RadioButton.xaml` | Transparent circle, accessible edge; checked = brand edge + 10px brand dot. |
 | `DefaultControls/ScrollViewer.xaml` | Windows 11 scrollbar: a 2px line at rest that widens to a 6px rounded thumb while the pointer is over the bar; brighter while dragging; no rail. |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 4px rounded rail in the accessible stroke; brand progress from the rail start to the thumb center (square end under the thumb); 20px thumb = brand disc inside a Background1 ring with a Stroke1 edge; hover moves thumb and progress to the hover brand; 2px focus outline on keyboard focus. |
+| `DefaultControls/Slider.xaml` (SliderEx follows it) | 4px rounded rail in the accessible stroke; brand progress from the rail start to the thumb center (square end under the thumb); 20px thumb = brand disc inside a Background1 ring with a Stroke1 edge; hover moves thumb and progress to the hover brand; 2px focus outline on keyboard focus. |
 
 Inherited and close to Fluent: menus (Background1 popover, rounded rows, SubtleBackgroundHover), tooltip (Background1, no edge), progress, cover tiles, details rows.
 
