@@ -8,6 +8,8 @@ This repository is a reusable **Playnite extension monorepo**. Each extension ow
 
 - **Autogrid** (`autogrid`) — GenericPlugin, `net462`, WPF. Extension-specific notes live in **`src/Autogrid/AGENTS.md`**.
 - **GameHoverDetails** (`gamehoverdetails`) — GenericPlugin, `net462`, WPF: hover popup with name, short description, and platforms. Notes in **`src/GameHoverDetails/AGENTS.md`**.
+- **AutoStatus** (`autostatus`) — GenericPlugin, `net462`, WPF settings: completion-status rules (stale Playing → On Hold; started game → Playing). Notes in **`src/AutoStatus/AGENTS.md`**.
+- **ExeIcon** (`exeicon`) — MetadataPlugin, `net462`, no UI: Icon metadata source that extracts the icon from the game's executable. Notes in **`src/ExeIcon/AGENTS.md`**.
 
 ## Repository layout
 
@@ -27,6 +29,7 @@ This repository is a reusable **Playnite extension monorepo**. Each extension ow
 - Build one extension: **`.\scripts\build-plugin.ps1 -Extension <key>`**
 - Package one extension: **`.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`**
 - Scaffold a new extension: **`.\scripts\new-extension.ps1 -Name MyPlugin -Key myplugin -Type GenericPlugin -Author <name>`**
+  - `-Type` is `GenericPlugin`, `MetadataPlugin`, or `LibraryPlugin`; each gets a skeleton that compiles. The add-on database `Type` differs (`Generic`, `MetadataProvider`, `GameLibrary`) and `validate-extension.ps1` checks it.
 
 The package flow is intentionally **package-only**: it creates `.pext` and `.zip` artifacts and prints the expected GitHub Release tag / `PackageUrl`, but it does not create a GitHub Release.
 
