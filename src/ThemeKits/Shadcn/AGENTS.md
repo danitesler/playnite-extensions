@@ -48,6 +48,7 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`) in the Playnite 
 - **`ScrollContentPresenter` clips.** Anything drawn outside an item (Primer's current-item bar) needs the gutter as the panel's margin, not the `ScrollViewer`'s padding.
 - **Inherit instead of copying.** Theme files merge one by one (Default then theme, in API order), so `BasedOn="{StaticResource {x:Type Slider}}"` in a later file resolves to the kit's own style. `SliderEx`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` and `TopPanelMenu` are one-line styles built that way; a derived kit that restyles `Slider` or `ContextMenu` gets them for free.
 - **Disabled state comes from `BaseStyle`** (Opacity 0.5). Styles `BasedOn` it must not add their own `IsEnabled` opacity trigger; the two multiply to 0.25. Only styles not based on it (`PasswordBox`) dim themselves.
+- **Hover follows the design system, including where it has none.** shadcn checkboxes, radios and inputs have no hover state, so the kit draws none. Selected or checked states come after hover in trigger order so hover never hides them; a selected item that is also hovered gets its own state (`RowSelectedHover`, `SidebarAccentHover`, `PrimarySubtleHover`) instead of losing its selection color. Hover colors come from the interaction-state tokens above, so a palette restates them rather than a kit copying control files.
 - **Cache masked layers.** An `OpacityMask` is recomputed whenever anything over it redraws; wrap masked art in an element with `BitmapCache` (see `Views/Library.xaml`) so scrolling the list does not re-mask it every frame.
 
 ## Shell (layout)
@@ -114,6 +115,15 @@ Optional keys (each falls back so older palettes render unchanged):
 | `ShadcnHeaderField` / `...Hover` | `--header-field` / `--header-field-hover` | input-background, input-hover | MUI's app bar search |
 | `ShadcnSliderThumb` | `--slider-thumb` | white | shadcn thumb fill, Primer knob |
 | `PanelSeparatorColor` | `--panel-separator` | transparent | Playnite's panel separators |
+| `ShadcnGhostHover` | `--ghost-hover` | accent/50 (`dark:hover:bg-accent/50`) | ghost icon buttons: top bar items and toggles, dialog title buttons |
+| `ShadcnSelectHover` | `--select-hover` | input-hover | select trigger hover fill (set it to the rest fill for systems whose select has no hover) |
+| `ShadcnInputBorderHover` | `--input-border-hover` | input-border | field edge on hover: select trigger, Fluent inputs and buttons (MUI underline, Fluent Stroke1Hover) |
+| `ShadcnStrongBorderHover` | `--border-strong-hover` | ring | Fluent StrokeAccessibleHover: input bottom edge, checkbox, radio |
+| `ShadcnRowHover` / `RowSelected` / `RowSelectedHover` | `--row-hover` / `--row-selected` / `--row-selected-hover` | accent/50, accent, row-selected | ListBox items and details-view rows |
+| `ShadcnMenuItemHover` / `MenuItemSelected` / `MenuItemSelectedHover` | `--menu-item-hover` / `--menu-item-selected` / `--menu-item-selected-hover` | accent, transparent, menu-item-hover | menu rows and select options (flattened over the popover) |
+| `ShadcnPrimarySubtleHover` | `--primary-subtle-hover` | primary-subtle | a "subtle" toggle that is on, hovered (Chakra colorPalette.muted, MUI primary 24%) |
+| `ShadcnSidebarAccentHover` | `--sidebar-accent-hover` | sidebar-accent | the active sidebar item, hovered |
+| `ShadcnSecondaryPressed` / `ShadcnPrimaryButtonPressed` | `--secondary-pressed` / `--primary-button-pressed` | the hover values | pressed buttons (Primer control-bgColor-active, Fluent Background1Pressed / BrandBackgroundPressed) |
 | `GridItemBackgroundColor` | `--grid-item-background` | transparent | Playnite paints it around every cover (`GridItemMargin` border) and behind letterboxed covers; a color here brings back the frame |
 
 Translucent on purpose (`~` in the template, so Material-style white overlays lighten whatever surface they sit on): accent, accent/50, primary-subtle, sidebar-accent, input-background, input-border, input-hover, header-field, focus-overlay.

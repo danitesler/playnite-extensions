@@ -15,7 +15,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4, `--header
 | `Views/MainWindow.xaml` | Flat: drawer and view on `background.default`. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as IconButtons (40px circles, 20px icons) on the app bar, 12px from the top and the right edge. |
 | `Views/Sidebar.xaml` | Permanent mini drawer, 64px wide, no divider. Its top 64px is painted in the app bar color and holds the menu IconButton (`PART_ElemMainMenu`), so the bar reads as one full-width app bar. |
-| `CustomControls/SidebarItem.xaml` | ListItemButton rows: 64x48, square, 24px icons in muted foreground; action.hover on hover; selected = primary @ selectedOpacity with a primary icon. |
+| `CustomControls/SidebarItem.xaml` | ListItemButton rows: 64x48, square, 24px icons in muted foreground; action.hover on hover; selected = primary @ selectedOpacity with a primary icon, 24% (selected + hover opacity) when hovered. |
 | `Views/TopPanel.xaml` | 64px Toolbar with 16px gutters. MUI's app bar search on the left: white 15% (25% on hover), icon inside, no border, widening 240 → 360px while focused. IconButtons on the right; Badges instead of text (primary dot while a filter applies, error count for notifications). |
 | `CustomControls/TopPanelItem.xaml` | IconButton medium, `color="inherit"`: 40px circle, 24px icon; a toggled item turns primary. |
 | `CustomControls/SearchBox.xaml` | FilledInput with a start adornment, for search boxes outside the app bar. |
@@ -51,6 +51,7 @@ Inherited and close enough: menus (square items via the metrics), cover tiles, d
 
 - Surfaces are MUI's white elevation overlays on `#121212`, written as `rgba(255,255,255,a)` so the build flattens them: `--card` = elevation 1 (5.1%), `--popover` = elevation 8 (11.9%), `--header` = elevation 4 (9%, the app bar).
 - State layers stay translucent (template `~`): `--accent` = action.hover 8%, `--focus-overlay` = action.focus 12%, `--primary-subtle` / `--sidebar-accent` = primary @ 16%, `--input-background` / `--input-hover` = FilledInput 9% / 13%, `--input-border` = white 70% underline, `--header-field` / `--header-field-hover` = the app bar search 15% / 25%.
+- Hover states: `--ghost-hover` / `--row-hover` = action.hover; `--row-selected`, `--menu-item-selected` = primary 16%, their `-hover` and `--primary-subtle-hover` / `--sidebar-accent-hover` = 24%; `--input-border-hover` = text.primary (filled Select underline).
 - `--primary-hover` = `primary.dark`; `--primary-foreground` = `contrastText` composited over `primary.main`.
 - Sibling theme: swap `--primary`, `--primary-hover`, `--primary-foreground`, and the three primary-based rgba values for another MUI color (dark-mode primaries are the `[200]` shade).
 

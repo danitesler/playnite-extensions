@@ -32,17 +32,21 @@ Source: `@primer/primitives` (functional dark tokens, border sizes) and Primer's
 | File | Primer behavior |
 |------|-----------------|
 | `Common.xaml` | Focus = 2px solid `focus-outlineColor` outline, offset −2px (inside the control edge). Metrics (medium control size): Button and TextInput 32px with 12px inline padding, ActionList items 6px 8px (radius 6) inside 8px overlay padding, overlays at `borderRadius-large` (12px), Box 16px at radius 6. Repeats `PopupBorder`. |
-| `DefaultControls/Button.xaml` | `default` variant: control bg, `borderColor-default` edge, `control-bgColor-hover` on hover. `IsDefault` = `primary` variant (green). Medium weight. |
+| `DefaultControls/Button.xaml` | `default` variant: control bg, `borderColor-default` edge, `control-bgColor-hover` on hover, `control-bgColor-active` while pressed. `IsDefault` = `primary` variant (green). Medium weight. |
 | `DerivedStyles/PlayButton.xaml` | `primary` variant (green). |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | `bgColor-default` fill; focus = accent border + 1px inset accent, drawn as a 2px ring-colored edge. |
 | `DefaultControls/TabControl.xaml` | UnderlineNav: default-colored items with a rounded transparent-hover pill; selected = semibold + 2px coral bar; no list border line. |
-| `DefaultControls/RadioButton.xaml` | Checked = 4px accent ring around a white center. |
+| `DefaultControls/RadioButton.xaml` | Checked = 4px accent ring around a white center. No hover state (Primer's radio has none). |
 | `DefaultControls/Slider.xaml` (SliderEx follows it) | Primer has no slider; this one uses ProgressBar's track (8px, rounded, neutral-muted rail, accent fill to the thumb center) and the ToggleSwitch knob (upright 12x20 pill, `controlKnob-bgColor-rest` with a `control-borderColor-rest` edge, brighter edge on hover, 2px accent ring on keyboard focus). |
 | `DefaultControls/ProgressBar.xaml` | Green bar on a `borderColor-default` track. |
 | `DefaultControls/ToolTip.xaml` | `bgColor-emphasis`, white text, no border. |
 | `DefaultControls/ScrollViewer.xaml` | GitHub's scrollbar: 12px, no rail, radius-3 thumb in `borderColor-default`, `fgColor-muted` on hover and drag. |
 
 Inherited and close to Primer: checkbox (accent fill, white check), select, ActionMenu-style menus (translucent `control-transparent-bgColor-hover` rows), search box, cover tiles, details rows.
+
+## States
+
+`--ghost-hover` and `--row-hover` = `control-transparent-bgColor-hover`; `--row-selected` = `bgColor-accent-muted`; `--secondary-pressed` = `control-bgColor-active`; `--select-hover` = the rest fill. Checkbox, radio and inputs have no hover state.
 
 ## Known gaps
 

@@ -17,9 +17,9 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | `Views/MainWindow.xaml` | Flat: sidebar and view on `bg`, no inset. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as ghost IconButtons, size sm (36px), centered on the 64px bar, 24px from the right. |
 | `Views/Sidebar.xaml` | px-4 around 40px items, gap-2. Main menu = rounded-full teal `solid` IconButton (40px, white icon). |
-| `CustomControls/SidebarItem.xaml` | IconButton md (40px, rounded l2): ghost at rest, gray.subtle hover; active view = teal `subtle` (colorPalette.subtle fill, colorPalette.fg icon). |
+| `CustomControls/SidebarItem.xaml` | IconButton md (40px, rounded l2): ghost at rest, gray.subtle hover; active view = teal `subtle` (colorPalette.subtle fill, colorPalette.fg icon), colorPalette.muted when hovered. |
 | `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (bg.muted track, rounded l3); search on the right as an Input `subtle` (bg.muted, no visible border, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the count. |
-| `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons, checked = bg.emphasized indicator, hover = half of it. |
+| `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons, checked = bg.emphasized indicator; no hover fill (SegmentGroup items have none). |
 
 Icons: lucide from the Shadcn kit's `Media.xaml` (Chakra's docs use `react-icons/lu`), drawn at 20px (IconButton md).
 
@@ -46,6 +46,7 @@ Inherited and close enough: select, checkbox, radio, progress, menus, tooltip (i
 - Brand palette → `--primary` (`<color>.solid`), `--primary-foreground` (`.contrast`), `--primary-subtle` / `--primary-subtle-foreground` (`.subtle` / `.fg`), `--ring` (`.focusRing`), `--sidebar-accent*` for the selected sidebar item.
 - Gray scale → `--secondary` (`gray.subtle`, button fill and ghost hover), `--muted` (`bg.muted`, segment track), `--accent` (`bg.emphasized`, hover and segment indicator), `--border` (`border`), `--input` (`border.emphasized`, checkbox and radio edges).
 - Inputs → `--input-background` (`bg.muted`) and `--input-border: transparent` for the `subtle` variant; drop both for `outline` inputs.
+- States: `--ghost-hover` (gray.subtle), `--row-hover` / `--menu-item-hover` (bg.emphasized/60), `--primary-subtle-hover` / `--sidebar-accent-hover` (colorPalette.muted), `--select-hover` = the rest fill (the subtle select has no hover). Checkbox and radio have no hover state.
 - To make a sibling theme (blue, purple, ...), copy `src/ChakraUiTheme/palette.css` and swap the brand values from `tokens/colors.ts` / `semantic-tokens/colors.ts`.
 
 ## Rules
