@@ -39,7 +39,9 @@ Source: `mui/material-ui` `packages/mui-material/src` (`Button`, `AppBar`, `Tool
 | `DefaultControls/ProgressBar.xaml` | `LinearProgress`: square ends, rail = primary at half strength. |
 | `DefaultControls/ToolTip.xaml` | grey[700] @ 92%, no border, 4px 8px padding. |
 
-Inherited and close enough: menus (square items via the metrics), scrollbars, cover tiles, details rows, group boxes (elevation-1 cards).
+| `DefaultControls/ScrollViewer.xaml` | Material dark scrollbar: 12px, no rail, radius-4 thumb in text.primary at 26% (50% hover, 70% drag). |
+
+Inherited and close enough: menus (square items via the metrics), cover tiles, details rows, group boxes (elevation-1 cards).
 
 ## Uppercase labels
 

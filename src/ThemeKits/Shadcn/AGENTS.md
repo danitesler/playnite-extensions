@@ -111,6 +111,7 @@ Optional keys (each falls back so older palettes render unchanged):
 | `ShadcnHeaderField` / `...Hover` | `--header-field` / `--header-field-hover` | input-background, input-hover | MUI's app bar search |
 | `ShadcnSliderThumb` | `--slider-thumb` | white | shadcn thumb fill, Primer knob |
 | `PanelSeparatorColor` | `--panel-separator` | transparent | Playnite's panel separators |
+| `GridItemBackgroundColor` | `--grid-item-background` | transparent | Playnite paints it around every cover (`GridItemMargin` border) and behind letterboxed covers; a color here brings back the frame |
 
 Translucent on purpose (`~` in the template, so Material-style white overlays lighten whatever surface they sit on): accent, accent/50, primary-subtle, sidebar-accent, input-background, input-border, input-hover, header-field, focus-overlay.
 
@@ -148,7 +149,7 @@ Palette colors with alpha (v4 `--border: oklch(1 0 0 / 10%)`) are flattened to o
 | `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | Checkbox, RadioGroup |
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 6px muted track, range to the thumb center, 16px white thumb (`ShadcnSliderThumb`, `ShadcnSliderRangeButton`) |
 | `DefaultControls/ProgressBar.xaml` | Progress (indeterminate = sliding segment) |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | ScrollArea scrollbar |
+| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | ScrollArea scrollbar: 10px, no rail, rounded-full `border` thumb (`input` on hover and drag). Every derived kit replaces `ScrollViewer.xaml` with its own scrollbar; keep the keyed `ShadcnScrollThumb` style and set the Track's Thumb last so it draws over the page buttons. |
 | `DefaultControls/ToolTip.xaml` | Tooltip: inverted chip, no border |
 | `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | DropdownMenu |
 | `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | DropdownMenu surfaces |
@@ -159,7 +160,8 @@ Palette colors with alpha (v4 `--border: oklch(1 0 0 / 10%)`) are flattened to o
 | `DerivedStyles/DetailsViewItemStyle.xaml` | Details-view rows as Command items (accent fill instead of Playnite's primary edge) |
 | `DerivedStyles/PlayButton.xaml` | Button, default (primary) variant |
 | `DerivedStyles/WindowBarButton.xaml` | Ghost title bar buttons with icon-set glyphs; close = destructive |
-| `DerivedStyles/GridViewItemStyle.xaml` | Cover ring (ring-2 ring-offset-2) |
+| `DerivedStyles/GridViewItemStyle.xaml` | Cover ring (ring-2 ring-offset-2) on hover and selection only; no frame at rest |
+| `Views/Library.xaml` | Playnite's library layout with the background art moved under the top bar and faded out on every edge (nested `OpacityMask` gradients on the image only), so it never meets the sidebar or top bar in a hard line |
 | `DerivedStyles/HighlightBorder.xaml` | Input chrome for Default templates the kit does not replace |
 | Shell files | See **Shell (layout)** |
 

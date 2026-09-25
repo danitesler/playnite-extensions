@@ -36,7 +36,9 @@ Source: `chakra-ui/chakra-ui` `packages/react/src/theme` (`recipes/button.ts`, `
 | `DefaultControls/TabControl.xaml` | `line` variant without the list's edge line: muted triggers, 2px primary indicator. |
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | md `outline` variant: 8px rounded-full bg.emphasized track, colorPalette.solid range to the thumb center, 20px thumb (bg fill, 2px colorPalette.solid border), 3px focusRing/50 ring on keyboard focus. |
 
-Inherited and close enough: select, checkbox, radio, progress, menus, tooltip (inverted: `bg.inverted` / `fg.inverted` through the token fallback), scrollbars, cover tiles, details rows.
+| `DefaultControls/ScrollViewer.xaml` | Chakra's scrollbar recipe: 12px, pill thumb in `border` at 25% (50% on hover and drag) over a faint pill rail. |
+
+Inherited and close enough: select, checkbox, radio, progress, menus, tooltip (inverted: `bg.inverted` / `fg.inverted` through the token fallback), cover tiles, details rows.
 
 ## Palette notes for Chakra themes
 

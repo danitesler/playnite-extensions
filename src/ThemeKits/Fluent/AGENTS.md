@@ -26,7 +26,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 | `Views/TopPanel.xaml` | 48px title-bar row on the base layer: search centered (up to 468px, shrinks when tight), subtle 32px icon buttons with 20px icons on the right; brand CounterBadge for notifications. |
 | `CustomControls/TopPanelItem.xaml` | Button subtle, icon only: 32px; hover and checked = subtle fill + brand icon. |
 | `CustomControls/SearchBox.xaml` | SearchBox (outline): Input chrome with a 20px search icon and a dismiss icon. |
-| `Views/Library.xaml` | Content layer: everything under the title-bar row on `colorNeutralBackground1`, top-left corner rounded 8px where it meets the rail (frame-colored mask, so the background image can run to the edge); square when the rail is elsewhere or hidden. |
+| `Views/Library.xaml` | Content layer: everything under the title-bar row on `colorNeutralBackground1`, top-left corner rounded 8px where it meets the rail (frame-colored mask); square when the rail is elsewhere or hidden. The background art is faded out on every edge so it never meets the rail or title-bar row in a hard line. |
 
 Icons: Fluent UI System Icons, Regular, 20px (`@fluentui/svg-icons` 1.1.342, MIT, `LICENSE-fluentui-system-icons.txt`), in `Desktop/Media.xaml`.
 
@@ -44,9 +44,10 @@ Source: `@fluentui/react-theme` 9.2.2 `webDarkTheme`, and the style hooks of `@f
 | `DefaultControls/TabControl.xaml` | TabList: no rail, subtle hover fill, 3px rounded indicator inset by the tab padding (gray on hover, compound brand when selected), selected label semibold. |
 | `DefaultControls/CheckBox.xaml` | 16px, 2px corners, transparent with an accessible edge; checked = compound brand fill, dark mark. |
 | `DefaultControls/RadioButton.xaml` | Transparent circle, accessible edge; checked = brand edge + 10px brand dot. |
+| `DefaultControls/ScrollViewer.xaml` | Windows 11 scrollbar: a 2px line at rest that widens to a 6px rounded thumb while the pointer is over the bar; brighter while dragging; no rail. |
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 4px rounded rail in the accessible stroke; brand progress from the rail start to the thumb center (square end under the thumb); 20px thumb = brand disc inside a Background1 ring with a Stroke1 edge; hover moves thumb and progress to the hover brand; 2px focus outline on keyboard focus. |
 
-Inherited and close to Fluent: menus (Background1 popover, rounded rows, SubtleBackgroundHover), tooltip (Background1, no edge), progress, scrollbars, cover tiles, details rows.
+Inherited and close to Fluent: menus (Background1 popover, rounded rows, SubtleBackgroundHover), tooltip (Background1, no edge), progress, cover tiles, details rows.
 
 ## Known gaps
 

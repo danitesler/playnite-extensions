@@ -40,8 +40,9 @@ Source: `@primer/primitives` (functional dark tokens, border sizes) and Primer's
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Primer has no slider; this one uses ProgressBar's track (8px, rounded, neutral-muted rail, accent fill to the thumb center) and the ToggleSwitch knob (upright 12x20 pill, `controlKnob-bgColor-rest` with a `control-borderColor-rest` edge, brighter edge on hover, 2px accent ring on keyboard focus). |
 | `DefaultControls/ProgressBar.xaml` | Green bar on a `borderColor-default` track. |
 | `DefaultControls/ToolTip.xaml` | `bgColor-emphasis`, white text, no border. |
+| `DefaultControls/ScrollViewer.xaml` | GitHub's scrollbar: 12px, no rail, radius-3 thumb in `borderColor-default`, `fgColor-muted` on hover and drag. |
 
-Inherited and close to Primer: checkbox (accent fill, white check), select, ActionMenu-style menus (translucent `control-transparent-bgColor-hover` rows), search box, scrollbars, cover tiles, details rows.
+Inherited and close to Primer: checkbox (accent fill, white check), select, ActionMenu-style menus (translucent `control-transparent-bgColor-hover` rows), search box, cover tiles, details rows.
 
 ## Known gaps
 
