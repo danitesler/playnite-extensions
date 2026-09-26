@@ -81,6 +81,12 @@ if ($isTheme) {
             Add-ValidationError $errors "Theme profile still has '$legacy'. Themes are standalone: sources live in themeSource (src/<Theme>/src)."
         }
     }
+    if (-not $profile.resourcePrefix) {
+        Add-ValidationError $errors "Theme profile is missing resourcePrefix (the design system's name, e.g. 'Primer'): every resource key the theme adds must start with it."
+    }
+    elseif ($profile.resourcePrefix -cnotmatch '^[A-Z][A-Za-z0-9]*$') {
+        Add-ValidationError $errors "Theme profile resourcePrefix '$($profile.resourcePrefix)' must be PascalCase letters and digits."
+    }
 
     if ($manifest.Mode -in @("Desktop", "Fullscreen")) {
         $api = Get-PlayniteThemeApiData -Mode $manifest.Mode
