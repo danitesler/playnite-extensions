@@ -43,6 +43,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - Scaffold a new extension: **`.\scripts\new-extension.ps1 -Name MyPlugin -Key myplugin -Type GenericPlugin -Author <name>`**
 - Build one theme (render + static checks): **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy]`** (`build-plugin.ps1` forwards themes here)
 - Scaffold a new theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme -Prefix MyDs [-TokensCss <tokens .css>]`**
+- Render icons for any add-on: **`.\scripts\render-icons.ps1 -Extension <key>`** (jobs in `src/<Folder>/icons.json`), or ad hoc **`-Pack <pack> -Icons <names> [-Format Png|Geometry|DrawingImage]`**. Packs (Octicons, Lucide, Tabler, Heroicons, Phosphor, Feather, Material Symbols, Fluent) are in `scripts/data/icon-packs.json`; `-UrlTemplate` / `-SvgDir` take any other SVG source. `-ListPacks` shows them.
 - Refresh the theme API snapshot for a new Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <Playnite checkout> -PlayniteVersion <tag>`**
 
 Validation, packaging, and CI branch on **`kind`**: themes package to **`.pthm`**, have no Directory.Build.props or Module, and are validated by building the theme and checking every XAML file against the API snapshot.

@@ -21,7 +21,8 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | `src/tokens.css` | Primer's functional CSS variables, verbatim names and values (aliases written out, with the alias in a comment). |
 | `src/Constants.template.xaml` | Tokens → `Primer*` keys and Playnite's palette keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder`, `PrimerFocusOutline` (inside), `PrimerFocusOutlineOffset` (checkbox and radio), component spacing. |
-| `src/Media.xaml` | Octicons (Playnite's roles plus triangle-down, check, chevron-right). |
+| `src/Media.xaml` | Octicons (Playnite's roles plus triangle-down, check, chevron-right, trash, pencil, plus) and the menu icon paths. |
+| `src/Images/Octicons/` | Octicons rendered to PNG for Playnite's menu icons. |
 | `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
 | `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
 | `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_primertheme.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-octicons.txt`. |
@@ -65,7 +66,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 
 | File | Primer behavior |
 |------|-----------------|
-| `Views/MainWindow.xaml` | Flat: sidebar and view on `bgColor-default`. |
+| `Views/MainWindow.xaml` | Flat: sidebar and view on `bgColor-inset`, the same color as the header band. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as invisible IconButtons (32px, `PrimerWindowButton`) on the band, 16px from the top; close takes the danger hover. |
 | `Views/Sidebar.xaml` | Navigation rail on the page color. Its top 64px is painted in the band color and holds the three-bars button (`PrimerAppHeaderMenuButton`, `PART_ElemMainMenu`). |
 | `CustomControls/SidebarItem.xaml` | NavList item, icon only: 32px, 16px octicons in `fgColor-muted`; the current item gets the fill and NavList's 4x24 accent bar 8px outside the item. |
@@ -105,7 +106,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 - Header search and icon buttons use the invisible variant (no edge) to keep the band quiet; the search input keeps its edge.
 - No shadows: the Overlay keeps only the 1px ring `shadow-floating-small` starts with.
 - `GlyphColor` is `bgColor-accent-emphasis` (`#1f6feb`) because Playnite also uses it as a fill under white text; Primer's link color (`fgColor-accent`, `#4493f8`) is a little lighter.
-- Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`).
+- Menu icons are octicon PNGs in `src/Images/Octicons` (48px, `fgColor-muted`; `fgColor-danger` for exit and remove), referenced by path because Playnite rebuilds TextBlock icons from their glyph and font. They don't follow a token change; the list, colors and Octicons tag are in `icons.json`, so after a palette change update the colors there and run `.\scripts\render-icons.ps1 -Extension primertheme`.
 
 ## Build and try it
 
