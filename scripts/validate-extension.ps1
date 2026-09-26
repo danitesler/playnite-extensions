@@ -191,6 +191,22 @@ if ($databasePath -and (Test-Path $databasePath)) {
         }
     }
 
+    # Icon and screenshot URLs that point into this repo must resolve once main is pushed; before a
+    # database PR (Package mode) every such file has to exist in the working tree.
+    if ($profile.rawBaseUrl -and $Mode -eq "Package") {
+        $rawPrefix = [regex]::Escape($profile.rawBaseUrl.TrimEnd("/") + "/")
+        $linked = [System.Collections.Generic.HashSet[string]]::new()
+        foreach ($line in $databaseLines) {
+            foreach ($match in [regex]::Matches($line, "$rawPrefix(\S+)")) {
+                $relative = $match.Groups[1].Value
+                if ($relative -eq $profile.installerManifest -or -not $linked.Add($relative)) { continue }
+                if (-not (Test-Path (Join-RepoPath $relative))) {
+                    Add-ValidationError $errors "Database manifest links $relative, which does not exist. Add the file (screenshots: capture them in Playnite) before submitting."
+                }
+            }
+        }
+    }
+
     if ($profile.sourceUrl -and $databaseSourceUrl -ne $profile.sourceUrl) {
         Add-ValidationError $errors "Database SourceUrl '$databaseSourceUrl' does not match profile sourceUrl '$($profile.sourceUrl)'."
     }
@@ -237,8 +253,8 @@ elseif ($RequireBuildOutput) {
 
 if ($errors.Count -gt 0) {
     Write-Host "Extension validation failed for '$Extension':"
-    foreach ($error in $errors) {
-        Write-Host "  - $error"
+    foreach ($validationError in $errors) {
+        Write-Host "  - $validationError"
     }
     throw "Extension validation failed."
 }
