@@ -1,62 +1,58 @@
 ---
 name: playnite-theme-dev
-description: Playnite theme work — new theme from a shadcn palette, palette swaps, restyling a control in a kit, build-theme.ps1 / -Deploy, theme validation errors, .pthm. For .NET plugins use playnite-extension-build.
+description: Playnite theme work — a new standalone theme for a design system, token swaps, restyling a control, build-theme.ps1 / -Deploy, theme validation errors, .pthm. For .NET plugins use playnite-extension-build.
 ---
 
 # Playnite theme — develop
 
 ## Scope
 
-- **Use this skill** for anything under `src/ThemeKits/`, a theme's `palette.css` / `info/theme.yaml`, `build-theme.ps1`, `new-theme.ps1`, or "why does my theme not load / look wrong".
-- Packaging and version bumps follow **`playnite-extension-release`** (themes produce `.pthm` instead of `.pext`; same scripts).
-- Rules: **`.cursor/rules/playnite-themes.mdc`**. Kit internals: **`src/ThemeKits/<Kit>/AGENTS.md`**.
+- **Use this skill** for anything under `src/<Theme>/src/` or `src/<Theme>/info/theme.yaml`, `build-theme.ps1`, `new-theme.ps1`, or "why does my theme not load / look wrong".
+- Packaging and version bumps follow **`playnite-extension-release`** (themes produce `.pthm`; same scripts).
+- Rules (loading mechanics, hard rules, placeholder syntax): **`.cursor/rules/playnite-themes.mdc`**. Per-theme notes: **`src/<Theme>/AGENTS.md`**.
 
-## New theme (most common)
+Every theme is standalone. Other themes show how Playnite's parts and triggers have to be wired; they are not a source of styles, names or numbers. A new theme is written from its design system's spec and Playnite's Default files.
 
-1. Get the palette: a shadcn theme export (ui.shadcn.com/themes, tweakcn.com, or a project's `globals.css`) saved as a `.css` file. Only `.dark` and `:root` blocks are read; `.dark` wins.
-2. Scaffold: `.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme -PaletteCss <file>` (or `-CopyPaletteFrom <key>`). It creates `src/<Name>/` (palette, manifests, AGENTS.md) and registers the profile.
-3. Build: `.\scripts\build-theme.ps1 -Extension mytheme -Deploy`. Restart Playnite → Settings → Appearance → Theme.
-4. Add `info/icon.png` (512×512), fill the database description, run `.\scripts\validate-extension.ps1 -Extension mytheme -Mode Package`.
+## New theme for a design system
 
-## Palette-only change
+1. **Sources first.** Find the design system's published tokens and component styles (npm packages, official theme CSS, docs) and pin versions. Note which dark theme you target. Record all of it in `AGENTS.md` → Sources.
+2. **Scaffold:** `.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme -Prefix MyDs [-TokensCss <file>]`. `-Prefix` is the design system's name (PascalCase); every key the theme adds must start with it. The script creates `src/<Name>/` (`info/` manifests and `LICENSE-Playnite.txt`, `src/tokens.css`, `src/Constants.template.xaml`, `AGENTS.md`) and registers the profile.
+3. **`src/tokens.css`:** the system's tokens under their own names (`:root` for shared values, a `dark` selector for the dark theme). Write var() aliases out and keep the alias in a comment.
+4. **`src/Constants.template.xaml`:** one `Color` + `Brush` per token the theme uses, keyed `<Prefix><TokenName>` (`--bgColor-default` → `PrimerBgColorDefaultColor`), radii and stroke widths the same way. Then replace each `{{TODO}}` in the Playnite palette block with the token that plays that role; the build fails until all are mapped. Map by role: `GlyphColor` is the system's selection/checked accent, `TextColorDark` its text-on-accent.
+5. **`src/Common.xaml`:** `PopupBorder`, the focus style, and component spacing named after the component (`<Prefix>ButtonPadding`, `<Prefix>MenuItemPadding`, ...), each with a comment quoting the spec.
+6. **`src/Media.xaml`:** the system's icon set for Playnite's roles (search, clear, view settings, filter presets, group, sort, details/grid/list view, update, explorer, random, filter, notifications, main menu, library, statistics, window buttons) plus whatever the controls need (chevrons, check). Convert SVG path data with explicit separators and an absolute first `M`; ship the icon license in `info/`.
+7. **Shell:** how the system lays out an app, in `Views/MainWindow.xaml`, `Views/Sidebar.xaml`, `Views/TopPanel.xaml`, `DerivedStyles/MainWindowStyle.xaml`, `CustomControls/SidebarItem.xaml`, `CustomControls/TopPanelItem.xaml` (optionally `Views/Library.xaml`). Start each from Playnite's Default file, keep every `PART_*`, reserve the window buttons' width on the top bar's right.
+8. **Controls:** for each control, open the Default file at the snapshot's tag, keep structure and part names, and restyle it to the system's component (name the component and its tokens in the header). Usual set: Button, ToggleButton, RepeatButton, TextBox, PasswordBox, ComboBox, CheckBox, RadioButton, Slider (+ one-line SliderEx), ProgressBar, ScrollViewer/Thumb, ToolTip, ContextMenu/Menu (+ one-line GameMenu, GameGroupMenu, TrayContextMenu), TabControl, GroupBox, ListBox, SearchBox, DetailsViewItemStyle, GridViewItemStyle, PlayButton, WindowBarButton, HighlightBorder.
+9. **Build:** `.\scripts\build-theme.ps1 -Extension mytheme -Deploy`, restart Playnite → Settings → Appearance → Theme.
+10. **Finish:** `info/icon.png` (512×512), database description in `info/danitesler_<key>.yaml`, `AGENTS.md` (tokens table, spacing, shell, components, deviations, "Not verified yet"), then `.\scripts\validate-extension.ps1 -Extension mytheme -Mode Package`.
 
-Edit `palette.css`, rebuild. Missing variables fall back per the template (`sidebar` → `card`, `popover` → `card`, ...); anything unresolved fails the build with the variable name.
+## Token-only change (a sibling dark theme, a brand swap)
 
-## New design system (not just new colors)
-
-If it shares most control shapes with an existing kit, create `src/ThemeKits/<Name>/kit.json` with `{ "extends": "src/ThemeKits/Shadcn" }` and add only the files it draws differently under `<Name>/Desktop/` (see `src/ThemeKits/Chakra`). Map the design system's tokens onto the kit's variable names in the theme's `palette.css`, with a comment naming each source token. Scaffold with `-Kit <Name>`.
-
-A design system is more than colors. Give the kit:
-
-1. **Metrics** in `Desktop/Common.xaml`: the system's button, input, menu, list, card and tooltip spacing and component radii (copy the key list from the Shadcn kit's `Common.xaml`; every key must be present).
-2. **Its own shell**: how the system lays out an app (inset card, app bar + drawer, header band, title bar + rail, ...) in `Views/MainWindow.xaml`, `Views/Sidebar.xaml`, `Views/TopPanel.xaml`, `DerivedStyles/MainWindowStyle.xaml`, `CustomControls/SidebarItem.xaml`, `CustomControls/TopPanelItem.xaml`. Keep every `PART_*`; reserve the window buttons' width on the top bar's right.
-3. **Its icon set** in `Desktop/Media.xaml` when it has one (all `ShadcnIcon*` keys + `ShadcnIconTemplate`), with the icon package's license file in the kit folder.
-4. **Its slider**: rail, range and thumb from the system's spec; keep the range in the decrease button and set `Track.Thumb` last.
-
-Borders and dividers: use the system's borderless variants where they exist (ghost / subtle / text / invisible) and leave layout separators out.
+Edit the values in `tokens.css`, keep the names, rebuild. If the new theme lacks a token, add a `?fallback` in the template rather than renaming keys.
 
 ## Restyle one control
 
-- **For every theme on a kit:** edit or add `src/ThemeKits/<Kit>/Desktop/<Default path>.xaml`. Start from Playnite's Default file at the tag in `scripts/data/playnite-theme-api.json`, keep part names, include only the styles you change.
-- **For one theme only:** set `"themeDir": "src/<Theme>/theme"` in its profile and put the file there; it replaces the kit's copy.
-- Colors come from tokens (`{DynamicResource Shadcn...Brush}`). Need a new one? Add a `Color` + `Brush` pair with a placeholder in `Constants.template.xaml`.
-- Spacing comes from the metric keys (`ShadcnButtonPadding`, `ShadcnInputPadding`, `ShadcnMenuItemPadding`, ...); a kit changes them in its `Common.xaml` rather than replacing the control.
+- Edit or add `src/<Theme>/src/<Default path>.xaml`. Start from Playnite's Default file, keep part names, include only the styles you change.
+- Colors from tokens (`{DynamicResource <Prefix>...Brush}`); a new one gets a `Color` + `Brush` pair with a placeholder in the template.
+- Spacing from the theme's `Common.xaml` keys; add a key rather than a literal when the value is a spec number.
 
 ## Reading build errors
 
 | Message | Fix |
 |---------|-----|
-| `is not a Playnite Desktop theme file` | Path/name differs from the Default theme (case-insensitive match). Rename or merge into the right file. |
+| `is not a Playnite Desktop theme file` | Path/name differs from the Default theme (case-insensitive). Rename or merge into the right file. |
+| `defines 'X'. Keys a theme adds must start with '<Prefix>'` | Rename the key to the design system's name with the prefix. |
 | `uses {StaticResource X}, but 'X' only exists in another theme file` | Switch to `DynamicResource`. |
-| `references unknown resource 'X'` | Typo, or a key missing from this Playnite version / the Constants template. |
-| `still contains an unrendered {{placeholder}}` / `Template rendering failed` | Palette lacks the variable; add it or a fallback in the template. |
+| `references unknown resource 'X'` | Typo, or a key missing from this Playnite version / the template. |
+| `Template rendering failed` (file:line key) | Token missing from `tokens.css`, a `{{TODO}}` left, or a translucent surface; add the token or a fallback. |
+| `still contains an unrendered {{placeholder}}` | Braces in a comment or a malformed placeholder. |
 | `ThemeApiVersion ... will not load` | Declared API is newer than the snapshot's Playnite, or major differs. |
-| `is not well-formed XML: An XML comment cannot contain '--'` | A comment mentions a CSS variable (`--name`); reword it. |
+| `An XML comment cannot contain '--'` | A comment mentions a CSS variable (`--name`); reword it. |
 
 ## When it builds but looks wrong in Playnite
 
 - Theme silently reverts to Default → XAML threw at load. Check `%AppData%\Playnite\playnite.log` (portable: next to `Playnite.exe`) for the file and line.
-- A control ignores the palette → its Default template hard-codes a color or uses a Playnite key the template maps differently; override that style in the kit.
+- A control ignores the tokens → its Default template hard-codes a color or reads a Playnite key; override that style.
 - Changes not visible → Playnite reads themes at startup only; restart after `-Deploy`.
 
 ## End of every theme build reply (required)

@@ -1,8 +1,8 @@
 ---
-description: Playnite theme add-ons in this monorepo — kits, palettes, overlay XAML, theme.yaml, .pthm packaging.
+description: Playnite theme add-ons in this monorepo — standalone themes, design-system naming, overlay XAML, tokens and the Constants template, .pthm packaging.
 globs:
-  - "src/ThemeKits/**"
-  - "src/*/palette.css"
+  - "src/*/src/tokens.css"
+  - "src/*/src/**/*.xaml"
   - "**/theme.yaml"
   - "scripts/*theme*.ps1"
   - "scripts/data/playnite-theme-api.json"
@@ -11,33 +11,68 @@ alwaysApply: false
 
 # Playnite themes (monorepo policy)
 
-## Shape
+## Shape: every theme is standalone
 
-- A theme is an add-on with **`"kind": "theme"`** in **`src/extensions.json`**. It has no `.csproj`: **`extensionManifest`** points at **`info/theme.yaml`**, **`outputPath`** is **`artifacts/builds/<key>`**, packages are **`.pthm`**, database `Type` is **`ThemeDesktop`** / **`ThemeFullscreen`**, and **`requiredApiVersion`** is the **theme API** version (not the SDK version).
-- Themes share a **kit** (`"themeKit": "src/ThemeKits/<Kit>"`): overlay XAML under `<Kit>/<Mode>/` plus `Constants.template.xaml`. A theme supplies **`palette.css`** (CSS variables in the kit's vocabulary) and, only when needed, **`themeDir`** overrides that replace kit files.
-- A new design system that shares most control shapes gets a kit that **extends** an existing one (`kit.json` → `"extends"`) and overrides only the differing files. An override replaces the base file whole, so it must keep every key the base file defined.
-- Build output is composed, never hand-edited: base kit overlay → derived kit overlay → `Constants.xaml` rendered from template + palette → theme overrides → `theme.yaml`. Edit sources, not **`artifacts/builds/`**.
-- Each kit owns three layers: **colors** (palette → `Constants.xaml`), **metrics** (paddings, component radii, icon size in its `Common.xaml`, read by kit controls with `DynamicResource`), and **shell** (`Views/MainWindow.xaml`, `Views/Sidebar.xaml`, `Views/TopPanel.xaml`, `DerivedStyles/MainWindowStyle.xaml`, `CustomControls/SidebarItem.xaml`, `CustomControls/TopPanelItem.xaml`, optionally `Views/Library.xaml`). Different design systems should differ in shell and icon set (`Media.xaml`), not only in color.
+- A theme is an add-on with **`"kind": "theme"`** in **`src/extensions.json`**, laid out like the plugins:
+  - `src/<Theme>/AGENTS.md` — the theme's notes (sources, tokens, shell, components, deviations, what is unverified).
+  - `src/<Theme>/info/` — `theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`, `LICENSE-*.txt` for everything bundled (Playnite's Default theme, icon sets).
+  - `src/<Theme>/src/` — the XAML the theme ships, at Playnite's Default-theme paths, plus `tokens.css` and `Constants.template.xaml`.
+- Profile fields: **`themeSource`** (`src/<Theme>/src`), **`resourcePrefix`** (the design system's name, PascalCase), `extensionManifest` (`info/theme.yaml`), `outputPath` (`artifacts/builds/<key>`), `requiredApiVersion` = the **theme API** version. Packages are **`.pthm`**; database `Type` is **`ThemeDesktop`** / **`ThemeFullscreen`**.
+- **No shared kits, no inheritance between themes.** A theme never reads another theme's files; nothing is copied in at build time except its own `src/` and `info/LICENSE*.txt`. Other themes are only a reference for *Playnite mechanics* (which parts a view needs, how a trigger has to be wired), never a source of styles to copy.
+- Build output is generated: `src/` copied, `Constants.xaml` rendered from `Constants.template.xaml` + `tokens.css`, licenses and `theme.yaml` added. Edit sources, never **`artifacts/builds/`**.
+
+## Design-system fidelity
+
+- **Name things the way the design system does.** Tokens keep their source names in `tokens.css` (verbatim CSS variables, or the package's token names); XAML keys are those names with the prefix: `bgColor-default` → `PrimerBgColorDefaultBrush`, `colorNeutralBackground1` → `FluentNeutralBackground1Brush`, `theme.palette.primary.main` → `MuiPrimaryMainBrush`. Component keys use the system's component names (`PrimerActionListItemPadding`, `FluentMenuPopoverPadding`, `ChakraBgPanel`). The build rejects any added key that does not start with `resourcePrefix`.
+- **Map by role, not by color.** One source color can be several tokens (Fluent's compound brand is a fill, a stroke and a foreground); use the token the component spec names for that property.
+- **Take specs from the source**: the design system's published tokens and component styles (npm packages, official docs), pinned to a version recorded in the theme's `AGENTS.md`. Write the spec in each file's header comment (component name, tokens, sizes).
+- **A design system is more than colors**: its spacing (`Common.xaml`), its shell (how it lays out an app), its icon set (`Media.xaml`) and its component shapes. Where WPF or Playnite can't follow the spec, list it under "Deviations" in `AGENTS.md`.
+
+## How Playnite loads a theme (drives the hard rules)
+
+Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`).
+
+1. Only XAML whose relative path matches a file in Playnite's **Default** theme is loaded (`scripts/data/playnite-theme-api.json`); anything else is ignored.
+2. Each theme file is first parsed **on its own**, with only Default resources present.
+3. Files then merge in pairs, `Default/A.xaml` then `Theme/A.xaml`, in API order: `Constants.xaml`, `Common.xaml`, `Media.xaml`, `DefaultControls/*`, `CustomControls/*`, `DerivedStyles/*`, `Views/*`. The later definition of a key wins.
+4. `Toolbox pack` skips any `Fonts/` folder and any file identical to the Default copy.
 
 ## Hard rules (Playnite fails silently otherwise)
 
-- XAML paths must match Playnite's Default theme (**`scripts/data/playnite-theme-api.json`**); other files are ignored.
-- Theme files are **overlays**: include only restyled keys. Keep **`PART_*`** and other names Playnite code looks up.
-- Reference kit/theme tokens with **`DynamicResource`**. **`StaticResource`** only for Playnite keys or keys defined earlier in the same file — Playnite parses each theme file alone before merging.
-- A Playnite key such as `{x:Type Slider}` in a `StaticResource` resolves to the **latest loaded** definition (files merge one by one: Default then theme, in API order), so `BasedOn="{StaticResource {x:Type ContextMenu}}"` in a later file inherits the kit's style. Use that instead of copying templates (SliderEx, GameMenu, TopPanelMenu do).
-- `BaseStyle` already sets `Opacity` 0.5 on disabled controls; styles based on it must not add their own `IsEnabled` opacity trigger (it multiplies to 0.25).
-- No hard-coded colors in kit XAML; add a token to the Constants template. No layout dividers: panel separators stay transparent unless a palette asks for them.
-- Icon resources Playnite copies (`Media.xaml` menu and sidebar icons) must stay `TextBlock` glyphs; vector icons go through `DataTemplate`s and kit templates.
-- No `--` inside XML comments (it is invalid XML; the validator rejects it).
-- No **`Fonts/`** folder (Toolbox pack drops it).
-- Keep **`ThemeApiVersion`** as low as the kit allows (2.9.0 = Playnite 10.45+); raising it hides the theme from older Playnite. Major must match Playnite's.
+- Theme files are **overlays**: only restyled keys. Keep every `PART_*` and every part Playnite code dereferences (`SearchBox` needs all of `PART_SeachIcon`, `PART_TextInpuText`, `PART_ClearTextIcon`). Start from the Default file at the snapshot's Playnite tag; change visuals and layout, not behavior.
+- Theme keys via **`DynamicResource`**. **`StaticResource`** only for Playnite keys or keys defined earlier in the same file.
+- `StaticResource {x:Type ContextMenu}` in a later file resolves to the theme's own style (files merge one by one). Use `BasedOn` that way instead of copying templates (SliderEx, GameMenu, GameGroupMenu, TrayContextMenu, TopPanelMenu).
+- When a Default style references a sibling in its own file with `StaticResource`, redefine both (`Separator` + `MenuItem.SeparatorStyleKey`).
+- `BaseStyle` already sets Opacity 0.5 when disabled; styles based on it must not add their own `IsEnabled` opacity trigger (0.25).
+- Focus: buttons, toggles, checkboxes, tabs use a keyed `FocusVisualStyle` (keyboard only). Text inputs draw focus on `IsKeyboardFocusWithin`. No `IsKeyboardFocused` border triggers on buttons (mouse clicks give keyboard focus too).
+- No hard-coded colors in theme XAML: add a token and a template line.
+- Icon resources Playnite copies (`Media.xaml` menu and sidebar icons) stay `TextBlock` glyphs; vector icons go through `DataTemplate`s and the theme's templates.
+- Slider: set `Track.Thumb` last (Track stacks parts in the order set). `ScrollContentPresenter` clips, so anything drawn outside an item needs the gutter as the panel's margin.
+- No `DropShadowEffect` on popups or tiles; popups keep a 1px edge (WPF popups are layered windows). Wrap masked art (`OpacityMask`) in an element with `BitmapCache`.
+- No `--` inside XML comments, no `{{` / `}}` in template comments, no **`Fonts/`** folder.
+- Keep **`ThemeApiVersion`** as low as the theme allows (2.9.0 = Playnite 10.45+). Major must match Playnite's.
+
+## Template placeholders (`Constants.template.xaml`)
+
+| Placeholder | Result |
+|-------------|--------|
+| `{{name}}` | token color, alpha kept |
+| `{{name@surface}}` / `{{name@surface@base}}` | flattened onto the surface (use for popup edges); a translucent last surface is an error |
+| `{{name/NN}}` | token at NN% opacity |
+| `{{a?b}}` | first token that exists |
+| `{{name\|#hex}}` | fallback literal |
+| `{{px:name[\|fallback]}}` | length in px (rem, px, var(), calc()) |
+| `{{text:name\|fallback}}` | raw text (font names) |
+| `{{TODO}}` | fails the build with "not mapped yet" |
+
+Tokens are read from `:root` / `@theme`, and selectors containing `dark` override them. Errors report file, line and key.
 
 ## Commands
 
-- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-Kit <Kit>] [-PaletteCss theme.css | -CopyPaletteFrom <key>]`**
-- Build + checks: **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy] [-DeployPath <Themes folder>]`** (also reached via `build-plugin.ps1`)
-- Validate / package: same as plugins (`validate-extension.ps1`, `build-artifacts.ps1 -VerifyInstaller`); they branch on `kind`.
-- New Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <checkout> -PlayniteVersion <tag>`**, then review Default-theme diffs for every kit file.
+- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme -Prefix MyDs [-TokensCss <file>]`**
+- Build + checks: **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy] [-DeployPath <Themes folder>]`** (also via `build-plugin.ps1`)
+- Validate / package: `validate-extension.ps1`, `build-artifacts.ps1 -VerifyInstaller` (branch on `kind`).
+- New Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <checkout> -PlayniteVersion <tag>`**, then diff the Default theme for every file each theme ships.
 
 ## Versioning and releases
 
@@ -45,5 +80,5 @@ Same policy as plugins (**`playnite-extension-versioning.mdc`**, **`playnite-git
 
 ## See also
 
-- **`src/ThemeKits/<Kit>/AGENTS.md`** — token contract, control metrics, shell, icon set, placeholder syntax, restyled controls.
-- Skill **`playnite-theme-dev`** — step-by-step for new themes, palette swaps, and control overrides.
+- **`src/<Theme>/AGENTS.md`** — per-theme sources, token table, shell, components, deviations.
+- Skill **`playnite-theme-dev`** — step-by-step for a new theme, token swaps and component work.
