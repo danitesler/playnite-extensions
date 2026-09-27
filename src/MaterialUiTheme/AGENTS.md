@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Material UI** (MUI, Material Design 2), with MUI's default dark theme (`createTheme({ palette: { mode: 'dark' } })`). Standalone: every file it ships lives in this folder. Resource keys it adds start with `Mui` (profile `resourcePrefix`) and follow `theme.palette` paths and MUI component names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Material UI** (MUI, Material Design 2), with MUI's default dark theme (`createTheme({ palette: { mode: 'dark' } })`). Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; MUI's `theme.palette` names stay in `tokens.css` and the template's placeholders.
 
 Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
 
@@ -19,8 +19,8 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | MUI's CSS variables under the names MUI emits with `cssVariables` (`--mui-palette-background-paper`, `--mui-palette-FilledInput-bg`, `--mui-overlays-8`, `--mui-shape-borderRadius`), plus the few dark-mode values MUI's components hard-code. |
-| `src/Constants.template.xaml` | Tokens → `Mui*` keys and Playnite's palette keys; rendered into `Constants.xaml`. |
-| `src/Common.xaml` | `PopupBorder`, `MuiFocusVisible` (focus state layer), component spacing. |
+| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
+| `src/Common.xaml` | `PopupBorder`, `FocusVisual` (focus state layer), component spacing. |
 | `src/Media.xaml` | Material Icons (Playnite's roles plus arrow_drop_down, chevron_right, check). |
 | `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml`, `SearchBox.xaml` | Shell. |
 | `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
@@ -28,20 +28,24 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 
 ## Tokens
 
-Keys follow `theme.palette` paths: `palette.background.paper` → `MuiBackgroundPaperColor` / `...Brush`, `palette.FilledInput.bg` → `MuiFilledInputBg`, `palette.primary.contrastText` → `MuiPrimaryContrastText`. Paper at elevation N (the dark-mode white overlay on `background.paper`) is `MuiPaperElevationN`. Selection layers are `MuiPrimaryHover` / `MuiPrimarySelected` / `MuiPrimarySelectedHover` = `alpha(primary.main, hoverOpacity / selectedOpacity / both)`.
+Keys are the shared vocabulary; the template names the MUI variable behind each one (paper at elevation N is `mui-overlays-N` over the paper; `alpha(primary.main, selectedOpacity)` is `mui-palette-primary-main/16`). Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
 
-| Token | Dark value | Used for |
-|-------|------------|----------|
-| `background.default` / `.paper` | `#121212` | window, drawer |
-| Paper elevation 1 / 4 / 8 | white 5.1% / 9.2% / 11.9% on `#121212` | Card / AppBar / Menu, Popover |
-| `text.primary` / `.secondary` | white / white 70% | text, icons |
-| `primary.main` / `.dark` / `.contrastText` | blue[200] `#90CAF9` / blue[400] `#42A5F5` / black 87% on primary | primary actions, selection, focus lines |
-| `action.hover` / `.selected` / `.focus` | white 8% / 16% / 12% | state layers |
-| `divider` | white 12% | separators, toggle and popup edges |
-| `FilledInput.bg` / `.hoverBg`, underline | white 9% / 13%, white 70% | text fields, selects |
-| `Tooltip.bg` | `grey[700]` at 92% | tooltips |
-| `LinearProgress.primaryBg` | `darken(primary.main, 0.5)` | progress rail |
-| `error.main` / `warning.main` / `success.main` | red[500] / orange[400] / green[400] | close button, warnings, ratings |
+| Token | Dark value | Key | Used for |
+|-------|------------|-----|----------|
+| `background.default` | `#121212` | `WindowBackgourndBrush` | window, drawer |
+| Paper elevation 1 / 4 / 8 | white 5.1% / 9.2% / 11.9% on `#121212` | `ExpanderBackgroundBrush`, `ButtonBackgroundBrush` / `TopPanelBackgroundBrush` / `PopupBackgroundBrush` | Card / AppBar / Menu, Popover |
+| `text.primary` / `.secondary` | white / white 70% | `TextBrush`, `InputHoverBorderBrush`, `ScrollBarThumbBrush` / `TextBrushDarker`, `CheckBoxBorderBrush`, `GridViewItemHoverBorderBrush` | text, icons, hover underline, scrollbar / secondary text, checkbox outline, cover hover |
+| `primary.main` / `.dark` / `.contrastText` | blue[200] `#90CAF9` / blue[400] `#42A5F5` / black 87% on primary | `GlyphBrush` / `PrimaryButtonHoverBackgroundBrush` / `TextBrushDark` | text buttons, contained buttons, selection, focus lines |
+| `alpha(primary.main, 8% / 16% / 24% / 50%)` | | `ButtonHoverBackgroundBrush`, `CheckBoxCheckedHoverBackgroundBrush` / `SelectedBrush`, `ButtonPressedBackgroundBrush`, `FocusHaloBrush` / `SelectedHoverBrush` / `ButtonBorderBrush` | button hover / selected, pressed, slider halo / selected hover / outlined edge |
+| `action.hover` / `.focus` | white 8% / 12% | `HoverBrush` / `FocusBrush` | hover and focus state layers |
+| `divider` | white 12% | `WindowPanelSeparatorBrush` | separators, toggle and popup edges |
+| `FilledInput.bg` / `.hoverBg`, underline | white 9% / 13%, white 70% | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush` / `InputHoverBackgroundBrush` / `InputBorderBrush` | text fields, selects |
+| `Tooltip.bg`, `common.white` | `grey[700]` at 92%, white | `TooltipBackgroundBrush`, `TooltipForegroundBrush` | tooltips |
+| `LinearProgress.primaryBg` | `darken(primary.main, 0.5)` | `ProgressBarTrackBrush` | progress rail |
+| `error.main` / `.contrastText` | red[500] / white | `DangerBrush`, `WarningBrush` / `DangerForegroundBrush` | close button, notification badge, errors |
+| `warning.main` / `success.main` | orange[400] / green[400] | `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | data-changed, ratings |
+
+`TextBrushDarker` is `text.secondary` with its alpha (white 70%), as the controls draw it, so Playnite's own views get the same secondary text on every surface.
 
 Action and text colors keep their alpha, as in MUI; popup surfaces and edges are flattened onto the paper, since WPF popups are layered windows. Font: MUI's Roboto is not bundled (Toolbox drops `Fonts/`), so Segoe UI.
 
@@ -51,15 +55,15 @@ Sibling theme: swap `--mui-palette-primary-main` / `-dark` / `-contrastText` and
 
 | Key | Value | MUI |
 |-----|-------|-----|
-| `MuiButtonPadding` | 16,9,16,8 | Button medium, 6px 16px |
-| `MuiFilledInputPadding`, `MuiFilledInputBorderThickness`, `MuiFilledInputRadius` | 12,10 / 0,0,0,1 / 4,4,0,0 | FilledInput small, hiddenLabel: underline only, rounded top |
-| `MuiMenuListPadding` / `MuiMenuItemPadding` | 0,8 / 16,9,16,8 | MenuList 8px 0, MenuItem 6px 16px |
-| `MuiListItemButtonPadding` | 16,8 | ListItemButton 8px 16px |
-| `MuiCardContentPadding`, `MuiCardHeaderMargin` | 16, 0,0,0,16 | CardHeader / CardContent |
-| `MuiTooltipPadding` | 8,4 | Tooltip 4px 8px |
-| `MuiSvgIconSize` | 24 | SvgIcon medium |
+| `ButtonPadding` | 16,9,16,8 | Button medium, 6px 16px |
+| `InputPadding`, `InputBorderThickness`, `InputCornerRadius` | 12,10 / 0,0,0,1 / 4,4,0,0 | FilledInput small, hiddenLabel: underline only, rounded top |
+| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding`, `ComboBoxItemPadding` | 0,8 / 16,9,16,8 | MenuList 8px 0, MenuItem 6px 16px |
+| `ListBoxItemPadding` | 16,8 | ListItemButton 8px 16px |
+| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 16, 0,0,0,16 | CardHeader / CardContent |
+| `TooltipPadding` | 8,4 | Tooltip 4px 8px |
+| `IconSize` | 24 | SvgIcon medium |
 
-`MuiFocusVisible` fills a keyboard-focused control with `action.focus`: Material shows focus as a state layer, not a ring.
+`FocusVisual` fills a keyboard-focused control with `action.focus`: Material shows focus as a state layer, not a ring.
 
 ## Shell
 
@@ -68,10 +72,10 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 | File | Material behavior |
 |------|-------------------|
 | `Views/MainWindow.xaml` | Flat: drawer and view on `background.default`. |
-| `DerivedStyles/MainWindowStyle.xaml` | Window buttons as IconButtons (40px circles, 20px icons, `MuiWindowButton`) on the app bar, 12px from the top and against the right edge; close fills with `error.main`. |
-| `Views/Sidebar.xaml` | Permanent mini Drawer, 64px wide, no divider. Its top 64px is painted in the app bar color and holds the menu IconButton (`MuiMenuIconButton`, `PART_ElemMainMenu`), so the bar reads as one full-width app bar. |
-| `CustomControls/SidebarItem.xaml` | ListItemButton rows: 64x48, square, 24px icons in `text.secondary`; `action.hover` on hover; selected = `MuiPrimarySelected` with a primary icon. |
-| `Views/TopPanel.xaml` | 64px Toolbar with 16px gutters. App bar search on the left (`MuiAppBarSearch`: white 15%, 25% on hover, no border, widening 240 → 360px while focused). IconButtons on the right; Badges instead of text (primary dot while a filter applies, error count for notifications). |
+| `DerivedStyles/MainWindowStyle.xaml` | Window buttons as IconButtons (40px circles, 20px icons, `MainWindowButton`) on the app bar, 12px from the top and against the right edge; close fills with `error.main`. |
+| `Views/Sidebar.xaml` | Permanent mini Drawer, 64px wide, no divider. Its top 64px is painted in the app bar color and holds the menu IconButton (`MainMenuButton`, `PART_ElemMainMenu`), so the bar reads as one full-width app bar. |
+| `CustomControls/SidebarItem.xaml` | ListItemButton rows: 64x48, square, 24px icons in `text.secondary`; `action.hover` on hover; selected = `SelectedBrush` (primary @ 16%) with a primary icon. |
+| `Views/TopPanel.xaml` | 64px Toolbar with 16px gutters. App bar search on the left (`TopPanelSearchBox`: white 15%, 25% on hover, no border, widening 240 → 360px while focused). IconButtons on the right; Badges instead of text (primary dot while a filter applies, error count for notifications). |
 | `CustomControls/TopPanelItem.xaml` | IconButton medium, `color="inherit"`: 40px circle, 24px icon; a toggled item turns primary. |
 | `CustomControls/SearchBox.xaml` | FilledInput with a start adornment, for search boxes outside the app bar. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 8px spacing unit without separators; background art under the app bar, feathered on every edge. |
@@ -84,10 +88,10 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 | `DerivedStyles/PlayButton.xaml` | Button `contained` |
 | `DefaultControls/ToggleButton.xaml` | ToggleButton: divider edge, `text.secondary`; selected = primary @ 16% with primary text |
 | `DefaultControls/RepeatButton.xaml` | Button `outlined` (primary edge at 50%) |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | FilledInput: 2px primary underline growing from the center on focus (+ `MuiBareTextBox`) |
+| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | FilledInput: 2px primary underline growing from the center on focus (+ `BareTextBox`) |
 | `DefaultControls/ComboBox.xaml` | Select `filled`: ArrowDropDown that turns over while open; Menu paper; selected MenuItem in primary @ 16% (no check) |
 | `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | Checkbox, Radio: 18px outline icons, primary when checked, round hover state layer |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 4px rail at 38% primary, primary track to the thumb center (`MuiSliderTrack`), 20px thumb, 8px / 14px primary halo |
+| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 4px rail at 38% primary, primary track to the thumb center (`SliderRangeButton`), 20px thumb, 8px / 14px primary halo |
 | `DefaultControls/ProgressBar.xaml` | LinearProgress: square ends, `primaryBg` rail |
 | `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | Material dark scrollbar: 8px thumb, `text.primary` at 26% / 50% / 70% |
 | `DefaultControls/ToolTip.xaml` | Tooltip: `Tooltip.bg`, white text, 4px 8px |

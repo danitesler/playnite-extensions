@@ -36,11 +36,17 @@ catch {
     throw "Theme build failed."
 }
 
-$errors = @(Test-ThemeBuild -Directory $buildDrop -Mode $mode -ResourcePrefix $profile.resourcePrefix)
+$errors = @(Test-ThemeBuild -Directory $buildDrop -Mode $mode)
 if ($errors.Count -gt 0) {
     Write-Host "Theme checks failed for '$Extension':"
     foreach ($e in $errors) { Write-Host "  - $e" }
     throw "Theme checks failed."
+}
+
+# Allowed while a theme is in progress; validate-extension.ps1 fails on them before a release.
+$missing = @(Get-ThemeMissingRequiredKeys -Directory $buildDrop)
+if ($missing.Count -gt 0) {
+    Write-Warning "Required shared keys not defined yet (scripts/data/theme-keys.json): $($missing -join ', ')"
 }
 
 $fileCount = @(Get-ChildItem -Path $buildDrop -Recurse -File).Count

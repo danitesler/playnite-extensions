@@ -6,10 +6,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Key,
 
-    # The design system's name. Every resource key the theme adds starts with it (PrimerButtonPrimaryBgBrush,
-    # FluentNeutralBackground1Brush, ...); build-theme.ps1 rejects keys that do not.
-    [Parameter(Mandatory = $true)]
-    [string]$Prefix,
+    # The design system's name, for comments and AGENTS.md (defaults to Name without "Theme"). Resource keys do not
+    # carry it: every theme uses Playnite's keys and the shared keys in scripts/data/theme-keys.json.
+    [string]$DesignSystem = "",
 
     # Optional: a stylesheet with the design system's CSS custom properties (its published dark theme CSS, a
     # generated globals.css, ...). Copied verbatim into src/tokens.css; otherwise tokens.css starts empty.
@@ -29,8 +28,9 @@ param(
 )
 
 # Scaffolds a standalone theme: the folder layout every theme here shares (AGENTS.md, info/, src/), its manifests,
-# and a Constants template listing Playnite's palette keys as {{TODO}} placeholders. It copies nothing from other
-# themes: the tokens, keys, shell and controls come from the new design system's own spec.
+# and a Constants template listing Playnite's palette keys and the required shared keys as {{TODO}} placeholders.
+# It copies nothing from other themes: tokens, shell and controls come from the new design system's own spec; only the
+# key names are shared (scripts/data/theme-keys.json).
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
@@ -45,8 +45,8 @@ $dirName = -join (($Name -split "[^A-Za-z0-9]+" | Where-Object { $_ }) | ForEach
 if (-not $dirName -or $dirName[0] -match "[0-9]") {
     throw "Name '$Name' must start with a letter."
 }
-if ($Prefix -notmatch "^[A-Z][A-Za-z0-9]*$") {
-    throw "Prefix '$Prefix' must be PascalCase letters and digits (e.g. Carbon, Radix, Ant)."
+if (-not $DesignSystem) {
+    $DesignSystem = ($Name -replace "\s*Theme$", "").Trim()
 }
 $Key = $Key.ToLowerInvariant()
 $themeRoot = Join-Path $repoRoot "src/$dirName"
@@ -58,9 +58,6 @@ $profilesPath = Join-RepoPath "src/extensions.json"
 $profiles = Get-Content -Raw -Path $profilesPath | ConvertFrom-Json
 if ($profiles.extensions | Where-Object { $_.key -eq $Key }) {
     throw "An extension with key '$Key' already exists."
-}
-if ($profiles.extensions | Where-Object { $_.resourcePrefix -eq $Prefix }) {
-    throw "Another theme already uses the resource prefix '$Prefix'."
 }
 if ($TokensCss) {
     Read-ThemeTokens -Path $TokensCss | Out-Null
@@ -140,7 +137,7 @@ if ($TokensCss) {
 else {
     @"
 /*
- * $Name tokens: $Prefix's own CSS custom properties, under the names $Prefix publishes them with.
+ * $Name tokens: $DesignSystem's own CSS custom properties, under the names $DesignSystem publishes them with.
  * Source: <package, file and version the values come from>
  *
  * :root and @theme blocks hold scheme-independent tokens (radii, spacing, font stacks); .dark holds the dark
@@ -155,23 +152,38 @@ else {
 "@ | Set-Content -Path $tokensTarget -Encoding utf8
 }
 
+# Required shared brushes, straight from the vocabulary so the scaffold never drifts from the build check.
+$catalog = Get-ThemeKeyCatalog
+$sharedLines = foreach ($group in $catalog.Groups) {
+    $entries = @($catalog.Entries | Where-Object { $_.group -eq $group -and $_.required -and $_.type -eq "Brush" })
+    if ($entries.Count -eq 0) { continue }
+    "    <!-- $group -->"
+    foreach ($entry in $entries) {
+        '    <SolidColorBrush x:Key="{0}" Color="{{{{TODO}}}}" />  <!-- {1} -->' -f $entry.key, $entry.description
+    }
+}
+$sharedBlock = $sharedLines -join "`n"
+
 @"
 <!--
     $Name`: Constants.xaml template. scripts/build-theme.ps1 renders it with tokens.css into Constants.xaml.
 
-    1. $Prefix tokens: one Color + one Brush per token the theme's XAML uses, keyed $Prefix<TokenName>Color and
-       $Prefix<TokenName>Brush after the token's own name. Add them as the controls need them.
-    2. Playnite's palette keys below: map each to the $Prefix token for that role. Every Playnite view and control
-       the theme does not restyle reads only these. Each TODO placeholder fails the build until it names a token.
+    Keys are the shared theme vocabulary (scripts/data/theme-keys.json), the same in every theme of this repo.
+    $DesignSystem's token names stay in tokens.css; here each placeholder names the token that plays the key's role.
+    1. Playnite's palette keys: every view and control the theme does not restyle reads them, and ThemeModifier edits
+       them. Map each to $DesignSystem's token for that role.
+    2. Shared keys: the required ones are listed; add optional ones from theme-keys.json as the controls need them.
+       Use a Playnite key whenever the design uses that key's token for the role; a shared key otherwise.
+    Each TODO placeholder fails the build until it names a token. Theme XAML reads brushes only, never Color keys.
 
-    Placeholder syntax: .cursor/skills/playnite-theme-dev/SKILL.md. Keep double braces out of comments here: the
-    build renders them too.
+    Placeholder syntax: .cursor/rules/playnite-themes.mdc. Keep double braces out of comments here: the build renders
+    them too.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!-- Typography (Playnite keys): $Prefix's type scale and font stack. -->
+    <!-- Typography (Playnite keys): $DesignSystem's type scale and font stack. -->
     <sys:Double x:Key="FontSizeSmall">12</sys:Double>
     <sys:Double x:Key="FontSize">14</sys:Double>
     <sys:Double x:Key="FontSizeLarge">15</sys:Double>
@@ -180,16 +192,16 @@ else {
     <FontFamily x:Key="FontFamily">Segoe UI</FontFamily>
     <FontFamily x:Key="MonospaceFontFamily">Consolas</FontFamily>
 
-    <!-- Shape (Playnite keys) -->
+    <!-- Shape (Playnite keys). ControlCornerRadius is the medium step of the radius scale. -->
     <Thickness x:Key="PopupBorderThickness">1</Thickness>
     <Thickness x:Key="ControlBorderThickness">1</Thickness>
     <sys:Double x:Key="EllipseBorderThickness">1</sys:Double>
-    <CornerRadius x:Key="ControlCornerRadius">{{TODO}}</CornerRadius> <!-- control radius: a px placeholder on the radius token -->
+    <CornerRadius x:Key="ControlCornerRadius">{{TODO}}</CornerRadius> <!-- a px placeholder on the medium radius token -->
     <Thickness x:Key="SidebarItemPadding">8</Thickness>
 
-    <!-- $Prefix tokens -->
+    <!-- Radius scale (shared, as the design needs them): CornerRadiusSmall, CornerRadiusLarge, CornerRadiusXLarge, CornerRadiusFull -->
 
-    <!-- Playnite palette keys -->
+    <!-- Playnite palette -->
     <Color x:Key="BlackColor">#FF000000</Color>
     <Color x:Key="WhiteColor">#FFFFFFFF</Color>
     <Color x:Key="TextColor">{{TODO}}</Color>                  <!-- default text -->
@@ -205,7 +217,7 @@ else {
     <Color x:Key="BackgroundToneColor">{{TODO}}</Color>        <!-- tinted areas in Playnite's views -->
     <Color x:Key="GridItemBackgroundColor">#00000000</Color>   <!-- frame around covers; transparent = no frame -->
     <Color x:Key="PanelSeparatorColor">#00000000</Color>       <!-- lines between library panels -->
-    <Color x:Key="WindowPanelSeparatorColor">{{TODO}}</Color>  <!-- dividers inside dialogs -->
+    <Color x:Key="WindowPanelSeparatorColor">{{TODO}}</Color>  <!-- dividers and card edges -->
     <Color x:Key="DataChangeNotifColor">{{TODO}}</Color>       <!-- "data changed" warning text -->
 
     <SolidColorBrush x:Key="ControlBackgroundBrush" Color="Transparent" />
@@ -220,22 +232,25 @@ else {
     <SolidColorBrush x:Key="HighlightGlyphBrush" Color="{DynamicResource HighlightGlyphColor}" />
     <SolidColorBrush x:Key="PopupBorderBrush" Color="{DynamicResource PopupBorderColor}" />
     <SolidColorBrush x:Key="TooltipBackgroundBrush" Color="{{TODO}}" />  <!-- tooltip fill -->
-    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="{{TODO}}" />   <!-- Playnite's own button fill -->
+    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="{{TODO}}" />   <!-- button fill -->
     <SolidColorBrush x:Key="GridItemBackgroundBrush" Color="{DynamicResource GridItemBackgroundColor}" />
     <SolidColorBrush x:Key="PanelSeparatorBrush" Color="{DynamicResource PanelSeparatorColor}" />
     <SolidColorBrush x:Key="WindowPanelSeparatorBrush" Color="{DynamicResource WindowPanelSeparatorColor}" />
     <SolidColorBrush x:Key="PopupBackgroundBrush" Color="{DynamicResource PopupBackgroundColor}" />
-    <SolidColorBrush x:Key="CheckBoxCheckMarkBkBrush" Color="{{TODO}}" /> <!-- unchecked box fill -->
+    <SolidColorBrush x:Key="CheckBoxCheckMarkBkBrush" Color="{{TODO}}" /> <!-- unchecked check box and radio fill -->
     <SolidColorBrush x:Key="DataChangeNotifBrush" Color="{DynamicResource DataChangeNotifColor}" />
 
     <SolidColorBrush x:Key="PositiveRatingBrush" Color="{{TODO}}" />     <!-- success -->
     <SolidColorBrush x:Key="NegativeRatingBrush" Color="{{TODO}}" />     <!-- danger -->
     <SolidColorBrush x:Key="MixedRatingBrush" Color="{{TODO}}" />        <!-- warning -->
 
-    <SolidColorBrush x:Key="WarningBrush" Color="{{TODO}}" />            <!-- danger / warning text and icons -->
+    <SolidColorBrush x:Key="WarningBrush" Color="{{TODO}}" />            <!-- warnings, errors, the update icon -->
 
-    <SolidColorBrush x:Key="ExpanderBackgroundBrush" Color="{{TODO}}" /> <!-- expander header fill -->
+    <SolidColorBrush x:Key="ExpanderBackgroundBrush" Color="{{TODO}}" /> <!-- cards: group boxes and expanders -->
     <SolidColorBrush x:Key="WindowBackgourndBrush" Color="{{TODO}}" />   <!-- window background (Playnite's spelling) -->
+
+    <!-- Shared keys: roles Playnite's palette has no key for. ThemeModifier lists them under Edit constants. -->
+$sharedBlock
 </ResourceDictionary>
 "@ | Set-Content -Path (Join-Path $repoRoot "$sourceRel/Constants.template.xaml") -Encoding utf8
 
@@ -244,7 +259,7 @@ else {
 
 ## What this is
 
-Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of **$Prefix**. Standalone: every file it ships lives in this folder. Resource keys it adds start with ``$Prefix`` and follow $Prefix's own token and component names.
+Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of **$DesignSystem**. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus ``scripts/data/theme-keys.json``), the same as every theme here; $DesignSystem's token names stay in ``tokens.css``.
 
 ## Sources
 
@@ -258,17 +273,25 @@ Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of 
 
 | Path | Role |
 |------|------|
-| ``src/tokens.css`` | $Prefix's CSS custom properties under their own names; ``.dark`` wins over ``:root``. |
-| ``src/Constants.template.xaml`` | Tokens -> ``$Prefix*`` Color/Brush keys and Playnite's palette keys; rendered into ``Constants.xaml``. |
-| ``src/Common.xaml`` | ``PopupBorder``, the focus visual, and $Prefix's component metrics. |
-| ``src/Media.xaml`` | $Prefix's icon set. |
-| ``src/Views/*``, ``src/DerivedStyles/MainWindowStyle.xaml``, ``src/CustomControls/SidebarItem.xaml``, ``TopPanelItem.xaml`` | Shell: how $Prefix lays out an app. |
-| ``src/DefaultControls/*``, other ``src/CustomControls/*``, ``src/DerivedStyles/*`` | Controls, each from a $Prefix component. |
+| ``src/tokens.css`` | $DesignSystem's CSS custom properties under their own names; ``.dark`` wins over ``:root``. |
+| ``src/Constants.template.xaml`` | Tokens -> Playnite's palette keys and the shared keys; rendered into ``Constants.xaml``. |
+| ``src/Common.xaml`` | ``PopupBorder``, ``FocusVisual``, and component spacing keyed by the Playnite control. |
+| ``src/Media.xaml`` | $DesignSystem's icon set as ``Icon<Role>`` geometries and ``IconTemplate``. |
+| ``src/Views/*``, ``src/DerivedStyles/MainWindowStyle.xaml``, ``src/CustomControls/SidebarItem.xaml``, ``TopPanelItem.xaml`` | Shell: how $DesignSystem lays out an app. |
+| ``src/DefaultControls/*``, other ``src/CustomControls/*``, ``src/DerivedStyles/*`` | Controls, each from a $DesignSystem component. |
 | ``info/`` | ``theme.yaml``, installer and add-on database manifests, ``icon.png`` (512x512), ``LICENSE-*.txt`` notices shipped in the package. |
+
+## Keys
+
+Which $DesignSystem token plays each key (Playnite palette first, then shared keys).
+
+| Key | Token | Used for |
+|-----|-------|----------|
+| TODO | | |
 
 ## Components
 
-| Playnite file | $Prefix component | Notes |
+| Playnite file | $DesignSystem component | Notes |
 |---------------|-------------------|-------|
 | TODO | | |
 
@@ -290,7 +313,6 @@ $newProfile = [pscustomobject]@{
     addonId            = $addonId
     type               = "Theme$Mode"
     themeSource        = $sourceRel
-    resourcePrefix     = $Prefix
     extensionManifest  = $manifestRel
     installerManifest  = $installerRel
     databaseManifest   = $databaseRel
@@ -307,8 +329,9 @@ $profiles | ConvertTo-Json -Depth 8 | Set-Content -Path $profilesPath -Encoding 
 
 Write-Host "Created theme '$Name' at $themeRoot"
 Write-Host "Next steps (details: .cursor/skills/playnite-theme-dev/SKILL.md):"
-Write-Host "  1. Fill AGENTS.md > Sources: $Prefix's token package, component specs and icon set."
-Write-Host "  2. src/tokens.css: $Prefix's dark tokens under their own names."
-Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}}, add the $Prefix* tokens the controls need."
+Write-Host "  1. Fill AGENTS.md > Sources: $DesignSystem's token package, component specs and icon set."
+Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own names."
+Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
 Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
+Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
 Write-Host "  5. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key -Deploy and restart Playnite."

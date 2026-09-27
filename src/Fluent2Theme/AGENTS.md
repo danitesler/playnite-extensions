@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9), on the `webDarkTheme` tokens, with a Windows 11 app shell. Standalone: every file it ships lives in this folder. Resource keys it adds start with `Fluent` (profile `resourcePrefix`) and are Fluent's own token and component names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9), on the `webDarkTheme` tokens, with a Windows 11 app shell. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; Fluent's token names stay in `tokens.css` and the template's placeholders.
 
 Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
 
@@ -20,30 +20,33 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | Fluent's tokens, verbatim names (`--colorNeutralBackground1`, as FluentProvider writes them) and dark values. |
-| `src/Constants.template.xaml` | Tokens → `Fluent*` keys and Playnite's palette keys; rendered into `Constants.xaml`. |
-| `src/Common.xaml` | `PopupBorder` (MenuPopover surface), `FluentFocusOutline`, component spacing. |
-| `src/Media.xaml` | Fluent System Icons (Playnite's roles plus chevron right/down and the 16px checkmark), `FluentIconTemplate` (20px) and `FluentIcon16Template`. |
+| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
+| `src/Common.xaml` | `PopupBorder` (MenuPopover surface), `FocusVisual`, component spacing. |
+| `src/Media.xaml` | Fluent System Icons (Playnite's roles plus chevron right/down and the 16px checkmark), `IconTemplate` (20px) and `IconSmallTemplate`. |
 | `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
 | `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
 | `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_fluent2theme.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-fluentui-system-icons.txt`. |
 
 ## Tokens
 
-Keys are Fluent's token names with `Fluent` in place of the `color` prefix: `colorNeutralBackground1` → `FluentNeutralBackground1Color` / `...Brush`, `borderRadiusMedium` → `FluentBorderRadiusMedium`, `strokeWidthThin` → `FluentStrokeWidthThin`, icons → `FluentIcon<Role>`.
+Keys are the shared vocabulary; the template names the Fluent token behind each one (`borderRadiusMedium` is `ControlCornerRadius`, `strokeWidthThin` is `ControlBorderThickness`). Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
 
-| Token | Dark value | Used for |
-|-------|------------|----------|
-| `colorNeutralBackground2` | `#1f1f1f` | base layer: window, title-bar row, rail |
-| `colorNeutralBackground1` (`Hover` / `Pressed` / `Selected`) | `#292929` (`#3d3d3d` / `#1f1f1f` / `#383838`) | content layer, buttons, inputs, menus, cards, tooltips |
-| `colorSubtleBackgroundHover` / `Selected` | `#383838` / `#333333` | subtle buttons, nav items, list and table rows |
-| `colorNeutralForeground1` / `3` | `#ffffff` / `#adadad` | text, secondary text |
-| `colorCompoundBrandBackground` / `Stroke` / `Foreground1` | `#479ef5` | checked, focus underline, tab and nav indicators, slider, progress (Playnite `GlyphColor`) |
-| `colorBrandBackground` / `Hover` | `#115ea3` / `#0f6cbd` | primary buttons, Play, CounterBadge |
-| `colorNeutralStroke1` / `Stroke2` / `StrokeAccessible` | `#666666` / `#525252` / `#adadad` | control edges / dividers and popup edge / input bottoms, checkbox, slider rail |
-| `colorNeutralStroke1Hover`, `colorNeutralStrokeAccessibleHover` | `#757575`, `#bdbdbd` | hover edges |
-| `colorStrokeFocus2` | `#ffffff` | keyboard focus outline |
-| `colorPaletteRedBackground3` | `#d13438` | close caption button hover |
-| `colorStatus{Danger,Warning,Success}Foreground1` | `#dc626d` / `#faa06b` / `#54b054` | warnings, data-changed, ratings |
+| Token | Dark value | Key | Used for |
+|-------|------------|-----|----------|
+| `colorNeutralBackground2` | `#1f1f1f` | `WindowBackgourndBrush` | base layer: window, title-bar row, rail |
+| `colorNeutralBackground1` | `#292929` | `ContentBackgroundBrush`, `ButtonBackgroundBrush`, `InputBackgroundBrush`, `PopupBackgroundBrush`, `ExpanderBackgroundBrush`, `TooltipBackgroundBrush`, `SliderThumbBackgroundBrush` | content layer, buttons, inputs, menus, cards, tooltips |
+| `colorNeutralBackground1Hover` / `Pressed` / `Selected` | `#3d3d3d` / `#1f1f1f` / `#383838` | `ButtonHoverBackgroundBrush`, `MenuItemHoverBrush` / `ButtonPressedBackgroundBrush` / `ToggleButtonCheckedBackgroundBrush` | button and option hover / pressed / toggled |
+| `colorSubtleBackgroundHover` / `Selected` | `#383838` / `#333333` | `HoverBrush` / `SelectedBrush` | subtle buttons, nav items (hover and current), list and table rows |
+| `colorNeutralForeground1` / `3` | `#ffffff` / `#adadad` | `TextBrush`, `DangerForegroundBrush`, `ScrollBarThumbHoverBrush` / `TextBrushDarker`, `ScrollBarThumbBrush` | text, secondary text, scrollbar |
+| `colorCompoundBrandBackground` / `Stroke` / `Foreground1` / `BackgroundHover` | `#479ef5` / hover `#62abf5` | `GlyphBrush` / `SliderHoverForegroundBrush` | checked, focus underline, tab and nav indicators, slider, progress |
+| `colorBrandBackground` / `Hover`, `colorNeutralForegroundOnBrand` | `#115ea3` / `#0f6cbd`, white | `PrimaryButtonBackgroundBrush` / `PrimaryButtonHoverBackgroundBrush`, `PrimaryButtonForegroundBrush` | primary buttons, Play, CounterBadge |
+| `colorNeutralStroke1` / `Stroke2` | `#666666` / `#525252` | `NormalBorderBrush`, `ThumbBrush` / `WindowPanelSeparatorBrush`, `PopupBorderBrush` | control edges / dividers and popup edge |
+| `colorNeutralStrokeAccessible` / `Hover` | `#adadad` / `#bdbdbd` | `InputUnderlineBrush`, `CheckBoxBorderBrush`, `SliderTrackBrush`, `ThumbHoverBrush` / `InputHoverUnderlineBrush`, `CheckBoxHoverBorderBrush`, `GridViewItemHoverBorderBrush` | input bottoms, checkbox, slider rail / their hover |
+| `colorNeutralStroke1Hover` | `#757575` | `InputHoverBorderBrush`, `TabItemHoverIndicatorBrush` | hover edges |
+| `colorStrokeFocus2` | `#ffffff` | `FocusBrush` | keyboard focus outline |
+| `colorNeutralBackground6` | `#333333` | `ProgressBarTrackBrush` | progress track |
+| `colorPaletteRedBackground3` | `#d13438` | `DangerBrush` | close caption button hover |
+| `colorStatus{Danger,Warning,Success}Foreground1` | `#dc626d` / `#faa06b` / `#54b054` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush` / `PositiveRatingBrush` | warnings, data-changed, ratings |
 
 Fluent has two blues: `colorBrandBackground` (dark, white text) fills primary buttons; the lighter compound brand (dark text) marks state. Font: `fontFamilyBase` (Segoe UI); the Playnite size ramp follows Fluent's (12 / 14 / 16 / 20 / 28).
 
@@ -53,12 +56,12 @@ Siblings: `createDarkTheme(brandVariants)` gives any brand ramp, and `teamsDarkT
 
 | Key | Value | Fluent |
 |-----|-------|--------|
-| `FluentButtonPadding`, `FluentInputPadding` | 12,5 | Button / Input / Dropdown medium: 32px |
-| `FluentMenuPopoverPadding` / `FluentMenuItemPadding` | 4 / 8,6 | MenuPopover 4px; MenuItem 6px + 2px label inset, 32px |
-| `FluentOptionPadding` | 8,6 | Option 6px 8px |
-| `FluentCardPadding`, `FluentCardHeaderMargin` | 12, 0,0,0,12 | Card medium padding and gap |
-| `FluentTooltipPadding` | 11,4,11,6 | Tooltip 4px 11px 6px |
-| `FluentIconSize` | 20 | Button medium icons |
+| `ButtonPadding`, `InputPadding` | 12,5 | Button / Input / Dropdown medium: 32px |
+| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding` | 4 / 8,6 | MenuPopover and Dropdown listbox 4px; MenuItem 6px + 2px label inset, 32px |
+| `ComboBoxItemPadding`, `ListBoxItemPadding` | 8,6 | Option 6px 8px |
+| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 12, 0,0,0,12 | Card medium padding and gap |
+| `TooltipPadding` | 11,4,11,6 | Tooltip 4px 11px 6px |
+| `IconSize` | 20 | Button medium icons |
 
 ## Shell
 
@@ -67,10 +70,10 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 | File | Fluent behavior |
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat base layer. |
-| `DerivedStyles/MainWindowStyle.xaml` | Windows 11 caption buttons (`FluentCaptionButton`): 46x32, square, flush with the top-right corner; subtle fill on hover, red for close. |
-| `Views/Sidebar.xaml` | NavigationView, LeftCompact: 48px rail, no border; the pane toggle (`FluentHamburger`, `PART_ElemMainMenu`) in the title-bar row; 40x36 items with a 4px gutter. |
+| `DerivedStyles/MainWindowStyle.xaml` | Windows 11 caption buttons (`MainWindowButton`): 46x32, square, flush with the top-right corner; subtle fill on hover, red for close. |
+| `Views/Sidebar.xaml` | NavigationView, LeftCompact: 48px rail, no border; the pane toggle (`MainMenuButton`, `PART_ElemMainMenu`) in the title-bar row; 40x36 items with a 4px gutter. |
 | `CustomControls/SidebarItem.xaml` | NavigationViewItem: 40x36, borderRadiusMedium, 20px icons, subtle hover fill; selected = subtle fill + 3x16 compound-brand pill on the left edge. |
-| `Views/TopPanel.xaml` | 48px title-bar row: search (`FluentTitleBarSearch`) centered, up to 468px; subtle 32px icon buttons on the right; brand CounterBadge for notifications. |
+| `Views/TopPanel.xaml` | 48px title-bar row: search (`TopPanelSearchBox`) centered, up to 468px; subtle 32px icon buttons on the right; brand CounterBadge for notifications. |
 | `CustomControls/TopPanelItem.xaml` | Button subtle, icon only: 32px; hover and checked = subtle fill + brand icon. |
 | `CustomControls/SearchBox.xaml` | SearchBox (outline): Input chrome with a 20px search icon and a dismiss icon. |
 | `Views/Library.xaml` | Content layer on `colorNeutralBackground1`, top-left corner rounded 8px where it meets the rail (base-colored mask); square when the rail is elsewhere or hidden. The background art fades out on every edge. |
@@ -84,13 +87,13 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 | `DerivedStyles/PlayButton.xaml` | Button primary |
 | `DefaultControls/ToggleButton.xaml` | ToggleButton: Button chrome, `Background1Selected` when checked |
 | `DefaultControls/RepeatButton.xaml` | Button secondary |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (outline): accessible-stroke bottom, 2px compound-brand underline that grows from the center on focus (+ `FluentBareTextBox`) |
+| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (outline): accessible-stroke bottom, 2px compound-brand underline that grows from the center on focus (+ `BareTextBox`) |
 | `DefaultControls/ComboBox.xaml` | Dropdown: Input chrome, chevron_down; listbox popover with Options (hover `Background1Hover`, leading 16px checkmark) |
 | `DefaultControls/CheckBox.xaml` | Checkbox: 16px, borderRadiusSmall, accessible edge; checked = compound-brand fill, inverted mark |
 | `DefaultControls/RadioButton.xaml` | Radio: accessible edge; checked = brand edge + brand dot |
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 4px accessible-stroke rail, compound-brand progress, 20px thumb (brand disc in a Background1 ring) |
 | `DefaultControls/ProgressBar.xaml` | ProgressBar: `Background6` track, compound-brand bar, borderRadiusMedium, 33% indeterminate segment |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | Windows 11 scrollbar: 2px line at rest widening to a 6px thumb over the bar (`FluentScrollbarThumb`) |
+| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | Windows 11 scrollbar: 2px line at rest widening to a 6px thumb over the bar (`ScrollBarThumb`) |
 | `DefaultControls/ToolTip.xaml` | Tooltip: Background1, Foreground1, borderRadiusMedium |
 | `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | Menu: MenuPopover (borderRadiusMedium, 4px) and MenuItems (32px, `Background1Hover`, Foreground3 shortcuts, checkmark_16_filled, chevron_right_20), MenuDivider in `Stroke2` |
 | `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | MenuPopover, one-line styles `BasedOn` the ContextMenu |

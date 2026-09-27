@@ -1,11 +1,12 @@
 ---
-description: Playnite theme add-ons in this monorepo — standalone themes, design-system naming, overlay XAML, tokens and the Constants template, .pthm packaging.
+description: Playnite theme add-ons in this monorepo — standalone themes, one shared key vocabulary (Playnite keys + scripts/data/theme-keys.json), ThemeModifier compatibility, overlay XAML, tokens and the Constants template, .pthm packaging.
 globs:
   - "src/*/src/tokens.css"
   - "src/*/src/**/*.xaml"
   - "**/theme.yaml"
   - "scripts/*theme*.ps1"
   - "scripts/data/playnite-theme-api.json"
+  - "scripts/data/theme-keys.json"
 alwaysApply: false
 ---
 
@@ -14,19 +15,43 @@ alwaysApply: false
 ## Shape: every theme is standalone
 
 - A theme is an add-on with **`"kind": "theme"`** in **`src/extensions.json`**, laid out like the plugins:
-  - `src/<Theme>/AGENTS.md` — the theme's notes (sources, tokens, shell, components, deviations, what is unverified).
+  - `src/<Theme>/AGENTS.md` — the theme's notes (sources, which token plays each key, shell, components, deviations, what is unverified).
   - `src/<Theme>/info/` — `theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`, `LICENSE-*.txt` for everything bundled (Playnite's Default theme, icon sets).
   - `src/<Theme>/src/` — the XAML the theme ships, at Playnite's Default-theme paths, plus `tokens.css` and `Constants.template.xaml`.
-- Profile fields: **`themeSource`** (`src/<Theme>/src`), **`resourcePrefix`** (the design system's name, PascalCase), `extensionManifest` (`info/theme.yaml`), `outputPath` (`artifacts/builds/<key>`), `requiredApiVersion` = the **theme API** version. Packages are **`.pthm`**; database `Type` is **`ThemeDesktop`** / **`ThemeFullscreen`**.
-- **No shared kits, no inheritance between themes.** A theme never reads another theme's files; nothing is copied in at build time except its own `src/` and `info/LICENSE*.txt`. Other themes are only a reference for *Playnite mechanics* (which parts a view needs, how a trigger has to be wired), never a source of styles to copy.
-- Build output is generated: `src/` copied, `Constants.xaml` rendered from `Constants.template.xaml` + `tokens.css`, licenses and `theme.yaml` added. Edit sources, never **`artifacts/builds/`**.
+- Profile fields: **`themeSource`** (`src/<Theme>/src`), `extensionManifest` (`info/theme.yaml`), `outputPath` (`artifacts/builds/<key>`), `requiredApiVersion` = the **theme API** version. Packages are **`.pthm`**; database `Type` is **`ThemeDesktop`** / **`ThemeFullscreen`**.
+- **No shared kits, no inheritance between themes.** A theme never reads another theme's files; nothing is copied in at build time except its own `src/` and `info/LICENSE*.txt`. The only thing themes share is the **key vocabulary** below. Other themes are a reference for *Playnite mechanics* and *which key a role uses*, never a source of styles or values.
+- Build output is generated: `src/` copied, `Constants.xaml` rendered from `Constants.template.xaml` + `tokens.css`, `thememodifier.yaml`, licenses and `theme.yaml` added. Edit sources, never **`artifacts/builds/`**.
 
-## Design-system fidelity
+## One vocabulary, each theme's own design
 
-- **Name things the way the design system does.** Tokens keep their source names in `tokens.css` (verbatim CSS variables, or the package's token names); XAML keys are those names with the prefix: `bgColor-default` → `PrimerBgColorDefaultBrush`, `colorNeutralBackground1` → `FluentNeutralBackground1Brush`, `theme.palette.primary.main` → `MuiPrimaryMainBrush`. Component keys use the system's component names (`PrimerActionListItemPadding`, `FluentMenuPopoverPadding`, `ChakraBgPanel`). The build rejects any added key that does not start with `resourcePrefix`.
-- **Map by role, not by color.** One source color can be several tokens (Fluent's compound brand is a fill, a stroke and a foreground); use the token the component spec names for that property.
-- **Take specs from the source**: the design system's published tokens and component styles (npm packages, official docs), pinned to a version recorded in the theme's `AGENTS.md`. Write the spec in each file's header comment (component name, tokens, sizes).
-- **A design system is more than colors**: its spacing (`Common.xaml`), its shell (how it lays out an app), its icon set (`Media.xaml`) and its component shapes. Where WPF or Playnite can't follow the spec, list it under "Deviations" in `AGENTS.md`.
+- **Tokens keep the design system's names; keys don't.** `tokens.css` holds the system's tokens verbatim (the source of every value). XAML keys are the same in every theme: **Playnite's own keys** (`scripts/data/playnite-theme-api.json`) plus the **shared keys** in **`scripts/data/theme-keys.json`**. The template maps each key to the token that plays its role, so design-system names appear only in `tokens.css` and in template placeholders:
+
+```xml
+<!-- ❌ BAD: design-system key names -->
+<SolidColorBrush x:Key="PrimerBgColorDefaultBrush" Color="{{bgColor-default}}" />
+<Setter Property="Background" Value="{DynamicResource PrimerBgColorDefaultBrush}" />
+
+<!-- ✅ GOOD: shared key, Primer token as its value -->
+<SolidColorBrush x:Key="InputBackgroundBrush" Color="{{bgColor-default}}" />
+<Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+```
+
+- **Picking the key for a spot** (a color in a control template), in order:
+  1. **Playnite palette key** when its role covers the spot and the design uses that key's token there. Playnite's Default files define the roles: `TextBrush` / `TextBrushDarker` text, `TextBrushDark` text on accent, `GlyphBrush` accent, `HoverBrush` hover, `ButtonBackgroundBrush` button fill, `NormalBorderBrush` control edge, `CheckBoxCheckMarkBkBrush`, `PopupBackgroundBrush` / `PopupBorderBrush`, `TooltipBackgroundBrush`, `ExpanderBackgroundBrush` cards, `WindowBackgourndBrush`, `WindowPanelSeparatorBrush` dividers, `WarningBrush`. If the design's value for such a role differs from what the palette key holds, point the palette key at the design's token (unrestyled views read it too; note it in the theme's AGENTS.md).
+  2. **Shared general role** from `theme-keys.json`: `SelectedBrush`, `FocusBrush`, `FocusHaloBrush`, `DangerBrush`, `InputBackgroundBrush`, `PrimaryButton*`, `ShellBackgroundBrush`, ...
+  3. **Shared control slot** (`<Control>[<State>]<Part>Brush`, e.g. `SliderTrackBrush`, `TopPanelItemCheckedBackgroundBrush`) only where the design gives that part its own token.
+  4. When a design uses two values for one role in different controls, the main control takes the role's key and the other reuses the key of the token it shares (Primer's pressed `Button` uses `HoverBrush`; its pressed `RepeatButton` uses `ButtonPressedBackgroundBrush`).
+  5. A role that is not in the vocabulary: add it to `theme-keys.json` first (key, type, group, one-line description), then use it. Never invent a key inside a theme.
+- **Naming** (for new vocabulary entries): `<Control>[<Variant>][<State>]<Part><Type>` with Playnite's control names and spelling (`Button`, `ToggleButton`, `ComboBox`, `ListBox`, `GroupBox`, `SidebarItem`, `TopPanel`, `Tooltip`), never a design system's component names (ActionList, Card, AppBar, MenuPopover). General roles drop the control (`SelectedBrush`, `FocusBrush`); a plain fill drops the part (`SliderTrackBrush`, `MenuSeparatorBrush`). Spacing `<Control>Padding`; radii `ControlCornerRadius` (Playnite's, the medium step) and `CornerRadiusSmall` / `Large` / `XLarge` / `Full`; icons `Icon<Role>` drawn by `IconTemplate`; styles by what they style (`FocusVisual`, `BareTextBox`, `MainWindowButton`, `MainMenuButton`, `TopPanelSearchBox`, `SliderThumb`, `ScrollBarThumb`).
+- **Each theme keeps its own design.** Values, radii, spacing, shell, icon set and component shapes come from its design system's published spec, pinned to a version in its `AGENTS.md`; only names are shared. Map by role, not by color (one source color can be several roles). Write the component spec in each file's header comment (component name, tokens, sizes). A design system is more than colors: its spacing (`Common.xaml`), its shell, its icons (`Media.xaml`) and its component shapes. Where WPF or Playnite can't follow the spec, list it under "Deviations" in `AGENTS.md`.
+
+## ThemeModifier
+
+ThemeModifier (Lacro59's add-on) recolors a theme by **replacing Playnite's palette brushes** (`TextBrush`, `GlyphBrush`, `HoverBrush`, `ButtonBackgroundBrush`, `PopupBackgroundBrush`, ... 24 in all) in the application resources, and edits a theme's own constants listed in `thememodifier.yaml`.
+
+- Only `{DynamicResource <Brush>}` references follow a replaced brush. A `*Color` key, or a second key holding the same color, does not. So theme XAML reads **brushes only**; the build fails on a `Color` reference outside `Constants.xaml`. For a gradient, fill with the brush and put the gradient in an `OpacityMask` (see any theme's indeterminate `ProgressBar`).
+- Define palette and shared brushes as plain `SolidColorBrush` entries in the template. A brush that points at another brush can't follow an edit.
+- `build-theme.ps1` generates **`thememodifier.yaml`** next to `theme.yaml`: every shared brush the theme defines (plus sized doubles such as `IconSize`), grouped and labelled from `theme-keys.json`, so every theme offers the same Edit constants list. Don't hand-edit it; change descriptions in `theme-keys.json`.
 
 ## How Playnite loads a theme (drives the hard rules)
 
@@ -44,9 +69,9 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`).
 - `StaticResource {x:Type ContextMenu}` in a later file resolves to the theme's own style (files merge one by one). Use `BasedOn` that way instead of copying templates (SliderEx, GameMenu, GameGroupMenu, TrayContextMenu, TopPanelMenu).
 - When a Default style references a sibling in its own file with `StaticResource`, redefine both (`Separator` + `MenuItem.SeparatorStyleKey`).
 - `BaseStyle` already sets Opacity 0.5 when disabled; styles based on it must not add their own `IsEnabled` opacity trigger (0.25).
-- Focus: buttons, toggles, checkboxes, tabs use a keyed `FocusVisualStyle` (keyboard only). Text inputs draw focus on `IsKeyboardFocusWithin`. No `IsKeyboardFocused` border triggers on buttons (mouse clicks give keyboard focus too).
-- No hard-coded colors in theme XAML: add a token and a template line.
-- Icon resources Playnite copies (`Media.xaml` menu icons such as `AddGameIcon`, `PlayIcon`) are rebuilt from a `TextBlock`'s glyph and font, so a vector there is lost. To use the design system's icons, make each key a `sys:String` theme-relative PNG path (Playnite loads it through `ThemeFile`), rendered with `scripts/render-icons.ps1` from the theme's `icons.json`. Vector icons elsewhere go through `DataTemplate`s and the theme's templates.
+- Focus: buttons, toggles, checkboxes, tabs use a keyed `FocusVisualStyle` (`FocusVisual`; keyboard only). Text inputs draw focus on `IsKeyboardFocusWithin`. No `IsKeyboardFocused` border triggers on buttons (mouse clicks give keyboard focus too).
+- No hard-coded colors in theme XAML: add a token, a template line, and a vocabulary entry if the role is new.
+- Icon resources Playnite copies (`Media.xaml` menu icons such as `AddGameIcon`, `PlayIcon`) are rebuilt from a `TextBlock`'s glyph and font, so a vector there is lost. To use the design system's icons, make each key a `sys:String` theme-relative PNG path (Playnite loads it through `ThemeFile`), rendered with `scripts/render-icons.ps1` from the theme's `icons.json`. Vector icons elsewhere are `Icon<Role>` geometries drawn through `IconTemplate`.
 - Slider: set `Track.Thumb` last (Track stacks parts in the order set). `ScrollContentPresenter` clips, so anything drawn outside an item needs the gutter as the panel's margin.
 - No `DropShadowEffect` on popups or tiles; popups keep a 1px edge (WPF popups are layered windows). Wrap masked art (`OpacityMask`) in an element with `BitmapCache`.
 - No `--` inside XML comments, no `{{` / `}}` in template comments, no **`Fonts/`** folder.
@@ -67,9 +92,13 @@ Source: `source/Playnite/Themes.cs` (`ThemeManager.ApplyTheme`).
 
 Tokens are read from `:root` / `@theme`, and selectors containing `dark` override them. Errors report file, line and key.
 
+## Build checks
+
+`build-theme.ps1` (and `validate-extension.ps1`) fail on: files outside Playnite's list, unrendered placeholders, malformed XML, unknown references, cross-file `StaticResource`, keys that are neither Playnite's nor in `theme-keys.json`, a vocabulary key with the wrong type, `Color` references outside `Constants.xaml`, a `Fonts/` folder. Missing **required** vocabulary keys are a warning in `build-theme.ps1` (a theme in progress still deploys) and an error in `validate-extension.ps1`.
+
 ## Commands
 
-- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme -Prefix MyDs [-TokensCss <file>]`**
+- New theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-DesignSystem "My DS"] [-TokensCss <file>]`**
 - Build + checks: **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy] [-DeployPath <Themes folder>]`** (also via `build-plugin.ps1`)
 - Validate / package: `validate-extension.ps1`, `build-artifacts.ps1 -VerifyInstaller` (branch on `kind`).
 - New Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <checkout> -PlayniteVersion <tag>`**, then diff the Default theme for every file each theme ships.
@@ -80,5 +109,6 @@ Same policy as plugins (**`playnite-extension-versioning.mdc`**, **`playnite-git
 
 ## See also
 
-- **`src/<Theme>/AGENTS.md`** — per-theme sources, token table, shell, components, deviations.
+- **`scripts/data/theme-keys.json`** — the shared vocabulary: every key, its type, group, whether required, and its role.
+- **`src/<Theme>/AGENTS.md`** — per-theme sources, which token plays each key, shell, components, deviations.
 - Skill **`playnite-theme-dev`** — step-by-step for a new theme, token swaps and component work.

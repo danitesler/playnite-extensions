@@ -10,7 +10,7 @@ Two ways to run it:
 
   Ad hoc:
     .\scripts\render-icons.ps1 -Pack lucide -Icons settings,play=PlayIcon -OutDir <folder> -Color "#e4e4e7"
-    .\scripts\render-icons.ps1 -Pack octicons -Icons trash,pencil -Format Geometry -KeyPrefix PrimerOcticon
+    .\scripts\render-icons.ps1 -Pack octicons -Icons trash=Remove,pencil=Edit -Format Geometry -KeyPrefix Icon
     .\scripts\render-icons.ps1 -Pack tabler -Variant filled -Icons star -Format DrawingImage -Brush "{DynamicResource TextBrush}"
     .\scripts\render-icons.ps1 -SvgDir <folder of .svg files> -Icons logo -OutDir <folder>
 

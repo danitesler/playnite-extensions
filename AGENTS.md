@@ -5,7 +5,7 @@
 This repository is a reusable **Playnite add-on monorepo** for two kinds of add-ons, both registered in **`src/extensions.json`** and distinguished by **`kind`**:
 
 - **`plugin`** — .NET extensions. Each owns its code, project file, manifests, icon, and release metadata under **`src/<PluginName>/`**.
-- **`theme`** — XAML themes. Each is standalone and laid out like a plugin: **`src/<ThemeName>/`** holds its XAML and tokens (`src/`), manifests, icon and licenses (`info/`), and notes (`AGENTS.md`). Themes share nothing; each follows its own design system's tokens, naming, shell and components.
+- **`theme`** — XAML themes. Each is standalone and laid out like a plugin: **`src/<ThemeName>/`** holds its XAML and tokens (`src/`), manifests, icon and licenses (`info/`), and notes (`AGENTS.md`). Each follows its own design system's tokens, shell and components; the only thing themes share is the key vocabulary (Playnite's keys plus **`scripts/data/theme-keys.json`**), so keys mean the same in every theme and ThemeModifier edits reach every control.
 
 ## Current extensions
 
@@ -14,11 +14,11 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 
 ## Current themes
 
-- **Shadcn UI Theme** (`shadcnuitheme`) — Desktop theme, theme API 2.9.0 (Playnite 10.45+), shadcn/ui (zinc, dark), `Shadcn*` keys. Notes in **`src/ShadcnUiTheme/AGENTS.md`**.
-- **Chakra UI Theme** (`chakrauitheme`) — Desktop theme, theme API 2.9.0, Chakra UI v3 dark tokens with teal, `Chakra*` keys. Notes in **`src/ChakraUiTheme/AGENTS.md`**.
-- **Material UI Theme** (`materialuitheme`) — Desktop theme, theme API 2.9.0, MUI's default dark theme, `Mui*` keys. Notes in **`src/MaterialUiTheme/AGENTS.md`**.
-- **Primer Theme** (`primertheme`) — Desktop theme, theme API 2.9.0, GitHub Primer dark tokens, `Primer*` keys. Notes in **`src/PrimerTheme/AGENTS.md`**.
-- **Fluent 2 Theme** (`fluent2theme`) — Desktop theme, theme API 2.9.0, Microsoft Fluent 2 `webDarkTheme` tokens and a Windows 11 shell, `Fluent*` keys. Notes in **`src/Fluent2Theme/AGENTS.md`**.
+- **Shadcn UI Theme** (`shadcnuitheme`) — Desktop theme, theme API 2.9.0 (Playnite 10.45+), shadcn/ui (zinc, dark). Notes in **`src/ShadcnUiTheme/AGENTS.md`**.
+- **Chakra UI Theme** (`chakrauitheme`) — Desktop theme, theme API 2.9.0, Chakra UI v3 dark tokens with teal. Notes in **`src/ChakraUiTheme/AGENTS.md`**.
+- **Material UI Theme** (`materialuitheme`) — Desktop theme, theme API 2.9.0, MUI's default dark theme. Notes in **`src/MaterialUiTheme/AGENTS.md`**.
+- **Primer Theme** (`primertheme`) — Desktop theme, theme API 2.9.0, GitHub Primer dark tokens. Notes in **`src/PrimerTheme/AGENTS.md`**.
+- **Fluent 2 Theme** (`fluent2theme`) — Desktop theme, theme API 2.9.0, Microsoft Fluent 2 `webDarkTheme` tokens and a Windows 11 shell. Notes in **`src/Fluent2Theme/AGENTS.md`**.
 
 ## Repository layout
 
@@ -31,6 +31,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 | Theme source | `src/<ThemeName>/src/` (XAML at Playnite Default-theme paths, `tokens.css`, `Constants.template.xaml`) |
 | Theme manifests | `src/<ThemeName>/info/` (`theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`, `LICENSE-*.txt`) |
 | Playnite theme API snapshot | `scripts/data/playnite-theme-api.json` (loadable file paths + resource keys per Playnite release) |
+| Shared theme key vocabulary | `scripts/data/theme-keys.json` (every key a theme may add: type, group, required, role) |
 | Build scripts | `scripts/*.ps1` |
 | Package artifacts | `artifacts/releases/<key>/` |
 | Build artifacts | `artifacts/builds/<key>/` |
@@ -42,11 +43,11 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - Package one extension: **`.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`**
 - Scaffold a new extension: **`.\scripts\new-extension.ps1 -Name MyPlugin -Key myplugin -Type GenericPlugin -Author <name>`**
 - Build one theme (render + static checks): **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy]`** (`build-plugin.ps1` forwards themes here)
-- Scaffold a new theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme -Prefix MyDs [-TokensCss <tokens .css>]`**
+- Scaffold a new theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-DesignSystem "My DS"] [-TokensCss <tokens .css>]`**
 - Render icons for any add-on: **`.\scripts\render-icons.ps1 -Extension <key>`** (jobs in `src/<Folder>/icons.json`), or ad hoc **`-Pack <pack> -Icons <names> [-Format Png|Geometry|DrawingImage]`**. Packs (Octicons, Lucide, Tabler, Heroicons, Phosphor, Feather, Material Symbols, Fluent) are in `scripts/data/icon-packs.json`; `-UrlTemplate` / `-SvgDir` take any other SVG source. `-ListPacks` shows them.
 - Refresh the theme API snapshot for a new Playnite release: **`.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <Playnite checkout> -PlayniteVersion <tag>`**
 
-Validation, packaging, and CI branch on **`kind`**: themes package to **`.pthm`**, have no Directory.Build.props or Module, and are validated by building the theme and checking every XAML file against the API snapshot.
+Validation, packaging, and CI branch on **`kind`**: themes package to **`.pthm`**, have no Directory.Build.props or Module, and are validated by building the theme and checking every XAML file against the API snapshot and the shared key vocabulary.
 
 The package flow is intentionally **package-only**: it creates `.pext` (plugins) or `.pthm` (themes) and `.zip` artifacts and prints the expected GitHub Release tag / `PackageUrl`, but it does not create a GitHub Release.
 
@@ -65,7 +66,7 @@ Under **`.cursor/rules/`** (apply when matching files are in context):
 - **`playnite-github-releases-per-extension.mdc`** — One GitHub Release per add-on; no combined umbrella releases; tag collision guidance.
 - **`playnite-github-release-tags.mdc`** — Release tag format **`{key}-v{version}`** and **`PackageUrl`** alignment.
 - **`playnite-localization.mdc`** — Translate every `Localization/*.xaml` locale when adding or changing UI strings (always apply).
-- **`playnite-themes.mdc`** — Theme add-ons: standalone themes, design-system naming (`resourcePrefix`), overlay XAML rules (DynamicResource for theme keys, Default-theme file paths only), template placeholders, `.pthm` packaging.
+- **`playnite-themes.mdc`** — Theme add-ons: standalone themes on one shared key vocabulary (Playnite keys + `scripts/data/theme-keys.json`), how to pick a key, ThemeModifier compatibility (brushes only, generated `thememodifier.yaml`), overlay XAML rules, template placeholders, `.pthm` packaging.
 
 Copy these rules into other Playnite plugin repos if you want the same agent behavior.
 

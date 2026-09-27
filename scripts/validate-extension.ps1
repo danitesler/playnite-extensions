@@ -81,11 +81,8 @@ if ($isTheme) {
             Add-ValidationError $errors "Theme profile still has '$legacy'. Themes are standalone: sources live in themeSource (src/<Theme>/src)."
         }
     }
-    if (-not $profile.resourcePrefix) {
-        Add-ValidationError $errors "Theme profile is missing resourcePrefix (the design system's name, e.g. 'Primer'): every resource key the theme adds must start with it."
-    }
-    elseif ($profile.resourcePrefix -cnotmatch '^[A-Z][A-Za-z0-9]*$') {
-        Add-ValidationError $errors "Theme profile resourcePrefix '$($profile.resourcePrefix)' must be PascalCase letters and digits."
+    if ($profile.PSObject.Properties.Name -contains "resourcePrefix") {
+        Add-ValidationError $errors "Theme profile still has 'resourcePrefix'. Themes share one key vocabulary (scripts/data/theme-keys.json); remove the field."
     }
 
     if ($manifest.Mode -in @("Desktop", "Fullscreen")) {
@@ -102,8 +99,12 @@ if ($isTheme) {
         $scratch = Join-Path ([System.IO.Path]::GetTempPath()) ("playnite-theme-validate-" + [guid]::NewGuid().ToString("N"))
         try {
             Invoke-ThemeBuild -Profile $profile -OutDir $scratch | Out-Null
-            foreach ($themeError in @(Test-ThemeBuild -Directory $scratch -Mode $manifest.Mode -ResourcePrefix $profile.resourcePrefix)) {
+            foreach ($themeError in @(Test-ThemeBuild -Directory $scratch -Mode $manifest.Mode)) {
                 Add-ValidationError $errors $themeError
+            }
+            $missing = @(Get-ThemeMissingRequiredKeys -Directory $scratch)
+            if ($missing.Count -gt 0) {
+                Add-ValidationError $errors "Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')"
             }
         }
         catch {

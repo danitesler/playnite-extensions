@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Chakra UI v3**, fully dark with **teal** as the color palette. Standalone: every file it ships lives in this folder. Resource keys it adds start with `Chakra` (profile `resourcePrefix`) and follow Chakra's token paths and recipe names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Chakra UI v3**, fully dark with **teal** as the color palette. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; Chakra's token paths stay in `tokens.css` and the template's placeholders.
 
 Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
 
@@ -19,8 +19,8 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | Chakra's CSS variables under the names Chakra emits (`--chakra-colors-bg-panel`, `--chakra-radii-l2`, the virtual `--chakra-colors-color-palette-*`). |
-| `src/Constants.template.xaml` | Tokens → `Chakra*` keys and Playnite's palette keys; rendered into `Constants.xaml`. |
-| `src/Common.xaml` | `PopupBorder`, `ChakraFocusRing`, recipe spacing. |
+| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
+| `src/Common.xaml` | `PopupBorder`, `FocusVisual`, recipe spacing. |
 | `src/Media.xaml` | lucide icons (Playnite's roles plus chevron-down, chevron-right, check). |
 | `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
 | `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
@@ -28,7 +28,7 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 
 ## Tokens
 
-Keys follow the token path: `colors.bg.panel` → `ChakraBgPanelColor` / `ChakraBgPanelBrush`, `colorPalette.solid` → `ChakraColorPaletteSolid`, `radii.l2` → `ChakraRadiiL2`. Opacity modifiers keep Chakra's `/NN` as a suffix: `colorPalette.solid/90` → `ChakraColorPaletteSolid90`.
+Keys are the shared vocabulary; the template names the Chakra token behind each one (`colors.bg.panel` is `chakra-colors-bg-panel`, opacity modifiers keep Chakra's `/NN`). Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
 
 | Group | Tokens (dark) |
 |-------|---------------|
@@ -41,7 +41,22 @@ Keys follow the token path: `colors.bg.panel` → `ChakraBgPanelColor` / `Chakra
 | radii | `l1` = xs (2px), `l2` = sm (4px), `l3` = md (6px), `full` |
 | opacity | `colorPalette.solid/90` (solid hover), `colorPalette.focusRing/50` (slider thumb ring), `bg.emphasized/60` (highlighted items), `bg.emphasized/72` (slider track) |
 
-Playnite's palette keys map to the same tokens (`GlyphColor` = `colorPalette.solid`, `TextColorDark` = `colorPalette.contrast`, popups = `bg.panel` with a `border` edge, tooltips = `bg.inverted`). Font: `fonts.body` is Inter with a system fallback; Inter is not bundled, so Segoe UI.
+| Token | Key | Used for |
+|-------|-----|----------|
+| `bg` / `bg.panel` / `bg.muted` | `WindowBackgourndBrush`, `SliderThumbBackgroundBrush` / `ExpanderBackgroundBrush`, `PopupBackgroundBrush` / `InputBackgroundBrush`, `ListItemSelectedBrush`, `ProgressBarTrackBrush`, `MenuSeparatorBrush` | window, slider thumb / cards, menus / inputs, selected listbox item, progress track, menu separators |
+| `bg.emphasized` / `/60` / `/72` | `TopPanelItemCheckedBackgroundBrush` / `MenuItemHoverBrush`, `ListItemHoverBrush`, `TopPanelItemHoverBackgroundBrush` / `SliderTrackBrush` | SegmentGroup indicator / highlighted items / slider track |
+| `bg.inverted` / `fg.inverted` | `TooltipBackgroundBrush` / `TooltipForegroundBrush` | tooltips |
+| `fg` / `fg.muted` | `TextBrush` / `TextBrushDarker` | text, secondary text |
+| `border` / `border.emphasized` | `PopupBorderBrush`, `WindowPanelSeparatorBrush` / `NormalBorderBrush`, `GridViewItemHoverBorderBrush` | popup edge / checkbox, radio, slider edges, cover hover |
+| `colorPalette.solid` / `/90` / `contrast` | `GlyphBrush` / `PrimaryButtonHoverBackgroundBrush` / `TextBrushDark` | solid buttons, checked, tab indicator / solid hover / text on solid |
+| `colorPalette.subtle` / `fg` | `SelectedBrush` / `SelectedForegroundBrush` | current nav item, toggled buttons, selected rows |
+| `colorPalette.focusRing` / `/50` | `FocusBrush` / `FocusHaloBrush` | focus rings / slider thumb ring |
+| `gray.subtle` / `gray.muted` / `gray.fg` | `ButtonBackgroundBrush`, `HoverBrush` / `ButtonHoverBackgroundBrush`, `ButtonPressedBackgroundBrush`, `ButtonBorderBrush` / `ButtonForegroundBrush` | Button subtle, IconButton ghost hover / outline edge / button text |
+| `gray.solid` | `ScrollBarThumbBrush`, `ScrollBarTrackBrush`, `ThumbBrush` | scrollbar (drawn at 10–50%) |
+| `red.solid` / `red.contrast` | `DangerBrush` / `DangerForegroundBrush` | close button hover, notification Badge |
+| `fg.error` / `fg.warning` / `fg.success` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | errors, data-changed, ratings |
+
+`ButtonBackgroundBrush` and `HoverBrush` hold Chakra's gray subtle (`gray.subtle`), so Playnite's notification toasts and its own list views share the button and ghost-hover colors. Font: `fonts.body` is Inter with a system fallback; Inter is not bundled, so Segoe UI.
 
 A sibling palette (blue, purple, ...): swap the six `--chakra-colors-color-palette-*` values in `tokens.css` for that palette's semantic tokens.
 
@@ -49,16 +64,16 @@ A sibling palette (blue, purple, ...): swap the six `--chakra-colors-color-palet
 
 | Key | Value | Chakra |
 |-----|-------|--------|
-| `ChakraButtonPadding` | 16,10 | button md: h-10, px-4 |
-| `ChakraInputPadding` | 12,9 | input / select trigger md: h-10, px-3 |
-| `ChakraMenuContentPadding` / `ChakraMenuItemPadding` | 6 / 8,6 | menu md: content p-1.5, item px-2 py-1.5 |
-| `ChakraSelectContentPadding` / `ChakraSelectItemPadding` | 4 / 8,6 | select md: content p-1, item px-2 py-1.5 |
-| `ChakraListboxItemPadding` | 8,6 | listbox item |
-| `ChakraCardPadding`, `ChakraCardHeaderMargin`, `ChakraCardTitleFontSize` | 24, 0,0,0,24, 18 | card md: card-padding 6, title textStyle lg |
-| `ChakraTooltipPadding` | 10,4 | tooltip px-2.5 py-1 |
-| `ChakraIconButtonIconSize` | 20 | button md `_icon` size 5 |
+| `ButtonPadding` | 16,10 | button md: h-10, px-4 |
+| `InputPadding` | 12,9 | input / select trigger md: h-10, px-3 |
+| `MenuPadding` / `MenuItemPadding` | 6 / 8,6 | menu md: content p-1.5, item px-2 py-1.5 |
+| `ComboBoxDropDownPadding` / `ComboBoxItemPadding` | 4 / 8,6 | select md: content p-1, item px-2 py-1.5 |
+| `ListBoxItemPadding` | 8,6 | listbox item |
+| `GroupBoxPadding`, `GroupBoxHeaderMargin`, `GroupBoxHeaderFontSize` | 24, 0,0,0,24, 18 | card md: card-padding 6, title textStyle lg |
+| `TooltipPadding` | 10,4 | tooltip px-2.5 py-1 |
+| `IconSize` | 20 | button md `_icon` size 5 |
 
-`ChakraFocusRing` is `focusVisibleRing="outside"` (2px `colorPalette.focusRing`, 2px offset); inputs, the select and the search box draw `focusVisibleRing="inside"` in their templates (a 2px focus-ring edge).
+`FocusVisual` is `focusVisibleRing="outside"` (2px `colorPalette.focusRing`, 2px offset); inputs, the select and the search box draw `focusVisibleRing="inside"` in their templates (a 2px focus-ring edge).
 
 ## Shell
 
@@ -67,10 +82,10 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | File | Chakra behavior |
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat: sidebar and view on `bg`, no inset. |
-| `DerivedStyles/MainWindowStyle.xaml` | Window buttons as ghost IconButtons, size sm (36px, `ChakraWindowButton`), centered on the 64px bar, 24px from the right; close = red solid on hover. |
-| `Views/Sidebar.xaml` | px-4 around 40px items, gap-2. Main menu = `ChakraLogoIconButton`, a rounded-full `colorPalette.solid` IconButton (40px, white icon). |
+| `DerivedStyles/MainWindowStyle.xaml` | Window buttons as ghost IconButtons, size sm (36px, `MainWindowButton`), centered on the 64px bar, 24px from the right; close = red solid on hover. |
+| `Views/Sidebar.xaml` | px-4 around 40px items, gap-2. Main menu = `MainMenuButton`, a rounded-full `colorPalette.solid` IconButton (40px, white icon). |
 | `CustomControls/SidebarItem.xaml` | IconButton md (40px, radius l2): ghost at rest, `gray.subtle` hover; active view = teal `subtle` (`colorPalette.subtle` fill, `colorPalette.fg` icon). |
-| `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (`bg.muted` track, radius l3); search on the right (`ChakraHeaderSearch`: InputGroup + Input `subtle`, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the notification count. |
+| `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (`bg.muted` track, radius l3); search on the right (`TopPanelSearchBox`: InputGroup + Input `subtle`, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the notification count. |
 | `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons; checked = `bg.emphasized` indicator, hover = `bg.emphasized/60`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 4px spacing scale without separators; background art under the top bar, feathered on every edge. |
 
@@ -82,7 +97,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | `DerivedStyles/PlayButton.xaml` | button md, brand `solid` |
 | `DefaultControls/ToggleButton.xaml` | button: gray `subtle` off, brand `subtle` on |
 | `DefaultControls/RepeatButton.xaml` | button, gray `outline` |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | input `subtle` md (+ `ChakraBareTextBox` for hosts with their own chrome) |
+| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | input `subtle` md (+ `BareTextBox` for hosts with their own chrome) |
 | `DefaultControls/ComboBox.xaml` | select `subtle` md: chevron-down indicator, content p-1, items with the check indicator at the end |
 | `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | checkmark / radiomark `solid` md: 20px, `border.emphasized` edge, `colorPalette.solid` when checked, label gap 2.5, medium |
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | slider `outline` md: 8px `bg.emphasized/72` track, solid range, 20px `bg` thumb with a 2px solid edge, 3px `focusRing/50` ring on keyboard focus |

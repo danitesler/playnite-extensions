@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of GitHub's **Primer** design system, on Primer's `dark` functional tokens. Standalone: every file it ships lives in this folder. Resource keys it adds start with `Primer` (profile `resourcePrefix`) and are Primer's own token and component names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of GitHub's **Primer** design system, on Primer's `dark` functional tokens. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; Primer's token names stay in `tokens.css` and the template's placeholders.
 
 Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
 
@@ -19,8 +19,8 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | Primer's functional CSS variables, verbatim names and values (aliases written out, with the alias in a comment). |
-| `src/Constants.template.xaml` | Tokens → `Primer*` keys and Playnite's palette keys; rendered into `Constants.xaml`. |
-| `src/Common.xaml` | `PopupBorder`, `PrimerFocusOutline` (inside), `PrimerFocusOutlineOffset` (checkbox and radio), component spacing. |
+| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
+| `src/Common.xaml` | `PopupBorder`, `FocusVisual` (inside), `CheckBoxFocusVisual` (checkbox and radio), component spacing. |
 | `src/Media.xaml` | Octicons (Playnite's roles plus triangle-down, check, chevron-right, trash, pencil, plus) and the menu icon paths. |
 | `src/Images/Octicons/` | Octicons rendered to PNG for Playnite's menu icons. |
 | `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
@@ -29,22 +29,28 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 
 ## Tokens
 
-Keys are Primer's token names in Pascal case: `bgColor-default` → `PrimerBgColorDefaultColor` / `...Brush`, `control-transparent-bgColor-hover` → `PrimerControlTransparentBgColorHover`, `borderRadius-medium` → `PrimerBorderRadiusMedium`, octicons → `PrimerOcticon<Role>`.
+Keys are the shared vocabulary; the template names the Primer token behind each one. Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
 
-| Token | Dark value | Used for |
-|-------|------------|----------|
-| `bgColor-default` / `-muted` / `-inset` | `#0d1117` / `#151b23` / `#010409` | page / Box header, cards / header band |
-| `fgColor-default` / `-muted` | `#f0f6fc` / `#9198a1` | text, secondary text and icons |
-| `bgColor-accent-emphasis`, `focus-outlineColor` | `#1f6feb` | checked, selected, focus (Playnite `GlyphColor`) |
-| `button-primary-bgColor-rest` / `-hover` | `#238636` / `#29903b` | primary buttons, Play (green) |
-| `control-bgColor-rest` / `-hover` / `-active` | `#212830` / `#262c36` / `#2a313c` | default buttons, pressed toggles |
-| `control-borderColor-rest` / `-emphasis` | `#3d444d` / `#656c76` | control and checkbox edges |
-| `control-transparent-bgColor-hover` / `-selected` | `#656c76` at 20% | ActionList hover and selection |
-| `overlay-bgColor`, `overlay-borderColor` | `#010409`, `borderColor-muted` | menus, dropdowns, popovers |
-| `underlineNav-borderColor-active` | `#f78166` | UnderlineNav bar (coral) |
-| `tooltip-bgColor` / `-fgColor` | `#3d444d` / white | tooltips |
-| `button-danger-bgColor-hover` | `#b62324` | close button hover |
-| `fgColor-danger` / `-attention` / `-success` | `#f85149` / `#d29922` / `#3fb950` | warnings, data-changed, ratings |
+| Token | Dark value | Key | Used for |
+|-------|------------|-----|----------|
+| `bgColor-default` / `-muted` / `-inset` | `#0d1117` / `#151b23` / `#010409` | `WindowBackgourndBrush`, `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush` / `ExpanderBackgroundBrush` / `ShellBackgroundBrush`, `TopPanelBackgroundBrush` | page and inputs / Box header / header band |
+| `fgColor-default` / `-muted` | `#f0f6fc` / `#9198a1` | `TextBrush` / `TextBrushDarker` | text, secondary text and icons |
+| `bgColor-accent-emphasis` | `#1f6feb` | `GlyphBrush` | checked, selected, slider fill |
+| `focus-outlineColor` | `#1f6feb` | `FocusBrush` | focus outline, focused input edge |
+| `button-primary-bgColor-rest` / `-hover` / `-fgColor-rest` | `#238636` / `#29903b` / white | `PrimaryButtonBackgroundBrush` / `PrimaryButtonHoverBackgroundBrush` / `PrimaryButtonForegroundBrush` | primary buttons, Play (green) |
+| `control-bgColor-rest` / `-hover` / `-active` | `#212830` / `#262c36` / `#2a313c` | `ButtonBackgroundBrush` / `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` | default buttons, pressed toggles |
+| `control-fgColor-rest` | `#f0f6fc` | `ButtonForegroundBrush` | button text |
+| `control-borderColor-rest` / `-emphasis` | `#3d444d` / `#656c76` | `NormalBorderBrush` / `CheckBoxBorderBrush` | control and checkbox edges |
+| `control-transparent-bgColor-hover` / `-selected` | `#656c76` at 20% | `HoverBrush`, `SliderTrackBrush` / `SelectedBrush` | ActionList hover and selection, slider track |
+| `overlay-bgColor`, `overlay-borderColor` | `#010409`, `borderColor-muted` | `PopupBackgroundBrush`, `PopupBorderBrush` | menus, dropdowns, popovers |
+| `borderColor-default` / `-muted` / `-emphasis` | `#3d444d` / 70% / `#656c76` | `WindowPanelSeparatorBrush`, `ScrollBarThumbBrush` / `MenuSeparatorBrush` / `GridViewItemHoverBorderBrush` | Box edge, scrollbar / menu dividers / cover hover |
+| `underlineNav-borderColor-active` | `#f78166` | `TabItemIndicatorBrush` | UnderlineNav bar (coral) |
+| `tooltip-bgColor` / `-fgColor` | `#3d444d` / white | `TooltipBackgroundBrush` / `TooltipForegroundBrush` | tooltips |
+| `button-danger-bgColor-hover` / `-fgColor-hover` | `#b62324` / white | `DangerBrush` / `DangerForegroundBrush` | close button hover |
+| `progressBar-bgColor-success` / `-track-bgColor` | `#238636` / `#3d444d` | `ProgressBarForegroundBrush` / `ProgressBarTrackBrush` | progress |
+| `fgColor-danger` / `-attention` / `-success` | `#f85149` / `#d29922` / `#3fb950` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | warnings, data-changed, ratings |
+
+`ButtonBackgroundBrush` holds Primer's default button fill (`control-bgColor-rest`), so Playnite's notification toasts, which read it too, share that color.
 
 Primer has two accents: blue (`accent`) for focus, checked controls, selection and links; green (`button-primary`) for primary buttons and progress. Translucent tokens keep their alpha; the popup edge is flattened onto the overlay. Font: `fontStack-sansSerif` resolves to Segoe UI on Windows; Mona Sans is not bundled.
 
@@ -54,11 +60,11 @@ Siblings: Primer's other dark themes (`dark-dimmed`, `dark-high-contrast`, `dark
 
 | Key | Value | Primer |
 |-----|-------|--------|
-| `PrimerButtonPadding`, `PrimerTextInputPadding` | 12,5 | control medium: 32px, 12px inline |
-| `PrimerActionListPadding` / `PrimerActionListItemPadding` | 8 / 8,6 | ActionList padding-block 8px, items 6px 8px (32px) |
-| `PrimerBoxPadding`, `PrimerBoxHeaderPadding` | 16, 16 | Box body and Box-header |
-| `PrimerTooltipPadding` | 8,4 | Tooltip condensed padding |
-| `PrimerOcticonSize` | 16 | Octicons 16px |
+| `ButtonPadding`, `InputPadding` | 12,5 | control medium: 32px, 12px inline |
+| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding` | 8 / 8,6 | ActionList padding-block 8px, items 6px 8px (32px) |
+| `GroupBoxPadding`, `GroupBoxHeaderPadding` | 16, 16 | Box body and Box-header |
+| `TooltipPadding` | 8,4 | Tooltip condensed padding |
+| `IconSize` | 16 | Octicons 16px |
 
 ## Shell
 
@@ -67,10 +73,10 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 | File | Primer behavior |
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat: sidebar and view on `bgColor-inset`, the same color as the header band. |
-| `DerivedStyles/MainWindowStyle.xaml` | Window buttons as invisible IconButtons (32px, `PrimerWindowButton`) on the band, 16px from the top; close takes the danger hover. |
-| `Views/Sidebar.xaml` | Navigation rail on the page color. Its top 64px is painted in the band color and holds the three-bars button (`PrimerAppHeaderMenuButton`, `PART_ElemMainMenu`). |
+| `DerivedStyles/MainWindowStyle.xaml` | Window buttons as invisible IconButtons (32px, `MainWindowButton`) on the band, 16px from the top; close takes the danger hover. |
+| `Views/Sidebar.xaml` | Navigation rail on the page color. Its top 64px is painted in the band color and holds the three-bars button (`MainMenuButton`, `PART_ElemMainMenu`). |
 | `CustomControls/SidebarItem.xaml` | NavList item, icon only: 32px, 16px octicons in `fgColor-muted`; the current item gets the fill and NavList's 4x24 accent bar 8px outside the item. |
-| `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`PrimerAppHeaderSearch`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
+| `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`TopPanelSearchBox`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
 | `CustomControls/TopPanelItem.xaml` | Invisible IconButton, medium; toggled = `control-transparent-bgColor-selected`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on Primer's base-size scale without separators; background art under the band, feathered on every edge. |
 
@@ -82,7 +88,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 | `DerivedStyles/PlayButton.xaml` | Button `primary` |
 | `DefaultControls/ToggleButton.xaml` | Button `default` with `aria-pressed` (`control-bgColor-active` when pressed) |
 | `DefaultControls/RepeatButton.xaml` | Button `default` |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | TextInput: accent border plus 1px inset accent on focus (+ `PrimerBareTextBox`) |
+| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | TextInput: accent border plus 1px inset accent on focus (+ `BareTextBox`) |
 | `DefaultControls/ComboBox.xaml` | Select trigger (triangle-down) opening an ActionMenu; single-select check in the leading slot |
 | `DefaultControls/CheckBox.xaml` | Checkbox: 16px, `control-borderColor-emphasis` edge, radius small, accent fill with Primer's own mark, 2px focus outline 2px outside |
 | `DefaultControls/RadioButton.xaml` | Radio: checked = 4px accent ring around a white center, outside focus outline |
