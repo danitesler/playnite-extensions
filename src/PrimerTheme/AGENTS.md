@@ -79,6 +79,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 | `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`TopPanelSearchBox`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
 | `CustomControls/TopPanelItem.xaml` | Invisible IconButton, medium; toggled = `control-transparent-bgColor-selected`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on Primer's base-size scale without separators; background art under the band, feathered on every edge. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
 
 ## Components
 

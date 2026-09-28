@@ -79,6 +79,7 @@ shadcn's inset layout (blocks `sidebar-07` / `dashboard-01`):
 | `CustomControls/TopPanelItem.xaml` | Button ghost, size icon-sm (32px); accent when toggled. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on p-4 spacing without separators. |
 | `Views/Library.xaml` | Background art under the top bar, feathered on every edge (bitmap-cached opacity masks). |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
 
 The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap) keeps it clear of the window buttons; keep it in step with `MainWindowStyle.xaml`.
 

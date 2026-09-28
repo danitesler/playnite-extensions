@@ -88,6 +88,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (`bg.muted` track, radius l3); search on the right (`TopPanelSearchBox`: InputGroup + Input `subtle`, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the notification count. |
 | `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons; checked = `bg.emphasized` indicator, hover = `bg.emphasized/60`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 4px spacing scale without separators; background art under the top bar, feathered on every edge. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
 
 ## Components
 

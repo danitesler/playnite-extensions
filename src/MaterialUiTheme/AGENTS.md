@@ -79,6 +79,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 | `CustomControls/TopPanelItem.xaml` | IconButton medium, `color="inherit"`: 40px circle, 24px icon; a toggled item turns primary. |
 | `CustomControls/SearchBox.xaml` | FilledInput with a start adornment, for search boxes outside the app bar. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 8px spacing unit without separators; background art under the app bar, feathered on every edge. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
 
 ## Components
 

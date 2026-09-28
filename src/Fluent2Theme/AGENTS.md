@@ -78,6 +78,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 | `CustomControls/SearchBox.xaml` | SearchBox (outline): Input chrome with a 20px search icon and a dismiss icon. |
 | `Views/Library.xaml` | Content layer on `colorNeutralBackground1`, top-left corner rounded 8px where it meets the rail (base-colored mask); square when the rail is elsewhere or hidden. The background art fades out on every edge. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on Fluent's spacing ramp without separators. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
 
 ## Components
 
