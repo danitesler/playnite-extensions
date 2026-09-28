@@ -47,6 +47,7 @@ Keys are the shared vocabulary; the template names the shadcn variable behind ea
 | `card`, `muted`, `border` | `ExpanderBackgroundBrush`, `TopPanelSearchBoxBackgroundBrush` / `SliderTrackBrush`, `TabControlHeaderBackgroundBrush` / `WindowPanelSeparatorBrush`, `ScrollBarThumbBrush` | cards, header search / slider rail, tab list / dividers, scrollbar |
 | `sidebar` / `sidebar-primary` | `ShellBackgroundBrush` / `MainMenuButtonBackgroundBrush` | window frame / logo tile |
 | white (`bg-white`) | `SliderThumbBackgroundBrush` | slider thumb |
+| `secondary` / `secondary-foreground` / `secondary/90` | `PropertyItemBackgroundBrush` / `PropertyItemForegroundBrush` / `PropertyItemHoverBackgroundBrush` | Badges in the game overview |
 
 `ButtonBackgroundBrush` holds shadcn's secondary Button fill, so Playnite's notification toasts, which read it too, share that color.
 
@@ -79,7 +80,7 @@ shadcn's inset layout (blocks `sidebar-07` / `dashboard-01`):
 | `CustomControls/TopPanelItem.xaml` | Button ghost, size icon-sm (32px); accent when toggled. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on p-4 spacing without separators. |
 | `Views/Library.xaml` | Background art under the top bar, feathered on every edge (bitmap-cached opacity masks). |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | shadcn page: h1 (text-3xl bold) with the icon and a muted developer line, actions on the right (icon Button Edit, secondary More, default Play); Separator; platform and genre Badges (secondary); Tabs: Description (description and Notes Cards) and Details (a Card with a Table: border-b rows, muted 160px labels). No art, no cover. The grid panel stacks it with the same Tabs. Fields left out are parts Playnite skips. |
 
 The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap) keeps it clear of the window buttons; keep it in step with `MainWindowStyle.xaml`.
 
@@ -89,6 +90,7 @@ The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap
 |---------------|------------------|
 | `DefaultControls/Button.xaml` | Button: `secondary` for regular buttons, `default` for `IsDefault`; font-medium |
 | `DerivedStyles/PlayButton.xaml` | Button `default` |
+| `DerivedStyles/PropertyItemButton.xaml` | text link (hover:underline); tagged `Muted`, text-muted-foreground; tagged `Chip`, a Badge `secondary` (rounded-md, text-xs, hover:bg-secondary/90) |
 | `DefaultControls/ToggleButton.xaml` | Toggle `outline` (transparent, border-input, accent on hover and when on) |
 | `DefaultControls/RepeatButton.xaml` | Button `outline` (dark: input/30 fill, input edge) |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (+ `BareTextBox` for hosts that draw their own chrome) |
@@ -117,6 +119,7 @@ Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Play
 - No shadows (`shadow-xs`, `shadow-md`): WPF popups are layered windows and Playnite's lists redraw often.
 - The logo tile dims to 90% on hover; the block has no hover state of its own there.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`), recolored to muted-foreground.
+- The game overview splits description and details into Tabs, so the details are one click away.
 
 ## Build and try it
 
@@ -132,3 +135,5 @@ Portable Playnite: add `-DeployPath <Playnite folder>\Themes`.
 Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope, key prefix); **not yet loaded in Playnite**. First run on Windows: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs. If Playnite rejects the theme it falls back to Default and logs the XAML error in `playnite.log`.
 
 Layout checks: the inset card's rounded corners over the library background image (details view), window buttons centered in the card header, the sidebar at each position (Settings → Appearance → Layout), the search placeholder hiding while typing, lucide icons in the top bar and on Library / Statistics, the blue logo tile, and slider ranges ending under the thumb (grid zoom slider).
+
+Game overview: Tabs inside the scrolling pane, the Details table rows hiding with their fields, Badge wrapping.

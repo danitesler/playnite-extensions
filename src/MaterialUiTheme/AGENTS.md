@@ -44,6 +44,7 @@ Keys are the shared vocabulary; the template names the MUI variable behind each 
 | `LinearProgress.primaryBg` | `darken(primary.main, 0.5)` | `ProgressBarTrackBrush` | progress rail |
 | `error.main` / `.contrastText` | red[500] / white | `DangerBrush`, `WarningBrush` / `DangerForegroundBrush` | close button, notification badge, errors |
 | `warning.main` / `success.main` | orange[400] / green[400] | `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | data-changed, ratings |
+| `action.selected` / `common.white` at 24% | 16% / 24% white | `PropertyItemBackgroundBrush` / `PropertyItemHoverBackgroundBrush` | Chips in the game overview (text `PropertyItemForegroundBrush` = `text.primary`) |
 
 `TextBrushDarker` is `text.secondary` with its alpha (white 70%), as the controls draw it, so Playnite's own views get the same secondary text on every surface.
 
@@ -79,7 +80,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 | `CustomControls/TopPanelItem.xaml` | IconButton medium, `color="inherit"`: 40px circle, 24px icon; a toggled item turns primary. |
 | `CustomControls/SearchBox.xaml` | FilledInput with a start adornment, for search boxes outside the app bar. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 8px spacing unit without separators; background art under the app bar, feathered on every edge. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Material media page (Google Play's layout in MUI parts). Hero: background art 360px under a scrim into `background.default`, hidden without art; the header overlaps it: cover, title as h4, developer as a primary Link, genre Chips, contained Play, text More, round IconButton Edit. Below: Description and Notes Cards and a 360px Details Card with an icon List (ListItemIcon + two-line ListItemText). The grid panel is one Card: CardMedia (art), CardHeader (round avatar, title, developer), CardActions, Chips, the List, the description. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -87,6 +88,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 |---------------|---------------|
 | `DefaultControls/Button.xaml` | Button: `text` for regular buttons (primary label, min-width 64, primary 8% on hover), `contained` for `IsDefault`; uppercase medium labels |
 | `DerivedStyles/PlayButton.xaml` | Button `contained` |
+| `DerivedStyles/PropertyItemButton.xaml` | ListItemText value (primary Link on hover); tagged `Accent`, a primary Link; tagged `Chip`, a small filled Chip (`action.selected`, hover one step lighter) |
 | `DefaultControls/ToggleButton.xaml` | ToggleButton: divider edge, `text.secondary`; selected = primary @ 16% with primary text |
 | `DefaultControls/RepeatButton.xaml` | Button `outlined` (primary edge at 50%) |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | FilledInput: 2px primary underline growing from the center on focus (+ `BareTextBox`) |
@@ -116,6 +118,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 - No floating labels on text fields (Playnite's forms put labels beside or above them), hence the hidden-label FilledInput metrics.
 - The Card title is h6 instead of CardHeader's default h5, sized for settings sections.
 - The indeterminate LinearProgress slides one segment; MUI runs two bars at different speeds.
+- The overview cover is square-cornered (CardMedia inherits the Card radius in MUI); WPF can't clip an Image to a radius without a mask, and the 4px radius isn't worth one.
 
 ## Build and try it
 
@@ -131,3 +134,5 @@ Built and statically checked on Linux; **not yet loaded in Playnite**. First run
 Layout checks: the app bar color continuing through the drawer's header band, the search widening on focus, Badges on the filter and notification buttons, full-width drawer rows, the FilledInput underline animation in the game edit dialog.
 
 Known limit: the app bar belongs to the library view, so on other views (Statistics, add-on views) only the drawer's header band shows the bar color.
+
+Game overview: the hero overlap with and without background art, the scrim strength, the header next to tall and wide covers, the round avatar clip in grid mode, Chip hover.

@@ -55,6 +55,7 @@ Keys are the shared vocabulary; the template names the Chakra token behind each 
 | `gray.solid` | `ScrollBarThumbBrush`, `ScrollBarTrackBrush`, `ThumbBrush` | scrollbar (drawn at 10–50%) |
 | `red.solid` / `red.contrast` | `DangerBrush` / `DangerForegroundBrush` | close button hover, notification Badge |
 | `fg.error` / `fg.warning` / `fg.success` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | errors, data-changed, ratings |
+| `colorPalette.subtle` / `.fg` / `.muted` (teal) | `PropertyItemBackgroundBrush` / `PropertyItemForegroundBrush` / `PropertyItemHoverBackgroundBrush` | Badges in the game overview |
 
 `ButtonBackgroundBrush` and `HoverBrush` hold Chakra's gray subtle (`gray.subtle`), so Playnite's notification toasts and its own list views share the button and ghost-hover colors. Font: `fonts.body` is Inter with a system fallback; Inter is not bundled, so Segoe UI.
 
@@ -88,7 +89,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (`bg.muted` track, radius l3); search on the right (`TopPanelSearchBox`: InputGroup + Input `subtle`, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the notification count. |
 | `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons; checked = `bg.emphasized` indicator, hover = `bg.emphasized/60`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 4px spacing scale without separators; background art under the top bar, feathered on every edge. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Chakra dashboard page: cover clipped to radius l3, platform Badges, Heading 3xl (bold), solid Play, subtle More and IconButton Edit; a row of Stat cards (time played, last played, completion; 2xl semibold values; a hidden stat gives up its space); description and notes under Heading lg titles next to a Details Card with a horizontal DataList (genres as Badges). No art. The grid panel stacks it, two Stats per row and a vertical DataList. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -96,6 +97,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 |---------------|---------------|
 | `DefaultControls/Button.xaml` | button md: gray `subtle` for regular buttons, brand `solid` for `IsDefault`; fontWeight medium |
 | `DerivedStyles/PlayButton.xaml` | button md, brand `solid` |
+| `DerivedStyles/PropertyItemButton.xaml` | Link `plain` (gray.fg, underline on hover); tagged `Chip`, a Badge `subtle` in the brand palette (teal subtle / fg, muted on hover) |
 | `DefaultControls/ToggleButton.xaml` | button: gray `subtle` off, brand `subtle` on |
 | `DefaultControls/RepeatButton.xaml` | button, gray `outline` |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | input `subtle` md (+ `BareTextBox` for hosts with their own chrome) |
@@ -122,6 +124,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 - No shadows (menus `lg`, select `md`, tooltip `md`, card `elevated`): WPF popups are layered windows, so menus and popovers get a 1px `border` edge instead, and the card is borderless `bg.panel`.
 - The SegmentGroup track keeps a 4px inset and radius l3, and items are icon-sized (40px square) with no dividers between them.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`).
+- Stat values use a literal 24px (textStyle 2xl): Playnite's type ramp has no step between 20 and 29.
 
 ## Build and try it
 
@@ -135,3 +138,5 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 Built and statically checked on Linux; **not yet loaded in Playnite**. First run: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs.
 
 Layout checks: the SegmentGroup with many or few top bar items, the teal logo and selection in the sidebar, the subtle search input and selects (fill visible, no edge), window buttons centered on the 64px bar, the slider's outlined thumb, the 20px checkboxes and radios in settings, the select's check indicator, and the red notification badge.
+
+Game overview: the rounded cover mask (VisualBrush), Stat cards collapsing when a field is hidden, the DataList at narrow widths.

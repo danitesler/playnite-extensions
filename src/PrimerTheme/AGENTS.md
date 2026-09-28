@@ -49,6 +49,7 @@ Keys are the shared vocabulary; the template names the Primer token behind each 
 | `button-danger-bgColor-hover` / `-fgColor-hover` | `#b62324` / white | `DangerBrush` / `DangerForegroundBrush` | close button hover |
 | `progressBar-bgColor-success` / `-track-bgColor` | `#238636` / `#3d444d` | `ProgressBarForegroundBrush` / `ProgressBarTrackBrush` | progress |
 | `fgColor-danger` / `-attention` / `-success` | `#f85149` / `#d29922` / `#3fb950` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | warnings, data-changed, ratings |
+| `bgColor-accent-muted` / `fgColor-accent` | `#388bfd1a` / `#4493f8` | `PropertyItemBackgroundBrush` / `PropertyItemForegroundBrush` | topic tags in the game overview (hover: `bgColor-accent-emphasis`, `PropertyItemHoverBackgroundBrush`) |
 
 `ButtonBackgroundBrush` holds Primer's default button fill (`control-bgColor-rest`), so Playnite's notification toasts, which read it too, share that color.
 
@@ -79,7 +80,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 | `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`TopPanelSearchBox`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
 | `CustomControls/TopPanelItem.xaml` | Invisible IconButton, medium; toggled = `control-transparent-bgColor-selected`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on Primer's base-size scale without separators; background art under the band, feathered on every edge. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | GitHub's repository page. Header: icon and name (20px semibold) on the left; Edit (IconButton, octicon pencil), More (triangle-down) and green Play on the right; a rule under it. Main column: README Box (GroupBox "Description") and a Notes Box. 296px sidebar (BorderGrid): Details (links, genres as topic tags, octicon rows for platform, developer, publisher, release date, library) and Statistics (time played, last played, completion). No art, no cover. The grid panel stacks the same parts. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -87,6 +88,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 |---------------|------------------|
 | `DefaultControls/Button.xaml` | Button: `default` for regular buttons, `primary` (green) for `IsDefault`; medium weight |
 | `DerivedStyles/PlayButton.xaml` | Button `primary` |
+| `DerivedStyles/PropertyItemButton.xaml` | Link (fgColor-default, accent and underline on hover); in a list tagged `Chip`, a topic-tag (22px pill, `bgColor-accent-muted` / `fgColor-accent`, accent-emphasis fill on hover) |
 | `DefaultControls/ToggleButton.xaml` | Button `default` with `aria-pressed` (`control-bgColor-active` when pressed) |
 | `DefaultControls/RepeatButton.xaml` | Button `default` |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | TextInput: accent border plus 1px inset accent on focus (+ `BareTextBox`) |
@@ -114,6 +116,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 - No shadows: the Overlay keeps only the 1px ring `shadow-floating-small` starts with.
 - `GlyphColor` is `bgColor-accent-emphasis` (`#1f6feb`) because Playnite also uses it as a fill under white text; Primer's link color (`fgColor-accent`, `#4493f8`) is a little lighter.
 - Menu icons are octicon PNGs in `src/Images/Octicons` (48px, `fgColor-muted`; `fgColor-danger` for exit and remove), referenced by path because Playnite rebuilds TextBlock icons from their glyph and font. They don't follow a token change; the list, colors and Octicons tag are in `icons.json`, so after a palette change update the colors there and run `.\scripts\render-icons.ps1 -Extension primertheme`.
+- Overview field rows show an octicon with the field name as a tooltip instead of GitHub's visible labels (GitHub's own sidebar rows are self-describing counts).
 
 ## Build and try it
 
@@ -129,3 +132,5 @@ Built and statically checked on Linux; **not yet loaded in Playnite**. First run
 Layout checks: the band continuing through the sidebar's top, the right-hand cluster at narrow widths, the current-item bar next to the selected sidebar item (not clipped), the unread dot, the pill-shaped slider knob.
 
 Known limit: the header band belongs to the library view, so on other views (Statistics, add-on views) only the sidebar's top shows the band color.
+
+Game overview: the two-column page at narrow pane widths (the sidebar is a fixed 296px), topic-tag wrapping, octicon row alignment, the green Play next to More and Edit.

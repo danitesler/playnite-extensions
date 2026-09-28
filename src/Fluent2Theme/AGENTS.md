@@ -78,7 +78,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 | `CustomControls/SearchBox.xaml` | SearchBox (outline): Input chrome with a 20px search icon and a dismiss icon. |
 | `Views/Library.xaml` | Content layer on `colorNeutralBackground1`, top-left corner rounded 8px where it meets the rail (base-colored mask); square when the rail is elsewhere or hidden. The background art fades out on every edge. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on Fluent's spacing ramp without separators. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Minimal game overview (details pane, grid side panel): icon and name without shadow, Play / More / Edit on hover, a short fact list with muted labels and no section titles or dividers, then description and notes. No cover; the details pane keeps the background art at half strength. Dropped fields (added, recent activity, install folder and size, categories, features, tags, age rating, series, source, region, version, scores) are parts Playnite skips when missing. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Microsoft Store product page: hero art 320px fading into the content layer (hidden without art); box art tile (borderRadiusLarge, 1px `colorNeutralStroke2`), title at 28px semibold, developer as a brand Link, platforms and genres as small outline InteractionTags, large primary Play, secondary More, subtle icon Edit. Sections under 20px semibold headings, no cards: Description, Additional information (three columns of semibold label over value, install size and features included), Notes. The grid panel stacks it with 16px section headings. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -86,6 +86,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 |---------------|------------------|
 | `DefaultControls/Button.xaml` | Button: secondary (Background1, Stroke1 edge) for regular buttons, primary (`colorBrandBackground`) for `IsDefault`; semibold |
 | `DerivedStyles/PlayButton.xaml` | Button primary |
+| `DerivedStyles/PropertyItemButton.xaml` | Link `subtle` (underline on hover); tagged `Accent`, brand Link; tagged `Chip`, an InteractionTag small `outline` (`colorNeutralStroke1` edge, subtle hover) |
 | `DefaultControls/ToggleButton.xaml` | ToggleButton: Button chrome, `Background1Selected` when checked |
 | `DefaultControls/RepeatButton.xaml` | Button secondary |
 | `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (outline): accessible-stroke bottom, 2px compound-brand underline that grows from the center on focus (+ `BareTextBox`) |
@@ -112,6 +113,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 - MenuItem text stays `colorNeutralForeground1` (Fluent uses `Foreground2` at rest): Playnite's MenuItem style sets the item foreground, and disabled items rely on it.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`).
 - Views other than the library (Statistics, add-on views) sit on the base layer; only the library gets the content layer.
+- The game overview has no Cards: the content layer and Fluent's Card are both `colorNeutralBackground1`, so the Store's sections are headed blocks instead.
 
 ## Build and try it
 
@@ -125,3 +127,5 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 Built and statically checked on Linux; **not yet loaded in Playnite**. First run: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Also: the focus underline animation on text boxes and dropdowns (and that it resets when focus leaves), the curved bottom edge at the corners, the white 2px focus outline next to panel edges, the checkmark and chevron icons in menus and dropdowns, and how visible the subtle selected row is in the details view.
 
 Layout checks: the content layer's rounded corner with the background image on (details view), the corner going square with the rail on the right or hidden, the centered search shrinking in narrow windows, caption buttons flush with the corner (also maximized), and the rail's brand pill.
+
+Game overview: the hero fade into the content layer, the box art tile mask and edge, the three-column Additional information grid at narrow widths.
