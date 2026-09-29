@@ -20,6 +20,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="80" height="80" /> | **GameHoverDetails** (`gamehoverdetails`) | A hover card beside library tiles showing the game details you pick, up to five fields like play time or developer, in your theme colors or over the game's background art. |
 | <img src="src/AutoStatus/info/icon.png" alt="AutoStatus" width="80" height="80" /> | **AutoStatus** (`autostatus`) | Keeps completion status in step with how you play: stale Playing games move to On Hold after a number of days you pick, and starting an On Hold, Abandoned, or Plan to Play game sets it back to Playing. |
 | <img src="src/ExeIcon/info/icon.png" alt="ExeIcon" width="80" height="80" /> | **ExeIcon** (`exeicon`) | A metadata source that fills missing game icons from the game's own executable, including Steam and Epic imports, keeping every size up to 256px with no internet needed. |
+| <img src="src/RandomTheme/info/icon.png" alt="RandomTheme" width="80" height="80" /> | **RandomTheme** (`randomtheme`) | Picks a random installed theme each time Playnite starts, with separate Desktop and Fullscreen settings, a list to leave themes out, and a "Randomize now" button. |
 
 ### Themes
 
