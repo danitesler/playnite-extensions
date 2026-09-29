@@ -29,6 +29,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/PrimerTheme/info/icon.png" alt="Primer Theme" width="80" height="80" /> | **Primer Theme** (`primertheme`) | A fully dark desktop theme in GitHub Primer style, with a dark header band, navigation rail, Octicons, green primary buttons, and coral underline tabs. [Preview components](https://primer.style/components) |
 | <img src="src/Fluent2Theme/info/icon.png" alt="Fluent 2 Theme" width="80" height="80" /> | **Fluent 2 Theme** (`fluent2theme`) | A fully dark desktop theme in Microsoft Fluent 2 style, with a Windows 11 navigation rail, centered search, underline inputs, and Fluent icons. [Preview components](https://react.fluentui.dev/) |
 | <img src="src/BattleNetTheme/info/icon.png" alt="Battle.net Theme" width="80" height="80" /> | **Battle.net Theme** (`battlenettheme`) | A fully dark desktop theme in the style of the Battle.net app, with a top app bar, a game list next to a game page with full-width art, and a big blue Play button. Colors are approximated; Blizzard's logos and icons are not included. |
+| <img src="src/Warcraft3Theme/info/icon.png" alt="Warcraft III Theme" width="80" height="80" /> | **Warcraft III Theme** (`warcraft3theme`) | A dark desktop theme in the style of Warcraft III: stone plates in bronze and gold trim, the main menu as a sidebar column, F10-style menus, and a unit-info game screen. Fan work; frames are drawn, icons are game-icons.net (CC BY 3.0). |
 
 ## Installation
 
