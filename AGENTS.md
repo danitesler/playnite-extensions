@@ -22,6 +22,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Battle.net Theme** (`battlenettheme`) — Desktop theme, theme API 2.9.0, the Battle.net app's dark look (approximated, not sampled) with a top app bar, game list and game page. Notes in **`src/BattleNetTheme/AGENTS.md`**.
 - **Warcraft III Theme** (`warcraft3theme`) — Desktop theme, theme API 2.9.0, the Warcraft III interface (stone plates, bronze and gold trim, unit-info game screen); frames drawn in XAML, icons from game-icons.net, no Blizzard art. Notes in **`src/Warcraft3Theme/AGENTS.md`**.
 - **Assassin's Creed Theme** (`assassinscreedtheme`) — Desktop theme, theme API 2.9.0, modeled on the RPG-era Assassin's Creed menus: charcoal, ivory and gold, a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/AssassinsCreedTheme/AGENTS.md`**.
+- **WoW Vanilla Theme** (`wowvanillatheme`) — Desktop theme, theme API 2.9.0, World of Warcraft Vanilla interface style (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/WoWVanillaTheme/AGENTS.md`**.
 
 ## Repository layout
 
