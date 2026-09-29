@@ -8,7 +8,7 @@ This is the add-on icon (src/<AddOn>/info/icon.png), not the theme menu icons fr
 scripts/render-icons.ps1.
 
   .\scripts\render-addon-icon.ps1 -Svg logo.svg -Extension mytheme
-  .\scripts\render-addon-icon.ps1 -Svg logo.svg -Out src\MyTheme\info\icon.png
+  .\scripts\render-addon-icon.ps1 -Svg logo.svg -Out src	hemes\MyTheme\info\icon.png
 
 The SVG should be the mark only. Needs python3 and Pillow. On macOS, Quick Look
 rasterizes the SVG so logo holes stay correct.

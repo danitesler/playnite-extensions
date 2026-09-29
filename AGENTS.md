@@ -5,7 +5,7 @@
 This repository is a reusable **Playnite add-on monorepo** for two kinds of add-ons, both registered in **`src/extensions.json`** and distinguished by **`kind`**:
 
 - **`plugin`** — .NET extensions. Each owns its code, project file, manifests, icon, and release metadata under **`src/<PluginName>/`**.
-- **`theme`** — XAML themes. Each is standalone and laid out like a plugin: **`src/<ThemeName>/`** holds its XAML and tokens (`src/`), manifests, icon and licenses (`info/`), and notes (`AGENTS.md`). Each follows its own design system's tokens, shell and components; the only thing themes share is the key vocabulary (Playnite's keys plus **`scripts/data/theme-keys.json`**), so keys mean the same in every theme and ThemeModifier edits reach every control.
+- **`theme`** — XAML themes. Each is standalone and laid out like a plugin: **`src/themes/<ThemeName>/`** holds its XAML and tokens (`src/`), manifests, icon and licenses (`info/`), and notes (`AGENTS.md`). Each follows its own design system's tokens, shell and components; the only thing themes share is the key vocabulary (Playnite's keys plus **`scripts/data/theme-keys.json`**), so keys mean the same in every theme and ThemeModifier edits reach every control.
 
 ## Current extensions
 
@@ -13,18 +13,18 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **GameHoverDetails** (`gamehoverdetails`) — GenericPlugin, `net462`, WPF: hover popup with name, short description, and platforms. Notes in **`src/GameHoverDetails/AGENTS.md`**.
 - **AutoStatus** (`autostatus`) — GenericPlugin, `net462`, WPF settings: completion-status rules (stale Playing → On Hold; started game → Playing). Notes in **`src/AutoStatus/AGENTS.md`**.
 - **ExeIcon** (`exeicon`) — MetadataPlugin, `net462`, no UI: Icon metadata source that extracts the icon from the game's executable. Notes in **`src/ExeIcon/AGENTS.md`**.
+- **RandomTheme** (`randomtheme`) — GenericPlugin, `net462`, WPF settings: picks a random theme on startup independently for Desktop and Fullscreen modes. Notes in **`src/RandomTheme/AGENTS.md`**.
 
 ## Current themes
 
-- **Shadcn UI Theme** (`shadcnuitheme`) — Desktop theme, theme API 2.9.0 (Playnite 10.45+), shadcn/ui (zinc, dark). Notes in **`src/ShadcnUiTheme/AGENTS.md`**.
-- **Chakra UI Theme** (`chakrauitheme`) — Desktop theme, theme API 2.9.0, Chakra UI v3 dark tokens with teal. Notes in **`src/ChakraUiTheme/AGENTS.md`**.
-- **Material UI Theme** (`materialuitheme`) — Desktop theme, theme API 2.9.0, MUI's default dark theme. Notes in **`src/MaterialUiTheme/AGENTS.md`**.
-- **Primer Theme** (`primertheme`) — Desktop theme, theme API 2.9.0, GitHub Primer dark tokens. Notes in **`src/PrimerTheme/AGENTS.md`**.
-- **Fluent 2 Theme** (`fluent2theme`) — Desktop theme, theme API 2.9.0, Microsoft Fluent 2 `webDarkTheme` tokens and a Windows 11 shell. Notes in **`src/Fluent2Theme/AGENTS.md`**.
-- **Battle.net Theme** (`battlenettheme`) — Desktop theme, theme API 2.9.0, the Battle.net app's dark look (approximated, not sampled) with a top app bar, game list and game page. Notes in **`src/BattleNetTheme/AGENTS.md`**.
-- **Warcraft III Theme** (`warcraft3theme`) — Desktop theme, theme API 2.9.0, the Warcraft III interface (stone plates, bronze and gold trim, unit-info game screen); frames drawn in XAML, icons from game-icons.net, no Blizzard art. Notes in **`src/Warcraft3Theme/AGENTS.md`**.
-- **Assassin's Creed Theme** (`assassinscreedtheme`) — Desktop theme, theme API 2.9.0, modeled on the RPG-era Assassin's Creed menus: charcoal, ivory and gold, a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/AssassinsCreedTheme/AGENTS.md`**.
-- **WoW Vanilla Theme** (`wowvanillatheme`) — Desktop theme, theme API 2.9.0, World of Warcraft Vanilla interface style (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/WoWVanillaTheme/AGENTS.md`**.
+- **Shadcn UI** (`shadcnui`) — Desktop theme, theme API 2.9.0 (Playnite 10.45+), shadcn/ui (zinc, dark). Notes in **`src/themes/ShadcnUi/AGENTS.md`**.
+- **Chakra UI** (`chakraui`) — Desktop theme, theme API 2.9.0, Chakra UI v3 dark tokens with teal. Notes in **`src/themes/ChakraUi/AGENTS.md`**.
+- **Material UI** (`materialui`) — Desktop theme, theme API 2.9.0, MUI's default dark theme. Notes in **`src/themes/MaterialUi/AGENTS.md`**.
+- **Primer** (`primer`) — Desktop theme, theme API 2.9.0, GitHub Primer dark tokens. Notes in **`src/themes/Primer/AGENTS.md`**.
+- **Fluent 2** (`fluent2`) — Desktop theme, theme API 2.9.0, Microsoft Fluent 2 `webDarkTheme` tokens and a Windows 11 shell. Notes in **`src/themes/Fluent2/AGENTS.md`**.
+- **Battle.net** (`battlenet`) — Desktop theme, theme API 2.9.0, the Battle.net app's dark look (approximated, not sampled) with a top app bar, game list and game page. Notes in **`src/themes/BattleNet/AGENTS.md`**.
+- **Assassin's Creed** (`assassinscreed`) — Desktop theme, theme API 2.9.0, modeled on the RPG-era Assassin's Creed menus: charcoal, ivory and gold, a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/themes/AssassinsCreed/AGENTS.md`**.
+- **WoW Vanilla** (`wowvanilla`) — Desktop theme, theme API 2.9.0, World of Warcraft Vanilla interface style (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/themes/WoWVanilla/AGENTS.md`**.
 
 ## Repository layout
 
@@ -34,13 +34,13 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 | Extension project | `src/<PluginName>/<PluginName>.csproj` |
 | Extension source | `src/<PluginName>/src/` |
 | Extension manifests | `src/<PluginName>/info/` (incl. `danitesler_<key>.yaml` for PlayniteAddonDatabase PRs) |
-| Theme source | `src/<ThemeName>/src/` (XAML at Playnite Default-theme paths, `tokens.css`, `Constants.template.xaml`) |
-| Theme manifests | `src/<ThemeName>/info/` (`theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`, `LICENSE-*.txt`) |
+| Theme source | `src/themes/<ThemeName>/src/` (XAML at Playnite Default-theme paths, `tokens.css`, `Constants.template.xaml`) |
+| Theme manifests | `src/themes/<ThemeName>/info/` (`theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`, `LICENSE-*.txt`) |
 | Playnite theme API snapshot | `scripts/data/playnite-theme-api.json` (loadable file paths + resource keys per Playnite release) |
 | Shared theme key vocabulary | `scripts/data/theme-keys.json` (every key a theme may add: type, group, required, role) |
 | Build scripts | `scripts/*.ps1` |
-| Package artifacts | `artifacts/releases/<key>/` |
-| Build artifacts | `artifacts/builds/<key>/` |
+| Package artifacts | `artifacts/releases/<key>/` (themes: `artifacts/releases/themes/<key>/`) |
+| Build artifacts | `artifacts/builds/<key>/` (themes: `artifacts/builds/themes/<key>/`) |
 
 ## Build and package commands
 

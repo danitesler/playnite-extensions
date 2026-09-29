@@ -6,7 +6,7 @@ outline and a radial glow along the bottom, matching .project-icon--glow on
 that page (23% radius, 1px outline at 50px, glow 180% 82% at 50% 102%).
 
   python3 scripts/render-addon-icon.py --svg logo.svg --extension mytheme
-  python3 scripts/render-addon-icon.py --svg logo.svg --out src/MyTheme/info/icon.png
+  python3 scripts/render-addon-icon.py --svg logo.svg --out src/themes/MyTheme/info/icon.png
 
 Pass the mark only (no wordmark, no full-bleed background). On macOS the SVG
 is rasterized with Quick Look so holes and fill rules stay intact. Elsewhere

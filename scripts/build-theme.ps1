@@ -24,7 +24,7 @@ if ((Get-ExtensionKind $profile) -ne "theme") {
 $manifest = Get-ThemeManifestInfo -Profile $profile
 $mode = if ($manifest.Mode) { $manifest.Mode } else { "Desktop" }
 $slug = if ($profile.slug) { $profile.slug } else { $profile.key }
-$buildDrop = Join-Path $repoRoot "artifacts/builds/$slug"
+$buildDrop = Join-Path $repoRoot "artifacts/builds/themes/$slug"
 
 Write-Host "Building theme $($manifest.Name) $($manifest.Version) ($mode) from $($profile.themeSource)..."
 try {

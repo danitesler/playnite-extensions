@@ -37,7 +37,7 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "theme-tools.ps1")
 
 $repoRoot = Get-RepoRoot
-# "Material UI Theme" -> MaterialUiTheme: all-caps words become Pascal case, like the existing folders.
+# "Material UI" -> MaterialUi: all-caps words become Pascal case, like the existing folders.
 $dirName = -join (($Name -split "[^A-Za-z0-9]+" | Where-Object { $_ }) | ForEach-Object {
         if ($_.Length -gt 1 -and $_ -ceq $_.ToUpperInvariant()) { $_.Substring(0, 1) + $_.Substring(1).ToLowerInvariant() }
         else { $_.Substring(0, 1).ToUpperInvariant() + $_.Substring(1) }
@@ -49,7 +49,7 @@ if (-not $DesignSystem) {
     $DesignSystem = ($Name -replace "\s*Theme$", "").Trim()
 }
 $Key = $Key.ToLowerInvariant()
-$themeRoot = Join-Path $repoRoot "src/$dirName"
+$themeRoot = Join-Path $repoRoot "src/themes/$dirName"
 if (Test-Path $themeRoot) {
     throw "Theme directory already exists at $themeRoot"
 }
@@ -70,12 +70,12 @@ if (-not $reference) {
 }
 $rawBaseUrl = $reference.rawBaseUrl
 $releaseBaseUrl = $reference.releaseBaseUrl
-$sourceUrl = ($reference.sourceUrl -replace "/src/[^/]+/?$", "") + "/src/$dirName"
+$sourceUrl = ($reference.sourceUrl -replace "/src/.*$", "") + "/src/themes/$dirName"
 $issuesUrl = ($sourceUrl -replace "/tree/.*$", "") + "/issues"
 
 $addonId = "{0}_{1}" -f $dirName, (([guid]::NewGuid()).ToString("N").Substring(0, 8).ToUpperInvariant())
-$infoRel = "src/$dirName/info"
-$sourceRel = "src/$dirName/src"
+$infoRel = "src/themes/$dirName/info"
+$sourceRel = "src/themes/$dirName/src"
 $manifestRel = "$infoRel/theme.yaml"
 $installerRel = "$infoRel/InstallerManifest.yaml"
 $databaseRel = "$infoRel/danitesler_$Key.yaml"
@@ -316,7 +316,7 @@ $newProfile = [pscustomobject]@{
     extensionManifest  = $manifestRel
     installerManifest  = $installerRel
     databaseManifest   = $databaseRel
-    outputPath         = "artifacts/builds/$Key"
+    outputPath         = "artifacts/builds/themes/$Key"
     requiredApiVersion = $ThemeApiVersion
     sourceUrl          = $sourceUrl
     rawBaseUrl         = $rawBaseUrl

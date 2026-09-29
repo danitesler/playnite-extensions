@@ -78,7 +78,7 @@ if ($isTheme) {
     }
     foreach ($legacy in @("themeKit", "palette", "themeDir")) {
         if ($profile.PSObject.Properties.Name -contains $legacy) {
-            Add-ValidationError $errors "Theme profile still has '$legacy'. Themes are standalone: sources live in themeSource (src/<Theme>/src)."
+            Add-ValidationError $errors "Theme profile still has '$legacy'. Themes are standalone: sources live in themeSource (src/themes/<Theme>/src)."
         }
     }
     if ($profile.PSObject.Properties.Name -contains "resourcePrefix") {

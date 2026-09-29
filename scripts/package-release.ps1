@@ -121,7 +121,8 @@ try {
     }
 
     $slug = if ($profile.slug) { $profile.slug } else { $profile.key }
-    $releaseDrop = Join-Path $repoRoot "artifacts/releases/$slug"
+    $releaseSub = if ($isTheme) { "themes/$slug" } else { $slug }
+    $releaseDrop = Join-Path $repoRoot "artifacts/releases/$releaseSub"
     New-Item -ItemType Directory -Path $releaseDrop -Force | Out-Null
 
     if ($isTheme) {

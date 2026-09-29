@@ -1,7 +1,7 @@
 # Shared helpers for Playnite theme add-ons (kind = "theme" in src/extensions.json).
 # Dot-source after extension-profiles.ps1.
 #
-# A theme is standalone: everything it ships lives under src/<Theme>/ (AGENTS.md, info/, src/). Nothing is shared
+# A theme is standalone: everything it ships lives under src/themes/<Theme>/ (AGENTS.md, info/, src/). Nothing is shared
 # between themes at build time except the key vocabulary (data/theme-keys.json): every theme names its resources with
 # Playnite's keys and the shared keys listed there, so a key means the same thing in every theme.
 
@@ -162,7 +162,7 @@ function Write-ThemeModifierManifest {
 }
 
 # ---------------------------------------------------------------------------------------------------------------
-# Tokens: src/<Theme>/src/tokens.css holds the design system's CSS custom properties under their own names
+# Tokens: src/themes/<Theme>/src/tokens.css holds the design system's CSS custom properties under their own names
 # ---------------------------------------------------------------------------------------------------------------
 
 function Read-ThemeTokens {
@@ -575,7 +575,7 @@ function Get-ThemeSourceDirectory {
     param([Parameter(Mandatory = $true)] $Profile)
 
     if (-not ($Profile.PSObject.Properties.Name -contains "themeSource") -or -not $Profile.themeSource) {
-        throw "Theme profile '$($Profile.key)' has no themeSource (src/<Theme>/src)."
+        throw "Theme profile '$($Profile.key)' has no themeSource (src/themes/<Theme>/src)."
     }
 
     $source = Join-RepoPath $Profile.themeSource
@@ -588,7 +588,7 @@ function Get-ThemeSourceDirectory {
 
 function Invoke-ThemeBuild {
     <#
-        Builds a loadable Playnite theme folder from one theme's sources (src/<Theme>/):
+        Builds a loadable Playnite theme folder from one theme's sources (src/themes/<Theme>/):
           1. every file under themeSource at the same relative path, except tokens.css and *.template.xaml
           2. each *.template.xaml rendered with themeSource/tokens.css into the same path without ".template"
           3. info/LICENSE*.txt and NOTICE*.txt third-party notices, at the theme root
