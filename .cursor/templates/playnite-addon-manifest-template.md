@@ -1,4 +1,4 @@
-# Playnite Generic Add-on Manifest Template
+# Playnite Add-on Manifest Template
 
 ## File naming (this repo)
 
@@ -39,7 +39,7 @@ IconUrl: https://raw.githubusercontent.com/your-user/your-repo/main/src/YourExte
 Checklist before submitting:
 
 1. `AddonId` exactly matches the `Id` in `src/<Name>/info/extension.yaml` (plugins) or `info/theme.yaml` (themes).
-2. `Type` is `Generic` for GenericPlugin entries, `ThemeDesktop` / `ThemeFullscreen` for themes.
+2. `Type` uses the database names, not the `extension.yaml` ones: `Generic` for GenericPlugin, `MetadataProvider` for MetadataPlugin, `GameLibrary` for LibraryPlugin, `ThemeDesktop` / `ThemeFullscreen` for themes.
 3. `InstallerManifestUrl` points to the raw per-extension `InstallerManifest.yaml` on your default branch.
 4. `SourceUrl` is reachable and public.
 5. Required fields are present: `AddonId`, `Type`, `Name`, `Author`, `ShortDescription`, `InstallerManifestUrl`, `SourceUrl`.

@@ -118,6 +118,21 @@ if ($isTheme) {
 elseif (-not $manifest.Module) {
     Add-ValidationError $errors "extension.yaml is missing Module."
 }
+if (-not $manifest.Type) {
+    Add-ValidationError $errors "extension.yaml is missing Type."
+}
+elseif ($profile.pluginType -and $manifest.Type -ne $profile.pluginType) {
+    Add-ValidationError $errors "Profile pluginType '$($profile.pluginType)' does not match extension.yaml Type '$($manifest.Type)'."
+}
+$expectedDatabaseType = ""
+if ($manifest.Type) {
+    try {
+        $expectedDatabaseType = Get-AddonDatabaseType -PluginType $manifest.Type
+    }
+    catch {
+        Add-ValidationError $errors "extension.yaml Type '$($manifest.Type)' is not GenericPlugin, MetadataPlugin, or LibraryPlugin."
+    }
+}
 
 if (Test-Path $installerPath) {
     $installerLines = Get-Content -Path $installerPath
@@ -168,6 +183,7 @@ if ($databasePath -and (Test-Path $databasePath)) {
     $databaseInstallerManifestUrl = Get-YamlScalar -Lines $databaseLines -Key "InstallerManifestUrl"
     $databaseSourceUrl = Get-YamlScalar -Lines $databaseLines -Key "SourceUrl"
     $databaseIconUrl = Get-YamlScalar -Lines $databaseLines -Key "IconUrl"
+    $databaseType = Get-YamlScalar -Lines $databaseLines -Key "Type"
 
     if ($databaseAddonId -ne $manifest.Id) {
         Add-ValidationError $errors "Database AddonId '$databaseAddonId' does not match $manifestName Id '$($manifest.Id)'."
@@ -179,6 +195,10 @@ if ($databasePath -and (Test-Path $databasePath)) {
         if ($databaseType -ne $expectedType) {
             Add-ValidationError $errors "Database Type '$databaseType' should be '$expectedType' for a $($manifest.Mode) theme."
         }
+    }
+
+    if ($expectedDatabaseType -and $databaseType -ne $expectedDatabaseType) {
+        Add-ValidationError $errors "Database Type '$databaseType' should be '$expectedDatabaseType' for a $($manifest.Type)."
     }
 
     if ($profile.rawBaseUrl) {

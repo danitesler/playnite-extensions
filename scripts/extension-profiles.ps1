@@ -118,6 +118,21 @@ function Get-ExtensionManifestInfo {
     }
 }
 
+# PlayniteAddonDatabase `Type` values differ from extension.yaml plugin types.
+function Get-AddonDatabaseType {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PluginType
+    )
+
+    switch ($PluginType) {
+        "GenericPlugin" { return "Generic" }
+        "MetadataPlugin" { return "MetadataProvider" }
+        "LibraryPlugin" { return "GameLibrary" }
+        default { throw "Unsupported plugin type '$PluginType'." }
+    }
+}
+
 function Get-ExpectedPextName {
     param(
         [Parameter(Mandatory = $true)]

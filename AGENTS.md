@@ -11,6 +11,8 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 
 - **Autogrid** (`autogrid`) — GenericPlugin, `net462`, WPF. Extension-specific notes live in **`src/Autogrid/AGENTS.md`**.
 - **GameHoverDetails** (`gamehoverdetails`) — GenericPlugin, `net462`, WPF: hover popup with name, short description, and platforms. Notes in **`src/GameHoverDetails/AGENTS.md`**.
+- **AutoStatus** (`autostatus`) — GenericPlugin, `net462`, WPF settings: completion-status rules (stale Playing → On Hold; started game → Playing). Notes in **`src/AutoStatus/AGENTS.md`**.
+- **ExeIcon** (`exeicon`) — MetadataPlugin, `net462`, no UI: Icon metadata source that extracts the icon from the game's executable. Notes in **`src/ExeIcon/AGENTS.md`**.
 
 ## Current themes
 
@@ -46,6 +48,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - Build one extension: **`.\scripts\build-plugin.ps1 -Extension <key>`**
 - Package one extension: **`.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`**
 - Scaffold a new extension: **`.\scripts\new-extension.ps1 -Name MyPlugin -Key myplugin -Type GenericPlugin -Author <name>`**
+  - `-Type` is `GenericPlugin`, `MetadataPlugin`, or `LibraryPlugin`; each gets a skeleton that compiles. The add-on database `Type` differs (`Generic`, `MetadataProvider`, `GameLibrary`) and `validate-extension.ps1` checks it.
 - Build one theme (render + static checks): **`.\scripts\build-theme.ps1 -Extension <key> [-Deploy]`** (`build-plugin.ps1` forwards themes here)
 - Scaffold a new theme: **`.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-DesignSystem "My DS"] [-TokensCss <tokens .css>]`**
 - Render icons for any add-on: **`.\scripts\render-icons.ps1 -Extension <key>`** (jobs in `src/<Folder>/icons.json`), or ad hoc **`-Pack <pack> -Icons <names> [-Format Png|Geometry|DrawingImage]`**. Packs (Octicons, Lucide, Tabler, Heroicons, Phosphor, Feather, Material Symbols, Fluent) are in `scripts/data/icon-packs.json`; `-UrlTemplate` / `-SvgDir` take any other SVG source. `-ListPacks` shows them.

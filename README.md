@@ -1,6 +1,6 @@
 # Playnite Extensions
 
-Open-source **Playnite** add-ons in one place: small **generic plugins** that tweak the desktop library—layout, information at a glance, and other quality-of-life improvements—and **desktop themes**. Each add-on is built and published on its own; pick the ones you want.
+Open-source **Playnite** add-ons in one place: small plugins that tweak the desktop library—layout, information at a glance, tidy metadata, and other quality-of-life improvements—and **desktop themes**. Each add-on is built and published on its own; pick the ones you want.
 
 ## Support this work
 
@@ -18,6 +18,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | --- | --- | --- |
 | <img src="src/Autogrid/info/icon.png" alt="Autogrid" width="80" height="80" /> | **Autogrid** (`autogrid`) | Keeps the Desktop grid at a target column or row count as you resize Playnite, scaling covers automatically to keep gutters even. |
 | <img src="src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="80" height="80" /> | **GameHoverDetails** (`gamehoverdetails`) | A hover card beside library tiles showing the game details you pick, up to five fields like play time or developer, in your theme colors or over the game's background art. |
+| <img src="src/AutoStatus/info/icon.png" alt="AutoStatus" width="80" height="80" /> | **AutoStatus** (`autostatus`) | Keeps completion status in step with how you play: stale Playing games move to On Hold after a number of days you pick, and starting an On Hold, Abandoned, or Plan to Play game sets it back to Playing. |
+| <img src="src/ExeIcon/info/icon.png" alt="ExeIcon" width="80" height="80" /> | **ExeIcon** (`exeicon`) | A metadata source that fills missing game icons from the game's own executable, including Steam and Epic imports, keeping every size up to 256px with no internet needed. |
 
 ### Themes
 
@@ -38,7 +40,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 1. **Inside Playnite:** open **Add-ons** from the main menu, browse or search for the extension, and install it from there.
 2. **Or from GitHub:** on **[Releases](https://github.com/danitesler/playnite-extensions/releases)**, open the release for the add-on you want, download its `.pext` or `.pthm` file, and open it in **Windows** (double-click or choose **Open**).
 3. Click **Install** when Playnite prompts you, then restart Playnite.
-4. After it’s installed, you’ll find it under **Add-ons → Extension settings → Generic** — pick the add-on there to turn it on and change its options. For a theme, pick it under **Settings → Appearance → Theme** and restart Playnite.
+4. After it’s installed, you’ll find it under **Add-ons → Extension settings → Generic** — pick the add-on there to turn it on and change its options. **ExeIcon** has no settings: choose it as the **Icon** source when you download metadata. For a theme, pick it under **Settings → Appearance → Theme** and restart Playnite.
 
 ## Questions, suggestions, and issues
 
