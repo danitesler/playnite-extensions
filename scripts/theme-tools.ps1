@@ -728,7 +728,11 @@ function Test-ThemeBuild {
                 $errors.Add("$relative uses {StaticResource $key}, but '$key' only exists in another theme file. Playnite parses each theme file alone before merging, so this breaks the theme; use DynamicResource.") | Out-Null
             }
 
-            if ($relative -ne "Constants.xaml" -and $colorKeys.Contains($key)) {
+            # HtmlTextView's HtmlForeground and LinkForeground are Color-typed: they can only read a Color key.
+            $before = $text.Substring([Math]::Max(0, $m.Index - 24), [Math]::Min(24, $m.Index))
+            $isHtmlColor = $before -match '(HtmlForeground|LinkForeground)\s*=\s*"$'
+
+            if ($relative -ne "Constants.xaml" -and $colorKeys.Contains($key) -and -not $isHtmlColor) {
                 $errors.Add("$relative reads the Color '$key'. Theme XAML reads brushes (Playnite's or a shared one): ThemeModifier replaces brushes, so this spot would ignore its edits. For a gradient, fill with the brush and put the gradient in an OpacityMask.") | Out-Null
             }
         }
