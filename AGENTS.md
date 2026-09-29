@@ -24,7 +24,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Launchpad** (`launchpad`) — Desktop theme, theme API 2.9.0, a dark game-launcher look inspired by the Battle.net app (approximated, not sampled) with a top app bar, game list and game page. Notes in **`src/themes/Launchpad/AGENTS.md`**.
 - **Codex** (`codex`) — Desktop theme, theme API 2.9.0, charcoal, ivory and gold inspired by the RPG-era Assassin's Creed menus: a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/themes/Codex/AGENTS.md`**.
 - **Questlog** (`questlog`) — Desktop theme, theme API 2.9.0, fantasy RPG look inspired by the World of Warcraft Vanilla interface (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/themes/Questlog/AGENTS.md`**.
-- **Uplink** (`uplink`) — Desktop theme, theme API 2.9.0, sci-fi look inspired by the StarCraft II menus (two-tier navigation bar when the sidebar is at the top, lit blue tabs, cut-corner plates, blue glows; text colors from the game's UI style data); unofficial, original artwork only, no game files. Notes in **`src/themes/Uplink/AGENTS.md`**.
+- **Uplink** (`uplink`) — Desktop theme, theme API 2.9.0, sci-fi look inspired by the StarCraft II menus (navigation rail on the left with a lit current item, sub navigation strip on top (uppercase tab bar when the sidebar is at the top), cut-corner plates, blue glows; text colors from the game's UI style data); unofficial, original artwork only, no game files. Notes in **`src/themes/Uplink/AGENTS.md`**.
 
 ## Repository layout
 

@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) taking ins
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
-**Intended layout: Settings → Appearance → Layout → Sidebar position = Top.** That turns the sidebar into the game's navigation bar. Left, right and bottom still work (an icon rail, or a bottom strip).
+**Intended layout: the sidebar on the left** (Playnite's default, like the other themes here): the game's navigation bar turned into a 56px icon rail, with the top panel as the sub navigation strip. At the top it becomes the game's horizontal tab bar with uppercase titles; right and bottom work too.
 
 ## Sources
 
@@ -64,8 +64,8 @@ New shared key this theme added to `scripts/data/theme-keys.json`: **`ChamferTem
 
 | File | Behavior |
 |------|----------|
-| `Views/Sidebar.xaml` | **Top:** the navigation bar, 56px, `ShellBackgroundBrush` with the glow rising toward the 1px bottom line; the home button (`MainMenuButton`, `PART_ElemMainMenu`, 56px plate with a hexagon mark) boxed at the left; 146px kept clear for the caption buttons. **Left/right:** a 56px rail with the same glow running sideways. **Bottom:** a strip. |
-| `CustomControls/SidebarItem.xaml` | **Top/bottom:** icon + title in uppercase heading sans (15px, Playnite's `StringToUpperCaseConverter`), 20px either side, short 1px dividers; `TextBrushDarker` at rest; hover and current = white over a blue glow (`FrameInnerBrush`) rising from the bar's bottom edge; current adds a 2px beam (`TabItemIndicatorBrush`) that fades out at both ends. **Rails:** icon only, 56x48, glow from the library-side edge and a 1px beam there; title as tooltip. |
+| `Views/Sidebar.xaml` | **Left/right (intended):** a 56px rail, `ShellBackgroundBrush` with the glow rising toward the 1px line on the library side; the home button (`MainMenuButton`, `PART_ElemMainMenu`, 56px plate with a hexagon mark) boxed at the start. **Top:** the game's horizontal navigation bar, 56px, glow toward the bottom line, 146px kept clear for the caption buttons. **Bottom:** a strip. |
+| `CustomControls/SidebarItem.xaml` | **Top/bottom:** icon + title in uppercase heading sans (15px, Playnite's `StringToUpperCaseConverter`), 20px either side, short 1px dividers; `TextBrushDarker` at rest; hover and current = white over a blue glow (`FrameInnerBrush`) rising from the bar's bottom edge; current adds a 2px beam (`TabItemIndicatorBrush`) that fades out at both ends. **Rails:** icon only, 56x48, glow from the library-side edge and a 2px beam there; title as tooltip. |
 | `Views/TopPanel.xaml` | The sub navigation strip: 48px on `TopPanelBackgroundBrush`, 1px line under it; search (320px) left; view, sort, filter, notification icons right, `TextBrushDarker`, light blue on a glow wash when on. Keeps 146px clear for the caption buttons only when it is the topmost bar (sidebar not at the top). |
 | `DerivedStyles/MainWindowStyle.xaml` | Caption buttons 46x40, 8px from the top with the sidebar at the top (centered on the 56px bar), 4px otherwise; red close hover. |
 | `Views/Library.xaml`, `FilterPanelView.xaml`, `ExplorerPanel.xaml`, `SearchView.xaml` | Library layer on `deck`, the game's background art feathered in; side panels on `hull`. |
@@ -100,6 +100,6 @@ The rest (TextBox, PasswordBox, ScrollViewer, ProgressBar, TabControl, Expander,
 
 ## Not verified yet
 
-**Never loaded in Playnite.** It was built on Linux: `build-theme.ps1` and `validate-extension.ps1` pass (static checks: file paths, keys, types, placeholders, cross-file references, well-formed XAML), but WPF never parsed it, so a XAML error that only shows at load time would make Playnite fall back to Default and log it in `playnite.log`. `art/preview-grid.png` is an HTML replica of the grid view drawn with the same token values and sizes, rendered in Chromium, not a Playnite capture (fonts stand in: Barlow for Bahnschrift, Open Sans for Segoe UI). Take real screenshots (`info/screenshots/`) before a database PR.
+**Never loaded in Playnite.** It was built on Linux: `build-theme.ps1` and `validate-extension.ps1` pass (static checks: file paths, keys, types, placeholders, cross-file references, well-formed XAML), but WPF never parsed it, so a XAML error that only shows at load time would make Playnite fall back to Default and log it in `playnite.log`. `art/preview-grid.png` is an HTML replica of the grid view with the left rail drawn with the same token values and sizes, rendered in Chromium, not a Playnite capture (fonts stand in: Barlow for Bahnschrift, Open Sans for Segoe UI). Take real screenshots (`info/screenshots/`) before a database PR.
 
-First run, most likely to need a fix: the uppercase converter binding on `SidebarItem` titles; the chamfer plates at small sizes (the 6px corner cells need at least 12px of height); the tab glow and beam with the sidebar at the top and at the bottom; the flipped glow on a right-hand rail; caption buttons over the 56px bar and the 48px strip; `Typography.Capitals` with the installed heading font; and every `[eye]` value in `tokens.css`.
+First run, most likely to need a fix: the uppercase converter binding on `SidebarItem` titles; the chamfer plates at small sizes (the 6px corner cells need at least 12px of height); the rail glow and beam on the left, the tab glow and beam with the sidebar at the top and at the bottom; the flipped glow on a right-hand rail; caption buttons over the 56px bar and the 48px strip; `Typography.Capitals` with the installed heading font; and every `[eye]` value in `tokens.css`.
