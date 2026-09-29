@@ -45,5 +45,5 @@ Requested in Playnite issues #2828 (status rules from last played), #1028 (Aband
 - Keep **`AutoStatus_66B775F8`**, **`AutoStatus.dll`**, and plugin **`Guid`** stable once shipped.
 - Completion statuses are user data (renamable, deletable). Store **Ids**, never names; skip a rule when its target Id no longer exists.
 - Do not treat "never played" as stale. Do not drop the marks file: it is what keeps a freshly re-marked game from bouncing back.
-- New UI copy: `en_US.xaml` first, then **every** locale (**`.cursor/rules/playnite-localization.mdc`**), and keep the English fallbacks in code identical to `en_US.xaml`.
+- New UI copy: `en_US.xaml` first, then **every** locale (**`.claude/skills/playnite-plugin-dev/SKILL.md`**), and keep the English fallbacks in code identical to `en_US.xaml`.
 - `StatusRules` stays free of Playnite/WPF types so it can be unit-tested off Windows.

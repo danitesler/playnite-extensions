@@ -2,11 +2,11 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of the **World of Warcraft Vanilla (1.x) interface**: gold and bronze frames, red leather panel buttons with gold text, the navy tooltip, stone bars, item slots, the quest log. The game details screen is laid out like the quest log. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`); the client's own names for its colors stay in `tokens.css` and the template's placeholders.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of the **World of Warcraft Vanilla (1.x) interface**: gold and bronze frames, red leather panel buttons with gold text, the navy tooltip, stone bars, item slots, the quest log. The game details screen is laid out like the quest log.
 
 Fan-made and unofficial: **no game files are included**. Every icon, texture and placeholder is original artwork drawn for this theme (`art/`), and the client font is not bundled (see Fonts). `info/NOTICE-WoWVanilla.txt` ships in the package.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -27,37 +27,33 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | The client's constants under their own names (`NORMAL_FONT_COLOR`, `TOOLTIP_DEFAULT_BACKGROUND_COLOR`, `EPIC_PURPLE_COLOR`, ...) and the approximated art colors. |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. Gradients are plain `LinearGradientBrush` entries. |
 | `src/Common.xaml` | `PopupBorder`, `FocusVisual`, `CheckBoxFocusVisual`, component spacing, `IconSize`. |
 | `src/Media.xaml` | Glyph geometries (generated block, `python3 art/glyphs.py media`), `IconTemplate`, the search icons, the menu icon paths (`Images/Menu/*.png`), `DefaultGameIcon` and `DefaultGameCover` (the question mark). |
 | `src/DescriptionView.html` | The template Playnite renders the game description with: dark ink on paper. Carries its colors as literals (see Deviations). |
 | `src/Images/` | `Menu/*.png` (48px), `questionmark.png`, `cover.png`, `parchment.png`. |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `StandardWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml`, `SearchBox.xaml` | Shell and window frames. |
 | `src/Views/DetailsViewGameOverview.xaml`, `GridViewGameOverview.xaml` | The quest log page (details view and grid view side panel). |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
 | `art/` | Sources of the artwork (`glyphs.py`, `menu_icons.py`, `parchment.py`, `mark.svg` for the tile). Not shipped. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_wowvanilla.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `NOTICE-WoWVanilla.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the token behind each one. Controls read brushes only, so ThemeModifier's palette edits recolor them. Gradient keys (buttons, frame, bars, page, row highlights) are `LinearGradientBrush`; ThemeModifier's solid-color editor does not recolor those stops.
+Keys are the shared vocabulary; the template names the token behind each one. Gradient keys (buttons, frame, bars, page, row highlights) are `LinearGradientBrush`; ThemeModifier's solid-color editor does not recolor those stops.
 
 | Token | Value | Key | Used for |
 |-------|-------|-----|----------|
 | `HIGHLIGHT_FONT_COLOR` | `#ffffff` | `TextBrush`, `SelectedForegroundBrush` | values, body text, list rows |
 | `NORMAL_FONT_COLOR` | `#ffd100` | `GlyphBrush`, `ButtonForegroundBrush`, `FocusBrush`, `MixedRatingBrush` | labels, headings, button text, checked marks, accent, focus |
-| `NORMAL_FONT_COLOR` at 28 / 60 / 45 / 55 % | | `HoverBrush` / `HighlightGlyphBrush` / `SelectedBrush` / `SelectedHoverBrush` | mouse highlight, selected band |
+| `NORMAL_FONT_COLOR` at 28 / 60 / 45 % | | `HoverBrush` / `HighlightGlyphBrush` / `SelectedBrush` | mouse highlight, selected band |
 | `NORMAL_FONT_COLOR` gradient at 30 to 6 % / 52 to 14 % / 42 to 12 % | | `ListItemHoverBrush` / `ListItemSelectedBrush` / `MenuItemHoverBrush` | quest log row highlight, menu highlight (UI-Common-MouseHilight) |
 | `POOR_GRAY_COLOR` | `#9d9d9d` | `TextBrushDarker` | secondary text, uninstalled games |
 | `QUEST_FONT_COLOR` | `#000000` | `TextBrushDark`, `ParchmentTitleBrush` | ink on gold, outlines, headings on paper |
-| `ITEM_TEXT_FONT_COLOR`, `QUEST_SMALL_FONT_COLOR`, `PARCHMENT_LINK` | `#2e1f0f`, `#4d2e00`, `#7a1a0a` | `ParchmentTextBrush`, `ParchmentLabelBrush`, `ParchmentLinkBrush` | body, labels and links on paper |
+| `ITEM_TEXT_FONT_COLOR`, `QUEST_SMALL_FONT_COLOR`, `PARCHMENT_LINK` | `#2e1f0f`, `#4d2e00`, `#7a1a0a` | `ParchmentTextBrush`, `ParchmentLabelBrush`, `DescriptionView.html` | body, labels and links on paper |
 | `PARCHMENT_HIGHLIGHT` / `PARCHMENT` / `PARCHMENT_SHADE` / `PARCHMENT_EDGE` | | `ParchmentBrush` (gradient), `ParchmentEdgeBrush` | the page and its shaded rim |
 | `TOOLTIP_DEFAULT_BACKGROUND_COLOR` | `#171730` | `PopupBackgroundBrush`, `TooltipBackgroundBrush` | tooltips, menus, dropdown lists, the property list |
 | `TEXTURE_TOOLTIP_BORDER` | `#c9c9c9` | `PopupBorderBrush` | the light 2px popup edge |
 | `PANEL_FILL`, `DIALOG_BG_DARK` | `#2a241c`, `#0d0b08` | `NormalBrush`, `NormalBrushDark` | control surface, darker surface |
 | `DIALOG_BG_TOP` to `DIALOG_BG_BOTTOM` | `#211c16` to `#14110c` | `WindowBackgourndBrush`, `ContentBackgroundBrush` (to `DIALOG_BG_DARK`) | window and dialog background, the library layer |
-| `STONE_LIGHT` to `STONE_DARK` | `#362f26` to `#1c1813` | `ShellBackgroundBrush` (horizontal), `TopPanelBackgroundBrush` (vertical) | sidebar, top bar |
-| `FRAME_HIGHLIGHT` / `FRAME_GOLD` / `FRAME_BRONZE` | `#f4dc8e` / `#c99a3e` / `#7c5820` | `FrameBrush` (diagonal gradient), `PanelSeparatorBrush`, `WindowPanelSeparatorBrush`, `MenuSeparatorBrush`, `CheckBoxBorderBrush`, `GridViewItemHoverBorderBrush`, `TabItemHoverIndicatorBrush` | frame ring, dividers, hover edges |
+| `STONE_LIGHT` to `STONE_DARK` | `#362f26` to `#1c1813` | `ShellBackgroundBrush` (horizontal) | sidebar |
+| `FRAME_HIGHLIGHT` / `FRAME_GOLD` / `FRAME_BRONZE` | `#f4dc8e` / `#c99a3e` / `#7c5820` | `FrameBrush` (diagonal gradient), `PanelSeparatorBrush`, `WindowPanelSeparatorBrush`, `MenuSeparatorBrush`, `CheckBoxBorderBrush`, `GridViewItemHoverBorderBrush` | frame ring, dividers, hover edges |
 | `FRAME_SHADOW` | `#3d2810` | `FrameInnerBrush` | line just inside the frame |
 | `SLOT_FILL_BOTTOM`, `SLOT_EDGE_LIGHT` / `SLOT_EDGE` / `SLOT_EDGE_DARK` | | `GridItemBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `SlotBorderBrush` | the dark bed behind covers and icon slots, the bevel |
 | `FIELD_BACKGROUND`, `FIELD_BORDER`, `FIELD_BORDER_HOVER` | `#050403`, `#8b7548`, `#b39a63` | `InputBackgroundBrush`, `NormalBorderBrush`, `InputBorderBrush`, `InputHoverBorderBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush`, `ScrollBarTrackBrush` | edit boxes, grooves and troughs |
@@ -100,7 +96,7 @@ Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia,
 
 - Title in gold at 28px with a one pixel shadow; the icon and cover sit in a single thin slot edge (hidden with the image).
 - **Steam screenshots, description and notes = quest text** on the left: ink on a paper page (`ParchmentBrush`, the tiled `parchment.png` at 90 %, a shaded rim from an `OpacityMask` in a `BitmapCache` wrapper), inside one `FrameBrush` frame. Headings are `QuestTitleFont` style: black with a brown shadow copy behind, with no rule under them. Screenshots use the Steam Screenshots plugin host (`SteamScreenshots_SteamScreenshotsViewControl`), hidden when that plugin's control is not visible.
-- **Properties = an item tooltip** on the right of that page: the tooltip navy inside a 1px light edge, no inner line and no rule under the title. Labels gold, values white, links white until the pointer turns them gold, scores in the item quality colors. It holds every metadata field Playnite can show, in the six shared groups (progress, scores, about, tags as plain dark chips, library, links; see `.cursor/rules/playnite-themes.mdc`) split by space only (108px gold caption column beside white values; a group whose fields are all hidden collapses). The grid panel uses the same two columns (quest text, then a 280px tooltip) with each caption over its value. The side panel has no bronze rule against the grid.
+- **Properties = an item tooltip** on the right of that page: the tooltip navy inside a 1px light edge, no inner line and no rule under the title. Labels gold, values white, links white until the pointer turns them gold, scores in the item quality colors. It holds every metadata field Playnite can show, in the six shared groups (progress, scores, about, tags as plain dark chips, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by space only (108px gold caption column beside white values; a group whose fields are all hidden collapses). The grid panel uses the same two columns (quest text, then a 280px tooltip) with each caption over its value. The side panel has no bronze rule against the grid.
 - `DescriptionView.html` draws the description with the same ink.
 
 ## Components
@@ -144,17 +140,6 @@ python3 art/menu_icons.py png    # src/Images/Menu/*.png, questionmark.png, cove
 python3 art/menu_icons.py sheet  # art/menu-sheet.html
 python3 art/parchment.py         # src/Images/parchment.png
 python3 scripts/render-addon-icon.py --svg src/themes/WoWVanilla/art/mark.svg --extension wowvanilla   # info/icon.png
-```
-
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension wowvanilla -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: WoW Vanilla
 ```
 
 ## Not verified yet

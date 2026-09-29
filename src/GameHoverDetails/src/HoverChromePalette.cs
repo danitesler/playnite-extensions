@@ -18,14 +18,11 @@ namespace GameHoverDetails
         public const string DefaultFillHex = "#FF1C1C1E";
         public const string DefaultBorderHex = "#FF48484E";
         public const string DefaultDividerHex = "#FF444444";
-        public const string DefaultIconHex = "#FFD2D2D7";
         public const string DefaultIconBackgroundHex = "#FF121212";
-        public const string DefaultTextHex = "#FFE6E6E6";
 
         public static readonly Color FallbackFillColor = Color.FromRgb(28, 28, 30);
         public static readonly Color FallbackBorderColor = Color.FromRgb(72, 72, 78);
         public static readonly Color FallbackBodyColor = Color.FromRgb(230, 230, 230);
-        public static readonly Color FallbackLabelColor = Color.FromRgb(152, 152, 157);
         public static readonly Color FallbackChipBackgroundColor = Color.FromRgb(18, 18, 18);
 
         private static readonly SolidColorBrush FallbackFillBrush = Freeze(FallbackFillColor);
@@ -353,12 +350,6 @@ namespace GameHoverDetails
             }
 
             return new FontFamily("Trebuchet MS");
-        }
-
-        /// <summary>Playnite <c>MonospaceFontFamily</c> (default Consolas) for code/pre in hover HTML.</summary>
-        public static FontFamily ResolvePlayniteMonospaceFontFamily()
-        {
-            return FindFontFamily("MonospaceFontFamily") ?? new FontFamily("Consolas");
         }
 
         /// <summary>Darker, slightly desaturated accent mixed further toward black for panel fill.</summary>

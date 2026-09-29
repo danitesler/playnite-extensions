@@ -1,52 +1,35 @@
 [CmdletBinding()]
 param(
-    [string]$Extension = "autogrid",
-    [string]$Configuration = "Release",
-    [string]$SolutionPath = "",
-    [string]$ProjectOutputPath = "",
-    [string]$ExtensionManifest = ""
+    [Parameter(Mandatory = $true)]
+    [string]$Extension,
+    [string]$Configuration = "Release"
 )
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
-. (Join-Path $PSScriptRoot "theme-tools.ps1")
+
+$profile = Get-ExtensionProfile -Extension $Extension
 
 # Themes have no project to compile; build-theme.ps1 builds their drop from src/themes/<Theme>/src instead.
-if ((Get-ExtensionKind (Get-ExtensionProfile -Extension $Extension)) -eq "theme") {
+if ((Get-ExtensionKind $profile) -eq "theme") {
     & (Join-Path $PSScriptRoot "build-theme.ps1") -Extension $Extension
     return
 }
 
-$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+$repoRoot = Get-RepoRoot
 Push-Location $repoRoot
 try {
-    $profile = Get-ExtensionProfile -Extension $Extension
-    $manifest = Get-ExtensionManifestInfo -Profile $profile
-
-    if (-not $SolutionPath) {
-        $SolutionPath = $profile.project
-    }
-    if (-not $ProjectOutputPath) {
-        $ProjectOutputPath = ($profile.outputPath -replace "/Release/", "/$Configuration/") -replace "\\Release\\", "\$Configuration\"
-    }
-    if (-not $ExtensionManifest) {
-        $ExtensionManifest = $profile.extensionManifest
-    }
-
-    $version = $manifest.Version
-    if (-not $version) {
-        throw "Unable to resolve Version from $($manifest.Path)"
-    }
-
-    $slug = if ($profile.slug) { $profile.slug } else { $profile.key }
-    $buildsRoot = Join-Path $repoRoot "artifacts/builds/$slug"
+    $buildsRoot = Join-Path $repoRoot "artifacts/builds/$($profile.slug)"
     New-Item -ItemType Directory -Path $buildsRoot -Force | Out-Null
     Get-ChildItem -Path $buildsRoot -Force | Remove-Item -Recurse -Force
 
-    Write-Host "Building $Extension via $SolutionPath ($Configuration)..."
-    dotnet build $SolutionPath -c $Configuration
+    Write-Host "Building $Extension via $($profile.project) ($Configuration)..."
+    dotnet build $profile.project -c $Configuration
+    if ($LASTEXITCODE -ne 0) {
+        throw "dotnet build failed ($LASTEXITCODE)."
+    }
 
-    $buildOutput = Join-Path $repoRoot $ProjectOutputPath
+    $buildOutput = Join-RepoPath (Get-ExtensionOutputPath -Profile $profile -Configuration $Configuration)
     if (-not (Test-Path $buildOutput)) {
         throw "Build output folder not found at $buildOutput"
     }

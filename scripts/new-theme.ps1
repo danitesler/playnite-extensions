@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$Name,
@@ -22,9 +22,7 @@ param(
     [string]$Version = "0.1.0",
 
     # 2.9.0 = Playnite 10.45+. Raise it only when the theme starts using something newer.
-    [string]$ThemeApiVersion = "2.9.0",
-
-    [string]$TagPattern = "{key}-v{version}"
+    [string]$ThemeApiVersion = "2.9.0"
 )
 
 # Scaffolds a standalone theme: the folder layout every theme here shares (AGENTS.md, info/, src/), its manifests,
@@ -54,33 +52,35 @@ if (Test-Path $themeRoot) {
     throw "Theme directory already exists at $themeRoot"
 }
 
-$profilesPath = Join-RepoPath "src/extensions.json"
-$profiles = Get-Content -Raw -Path $profilesPath | ConvertFrom-Json
-if ($profiles.extensions | Where-Object { $_.key -eq $Key }) {
+$index = Get-ExtensionIndex
+if ($index.extensions | Where-Object { $_.key -eq $Key }) {
     throw "An extension with key '$Key' already exists."
 }
 if ($TokensCss) {
     Read-ThemeTokens -Path $TokensCss | Out-Null
 }
 
-# URLs follow the existing add-ons so every manifest points at the same repo.
-$reference = $profiles.extensions | Where-Object { $_.rawBaseUrl -and $_.releaseBaseUrl -and $_.sourceUrl } | Select-Object -First 1
-if (-not $reference) {
-    throw "No existing profile with rawBaseUrl / releaseBaseUrl / sourceUrl to copy repo URLs from."
-}
-$rawBaseUrl = $reference.rawBaseUrl
-$releaseBaseUrl = $reference.releaseBaseUrl
-$sourceUrl = ($reference.sourceUrl -replace "/src/.*$", "") + "/src/themes/$dirName"
-$issuesUrl = ($sourceUrl -replace "/tree/.*$", "") + "/issues"
-
 $addonId = "{0}_{1}" -f $dirName, (([guid]::NewGuid()).ToString("N").Substring(0, 8).ToUpperInvariant())
-$infoRel = "src/themes/$dirName/info"
-$sourceRel = "src/themes/$dirName/src"
-$manifestRel = "$infoRel/theme.yaml"
-$installerRel = "$infoRel/InstallerManifest.yaml"
-$databaseRel = "$infoRel/danitesler_$Key.yaml"
-$tag = $TagPattern.Replace("{key}", $Key).Replace("{version}", $Version)
-$packageUrl = "$releaseBaseUrl/$tag/$(Get-ExpectedPackageName -AddonId $addonId -Version $Version -PackageExtension '.pthm')"
+
+# The index row holds only what cannot be derived; paths and URLs below come from the completed profile.
+$newProfile = [pscustomobject]@{
+    key                = $Key
+    name               = $Name
+    kind               = "theme"
+    dir                = "src/themes/$dirName"
+    addonId            = $addonId
+    requiredApiVersion = $ThemeApiVersion
+}
+$profile = Complete-ExtensionProfile -Profile ($newProfile.PSObject.Copy()) -Index $index
+$sourceUrl = $profile.sourceUrl
+$issuesUrl = "$($index.repository.TrimEnd('/'))/issues"
+$rawBaseUrl = $profile.rawBaseUrl
+$infoRel = "$($profile.dir)/info"
+$sourceRel = $profile.themeSource
+$manifestRel = $profile.extensionManifest
+$installerRel = $profile.installerManifest
+$databaseRel = $profile.databaseManifest
+$packageUrl = Get-ExpectedPackageUrl -Profile $profile -AddonId $addonId -Version $Version
 
 New-Item -ItemType Directory -Path (Join-Path $repoRoot $infoRel) -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $repoRoot $sourceRel) -Force | Out-Null
@@ -176,7 +176,7 @@ $sharedBlock = $sharedLines -join "`n"
        Use a Playnite key whenever the design uses that key's token for the role; a shared key otherwise.
     Each TODO placeholder fails the build until it names a token. Theme XAML reads brushes only, never Color keys.
 
-    Placeholder syntax: .cursor/rules/playnite-themes.mdc. Keep double braces out of comments here: the build renders
+    Placeholder syntax: .claude/skills/playnite-theme-dev/reference.md. Keep double braces out of comments here: the build renders
     them too.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -259,7 +259,9 @@ $sharedBlock
 
 ## What this is
 
-Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of **$DesignSystem**. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus ``scripts/data/theme-keys.json``), the same as every theme here; $DesignSystem's token names stay in ``tokens.css``.
+Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of **$DesignSystem**. TODO: version and dark variant.
+
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **``../AGENTS.md``**. Loading rules and build checks: **``.claude/skills/playnite-theme-dev/reference.md``**.
 
 ## Sources
 
@@ -269,66 +271,42 @@ Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of 
 | Components | TODO |
 | Icons | TODO (license file in ``info/``) |
 
-## Files
+## Tokens
 
-| Path | Role |
-|------|------|
-| ``src/tokens.css`` | $DesignSystem's CSS custom properties under their own names; ``.dark`` wins over ``:root``. |
-| ``src/Constants.template.xaml`` | Tokens -> Playnite's palette keys and the shared keys; rendered into ``Constants.xaml``. |
-| ``src/Common.xaml`` | ``PopupBorder``, ``FocusVisual``, and component spacing keyed by the Playnite control. |
-| ``src/Media.xaml`` | $DesignSystem's icon set as ``Icon<Role>`` geometries and ``IconTemplate``. |
-| ``src/Views/*``, ``src/DerivedStyles/MainWindowStyle.xaml``, ``src/CustomControls/SidebarItem.xaml``, ``TopPanelItem.xaml`` | Shell: how $DesignSystem lays out an app. |
-| ``src/DefaultControls/*``, other ``src/CustomControls/*``, ``src/DerivedStyles/*`` | Controls, each from a $DesignSystem component. |
-| ``info/`` | ``theme.yaml``, installer and add-on database manifests, ``icon.png`` (512x512), ``LICENSE-*.txt`` notices shipped in the package. |
+Which $DesignSystem token plays each key (Playnite palette first, then shared keys), radii and fonts.
 
-## Keys
-
-Which $DesignSystem token plays each key (Playnite palette first, then shared keys).
-
-| Key | Token | Used for |
-|-----|-------|----------|
+| Token | Key | Used for |
+|-------|-----|----------|
 | TODO | | |
+
+## Component spacing (``src/Common.xaml``)
+
+| Key | Value | $DesignSystem |
+|-----|-------|---------------|
+| TODO | | |
+
+## Shell
+
+| File | What it draws |
+|------|---------------|
+| TODO | |
 
 ## Components
 
-| Playnite file | $DesignSystem component | Notes |
-|---------------|-------------------|-------|
-| TODO | | |
+| Playnite file | $DesignSystem component |
+|---------------|-------------------------|
+| TODO | |
 
-## Known gaps
+## Deviations
 
-## Build and try it
-
-``````powershell
-.\scripts\build-theme.ps1 -Extension $Key -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: $Name
-``````
+## Not verified yet
 "@ | Set-Content -Path (Join-Path $themeRoot "AGENTS.md") -Encoding utf8
 
-$newProfile = [pscustomobject]@{
-    key                = $Key
-    slug               = $Key
-    name               = $Name
-    kind               = "theme"
-    addonId            = $addonId
-    type               = "Theme$Mode"
-    themeSource        = $sourceRel
-    extensionManifest  = $manifestRel
-    installerManifest  = $installerRel
-    databaseManifest   = $databaseRel
-    outputPath         = "artifacts/builds/themes/$Key"
-    requiredApiVersion = $ThemeApiVersion
-    sourceUrl          = $sourceUrl
-    rawBaseUrl         = $rawBaseUrl
-    releaseBaseUrl     = $releaseBaseUrl
-    tagPattern         = $TagPattern
-}
-
-$profiles.extensions += $newProfile
-$profiles | ConvertTo-Json -Depth 8 | Set-Content -Path $profilesPath -Encoding UTF8
+$index.extensions += $newProfile
+Save-ExtensionIndex -Index $index
 
 Write-Host "Created theme '$Name' at $themeRoot"
-Write-Host "Next steps (details: .cursor/skills/playnite-theme-dev/SKILL.md):"
+Write-Host "Next steps (details: .claude/skills/playnite-theme-dev/SKILL.md):"
 Write-Host "  1. Fill AGENTS.md > Sources: $DesignSystem's token package, component specs and icon set."
 Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own names."
 Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."

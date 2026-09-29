@@ -23,16 +23,6 @@ function Get-RelativePathCompat {
     return $full.Substring($rootFull.Length)
 }
 
-function Get-ExtensionKind {
-    param([Parameter(Mandatory = $true)] $Profile)
-
-    if ($Profile.PSObject.Properties.Name -contains "kind" -and $Profile.kind) {
-        return $Profile.kind
-    }
-
-    return "plugin"
-}
-
 function Get-PlayniteThemeApiData {
     param([ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop")
 
@@ -551,41 +541,6 @@ function Expand-ThemeTemplate {
 # Build + checks
 # ---------------------------------------------------------------------------------------------------------------
 
-function Get-ThemeManifestInfo {
-    param([Parameter(Mandatory = $true)] $Profile)
-
-    $manifestPath = Join-RepoPath $Profile.extensionManifest
-    if (-not (Test-Path $manifestPath)) {
-        throw "theme.yaml not found at $manifestPath"
-    }
-
-    $lines = Get-Content -Path $manifestPath
-    return [pscustomobject]@{
-        Path            = $manifestPath
-        Id              = Get-YamlScalar -Lines $lines -Key "Id"
-        Name            = Get-YamlScalar -Lines $lines -Key "Name"
-        Author          = Get-YamlScalar -Lines $lines -Key "Author"
-        Version         = Get-YamlScalar -Lines $lines -Key "Version"
-        Mode            = Get-YamlScalar -Lines $lines -Key "Mode"
-        ThemeApiVersion = Get-YamlScalar -Lines $lines -Key "ThemeApiVersion"
-    }
-}
-
-function Get-ThemeSourceDirectory {
-    param([Parameter(Mandatory = $true)] $Profile)
-
-    if (-not ($Profile.PSObject.Properties.Name -contains "themeSource") -or -not $Profile.themeSource) {
-        throw "Theme profile '$($Profile.key)' has no themeSource (src/themes/<Theme>/src)."
-    }
-
-    $source = Join-RepoPath $Profile.themeSource
-    if (-not (Test-Path $source)) {
-        throw "themeSource not found at $source"
-    }
-
-    return $source
-}
-
 function Invoke-ThemeBuild {
     <#
         Builds a loadable Playnite theme folder from one theme's sources (src/themes/<Theme>/):
@@ -599,8 +554,11 @@ function Invoke-ThemeBuild {
         [Parameter(Mandatory = $true)] [string]$OutDir
     )
 
-    $manifest = Get-ThemeManifestInfo -Profile $Profile
-    $source = Get-ThemeSourceDirectory -Profile $Profile
+    $manifest = Get-ExtensionManifestInfo -Profile $Profile
+    $source = Join-RepoPath $Profile.themeSource
+    if (-not (Test-Path $source)) {
+        throw "Theme sources not found at $source"
+    }
 
     if (Test-Path $OutDir) {
         Get-ChildItem -Path $OutDir -Force | Remove-Item -Recurse -Force

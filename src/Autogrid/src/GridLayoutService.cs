@@ -85,50 +85,6 @@ namespace Autogrid
             }
         }
 
-        /// <summary>
-        /// Horizontal margin budget per tile (left+right). Uses ItemSpacingMargin when available.
-        /// </summary>
-        public static double GetHorizontalMarginPerTile(object appSettings, int gridItemSpacingFallback)
-        {
-            return GetAxisMarginPerTile(appSettings, gridItemSpacingFallback, horizontal: true);
-        }
-
-        /// <summary>
-        /// Vertical margin budget per tile (top+bottom). Uses ItemSpacingMargin when available.
-        /// </summary>
-        public static double GetVerticalMarginPerTile(object appSettings, int gridItemSpacingFallback)
-        {
-            return GetAxisMarginPerTile(appSettings, gridItemSpacingFallback, horizontal: false);
-        }
-
-        private static double GetAxisMarginPerTile(object appSettings, int gridItemSpacingFallback, bool horizontal)
-        {
-            if (appSettings == null)
-            {
-                return gridItemSpacingFallback;
-            }
-
-            try
-            {
-                var t = appSettings.GetType();
-                var prop = t.GetProperty("ItemSpacingMargin", BindingFlags.Instance | BindingFlags.Public);
-                if (prop?.GetValue(appSettings, null) is Thickness th)
-                {
-                    var sum = horizontal ? th.Left + th.Right : th.Top + th.Bottom;
-                    if (sum > 0)
-                    {
-                        return sum;
-                    }
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-
-            return gridItemSpacingFallback;
-        }
-
         public static bool TrySetGridItemWidth(object appSettings, double width)
         {
             if (appSettings == null)

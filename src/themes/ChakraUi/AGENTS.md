@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Chakra UI v3**, fully dark with **teal** as the color palette. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; Chakra's token paths stay in `tokens.css` and the template's placeholders.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Chakra UI v3**, fully dark with **teal** as the color palette.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -19,16 +19,12 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | Chakra's CSS variables under the names Chakra emits (`--chakra-colors-bg-panel`, `--chakra-radii-l2`, the virtual `--chakra-colors-color-palette-*`). |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder`, `FocusVisual`, recipe spacing. |
 | `src/Media.xaml` | lucide icons (Playnite's roles plus chevron-down, chevron-right, check). |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_chakraui.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-lucide.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the Chakra token behind each one (`colors.bg.panel` is `chakra-colors-bg-panel`, opacity modifiers keep Chakra's `/NN`). Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
+Keys are the shared vocabulary; the template names the Chakra token behind each one (`colors.bg.panel` is `chakra-colors-bg-panel`, opacity modifiers keep Chakra's `/NN`).
 
 | Group | Tokens (dark) |
 |-------|---------------|
@@ -89,7 +85,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (`bg.muted` track, radius l3); search on the right (`TopPanelSearchBox`: InputGroup + Input `subtle`, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the notification count. |
 | `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons; checked = `bg.emphasized` indicator, hover = `bg.emphasized/60`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 4px spacing scale without separators; background art under the top bar, feathered on every edge. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Chakra dashboard page: cover clipped to radius l3, Heading 3xl (bold), solid Play, subtle More and IconButton Edit; description and notes under Heading lg titles next to a 380px Details Card that holds every metadata field Playnite can show, as one horizontal DataList (120px `fg.muted` labels, values beside them) in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.cursor/rules/playnite-themes.mdc`) split by `border` Separators. A group whose fields are all hidden collapses with its Separator. No art. The grid panel uses the same two columns (description left, a 280px Details Card right) with a vertical DataList (label over value); no tabs. Fields left out are parts Playnite skips. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Chakra dashboard page: cover clipped to radius l3, Heading 3xl (bold), solid Play, subtle More and IconButton Edit; description and notes under Heading lg titles next to a 380px Details Card that holds every metadata field Playnite can show, as one horizontal DataList (120px `fg.muted` labels, values beside them) in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by `border` Separators. A group whose fields are all hidden collapses with its Separator. No art. The grid panel uses the same two columns (description left, a 280px Details Card right) with a vertical DataList (label over value); no tabs. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -125,17 +121,6 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 - The SegmentGroup track keeps a 4px inset and radius l3, and items are icon-sized (40px square) with no dividers between them.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`).
 - The DataList has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
-
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension chakraui -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: Chakra UI
-```
 
 ## Not verified yet
 

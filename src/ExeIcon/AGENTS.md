@@ -29,4 +29,4 @@ Solves: store-launched games (Epic, Steam, EA, Ubisoft…) import without icons,
 - Do not switch to `System.Drawing.Icon.ExtractAssociatedIcon`: it returns 32px only. `ExtractIconEx` / `PrivateExtractIcons` would work but lose PNG frames unless re-encoded.
 - `GameExecutableFinder` and `PeIconExtractor` use only `System.*` so they can be unit-tested off Windows. Keep Playnite types out of them.
 - No `ValueTuple` (`net462` reference assemblies do not ship it without an extra package).
-- The metadata source name `ExeIcon` is a brand name; there are no user-visible strings to localize. If settings are added later, add the full `Localization/*.xaml` set (**`.cursor/rules/playnite-localization.mdc`**).
+- The metadata source name `ExeIcon` is a brand name; there are no user-visible strings to localize. If settings are added later, add the full `Localization/*.xaml` set (**`.claude/skills/playnite-plugin-dev/SKILL.md`**).

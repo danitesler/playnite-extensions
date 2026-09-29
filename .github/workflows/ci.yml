@@ -16,24 +16,14 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Validate and build extensions
+      - name: Validate and build every add-on
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $profiles = Get-Content -Raw src/extensions.json | ConvertFrom-Json
-          foreach ($extension in $profiles.extensions) {
-            Write-Host "Validating $($extension.key)..."
+          $index = Get-Content -Raw src/extensions.json | ConvertFrom-Json
+          foreach ($extension in $index.extensions) {
+            Write-Host "== $($extension.key)"
             ./scripts/validate-extension.ps1 -Extension $extension.key -Mode Ci
-
-            if ($extension.kind -eq "theme") {
-              Write-Host "Building theme $($extension.key)..."
-              ./scripts/build-theme.ps1 -Extension $extension.key
-              continue
-            }
-
-            Write-Host "Restoring $($extension.project)..."
-            dotnet restore $extension.project
-
-            Write-Host "Building $($extension.project)..."
-            dotnet build $extension.project -c Release --no-restore
+            # Plugins compile with dotnet; themes render and run the static theme checks.
+            ./scripts/build-plugin.ps1 -Extension $extension.key
           }

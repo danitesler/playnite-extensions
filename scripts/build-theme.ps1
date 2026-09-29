@@ -15,16 +15,15 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
 . (Join-Path $PSScriptRoot "theme-tools.ps1")
 
-$repoRoot = Get-RepoRoot
 $profile = Get-ExtensionProfile -Extension $Extension
 if ((Get-ExtensionKind $profile) -ne "theme") {
     throw "'$Extension' is not a theme. Use build-plugin.ps1."
 }
 
-$manifest = Get-ThemeManifestInfo -Profile $profile
+$manifest = Get-ExtensionManifestInfo -Profile $profile
 $mode = if ($manifest.Mode) { $manifest.Mode } else { "Desktop" }
-$slug = if ($profile.slug) { $profile.slug } else { $profile.key }
-$buildDrop = Join-Path $repoRoot "artifacts/builds/themes/$slug"
+
+$buildDrop = Join-RepoPath $profile.outputPath
 
 Write-Host "Building theme $($manifest.Name) $($manifest.Version) ($mode) from $($profile.themeSource)..."
 try {

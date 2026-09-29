@@ -105,7 +105,7 @@ if ($ListPacks) {
 
 if ($PSCmdlet.ParameterSetName -eq "Extension") {
     $profile = Get-ExtensionProfile -Extension $Extension
-    $folder = Split-Path (Split-Path (Join-RepoPath $profile.extensionManifest))
+    $folder = Join-RepoPath $profile.dir
     $manifestPath = Join-Path $folder "icons.json"
     if (-not (Test-Path $manifestPath)) { throw "No icons.json in $folder." }
     $manifest = Get-Content -Raw $manifestPath | ConvertFrom-Json

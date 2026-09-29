@@ -114,8 +114,6 @@ namespace RandomTheme
         [DontSerialize]
         public string EnableText => RandomThemeLoc.Get("LOCRandomTheme_Enable_" + Key, $"Pick a random {RandomThemeLoc.ModeName(Mode)} theme on every startup");
         [DontSerialize]
-        public string AvoidRepeatText => RandomThemeLoc.Get("LOCRandomTheme_AvoidRepeat", "Do not pick the theme that is already set");
-        [DontSerialize]
         public string ThemesLabel => RandomThemeLoc.Get("LOCRandomTheme_ThemesLabel_" + Key, $"{RandomThemeLoc.ModeName(Mode)} themes to choose from");
         [DontSerialize]
         public string RandomizeNowText => RandomThemeLoc.Get("LOCRandomTheme_RandomizeNow", "Randomize now");

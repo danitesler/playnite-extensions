@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9), on the `webDarkTheme` tokens, with a Windows 11 app shell. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; Fluent's token names stay in `tokens.css` and the template's placeholders.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9), on the `webDarkTheme` tokens, with a Windows 11 app shell.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -20,16 +20,12 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | Fluent's tokens, verbatim names (`--colorNeutralBackground1`, as FluentProvider writes them) and dark values. |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder` (MenuPopover surface), `FocusVisual`, component spacing. |
 | `src/Media.xaml` | Fluent System Icons (Playnite's roles plus chevron right/down and the 16px checkmark), `IconTemplate` (20px) and `IconSmallTemplate`. |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_fluent2.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-fluentui-system-icons.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the Fluent token behind each one (`borderRadiusMedium` is `ControlCornerRadius`, `strokeWidthThin` is `ControlBorderThickness`). Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
+Keys are the shared vocabulary; the template names the Fluent token behind each one (`borderRadiusMedium` is `ControlCornerRadius`, `strokeWidthThin` is `ControlBorderThickness`).
 
 | Token | Dark value | Key | Used for |
 |-------|------------|-----|----------|
@@ -78,7 +74,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 | `CustomControls/SearchBox.xaml` | SearchBox (outline): Input chrome with a 20px search icon and a dismiss icon. |
 | `Views/Library.xaml` | Content layer on `colorNeutralBackground1`, top-left corner rounded 8px where it meets the rail (base-colored mask); square when the rail is elsewhere or hidden. The background art fades out on every edge. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on Fluent's spacing ramp without separators. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Microsoft Store product page: hero art 320px fading into the content layer (hidden without art); box art tile (borderRadiusLarge, 1px `colorNeutralStroke2`), title at 28px semibold, large primary Play, secondary More, subtle icon Edit. Below, two columns under 20px semibold headings, no cards: the main column holds Steam screenshots, Description and Notes; the 320px column on the right holds every metadata field Playnite can show, each a Caption 1 (12px) `colorNeutralForeground3` label over its Body 1 value, in six groups split by 1px `colorNeutralStroke2` Dividers (progress, scores, about, tags as small outline InteractionTags, library, links; see `.cursor/rules/playnite-themes.mdc`). A group whose fields are all hidden collapses with its Divider. The grid panel uses the same two columns after its header: Steam screenshots, Description and Notes on the left (16px headings), Game details on the right (320px). Fields left out are parts Playnite skips. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Microsoft Store product page: hero art 320px fading into the content layer (hidden without art); box art tile (borderRadiusLarge, 1px `colorNeutralStroke2`), title at 28px semibold, large primary Play, secondary More, subtle icon Edit. Below, two columns under 20px semibold headings, no cards: the main column holds Steam screenshots, Description and Notes; the 320px column on the right holds every metadata field Playnite can show, each a Caption 1 (12px) `colorNeutralForeground3` label over its Body 1 value, in six groups split by 1px `colorNeutralStroke2` Dividers (progress, scores, about, tags as small outline InteractionTags, library, links; see `.claude/skills/playnite-theme-dev/reference.md`). A group whose fields are all hidden collapses with its Divider. The grid panel uses the same two columns after its header: Steam screenshots, Description and Notes on the left (16px headings), Game details on the right (320px). Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -115,17 +111,6 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 - Views other than the library (Statistics, add-on views) sit on the base layer; only the library gets the content layer.
 - The game overview has no Cards: the content layer and Fluent's Card are both `colorNeutralBackground1`, so the Store's sections are headed blocks instead.
 - The details pane has no group headings (themes cannot ship localization, so there are no captions for "progress", "about" and so on): groups are told apart by Dividers and spacing. The Store's own page is a single column; the second column is this theme's addition so all metadata sits in one place.
-
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension fluent2 -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: Fluent 2
-```
 
 ## Not verified yet
 

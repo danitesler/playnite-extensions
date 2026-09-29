@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of GitHub's **Primer** design system, on Primer's `dark` functional tokens. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; Primer's token names stay in `tokens.css` and the template's placeholders.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of GitHub's **Primer** design system, on Primer's `dark` functional tokens.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -19,17 +19,13 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | Primer's functional CSS variables, verbatim names and values (aliases written out, with the alias in a comment). |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder`, `FocusVisual` (inside), `CheckBoxFocusVisual` (checkbox and radio), component spacing. |
 | `src/Media.xaml` | Octicons (Playnite's roles plus triangle-down, check, chevron-right, trash, pencil, plus) and the menu icon paths. |
 | `src/Images/Octicons/` | Octicons rendered to PNG for Playnite's menu icons. |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell. |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_primer.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-octicons.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the Primer token behind each one. Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
+Keys are the shared vocabulary; the template names the Primer token behind each one.
 
 | Token | Dark value | Key | Used for |
 |-------|------------|-----|----------|
@@ -80,7 +76,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 | `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`TopPanelSearchBox`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
 | `CustomControls/TopPanelItem.xaml` | Invisible IconButton, medium; toggled = `control-transparent-bgColor-selected`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on Primer's base-size scale without separators; background art under the band, feathered on every edge. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | GitHub's repository page. Header: icon and name (20px semibold) on the left; Edit (IconButton, octicon pencil), More (triangle-down) and green Play on the right; a rule under it. Main column: README Box (GroupBox "Description") and a Notes Box. 296px sidebar (BorderGrid) holding every metadata field Playnite can show, each a 12px semibold `fgColor-muted` label over its value (as an issue's sidebar lists Assignees and Labels), in six sections split by 1px `borderColor-default` rules (progress, scores, about, tags as topic tags, library, links; see `.cursor/rules/playnite-themes.mdc`). A section whose fields are all hidden collapses with its rule. No art, no cover. The grid panel uses the same two columns (a 280px sidebar on the right); no tabs. Fields left out are parts Playnite skips. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | GitHub's repository page. Header: icon and name (20px semibold) on the left; Edit (IconButton, octicon pencil), More (triangle-down) and green Play on the right; a rule under it. Main column: README Box (GroupBox "Description") and a Notes Box. 296px sidebar (BorderGrid) holding every metadata field Playnite can show, each a 12px semibold `fgColor-muted` label over its value (as an issue's sidebar lists Assignees and Labels), in six sections split by 1px `borderColor-default` rules (progress, scores, about, tags as topic tags, library, links; see `.claude/skills/playnite-theme-dev/reference.md`). A section whose fields are all hidden collapses with its rule. No art, no cover. The grid panel uses the same two columns (a 280px sidebar on the right); no tabs. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -117,17 +113,6 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 - `GlyphColor` is `bgColor-accent-emphasis` (`#1f6feb`) because Playnite also uses it as a fill under white text; Primer's link color (`fgColor-accent`, `#4493f8`) is a little lighter.
 - Menu icons are octicon PNGs in `src/Images/Octicons` (48px, `fgColor-muted`; `fgColor-danger` for exit and remove), referenced by path because Playnite rebuilds TextBlock icons from their glyph and font. They don't follow a token change; the list, colors and Octicons tag are in `icons.json`, so after a palette change update the colors there and run `.\scripts\render-icons.ps1 -Extension primer`.
 - Overview fields have visible labels, not octicons with a tooltip: there are 25 fields and Octicons for a handful, and the sidebar has no section headings because themes cannot ship localization (sections are told apart by the rules and spacing).
-
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension primer -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: Primer
-```
 
 ## Not verified yet
 

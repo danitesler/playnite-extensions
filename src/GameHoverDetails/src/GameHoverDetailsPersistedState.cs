@@ -47,15 +47,9 @@ namespace GameHoverDetails
         public string HoverChromeBackgroundHex { get; set; }
         public string HoverChromeBorderHex { get; set; }
         public string HoverChromeDividerHex { get; set; }
-        /// <summary>Legacy JSON only — no longer written. Icons always use Playnite TextBrush.</summary>
-        public string HoverChromeIconHex { get; set; }
         public string HoverChromeIconBackgroundHex { get; set; }
-        /// <summary>Legacy JSON only — no longer written. Text always uses Playnite TextBrush.</summary>
-        public string HoverChromeTextHex { get; set; }
         /// <summary>Null in legacy JSON — treated as 100. Zero is a valid saved value.</summary>
         public int? HoverChromeBackgroundOpacity { get; set; }
         public List<string> SelectedFieldKeys { get; set; }
-        /// <summary>Legacy JSON only — no longer written. Add-field order is catalog minus selected.</summary>
-        public List<string> DisabledFieldKeysOrder { get; set; }
     }
 }

@@ -48,18 +48,6 @@ namespace GameHoverDetails
             block.FlowDirection = HoverLoc.LayoutFlow();
         }
 
-        public static void ConfigureHeaderTextBlock(TextBlock header, double innerMax)
-        {
-            header.FontFamily = HoverChromePalette.ResolvePlayniteFontFamily();
-            header.LineHeight = 16;
-            header.MaxHeight = header.LineHeight * MaxValueLines;
-            header.TextWrapping = TextWrapping.Wrap;
-            header.TextTrimming = TextTrimming.CharacterEllipsis;
-            header.ClipToBounds = true;
-            header.MaxWidth = innerMax;
-            header.FlowDirection = HoverLoc.LayoutFlow();
-        }
-
         public static void ConfigureFieldLabelTextBlock(TextBlock label, double innerMax)
         {
             ConfigureFieldLabelTextBlock(label, innerMax, null);

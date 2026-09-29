@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) in the style of **shadcn/ui** (new-york-v4), fully dark on the **zinc** base color. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; shadcn's variable names stay in `tokens.css` and the template's placeholders.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) in the style of **shadcn/ui** (new-york-v4), fully dark on the **zinc** base color.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -19,16 +19,12 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | shadcn's CSS variables, verbatim (zinc dark + radius scale). Another shadcn palette can replace it whole. |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder`, `FocusVisual`, component spacing. |
 | `src/Media.xaml` | lucide icons, search / clear icon templates, menu icon colors. |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell (inset dashboard). |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_shadcnui.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-lucide.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the shadcn variable behind each one. Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them. Variables in `tokens.css`: background, foreground, card(-foreground), popover(-foreground), primary(-foreground), secondary(-foreground), muted(-foreground), accent(-foreground), destructive, border, input, ring, sidebar, sidebar-foreground, sidebar-primary(-foreground), sidebar-accent(-foreground), sidebar-border. Optional ones fall back the way shadcn pairs them (`popover` → `card`, `sidebar-*` → the base token), so a pasted palette without them still renders.
+Keys are the shared vocabulary; the template names the shadcn variable behind each one. Variables in `tokens.css`: background, foreground, card(-foreground), popover(-foreground), primary(-foreground), secondary(-foreground), muted(-foreground), accent(-foreground), destructive, border, input, ring, sidebar, sidebar-foreground, sidebar-primary(-foreground), sidebar-accent(-foreground), sidebar-border. Optional ones fall back the way shadcn pairs them (`popover` → `card`, `sidebar-*` → the base token), so a pasted palette without them still renders.
 
 | Token (Tailwind class) | Key | Used by |
 |------------------------|-----|---------|
@@ -80,7 +76,7 @@ shadcn's inset layout (blocks `sidebar-07` / `dashboard-01`):
 | `CustomControls/TopPanelItem.xaml` | Button ghost, size icon-sm (32px); accent when toggled. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on p-4 spacing without separators. |
 | `Views/Library.xaml` | Background art under the top bar, feathered on every edge (bitmap-cached opacity masks). |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | shadcn page: h1 (text-3xl bold) with the icon, actions on the right (icon Button Edit, secondary More, default Play); Separator; then two columns: the description and Notes Cards, and a 384px Details Card that holds every metadata field Playnite can show, as label cells (muted, font-medium, 120px) beside the value in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.cursor/rules/playnite-themes.mdc`) split by Separators (my-4). A group whose fields are all hidden collapses with its Separator. No art, no cover. The grid panel uses the same two columns (a 280px Details Card on the right), with the label over the value. Fields left out are parts Playnite skips. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | shadcn page: h1 (text-3xl bold) with the icon, actions on the right (icon Button Edit, secondary More, default Play); Separator; then two columns: the description and Notes Cards, and a 384px Details Card that holds every metadata field Playnite can show, as label cells (muted, font-medium, 120px) beside the value in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by Separators (my-4). A group whose fields are all hidden collapses with its Separator. No art, no cover. The grid panel uses the same two columns (a 280px Details Card on the right), with the label over the value. Fields left out are parts Playnite skips. |
 
 The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap) keeps it clear of the window buttons; keep it in step with `MainWindowStyle.xaml`.
 
@@ -121,22 +117,9 @@ Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Play
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`), recolored to muted-foreground.
 - The Details Card has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
 
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension shadcnui -Deploy   # builds artifacts/builds/themes/shadcnui and copies it to %AppData%\Playnite\Themes\Desktop\<Id>
-# restart Playnite -> Settings -> Appearance -> Theme: Shadcn UI
-```
-
-Portable Playnite: add `-DeployPath <Playnite folder>\Themes`.
-
 ## Not verified yet
 
-Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope, key prefix); **not yet loaded in Playnite**. First run on Windows: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs. If Playnite rejects the theme it falls back to Default and logs the XAML error in `playnite.log`.
+Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope); **not yet loaded in Playnite**. First run on Windows: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs.
 
 Layout checks: the inset card's rounded corners over the library background image (details view), window buttons centered in the card header, the sidebar at each position (Settings → Appearance → Layout), the search placeholder hiding while typing, lucide icons in the top bar and on Library / Statistics, the blue logo tile, and slider ranges ending under the thumb (grid zoom slider).
 

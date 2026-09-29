@@ -30,11 +30,12 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 
 | Area | Path |
 |------|------|
-| Extension index | `src/extensions.json` |
+| Extension index | `src/extensions.json` (one row per add-on: key, name, kind, dir, AddonId, API version; scripts derive every path and URL from `dir`) |
 | Extension project | `src/<PluginName>/<PluginName>.csproj` |
 | Extension source | `src/<PluginName>/src/` |
 | Extension manifests | `src/<PluginName>/info/` (incl. `danitesler_<key>.yaml` for PlayniteAddonDatabase PRs) |
 | Theme source | `src/themes/<ThemeName>/src/` (XAML at Playnite Default-theme paths, `tokens.css`, `Constants.template.xaml`) |
+| Shared theme anatomy | `src/themes/AGENTS.md` (file map, shell mechanics, game page skeleton and metadata pane, icons, first-run checks) |
 | Theme manifests | `src/themes/<ThemeName>/info/` (`theme.yaml`, `InstallerManifest.yaml`, `danitesler_<key>.yaml`, `icon.png`, `LICENSE-*.txt`) |
 | Playnite theme API snapshot | `scripts/data/playnite-theme-api.json` (loadable file paths + resource keys per Playnite release) |
 | Shared theme key vocabulary | `scripts/data/theme-keys.json` (every key a theme may add: type, group, required, role) |
@@ -59,39 +60,23 @@ Validation, packaging, and CI branch on **`kind`**: themes package to **`.pthm`*
 
 The package flow is intentionally **package-only**: it creates `.pext` (plugins) or `.pthm` (themes) and `.zip` artifacts and prints the expected GitHub Release tag / `PackageUrl`, but it does not create a GitHub Release.
 
-**GitHub Releases:** ship **each add-on separately**—one GitHub Release per extension (its own tag per **`tagPattern`**, title, notes, and **`.pext`**). Prefer **`{key}-v{version}`** tags (e.g. `autogrid-v1.0.1`, `gamehoverdetails-v1.0.1`); see **`.cursor/rules/playnite-github-release-tags.mdc`**. Do not combine multiple extensions into a single umbrella release. If two extensions would share the same tag (same semver + pattern), use a **distinct** `tagPattern` / version plan so tags stay unique—never attach another extension’s asset to a release meant for a different add-on.
+**Releases and versions:** one GitHub Release per add-on, tagged **`{key}-v{version}`**; bump versions only when explicitly cutting a release, after stating the current version and asking for the new one. **Never push, tag, release, or open a PR unless asked.** Details, and how to add or update an add-on in PlayniteAddonDatabase: skill **`playnite-release`**.
 
-**Version bumps:** change shipped semver (**`extension.yaml`** or **`theme.yaml`**, **`Directory.Build.props`** for plugins, **`InstallerManifest.yaml`** / **`PackageUrl`**) only when explicitly **cutting a release** / **publishing to GitHub**—not for ordinary feature work. Before editing versions: state current version, suggest next semver, ask for the target string. See **`.cursor/rules/playnite-extension-versioning.mdc`** and skill **`playnite-extension-release`**.
+**Index and CI:** `src/extensions.json` holds only what cannot be derived; `scripts/extension-profiles.ps1` (`Get-ExtensionProfile`) derives every path and URL from `dir`, and scripts/workflows read profiles, never hardcoded paths. CI (`ci.yml`, `windows-latest`) runs `validate-extension.ps1 -Mode Ci` then `build-plugin.ps1` per row; `release.yml` (manual) packages one key and does not create the GitHub Release.
 
-## Cursor rules (project)
+## Always (any UI or add-on change)
 
-Under **`.cursor/rules/`** (apply when matching files are in context):
+- **Build after every change** to an add-on's code, XAML or manifest, and report the result in the skill's reply footer. Themes: build **and deploy to Playnite** every time (`.\scripts\build-theme.ps1 -Extension <key> -Deploy`), then tell the user to restart Playnite (themes load at startup only). Plugins have no deploy step: build, and remind the user to replace the DLL and restart Playnite if they want to test it.
+- **Localization:** new or changed user-visible strings go into `en_US.xaml` **and** every other `Localization/*.xaml`, translated (skill `playnite-plugin-dev`).
+- **Settings UI:** Playnite stock controls only, Autogrid `SettingsView` is the baseline; dependent options nest under their checkbox (skill `playnite-plugin-dev`).
+- **Themes:** keys come from Playnite + `scripts/data/theme-keys.json`; brushes only, never `Color` keys (skill `playnite-theme-dev`).
 
-- **`playnite-extensions.mdc`** — Playnite .NET / WPF / `extension.yaml` / settings / threading / reflection cautions.
-- **`playnite-settings-ui.mdc`** — Addon settings use Playnite stock controls; Autogrid `SettingsView` is the baseline (always apply).
-- **`playnite-ci-packaging.mdc`** — GitHub Actions on Windows, scripts / packaging hints.
-- **`playnite-extension-versioning.mdc`** — When to bump extension semver; ask user; release-only policy.
-- **`playnite-github-releases-per-extension.mdc`** — One GitHub Release per add-on; no combined umbrella releases; tag collision guidance.
-- **`playnite-github-release-tags.mdc`** — Release tag format **`{key}-v{version}`** and **`PackageUrl`** alignment.
-- **`playnite-localization.mdc`** — Translate every `Localization/*.xaml` locale when adding or changing UI strings (always apply).
-- **`playnite-themes.mdc`** — Theme add-ons: standalone themes on one shared key vocabulary (Playnite keys + `scripts/data/theme-keys.json`), how to pick a key, ThemeModifier compatibility (brushes only, generated `thememodifier.yaml`), overlay XAML rules, template placeholders, `.pthm` packaging.
-
-Copy these rules into other Playnite plugin repos if you want the same agent behavior.
-
-## Skills in this repo
-
-Generic Playnite skills (prefer these for new work):
+## Skills (`.claude/skills/`, shared by Claude Code and Cursor)
 
 | Skill | Use when |
 |-------|----------|
-| **`playnite-extension-build`** | Compile, `artifacts/builds/`, csproj / SDK |
-| **`playnite-extension-debug`** | Logs, UI thread, view gates, reflection / “does nothing” |
-| **`playnite-extension-release`** | `.pext` / `.pthm`, per-extension installer manifests, release artifacts, PlayniteAddonDatabase YAML |
-| **`playnite-theme-dev`** | New standalone theme from a design system's tokens and specs, token swaps, control restyles, `build-theme.ps1`, theme load failures |
+| **`playnite-plugin-dev`** | Any `.NET` plugin work: conventions, settings UI, localization, `build-plugin.ps1`, debugging "does nothing" |
+| **`playnite-theme-dev`** | Themes: new theme from a design system, token swaps, control restyles, `build-theme.ps1`, load failures, key vocabulary (`reference.md`) |
+| **`playnite-release`** | Version bump, `.pext` / `.pthm` packaging, GitHub Release, adding or updating an add-on in PlayniteAddonDatabase (`addon-database.md`) |
 
-## Reusing rules and skills in other projects
-
-- Shared rules and skills are tracked in this repo. Keep them generic and avoid Autogrid-only paths in shared guidance.
-- Use **`src/extensions.json`** rather than hardcoded paths when adding automation.
-
-Read the **`SKILL.md`** files under **`.cursor/skills/`** when the user asks to build, debug, release, or extend Playnite extensions.
+Add-on-specific rules (for example GameHoverDetails preview parity) live in that add-on's `AGENTS.md`. Read the matching `SKILL.md` when the user asks to build, debug, release, or extend an add-on.

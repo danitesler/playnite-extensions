@@ -59,18 +59,7 @@ namespace GameHoverDetails
             new HoverFieldDefinition("InstallSize", "Install Size")
         };
 
-        private static readonly HashSet<string> ValidKeys = new HashSet<string>();
-        private static readonly Dictionary<string, int> KeyOrder = new Dictionary<string, int>();
-
-        static HoverFieldCatalog()
-        {
-            for (var i = 0; i < All.Count; i++)
-            {
-                var k = All[i].Key;
-                ValidKeys.Add(k);
-                KeyOrder[k] = i;
-            }
-        }
+        private static readonly HashSet<string> ValidKeys = new HashSet<string>(All.Select(d => d.Key));
 
         public static bool IsKnownKey(string key)
         {
@@ -88,8 +77,6 @@ namespace GameHoverDetails
         private static FontFamily hugeIconsFontFamily;
         private static FontFamily pixelFontFamily;
 
-        /// <summary>Default catalog glyph family (Unicons). TTFs are copied next to the DLL under fonts\.</summary>
-        public static FontFamily GlyphFontFamily => GetGlyphFontFamily(GameHoverDetailsSettings.IconStyleUnicons);
 
         public static FontFamily GetGlyphFontFamily(string style)
         {
@@ -292,18 +279,6 @@ namespace GameHoverDetails
                 FlowDirection = FlowDirection.LeftToRight,
                 IsHitTestVisible = false
             };
-        }
-
-        public static int CompareKeys(string a, string b)
-        {
-            var ia = GetOrder(a);
-            var ib = GetOrder(b);
-            return ia.CompareTo(ib);
-        }
-
-        public static int GetOrder(string key)
-        {
-            return KeyOrder.TryGetValue(key, out var o) ? o : int.MaxValue;
         }
 
         public static List<string> GetAllKeysInCatalogOrder()

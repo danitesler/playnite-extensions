@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of the **Battle.net** desktop app: near-black blue-grey surfaces, white text, one bright Blizzard blue for Play, selection and focus, small corner radii, an icon rail, a top bar for the view controls, a game list next to a game page. Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; the theme's own token names stay in `tokens.css`.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of the **Battle.net** desktop app: near-black blue-grey surfaces, white text, one bright Blizzard blue for Play, selection and focus, small corner radii, an icon rail, a top bar for the view controls, a game list next to a game page.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources — read this first
 
@@ -25,15 +25,11 @@ To tighten the colors, sample a screenshot of the client and edit the values in 
 | Path | Role |
 |------|------|
 | `src/tokens.css` | The theme's own approximated tokens (`bnet-*`): surfaces, lines, text, Blizzard blue, status colors, radii. |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder`, `FocusVisual`, `CheckBoxFocusVisual`, component spacing. |
 | `src/Media.xaml` | Phosphor `Icon<Role>` geometries, `IconTemplate` (256 grid), search/clear templates, menu icon paths. |
 | `src/Images/Phosphor/` | Menu icons rendered to PNG (48px, muted text color; red for exit and remove). |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml`, `SearchBox.xaml` | Shell. |
 | `src/Views/DetailsViewGameOverview.xaml`, `GridViewGameOverview.xaml`, `LibraryDetailsView.xaml`, `src/DerivedStyles/DetailsView*.xaml`, `PlayButton.xaml`, `PropertyItemButton.xaml`, `GridViewItemStyle.xaml` | Game list and game page. |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
 | `icons.json` | Icon sources for `render-icons.ps1` (Windows). The geometry job writes `icons.generated.xaml` (not committed): paste into `src/Media.xaml`. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_battlenet.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-phosphor.txt`. |
 
 ## Tokens
 
@@ -52,7 +48,7 @@ To tighten the colors, sample a screenshot of the client and edit the values in 
 | `bnet-on-blue` | `#ffffff` | `TextBrushDark`, `PrimaryButtonForegroundBrush`, `DangerForegroundBrush` | text on blue and red fills |
 | `bnet-red` / `-deep` | `#ff5a52` / `#d13438` | `WarningBrush`, `NegativeRatingBrush` / `DangerBrush` | warnings, close hover |
 | `bnet-amber`, `bnet-green` | `#f5b031`, `#3fcf8e` | `DataChangeNotifBrush`, `MixedRatingBrush`, `PositiveRatingBrush` | data-changed text, ratings |
-| `bnet-radius-sm` / `-radius` / `-lg` / `-xl` | 2 / 3 / 6 / 10 px | `CornerRadiusSmall` / `ControlCornerRadius` / `CornerRadiusLarge` / `CornerRadiusXLarge` | the client is nearly square-cornered |
+| `bnet-radius-sm` / `-radius` / `-lg` | 2 / 3 / 6 px | `CornerRadiusSmall` / `ControlCornerRadius` / `CornerRadiusLarge` | the client is nearly square-cornered |
 
 Controls read brushes only, so ThemeModifier's palette edits and the shared brushes in the generated `thememodifier.yaml` recolor them. **One exception**: the description text on the game page (`HtmlTextView`) takes Color-typed properties (`HtmlForeground`, `LinkForeground`, default black), so it reads `TextColor` and `GlyphColor`; ThemeModifier brush edits do not reach it. The build check allows exactly those two properties.
 
@@ -81,7 +77,7 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 | `Views/TopPanel.xaml` | Top bar, 52px, frame color, 140px clear on the right for the window buttons: search (320px), view controls, filter toggle, notifications (blue count badge), plugin items, global progress. Carries the logo button only when the sidebar is hidden. |
 | `Views/Library.xaml` | Library on the page color; the library-wide background art (`PART_ImageBackground`) is kept but hidden. |
 | `Views/LibraryDetailsView.xaml`, `DerivedStyles/DetailsViewItemStyle.xaml`, `DetailsViewItemTemplate.xaml`, `DetailsViewGroupStyle.xaml` | Game list on the rail color: icon and name rows, card hover, selected row with a 3px blue bar, muted names and dimmed icons for games that are not installed, small muted group headings. |
-| `Views/DetailsViewGameOverview.xaml` | Game page: background art is a 340px band at the top (cropped, tinted at the top, a page-colored scrim darkening toward the title, faded into the page; hidden when the game has no art); a 100px strip of it shows above the header so the title sits low. Icon and name at 34px bold over the art, cover at the right, Steam screenshots, description and notes on the left, and **Game details** on the right: every metadata field Playnite can show (its "Game fields to be displayed on details panel" list), each a 12px muted label over its value, in the six shared groups (progress, scores, about, tags as chips, library, links; see `.cursor/rules/playnite-themes.mdc`) split by 1px `NormalBorderBrush` rules. A group whose fields are all hidden collapses with its rule. Then a bottom action bar: 240x52 blue Play, context action, Options (gear + "More"), edit. |
+| `Views/DetailsViewGameOverview.xaml` | Game page: background art is a 340px band at the top (cropped, tinted at the top, a page-colored scrim darkening toward the title, faded into the page; hidden when the game has no art); a 100px strip of it shows above the header so the title sits low. Icon and name at 34px bold over the art, cover at the right, Steam screenshots, description and notes on the left, and **Game details** on the right: every metadata field Playnite can show (its "Game fields to be displayed on details panel" list), each a 12px muted label over its value, in the six shared groups (progress, scores, about, tags as chips, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by 1px `NormalBorderBrush` rules. A group whose fields are all hidden collapses with its rule. Then a bottom action bar: 240x52 blue Play, context action, Options (gear + "More"), edit. |
 | `Views/GridViewGameOverview.xaml` | The same page in the cover-grid side panel: the same 290px background band behind the header (84px of it above the title, same tint and scrim), rail color, blue Play, gear Options, screenshots, description and notes on the left, Game details on the right (280px): the same pane and groups as the details page. |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Side panels on the rail color; preset buttons use theme icons. |
 
@@ -116,21 +112,12 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 - **Colors are approximations** (see Sources).
 - **The game title keeps a soft drop shadow** on the art so it stays legible over bright artwork (Playnite's own page does the same).
 
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension battlenet -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: Battle.net
-```
+## Build notes
 
 Icons are re-rendered with `.\scripts\render-icons.ps1 -Extension battlenet` (Windows; it needs WPF). The committed geometries and PNGs were produced with a stand-in on Linux from the same `icons.json`.
 
 ## Not verified yet
 
-Built and statically checked (`build-theme.ps1`); **not compared with a screenshot of the real client**. First run on Windows: the left icon rail (logo opens the main menu; titles are tooltips) and the top bar's view controls (also with the sidebar on the right, top, or bottom), the Details view (game list, game page with art, cards, bottom action bar, blue Play) with a game that has art and one that does not, Grid and List views, game context menu, top panel dropdowns, settings tabs, a game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Layout risks to look at: the window buttons against the top bar's right edge, the 340px hero band on the details page and the grid side panel, the cover beside a long game title, the description text color (`HtmlTextView`), the Game details pane with every field switched on and with only a few (rules between groups, chip wrapping, groups collapsing with their rule, the 280px pane in the grid panel), text box padding, the Options button label (`LOCMoreAction`), and the 3px selected bar on rail items. If Playnite falls back to Default after selecting the theme, the XAML error and file are in `playnite.log`.
+Built and statically checked (`build-theme.ps1`); **not compared with a screenshot of the real client**. First run on Windows: the left icon rail (logo opens the main menu; titles are tooltips) and the top bar's view controls (also with the sidebar on the right, top, or bottom), the Details view (game list, game page with art, cards, bottom action bar, blue Play) with a game that has art and one that does not, Grid and List views, game context menu, top panel dropdowns, settings tabs, a game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Layout risks to look at: the window buttons against the top bar's right edge, the 340px hero band on the details page and the grid side panel, the cover beside a long game title, the description text color (`HtmlTextView`), the Game details pane with every field switched on and with only a few (rules between groups, chip wrapping, groups collapsing with their rule, the 280px pane in the grid panel), text box padding, the Options button label (`LOCMoreAction`), and the 3px selected bar on rail items.
 
 Known limit: the top bar belongs to the library view, so on other views (Statistics, add-on views) only the icon rail shows.

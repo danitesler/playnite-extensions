@@ -14,11 +14,7 @@ param(
     [string]$Author = $env:USERNAME,
     [string]$Description = "A Playnite extension.",
     [string]$RequiredApiVersion = "6.6.0",
-    [string]$Version = "0.1.0",
-    [string]$SourceUrl = "",
-    [string]$RawBaseUrl = "",
-    [string]$ReleaseBaseUrl = "",
-    [string]$TagPattern = "{key}-v{version}"
+    [string]$Version = "0.1.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,25 +32,18 @@ function Convert-ToIdentifier {
     return $identifier
 }
 
-
 $repoRoot = Get-RepoRoot
 $className = Convert-ToIdentifier $Name
+$Key = $Key.ToLowerInvariant()
 $extensionDir = Join-Path $repoRoot "src/$className"
-$projectPath = "src/$className/$className.csproj"
-$manifestPath = "src/$className/info/extension.yaml"
-$installerPath = "src/$className/info/InstallerManifest.yaml"
-$databasePath = "src/$className/info/danitesler_$($Key.ToLowerInvariant()).yaml"
-$propsPath = "src/$className/Directory.Build.props"
-$outputPath = "src/$className/bin/Release/net462"
 $databaseType = Get-AddonDatabaseType -PluginType $Type
 
 if (-not $AddonId) {
     $AddonId = "{0}_{1}" -f $className, (([guid]::NewGuid()).ToString("N").Substring(0, 8).ToUpperInvariant())
 }
 
-$profilesPath = Join-RepoPath "src/extensions.json"
-$profiles = Get-Content -Raw -Path $profilesPath | ConvertFrom-Json
-if ($profiles.extensions | Where-Object { $_.key -eq $Key -or $_.addonId -eq $AddonId }) {
+$index = Get-ExtensionIndex
+if ($index.extensions | Where-Object { $_.key -eq $Key -or $_.addonId -eq $AddonId }) {
     throw "An extension with key '$Key' or AddonId '$AddonId' already exists."
 }
 
@@ -62,16 +51,31 @@ if (Test-Path $extensionDir) {
     throw "Extension directory already exists at $extensionDir"
 }
 
+# The index row holds only what cannot be derived; paths and URLs below come from the completed profile.
+$newProfile = [pscustomobject][ordered]@{
+    key                = $Key
+    name               = $Name
+    kind               = "plugin"
+    dir                = "src/$className"
+    addonId            = $AddonId
+    pluginType         = $Type
+    requiredApiVersion = $RequiredApiVersion
+}
+$profile = Complete-ExtensionProfile -Profile ($newProfile.PSObject.Copy()) -Index $index
+$projectPath = $profile.project
+$manifestPath = $profile.extensionManifest
+$installerPath = $profile.installerManifest
+$databasePath = $profile.databaseManifest
+$propsPath = $profile.directoryBuildProps
+
 New-Item -ItemType Directory -Path (Join-Path $extensionDir "src") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $extensionDir "info") -Force | Out-Null
 
 $assemblyVersion = if ($Version -match "^\d+\.\d+\.\d+$") { "$Version.0" } else { $Version }
-$installerUrl = if ($RawBaseUrl) { "$RawBaseUrl/$installerPath" } else { "https://raw.githubusercontent.com/<owner>/<repo>/main/$installerPath" }
-$iconUrl = if ($RawBaseUrl) { "$RawBaseUrl/src/$className/info/icon.png" } else { "https://raw.githubusercontent.com/<owner>/<repo>/main/src/$className/info/icon.png" }
-$packageTag = $TagPattern.Replace("{key}", $Key).Replace("{version}", $Version)
-$packageUrlBase = if ($ReleaseBaseUrl) { $ReleaseBaseUrl } else { "https://github.com/<owner>/<repo>/releases/download" }
-$packageUrl = "$packageUrlBase/$packageTag/$(Get-ExpectedPextName -AddonId $AddonId -Version $Version)"
-$source = if ($SourceUrl) { $SourceUrl } else { "https://github.com/<owner>/<repo>" }
+$installerUrl = "$($profile.rawBaseUrl)/$installerPath"
+$iconUrl = "$($profile.rawBaseUrl)/$($profile.dir)/info/icon.png"
+$packageUrl = Get-ExpectedPackageUrl -Profile $profile -AddonId $AddonId -Version $Version
+$source = $profile.sourceUrl
 $pluginGuid = ([guid]::NewGuid()).ToString().ToUpperInvariant()
 
 # Each Playnite plugin type has different abstract members; emit a skeleton that compiles as-is.
@@ -260,32 +264,13 @@ if (Test-Path $placeholderIcon) {
     Copy-Item -Path $placeholderIcon -Destination (Join-Path $extensionDir "info/icon.png")
 }
 
-$newProfile = [pscustomobject]@{
-    key                 = $Key
-    slug                = $Key
-    name                = $Name
-    addonId             = $AddonId
-    type                = $databaseType
-    pluginType          = $Type
-    project             = $projectPath
-    extensionManifest   = $manifestPath
-    installerManifest   = $installerPath
-    databaseManifest    = $databasePath
-    outputPath          = $outputPath
-    directoryBuildProps = $propsPath
-    requiredApiVersion  = $RequiredApiVersion
-    sourceUrl           = $source
-    rawBaseUrl          = $RawBaseUrl
-    releaseBaseUrl      = $ReleaseBaseUrl
-    tagPattern          = $TagPattern
-}
+$index.extensions += $newProfile
+Save-ExtensionIndex -Index $index
 
-$profiles.extensions += $newProfile
-$profiles | ConvertTo-Json -Depth 8 | Set-Content -Path $profilesPath -Encoding UTF8
+dotnet sln (Join-Path $repoRoot "playnite-extensions.sln") add (Join-Path $repoRoot $projectPath) | Out-Null
 
 Write-Host "Created extension '$Name' at $extensionDir"
 Write-Host "Next steps:"
-Write-Host "  1. Replace info/icon.png."
-Write-Host "  2. Add $projectPath to playnite-extensions.sln if you use Visual Studio solution builds."
-Write-Host "  3. Run ./scripts/validate-extension.ps1 -Extension $Key"
-
+Write-Host "  1. Replace info/icon.png (.\scripts\render-addon-icon.ps1 -Svg <mark.svg> -Extension $Key)."
+Write-Host "  2. Write src/$className/AGENTS.md (what it does, files, settings, how to test)."
+Write-Host "  3. Run .\scripts\validate-extension.ps1 -Extension $Key"

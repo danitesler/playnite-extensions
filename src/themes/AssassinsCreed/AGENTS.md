@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) modeled on the menus of the RPG-era **Assassin's Creed** games (Origins, Odyssey, Valhalla, Mirage): near-black charcoal surfaces, warm ivory text, one gold accent, hairline rules, diamonds and corner brackets on whatever is current, a serif for headings, tabs along the top, and a game info screen laid out like an entry screen. Unofficial and standalone: every file it ships lives in this folder, and no Ubisoft asset is in it. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; the theme's own token names stay in `tokens.css`.
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -23,18 +23,14 @@ What "copying the menus" means here: the layout, hierarchy, states and motifs ar
 | Path | Role |
 |------|------|
 | `src/tokens.css` | The palette (`.dark`) and the type, size and stroke tokens (`:root`). |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `FocusVisual`, `HeadingTextBlock`, `CornerMarksTemplate`, `DividerTemplate`, component spacing. |
 | `src/Media.xaml` | `Icon<Role>` geometries (strokes), `IconTemplate` / `IconSmallTemplate`, and the menu icon paths. |
 | `src/Images/Icons/` | The menu icons as 48px PNGs (24 files). |
 | `icons/`, `icons.json` | The SVG sources and the render jobs for `.\scripts\render-icons.ps1 -Extension assassinscreed`. Outside `src/`, so not packaged. |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml` | Shell and the game info screens. |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_assassinscreed.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `NOTICE-assassins-creed.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the token behind each one. Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them. Translucent tokens keep their alpha; the popup edge is flattened onto the popup surface.
+Keys are the shared vocabulary; the template names the token behind each one. Translucent tokens keep their alpha; the popup edge is flattened onto the popup surface.
 
 | Token | Value | Key | Used for |
 |-------|-------|-----|----------|
@@ -90,7 +86,7 @@ Layers, deepest first: `void` (window and icon rail), `night` (library), `slate`
 
 ## Game info screens
 
-Both panels keep every `PART_` name of Playnite's Default files; the property list is not a `GridEx` here but one pane of six groups (see `.cursor/rules/playnite-themes.mdc`).
+Both panels keep every `PART_` name of Playnite's Default files; the property list is not a `GridEx` here but one pane of six groups (see `.claude/skills/playnite-theme-dev/reference.md`).
 
 | File | Layout |
 |------|--------|
@@ -139,17 +135,6 @@ The Edit button shows only while the pointer is over the header, as in Playnite'
 - The body font's semibold does nothing: `Segoe UI Semilight` has one face, so weights are only used on headings.
 - Playnite's own templates that this theme does not replace (DataGrid, DatePicker, TreeView, ComboBoxList, FilterSelectionBox, notification panel, Statistics and add-on views) read the palette, so they take the colors but not the AC shapes. The cover hover overlay and its play and info buttons (`GridViewItemTemplate`) are Playnite's.
 - The tile icon in `info/icon.png` is an original mark (a diamond split by a blade), not the games' insignia.
-
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension assassinscreed -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: Assassin's Creed
-```
 
 ## Not verified yet
 

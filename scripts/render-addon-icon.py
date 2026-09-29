@@ -47,8 +47,7 @@ def extension_icon_path(key: str) -> Path:
     index = json.loads((ROOT / "src" / "extensions.json").read_text(encoding="utf-8-sig"))
     for row in index["extensions"]:
         if row["key"] == key:
-            manifest = ROOT / row["extensionManifest"]
-            return manifest.parent / "icon.png"
+            return ROOT / row["dir"] / "info" / "icon.png"
     known = ", ".join(row["key"] for row in index["extensions"])
     raise SystemExit(f"Unknown extension {key!r}. Known: {known}")
 

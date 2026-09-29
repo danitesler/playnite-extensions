@@ -11,8 +11,11 @@ namespace RandomTheme
         {
             try
             {
+                // Playnite returns "<!key!>" (older builds: the key) instead of throwing for a missing string.
                 var value = ResourceProvider.GetString(key);
-                if (!string.IsNullOrEmpty(value) && !string.Equals(value, key, StringComparison.Ordinal))
+                if (!string.IsNullOrEmpty(value)
+                    && !string.Equals(value, key, StringComparison.Ordinal)
+                    && !value.StartsWith("<!", StringComparison.Ordinal))
                 {
                     return value;
                 }

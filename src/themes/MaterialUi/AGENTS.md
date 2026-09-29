@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Material UI** (MUI, Material Design 2), with MUI's default dark theme (`createTheme({ palette: { mode: 'dark' } })`). Standalone: every file it ships lives in this folder. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; MUI's `theme.palette` names stay in `tokens.css` and the template's placeholders.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Material UI** (MUI, Material Design 2), with MUI's default dark theme (`createTheme({ palette: { mode: 'dark' } })`).
 
-Playnite loading rules, overlay mechanics and the build checks are in **`.cursor/rules/playnite-themes.mdc`** and skill **`playnite-theme-dev`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
@@ -19,16 +19,12 @@ Playnite loading rules, overlay mechanics and the build checks are in **`.cursor
 | Path | Role |
 |------|------|
 | `src/tokens.css` | MUI's CSS variables under the names MUI emits with `cssVariables` (`--mui-palette-background-paper`, `--mui-palette-FilledInput-bg`, `--mui-overlays-8`, `--mui-shape-borderRadius`), plus the few dark-mode values MUI's components hard-code. |
-| `src/Constants.template.xaml` | Tokens → Playnite's palette keys and the shared keys; rendered into `Constants.xaml`. |
 | `src/Common.xaml` | `PopupBorder`, `FocusVisual` (focus state layer), component spacing. |
 | `src/Media.xaml` | Material Icons (Playnite's roles plus arrow_drop_down, chevron_right, check). |
-| `src/Views/*`, `src/DerivedStyles/MainWindowStyle.xaml`, `src/CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml`, `SearchBox.xaml` | Shell. |
-| `src/DefaultControls/*`, other `src/CustomControls/*` and `src/DerivedStyles/*` | Controls. |
-| `info/` | `theme.yaml`, `InstallerManifest.yaml`, `danitesler_materialui.yaml`, `icon.png`, `LICENSE-Playnite.txt`, `LICENSE-material-icons.txt`. |
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the MUI variable behind each one (paper at elevation N is `mui-overlays-N` over the paper; `alpha(primary.main, selectedOpacity)` is `mui-palette-primary-main/16`). Controls read brushes only, so ThemeModifier's palette edits (Editor tab) and the shared brushes in the generated `thememodifier.yaml` (Edit constants) recolor them.
+Keys are the shared vocabulary; the template names the MUI variable behind each one (paper at elevation N is `mui-overlays-N` over the paper; `alpha(primary.main, selectedOpacity)` is `mui-palette-primary-main/16`).
 
 | Token | Dark value | Key | Used for |
 |-------|------------|-----|----------|
@@ -80,7 +76,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 | `CustomControls/TopPanelItem.xaml` | IconButton medium, `color="inherit"`: 40px circle, 24px icon; a toggled item turns primary. |
 | `CustomControls/SearchBox.xaml` | FilledInput with a start adornment, for search boxes outside the app bar. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 8px spacing unit without separators; background art under the app bar, feathered on every edge. |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Material media page (Google Play's layout in MUI parts). Hero: background art 360px under a scrim into `background.default`, hidden without art; the header overlaps it: cover, title as h4, contained Play, text More, round IconButton Edit. Below: Description and Notes Cards and a 380px Details Card that holds every metadata field Playnite can show, as a dense List of label / value rows (120px labels in `text.secondary`) in the six shared groups (progress, scores, about, tags as small filled Chips, library, links; see `.cursor/rules/playnite-themes.mdc`) split by Dividers. A group whose fields are all hidden collapses with its Divider. The grid panel is one Card: CardMedia (art), CardHeader (round avatar, title), CardActions, then two columns like the details page: the description and the notes on the left and, on the right (280px), the same List with the label over the value. Fields left out are parts Playnite skips. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Material media page (Google Play's layout in MUI parts). Hero: background art 360px under a scrim into `background.default`, hidden without art; the header overlaps it: cover, title as h4, contained Play, text More, round IconButton Edit. Below: Description and Notes Cards and a 380px Details Card that holds every metadata field Playnite can show, as a dense List of label / value rows (120px labels in `text.secondary`) in the six shared groups (progress, scores, about, tags as small filled Chips, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by Dividers. A group whose fields are all hidden collapses with its Divider. The grid panel is one Card: CardMedia (art), CardHeader (round avatar, title), CardActions, then two columns like the details page: the description and the notes on the left and, on the right (280px), the same List with the label over the value. Fields left out are parts Playnite skips. |
 
 ## Components
 
@@ -120,17 +116,6 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 - The indeterminate LinearProgress slides one segment; MUI runs two bars at different speeds.
 - The overview cover is square-cornered (CardMedia inherits the Card radius in MUI); WPF can't clip an Image to a radius without a mask, and the 4px radius isn't worth one.
 - The Details List has no leading icons (there are 25 fields and Material Icons for only a few) and no group subheaders: themes cannot ship localization, so groups are told apart by Dividers and spacing.
-
-## Game page banner
-
-The game's background art is a banner at the top of the game page (details view and grid panel), tinted at the top, darkened toward the title and faded into the page. Its height is the shared key `GameBannerHeight` (`Common.xaml`, default 320; ThemeModifier > Edit constants, slider 0 to 600). At 0 the banner and the room above the title go away and the title sits at the top of the page. Games without background art get the same layout.
-
-## Build and try it
-
-```powershell
-.\scripts\build-theme.ps1 -Extension materialui -Deploy
-# restart Playnite -> Settings -> Appearance -> Theme: Material UI
-```
 
 ## Not verified yet
 
