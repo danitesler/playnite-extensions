@@ -28,6 +28,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/MaterialUiTheme/info/icon.png" alt="Material UI Theme" width="80" height="80" /> | **Material UI Theme** (`materialuitheme`) | A fully dark desktop theme in Material UI style, with an elevated app bar, mini drawer, filled inputs, uppercase buttons, and Material icons. [Preview components](https://mui.com/material-ui/all-components/) |
 | <img src="src/PrimerTheme/info/icon.png" alt="Primer Theme" width="80" height="80" /> | **Primer Theme** (`primertheme`) | A fully dark desktop theme in GitHub Primer style, with a dark header band, navigation rail, Octicons, green primary buttons, and coral underline tabs. [Preview components](https://primer.style/components) |
 | <img src="src/Fluent2Theme/info/icon.png" alt="Fluent 2 Theme" width="80" height="80" /> | **Fluent 2 Theme** (`fluent2theme`) | A fully dark desktop theme in Microsoft Fluent 2 style, with a Windows 11 navigation rail, centered search, underline inputs, and Fluent icons. [Preview components](https://react.fluentui.dev/) |
+| <img src="src/Warcraft3Theme/info/icon.png" alt="Warcraft III Theme" width="80" height="80" /> | **Warcraft III Theme** (`warcraft3theme`) | A dark desktop theme in the style of Warcraft III: stone plates in bronze and gold trim, the main menu as a sidebar column, F10-style menus, and a unit-info game screen. Fan work; frames are drawn, icons are game-icons.net (CC BY 3.0). |
 
 ## Installation
 

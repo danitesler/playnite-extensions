@@ -19,6 +19,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Material UI Theme** (`materialuitheme`) — Desktop theme, theme API 2.9.0, MUI's default dark theme. Notes in **`src/MaterialUiTheme/AGENTS.md`**.
 - **Primer Theme** (`primertheme`) — Desktop theme, theme API 2.9.0, GitHub Primer dark tokens. Notes in **`src/PrimerTheme/AGENTS.md`**.
 - **Fluent 2 Theme** (`fluent2theme`) — Desktop theme, theme API 2.9.0, Microsoft Fluent 2 `webDarkTheme` tokens and a Windows 11 shell. Notes in **`src/Fluent2Theme/AGENTS.md`**.
+- **Warcraft III Theme** (`warcraft3theme`) — Desktop theme, theme API 2.9.0, the Warcraft III interface (stone plates, bronze and gold trim, unit-info game screen); frames drawn in XAML, icons from game-icons.net, no Blizzard art. Notes in **`src/Warcraft3Theme/AGENTS.md`**.
 
 ## Repository layout
 
