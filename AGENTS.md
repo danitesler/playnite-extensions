@@ -12,7 +12,6 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Autogrid** (`autogrid`) — GenericPlugin, `net462`, WPF. Extension-specific notes live in **`src/Autogrid/AGENTS.md`**.
 - **GameHoverDetails** (`gamehoverdetails`) — GenericPlugin, `net462`, WPF: hover popup with name, short description, and platforms. Notes in **`src/GameHoverDetails/AGENTS.md`**.
 - **AutoStatus** (`autostatus`) — GenericPlugin, `net462`, WPF settings: completion-status rules (stale Playing → On Hold; started game → Playing). Notes in **`src/AutoStatus/AGENTS.md`**.
-- **ExeIcon** (`exeicon`) — MetadataPlugin, `net462`, no UI: Icon metadata source that extracts the icon from the game's executable. Notes in **`src/ExeIcon/AGENTS.md`**.
 - **RandomTheme** (`randomtheme`) — GenericPlugin, `net462`, WPF settings: picks a random theme on startup independently for Desktop and Fullscreen modes. Notes in **`src/RandomTheme/AGENTS.md`**.
 
 ## Current themes

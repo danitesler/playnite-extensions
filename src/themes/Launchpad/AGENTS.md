@@ -16,7 +16,7 @@ Blizzard publishes no design system, no tokens and no component specs, so unlike
 | Icons | Phosphor Icons 2.1.1, Regular weight (MIT, `info/LICENSE-phosphor.txt`), npm `@phosphor-icons/core`. Chosen as the closest open outline set to the thin rounded line icons of the client. |
 | Playnite structure | Playnite 10.60 Default theme (MIT, `info/LICENSE-Playnite.txt`), every file restyled from its Default copy. |
 
-**Not included, on purpose:** Blizzard's logo, wordmark, game art and its own icon files. Those are Blizzard's copyrighted and trademarked artwork; bundling them in a public add-on is not something this repo does. The logo button shows a Phosphor spiral in launcher blue where the client shows its own logo. The add-on tile (`info/icon.png`) uses the same spiral. To match the client's icons exactly for personal use, replace the geometries in `src/Media.xaml` and the PNGs in `src/Images/Phosphor` on your machine; nothing else depends on them.
+**Not included, on purpose:** Blizzard's logo, wordmark, game art and its own icon files. Those are Blizzard's copyrighted and trademarked artwork; bundling them in a public add-on is not something this repo does. The logo button shows the add-on tile's orbit mark (two interlaced rings and a core, hand-built as an `F0` even-odd geometry in `src/Media.xaml`) in launcher blue where the client shows its own logo. To match the client's icons exactly for personal use, replace the geometries in `src/Media.xaml` and the PNGs in `src/Images/Phosphor` on your machine; nothing else depends on them.
 
 To tighten the colors, sample a screenshot of the client and edit the values in `src/tokens.css` (see Tokens). No XAML changes are needed.
 
@@ -71,14 +71,14 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 | File | Behavior |
 |------|----------|
 | `Views/MainWindow.xaml` | The sidebar docks with Playnite's Sidebar position. Left is the usual rail; the top bar stays the view controls. |
-| `Views/Sidebar.xaml` | Icon rail, 44px, frame color, 1px divider toward the library. The logo button (`PART_ElemMainMenu`: spiral in launcher blue) opens the main menu. Items are icon only. Left and right are vertical; top and bottom are a strip, with 140px kept clear for the window buttons. |
+| `Views/Sidebar.xaml` | Icon rail, 44px, frame color, 1px divider toward the library. The logo button (`PART_ElemMainMenu`: orbit mark in launcher blue) opens the main menu. Items are icon only. Left and right are vertical; top and bottom are a strip, with 140px kept clear for the window buttons. |
 | `CustomControls/SidebarItem.xaml` | Icon only, 44x40, 18px glyph; the title is the tooltip. Muted at rest, white on a card fill when hovered, 3px blue bar on the edge facing the library when current. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons centered on the top bar (44x36, red close hover); caption height 52. |
 | `Views/TopPanel.xaml` | Top bar, 52px, frame color, 140px clear on the right for the window buttons: search (320px), view controls, filter toggle, notifications (blue count badge), plugin items, global progress. Carries the logo button only when the sidebar is hidden. |
 | `Views/Library.xaml` | Library on the page color; the library-wide background art (`PART_ImageBackground`) is kept but hidden. |
 | `Views/LibraryDetailsView.xaml`, `DerivedStyles/DetailsViewItemStyle.xaml`, `DetailsViewItemTemplate.xaml`, `DetailsViewGroupStyle.xaml` | Game list on the rail color: icon and name rows, card hover, selected row with a 3px blue bar, muted names and dimmed icons for games that are not installed, small muted group headings. |
 | `Views/DetailsViewGameOverview.xaml` | Game page: background art is a 340px band at the top (cropped, tinted at the top, a page-colored scrim darkening toward the title, faded into the page; hidden when the game has no art); a 100px strip of it shows above the header so the title sits low. Icon and name at 34px bold over the art, cover at the right, Steam screenshots, description and notes on the left, and **Game details** on the right: every metadata field Playnite can show (its "Game fields to be displayed on details panel" list), each a 12px muted label over its value, in the six shared groups (progress, scores, about, tags as chips, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by 1px `NormalBorderBrush` rules. A group whose fields are all hidden collapses with its rule. Then a bottom action bar: 240x52 blue Play, context action, Options (gear + "More"), edit. |
-| `Views/GridViewGameOverview.xaml` | The same page in the cover-grid side panel: the same 290px background band behind the header (84px of it above the title, same tint and scrim), rail color, blue Play, gear Options, screenshots, description and notes on the left, Game details on the right (280px): the same pane and groups as the details page. |
+| `Views/GridViewGameOverview.xaml` | The same page in the cover-grid side panel: the same 290px background band behind the header (96px of it above the title, same tint and scrim), rail color, blue Play, gear Options, screenshots, description and notes on the left, Game details on the right (280px): the same pane and groups as the details page. |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Side panels on the rail color; preset buttons use theme icons. |
 
 ## Components
@@ -91,7 +91,7 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 | `DefaultControls/ComboBox.xaml` | Dark select with a caret; popup rows with a blue bar on the selected one |
 | `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | 18px box / ring; blue fill and white check / blue dot when on |
 | `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 4px rail, blue fill, 16px white round thumb |
-| `DerivedStyles/PropertyItemButton.xaml` | Values in the game details that filter: launcher-blue link text, white under the pointer; in a list tagged `Chip`, a 22px chip in the secondary-button grey, one step lighter on hover |
+| `DerivedStyles/PropertyItemButton.xaml` | Values in the game details that filter: launcher-blue link text, white under the pointer; in a list tagged `Chip`, a 24px chip in the secondary-button grey, one step lighter on hover |
 | `DefaultControls/ProgressBar.xaml` | 6px blue bar on a dark track |
 | `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | 6px rounded thumb, no arrows |
 | `DefaultControls/Menu.xaml`, `ContextMenu.xaml`, `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | 36px rows with a hover fill, Phosphor check and caret, divider separators |
@@ -105,7 +105,7 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 
 - **Game list is a vertical rail, not a top row of icons.** The client shows its few games as a row of icons at the top; that does not scale to a Playnite library of hundreds of games, so the details view uses a vertical list (icon and name) beside the game page.
 - **The bottom bar is on the game page only** (Details view and the grid side panel), not on the whole window.
-- **No Blizzard logo, game logos or icon files** (see Sources). The menu button is the spiral on its own.
+- **No Blizzard logo, game logos or icon files** (see Sources). The menu button is the orbit mark on its own, without the tile styling.
 - **The rail is icon-only.** Titles are the tooltip. Left and right are a vertical rail; top and bottom stay a horizontal strip so Playnite's Sidebar position still applies.
 - **No news tiles.** Playnite has no news feed; the cards under the art are the game's description and details.
 - **Font** is Segoe UI, not the client's typeface.
