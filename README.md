@@ -28,6 +28,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/MaterialUiTheme/info/icon.png" alt="Material UI Theme" width="80" height="80" /> | **Material UI Theme** (`materialuitheme`) | A fully dark desktop theme in Material UI style, with an elevated app bar, mini drawer, filled inputs, uppercase buttons, and Material icons. [Preview components](https://mui.com/material-ui/all-components/) |
 | <img src="src/PrimerTheme/info/icon.png" alt="Primer Theme" width="80" height="80" /> | **Primer Theme** (`primertheme`) | A fully dark desktop theme in GitHub Primer style, with a dark header band, navigation rail, Octicons, green primary buttons, and coral underline tabs. [Preview components](https://primer.style/components) |
 | <img src="src/Fluent2Theme/info/icon.png" alt="Fluent 2 Theme" width="80" height="80" /> | **Fluent 2 Theme** (`fluent2theme`) | A fully dark desktop theme in Microsoft Fluent 2 style, with a Windows 11 navigation rail, centered search, underline inputs, and Fluent icons. [Preview components](https://react.fluentui.dev/) |
+| <img src="src/WoWVanillaTheme/info/icon.png" alt="WoW Vanilla Theme" width="80" height="80" /> | **WoW Vanilla Theme** (`wowvanillatheme`) | An unofficial, fan-made desktop theme in the style of the World of Warcraft Vanilla interface: gold and bronze frames, red leather buttons, the navy tooltip, and a game page laid out like the quest log. All artwork is original; no game files are included. |
 
 ## Installation
 
