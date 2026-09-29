@@ -73,6 +73,38 @@ namespace RandomTheme
             }
         }
 
+        /// <summary>Days between automatic changes for each slider step (0 = every launch).</summary>
+        internal static readonly int[] CadenceDays = { 0, 1, 3, 7, 30 };
+
+        private int cadenceStep;
+        /// <summary>Slider position: 0 every launch, 1 every day, 2 every 3 days, 3 every 7 days, 4 every 30 days.</summary>
+        public int CadenceStep
+        {
+            get => cadenceStep;
+            set
+            {
+                cadenceStep = Math.Max(0, Math.Min(CadenceDays.Length - 1, value));
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CadenceText));
+            }
+        }
+
+        /// <summary>When the theme was last changed automatically or manually (UTC). Null = never.</summary>
+        public DateTime? LastPickedUtc { get; set; }
+
+        /// <summary>True when the cadence says a new theme is due now (calendar days, so a slightly earlier launch still counts).</summary>
+        internal bool IsDue(DateTime nowLocal)
+        {
+            var days = CadenceDays[Math.Max(0, Math.Min(CadenceDays.Length - 1, CadenceStep))];
+            if (days == 0 || LastPickedUtc == null)
+            {
+                return true;
+            }
+
+            var last = LastPickedUtc.Value.ToLocalTime().Date;
+            return (nowLocal.Date - last).TotalDays >= days;
+        }
+
         /// <summary>Themes the user unchecked. New themes are eligible until unchecked.</summary>
         public List<string> ExcludedThemeIds { get; set; } = new List<string>();
 
@@ -113,6 +145,10 @@ namespace RandomTheme
 
         [DontSerialize]
         public string EnableText => RandomThemeLoc.Get("LOCRandomTheme_Enable_" + Key, $"Pick a random {RandomThemeLoc.ModeName(Mode)} theme on every startup");
+        [DontSerialize]
+        public string CadenceText => RandomThemeLoc.Get("LOCRandomTheme_Cadence_Label", "Change theme") + ": "
+            + RandomThemeLoc.Get("LOCRandomTheme_Cadence_" + CadenceStep, DefaultCadence[Math.Max(0, Math.Min(4, CadenceStep))]);
+        private static readonly string[] DefaultCadence = { "Every launch", "Every day", "Every 3 days", "Every 7 days", "Every 30 days" };
         [DontSerialize]
         public string ThemesLabel => RandomThemeLoc.Get("LOCRandomTheme_ThemesLabel_" + Key, $"{RandomThemeLoc.ModeName(Mode)} themes to choose from");
         [DontSerialize]
@@ -201,13 +237,14 @@ namespace RandomTheme
 
         // ─── Edit snapshot ────────────────────────────────────────────────────
 
-        internal Snapshot Capture() => new Snapshot(Enabled, AvoidRepeat, ExcludedThemeIds);
+        internal Snapshot Capture() => new Snapshot(Enabled, AvoidRepeat, ExcludedThemeIds, CadenceStep);
 
         internal void Restore(Snapshot snapshot)
         {
             Enabled = snapshot.Enabled;
             AvoidRepeat = snapshot.AvoidRepeat;
             ExcludedThemeIds = new List<string>(snapshot.ExcludedThemeIds);
+            CadenceStep = snapshot.CadenceStep;
         }
 
         internal sealed class Snapshot
@@ -215,9 +252,11 @@ namespace RandomTheme
             public bool Enabled { get; }
             public bool AvoidRepeat { get; }
             public List<string> ExcludedThemeIds { get; }
+            public int CadenceStep { get; }
 
-            public Snapshot(bool enabled, bool avoidRepeat, IEnumerable<string> excluded)
+            public Snapshot(bool enabled, bool avoidRepeat, IEnumerable<string> excluded, int cadenceStep)
             {
+                CadenceStep = cadenceStep;
                 Enabled = enabled;
                 AvoidRepeat = avoidRepeat;
                 ExcludedThemeIds = new List<string>(excluded ?? Enumerable.Empty<string>());

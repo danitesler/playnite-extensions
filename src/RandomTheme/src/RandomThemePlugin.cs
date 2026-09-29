@@ -47,16 +47,28 @@ namespace RandomTheme
                 var changed = false;
                 foreach (var mode in Modes)
                 {
-                    if (!settings.For(mode).Enabled)
+                    var category = settings.For(mode);
+                    if (!category.Enabled)
                     {
                         Logger.Info($"RandomTheme [{mode}]: Randomization is off; leaving the theme alone.");
+                        continue;
+                    }
+
+                    if (!category.IsDue(DateTime.Now))
+                    {
+                        Logger.Info($"RandomTheme [{mode}]: Not due yet (last change {category.LastPickedUtc:u}, cadence step {category.CadenceStep}); leaving the theme alone.");
                         continue;
                     }
 
                     try
                     {
                         var outcome = Pick(mode, out _);
-                        changed |= outcome == PickOutcome.Picked;
+                        if (outcome == PickOutcome.Picked)
+                        {
+                            changed = true;
+                            category.LastPickedUtc = DateTime.UtcNow;
+                        }
+
                         if (outcome == PickOutcome.ApplyFailed)
                         {
                             PlayniteApi.Notifications.Add(new NotificationMessage(
@@ -77,6 +89,7 @@ namespace RandomTheme
                 if (changed)
                 {
                     PlayniteHost.SaveSettings();
+                    settings.Persist();
                 }
             });
         }
@@ -183,6 +196,8 @@ namespace RandomTheme
 
                         default:
                             PlayniteHost.SaveSettings();
+                            category.LastPickedUtc = DateTime.UtcNow;
+                            settings.Persist();
                             category.RefreshNextTheme();
                             AnnounceAndOfferRestart(mode, $"{modeName}: {picked.Name}", title);
                             return;

@@ -12,10 +12,10 @@
 | Playnite access | `src/PlayniteHost.cs` | Reflection into Playnite internals: `PlayniteApplication.Current.AppSettings` theme get/set, `SaveSettings()`, `Restart(bool)` |
 | Discovery | `src/ThemeCatalog.cs` | Installed themes per mode via `ThemeManager.GetAvailableThemes(mode)` (skips incompatible), disk-scan fallback |
 | Selection rules | `src/ThemePicker.cs` | Pure function: exclusions, avoid-repeat, uniform random. No Playnite dependencies, unit-testable |
-| Settings model | `src/RandomThemeSettings.cs`, `src/ThemeCategorySettings.cs` | Root settings = `Desktop` + `Fullscreen` `ThemeCategorySettings` (`Enabled`, `AvoidRepeat`, `ExcludedThemeIds`) plus the runtime view-model bits (theme checklist, commands, texts) |
+| Settings model | `src/RandomThemeSettings.cs`, `src/ThemeCategorySettings.cs` | Root settings = `Desktop` + `Fullscreen` `ThemeCategorySettings` (`Enabled`, `AvoidRepeat`, `ExcludedThemeIds`, `CadenceStep`, `LastPickedUtc`) plus the runtime view-model bits (theme checklist, commands, texts) |
 | Settings view | `src/RandomThemeSettingsView.xaml` | One `DataTemplate` rendered twice (Desktop, Fullscreen). Stock Playnite controls only |
 | Loc helper | `src/RandomThemeLoc.cs` | `LOCRandomTheme_*` strings with English fallbacks |
-| Strings | `Localization/*.xaml` | All 45 Playnite locales, same 21 keys each |
+| Strings | `Localization/*.xaml` | All 45 Playnite locales, same 27 keys each |
 
 ## Rules that are easy to get wrong (each was a real bug)
 
@@ -45,7 +45,8 @@ Playnite loads its theme before any extension runs, so a theme picked in session
 
 ## Behaviour summary
 
-- **Startup:** for each category with **Enabled** on, pick from (installed, compatible, not unchecked). With **AvoidRepeat** (always on by default in the background) and ≥ 2 candidates, skip the theme already set and (for the running mode) the theme running now, unless that leaves nothing. Set it, then `SaveSettings()` once.
+- **Cadence:** per category slider (`CadenceStep` 0-4 → every launch / 1 / 3 / 7 / 30 days, default every launch). Startup only picks when `IsDue` (calendar-day difference since `LastPickedUtc`); every successful pick, manual or automatic, stamps `LastPickedUtc`.
+- **Startup:** for each category with **Enabled** on and due, pick from (installed, compatible, not unchecked). With **AvoidRepeat** (always on by default in the background) and ≥ 2 candidates, skip the theme already set and (for the running mode) the theme running now, unless that leaves nothing. Set it, then `SaveSettings()` once.
 - **Nothing eligible** (nothing installed or everything unchecked): the theme is left alone. `VerifySettings` blocks saving an enabled category with everything unchecked.
 - **Randomize now** (settings button on right of Select all / none, or main menu per category) ignores the Enabled switch, applies the same pool rules, saves, and offers a restart.
 - New themes are eligible until the user unchecks them (the setting stores *exclusions*).

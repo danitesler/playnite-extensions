@@ -22,9 +22,9 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Material UI** (`materialui`) — Desktop theme, theme API 2.9.0, MUI's default dark theme. Notes in **`src/themes/MaterialUi/AGENTS.md`**.
 - **Primer** (`primer`) — Desktop theme, theme API 2.9.0, GitHub Primer dark tokens. Notes in **`src/themes/Primer/AGENTS.md`**.
 - **Fluent 2** (`fluent2`) — Desktop theme, theme API 2.9.0, Microsoft Fluent 2 `webDarkTheme` tokens and a Windows 11 shell. Notes in **`src/themes/Fluent2/AGENTS.md`**.
-- **Battle.net** (`battlenet`) — Desktop theme, theme API 2.9.0, the Battle.net app's dark look (approximated, not sampled) with a top app bar, game list and game page. Notes in **`src/themes/BattleNet/AGENTS.md`**.
-- **Assassin's Creed** (`assassinscreed`) — Desktop theme, theme API 2.9.0, modeled on the RPG-era Assassin's Creed menus: charcoal, ivory and gold, a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/themes/AssassinsCreed/AGENTS.md`**.
-- **WoW Vanilla** (`wowvanilla`) — Desktop theme, theme API 2.9.0, World of Warcraft Vanilla interface style (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/themes/WoWVanilla/AGENTS.md`**.
+- **Launchpad** (`launchpad`) — Desktop theme, theme API 2.9.0, a dark game-launcher look inspired by the Battle.net app (approximated, not sampled) with a top app bar, game list and game page. Notes in **`src/themes/Launchpad/AGENTS.md`**.
+- **Codex** (`codex`) — Desktop theme, theme API 2.9.0, charcoal, ivory and gold inspired by the RPG-era Assassin's Creed menus: a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/themes/Codex/AGENTS.md`**.
+- **Questlog** (`questlog`) — Desktop theme, theme API 2.9.0, fantasy RPG look inspired by the World of Warcraft Vanilla interface (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/themes/Questlog/AGENTS.md`**.
 
 ## Repository layout
 
