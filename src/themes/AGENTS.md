@@ -58,6 +58,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
 | Codex | Icon rail, a tab strip along the top, layered charcoal |
 | Questlog | Gold window frame, stone sidebar strip, transparent top bar |
+| Uplink | Sidebar at the top as a 56px navigation bar (uppercase tabs, glow and lit line on the current one), top panel as a 48px sub navigation strip |
 
 ## Game page
 
@@ -92,7 +93,7 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 ## Icons
 
-- **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`).
+- **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`).
 - **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shadcn UI, Chakra UI, Material UI, Fluent 2), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primer, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
 
 ## Per-theme notes
