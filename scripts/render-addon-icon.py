@@ -44,7 +44,7 @@ def parse_color(text: str) -> tuple[int, int, int]:
 
 
 def extension_icon_path(key: str) -> Path:
-    index = json.loads((ROOT / "src" / "extensions.json").read_text())
+    index = json.loads((ROOT / "src" / "extensions.json").read_text(encoding="utf-8-sig"))
     for row in index["extensions"]:
         if row["key"] == key:
             manifest = ROOT / row["extensionManifest"]
