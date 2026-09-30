@@ -25,6 +25,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Codex** (`codex`) — Desktop theme, theme API 2.9.0, charcoal, ivory and gold inspired by the RPG-era Assassin's Creed menus: a tab strip on top, entry-style game info screens, original hairline icons. Unofficial (no Ubisoft assets). Notes in **`src/themes/Codex/AGENTS.md`**.
 - **Questlog** (`questlog`) — Desktop theme, theme API 2.9.0, fantasy RPG look inspired by the World of Warcraft Vanilla interface (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/themes/Questlog/AGENTS.md`**.
 - **Uplink** (`uplink`) — Desktop theme, theme API 2.9.0, sci-fi look inspired by the StarCraft II menus (two-tier navigation bar when the sidebar is at the top, lit blue tabs, cut-corner plates, blue glows; text colors from the game's UI style data); unofficial, original artwork only, no game files. Notes in **`src/themes/Uplink/AGENTS.md`**.
+- **Ancient** (`ancient`) — Desktop theme, theme API 2.9.0, inspired by the Dota 2 main menu (slate top bar with uppercase tabs and a blue glow on the current one when the sidebar is at the top, black secondary strip, bevelled grey buttons, green Play button; values read from the game's Panorama CSS); unofficial, original artwork only, no game files. Notes in **`src/themes/Ancient/AGENTS.md`**.
 
 ## Repository layout
 
@@ -69,6 +70,7 @@ The package flow is intentionally **package-only**: it creates `.pext` (plugins)
 - **Build after every change** to an add-on's code, XAML or manifest, and report the result in the skill's reply footer. Themes: build **and deploy to Playnite** every time (`.\scripts\build-theme.ps1 -Extension <key> -Deploy`), then tell the user to restart Playnite (themes load at startup only). Plugins have no deploy step: build, and remind the user to replace the DLL and restart Playnite if they want to test it.
 - **Localization:** new or changed user-visible strings go into `en_US.xaml` **and** every other `Localization/*.xaml`, translated (skill `playnite-plugin-dev`).
 - **Settings UI:** Playnite stock controls only, Autogrid `SettingsView` is the baseline; dependent options nest under their checkbox (skill `playnite-plugin-dev`).
+- **Add-on tile icons are orange:** every `info/icon.png` uses the script's default mark color (`#FF7A1A`, the projects-page orange), whatever the theme's own palette. Never pass `-Color`/`--color`; only the mark (`art/mark.svg`, original artwork) differs between add-ons.
 - **Themes:** keys come from Playnite + `scripts/data/theme-keys.json`; brushes only, never `Color` keys (skill `playnite-theme-dev`).
 
 ## Skills (`.claude/skills/`, shared by Claude Code and Cursor)
