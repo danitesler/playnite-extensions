@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by the **League of Legends client**: near-black blue surfaces, dark-gold one pixel edges, cream headings, gold-tan interactive text, and hextech blue kept for the Play button and keyboard focus. Square corners throughout. Unofficial: not affiliated with Riot Games, no Riot logos, fonts or artwork.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by the **League of Legends client**: near-black blue surfaces, dark-gold one pixel edges, cream headings, gold-tan interactive text, and hextech blue kept for the Play button and keyboard focus. Square corners throughout. Navigation is an icon rail on the left, docked by Playnite's Sidebar position setting. Unofficial: not affiliated with Riot Games, no Riot logos, fonts or artwork.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -23,18 +23,18 @@ Riot publishes no design system, so there is no pinned spec. The Riot sites (tec
 
 | Token | Value | Key | Used for |
 |-------|-------|-----|----------|
-| `hx-void` | `#010a13` | `ShellBackgroundBrush`, `PopupBackgroundBrush`, `TooltipBackgroundBrush`, `InputBackgroundBrush`, `TextColorDark`, `CheckBoxCheckMarkBkBrush` | window frame, nav bar, popups, input wells |
+| `hx-void` | `#010a13` | `ShellBackgroundBrush`, `PopupBackgroundBrush`, `TooltipBackgroundBrush`, `InputBackgroundBrush`, `TextColorDark`, `CheckBoxCheckMarkBkBrush` | window frame, rail, popups, input wells |
 | `hx-page` | `#050d15` | `WindowBackgourndBrush`, `ContentBackgroundBrush`, `TopPanelBackgroundBrush` | library, game page, toolbar |
 | `hx-card` / `-hover` / `-active` | `#0a141d` / `#14202a` / `#1e282d` | `MainColorDark`, `ExpanderBackgroundBrush` / `HoverBrush`, `ListItemHoverBrush` / `MenuItemHoverBrush`, `TopPanelItemHoverBackgroundBrush`, `SliderTrackBrush` | game list, cards, hover, rails |
 | `hx-button` / `-hover` / `-pressed` | `#1e2328` / `#2b3238` / `#0a0f14` | `ButtonBackgroundBrush` (`MainColor`) / `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` | flat buttons |
 | `hx-gold-6` / `-5` / `-3` | `#463714` / `#785a28` / `#c8aa6e` | `NormalBorderBrush`, `InputBorderBrush`, `PopupBorderBrush`, `ButtonBorderBrush`, `ScrollBarThumbBrush` / `InputHoverBorderBrush`, `CheckBoxBorderBrush`, `ScrollBarThumbHoverBrush`, `GridViewItemHoverBorderBrush` / `GlyphBrush`, `MainMenuButtonForegroundBrush`, `TabItemIndicatorBrush`, `SliderThumbBackgroundBrush` | edges at rest, hovered edges, accent |
 | `hx-gold-7` | `#32281e` | `WindowPanelSeparatorBrush`, `MenuSeparatorBrush`, `SelectedBrush`, `ListItemSelectedBrush`, `TopPanelItemCheckedBackgroundBrush`, `ToggleButtonCheckedBackgroundBrush` | dividers, selected and toggled-on fills |
 | `hx-gold-2` / `-1` | `#cdbe91` / `#f0e6d2` | `ButtonForegroundBrush`, `PropertyItemForegroundBrush` / `TextBrush`, `TooltipForegroundBrush`, `SelectedForegroundBrush` | interactive text, headings and hovered text |
-| `hx-text-muted` | `#a09b8c` | `TextBrushDarker` | secondary text, resting nav tabs and toolbar icons |
+| `hx-text-muted` | `#a09b8c` | `TextBrushDarker` | secondary text, resting rail and toolbar icons |
 | `hx-blue-4` / `-3` / `-5` / `-1` / `-hi` | `#0a323c` / `#005a82` / `#091428` / `#0ac8b9` / `#cdfafa` | `PrimaryButtonBackgroundBrush` / `…HoverBackgroundBrush` / `…PressedBackgroundBrush` / `PrimaryButtonBorderBrush` (new shared key), `FocusBrush`, `ProgressBarForegroundBrush` / `PrimaryButtonForegroundBrush` | Play button, keyboard focus, progress |
 | `hx-red`, `hx-red-deep`, `hx-amber`, `hx-green` | `#e84057`, `#a72939`, `#c89b3c`, `#0ace83` | `WarningBrush`, `NegativeRatingBrush` / `DangerBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | status |
 
-Radii: 0 (`ControlCornerRadius`, `CornerRadiusSmall`), 2 (`CornerRadiusLarge`), pill for the notification badge. Fonts: Segoe UI body at 12 / 14 / 15 / 20 / 30; **Palatino Linotype** (`HeadingFontFamily`) for nav tabs, the game title and Play, the closest serif Windows ships to the client's Beaufort. Neither client font is bundled.
+Radii: 0 (`ControlCornerRadius`, `CornerRadiusSmall`), 2 (`CornerRadiusLarge`), pill for the notification badge. Fonts: Segoe UI body at 12 / 14 / 15 / 20 / 30; **Palatino Linotype** (`HeadingFontFamily`) for the game title and Play, the closest serif Windows ships to the client's Beaufort. Neither client font is bundled.
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -52,11 +52,11 @@ Radii: 0 (`ControlCornerRadius`, `CornerRadiusSmall`), 2 (`CornerRadiusLarge`), 
 
 | File | Behavior |
 |------|----------|
-| `Views/MainWindow.xaml` | The sidebar is **always docked to the top**, whatever the Sidebar position setting says: the client's navigation is a top bar. |
-| `Views/Sidebar.xaml` | The nav bar: 56px, `ShellBackgroundBrush`, the hexagon button (`PART_ElemMainMenu`, opens the main menu) at the left, one tab per sidebar item, and a hairline of dark gold under it that fades out toward both ends (`OpacityMask`). 150px clear on the right for the window buttons. |
-| `CustomControls/SidebarItem.xaml` | Icon and title (`SideItem.Title`) side by side, Palatino bold 15px. Grey at rest, cream on hover, cream with a 2px gold bar under it when current. |
-| `DerivedStyles/MainWindowStyle.xaml` | Caption height 56 (the nav bar drags the window). Window buttons sit in the nav bar's top right: 46x40, thin icons, cool grey on hover, red on close. |
-| `Views/TopPanel.xaml` | Toolbar under the nav bar: 48px, page color, dark-gold rule. Search (300px), view controls, filter toggle, notifications (red badge), plugin items, global progress. The hexagon button is repeated here only when Playnite shows it (sidebar hidden). |
+| `Views/MainWindow.xaml` | The sidebar docks with Playnite's Sidebar position setting; left is the default. |
+| `Views/Sidebar.xaml` | Icon rail: 56px on `ShellBackgroundBrush`, a 1px dark-gold rule toward the library, the hexagon button (`PART_ElemMainMenu`, opens the main menu) at the start. Left and right are vertical; top and bottom become a strip, with 146px kept clear for the window buttons. |
+| `CustomControls/SidebarItem.xaml` | Icon only, 56x48, 20px glyph; the title is the tooltip. Grey at rest, cream on a cool-grey fill when hovered, gold with a 3px gold bar on the edge facing the library when current. |
+| `DerivedStyles/MainWindowStyle.xaml` | Caption height 48. Window buttons in the top right: 46x40, thin icons, cool grey on hover, red on close. |
+| `Views/TopPanel.xaml` | Toolbar: 48px, page color, dark-gold rule, 146px clear on the right for the window buttons. Search (300px), view controls, filter toggle, notifications (red badge), plugin items, global progress. The hexagon button is repeated here only when Playnite shows it (sidebar hidden). |
 | `CustomControls/TopPanelItem.xaml` | Flat 36px buttons: grey icon, cream on hover with a cool-grey fill, gold on a dark-gold wash when toggled. |
 | `CustomControls/SearchBox.xaml` | Near-black well with a 1px dark-gold edge; brighter gold on hover, full gold while typing. `TopPanelSearchBox` is the same box on the toolbar. |
 
@@ -77,10 +77,10 @@ Everything else (combo boxes, check boxes, tabs, group boxes, list, game page) i
 ## Deviations from the client
 
 - **No client artwork or fonts.** The client's gold-gradient frames, hextech glow, animated backgrounds and Beaufort/Spiegel fonts are not reproduced. Edges are flat 1px lines.
-- **Nav labels are mixed case.** The client uses capitals; WPF has no text-transform, so titles show as Playnite gives them.
+- **Navigation is a left rail, not the client's top tab bar**, by request; icon only, titles are tooltips. The top position of the Sidebar setting gives a strip.
 - **Game list and page are not restyled yet** (see Scope).
 - **Colors are approximations** (see Sources).
 
 ## Not verified yet
 
-Built and statically checked on Linux (`build-theme.ps1` under PowerShell 7). **Never loaded in Playnite**: no WPF or Windows here, so the XAML has not been compiled against the WPF assemblies and there is no real screenshot. Check first: the nav bar (tabs, underline, hairline mask, window buttons reachable), the hexagon button opening the main menu, `SideItem.Title` showing on every tab, the two SidebarLibrary/Statistics icon `ContentControl`s in `Media.xaml`, menus and slider thumb, then the standard first-run list in `../AGENTS.md`.
+Built and statically checked on Linux (`build-theme.ps1` under PowerShell 7). **Never loaded in Playnite**: no WPF or Windows here, so the XAML has not been compiled against the WPF assemblies and there is no real screenshot. Check first: the rail (gold bar on the current item, all four Sidebar positions, window buttons clear of the toolbar), the hexagon button opening the main menu, `SideItem.Title` showing as the tooltip, the two SidebarLibrary/Statistics icon `ContentControl`s in `Media.xaml`, menus and slider thumb, then the standard first-run list in `../AGENTS.md`.
