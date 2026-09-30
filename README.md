@@ -37,12 +37,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/themes/Ancient/info/icon.png" alt="Ancient" width="80" height="80" /> | **Ancient** (`ancient`) | A dark desktop theme after the Dota 2 main menu: a slate navigation rail on the left with a blue glow behind the current item, a black strip with search on the right, bevelled grey buttons and a big green Play button. Inspired by Dota 2; unofficial, not affiliated with Valve; all artwork is original and no game files are included. |
 | <img src="src/themes/Clutch/info/icon.png" alt="Clutch" width="80" height="80" /> | **Clutch** (`clutch`) | A dark, minimal desktop theme after the Counter-Strike 2 main menu: translucent black panels over the game's art, a 64px navbar with uppercase view tabs, a green GO button and map-tile covers. Unofficial, not affiliated with Valve; no logos, icons, fonts or game files are included. |
 | <img src="src/themes/Ayywi/info/icon.png" alt="Ayywi" width="80" height="80" /> | **Ayywi** (`ayywi`) | A monochrome dark desktop theme in the ayywi design system: black surfaces, white as the primary color, hairline borders, pill buttons and segmented tabs, Lucide icons. |
-
-### Disclaimer
-
-The themes are independent, unofficial works inspired by the design systems and interfaces they name (shadcn/ui, Chakra UI, Material UI, Primer, Fluent 2, Battle.net, Assassin's Creed, World of Warcraft, StarCraft II, Dota 2). They are not affiliated with, endorsed by or sponsored by their owners. All names and marks belong to their respective owners and are used only to say what inspired a theme. No third-party logos, game files or proprietary artwork are included; the artwork is original or under the open licenses in each theme's `info/` folder.
 | <img src="src/themes/Hextech/info/icon.png" alt="Hextech" width="80" height="80" /> | **Hextech** (`hextech`) | A near-black and gold desktop theme inspired by the League of Legends client: a left navigation rail, flat gold-edged buttons, diamond sliders and a hextech-blue Play button. Unofficial, not affiliated with Riot Games; the palette is approximated and no logos, icons or fonts are included. |
-The themes are independent, unofficial works inspired by the design systems and interfaces they name (shadcn/ui, Chakra UI, Material UI, Primer, Fluent 2, Battle.net, Assassin's Creed, World of Warcraft, League of Legends). They are not affiliated with, endorsed by or sponsored by their owners. All names and marks belong to their respective owners and are used only to say what inspired a theme. No third-party logos, game files or proprietary artwork are included; the artwork is original or under the open licenses in each theme's `info/` folder.
 
 ## Installation
 
@@ -53,3 +48,7 @@ The themes are independent, unofficial works inspired by the design systems and 
 ## Questions, suggestions, and issues
 
 If you have a question, suggestion, or run into a problem, [open an issue](https://github.com/danitesler/playnite-extensions/issues).
+
+---
+
+<sub>Themes inspired by other products are unofficial fan work, not affiliated with or endorsed by their owners. All names and marks belong to them. No third-party logos, game files or proprietary artwork are included.</sub>
