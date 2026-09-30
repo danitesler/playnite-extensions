@@ -44,7 +44,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 
 - **Window buttons** are drawn by `MainWindowStyle.xaml` (`MainWindowButton`). The top bar keeps their width clear on its right (plus a gap), and a sidebar docked at the top or bottom does the same. Change one, change the other.
 - **Main menu**: `PART_ElemMainMenu` uses `MainMenuButton`, in the sidebar; the top bar shows it only when the sidebar is hidden.
-- **Sidebar** supports all four of Playnite's positions (Settings → Appearance → Layout): left and right are vertical, top and bottom a strip.
+- **Sidebar** is designed for the **left** (Playnite's default; repo rule in `AGENTS.md`): a vertical rail at the window's left edge with the main menu button at its top. Right mirrors it; top and bottom are fallbacks drawn as a strip. No theme asks users to move the sidebar.
 - **Library background art** (`Views/Library.xaml`): where a theme feathers it, the `OpacityMask` sits inside a `BitmapCache` wrapper (as for every masked image).
 - **Layers**: at most three surfaces, named by shared keys: `ShellBackgroundBrush` (frame, rail), `TopPanelBackgroundBrush` (top bar), `ContentBackgroundBrush` (the library layer), on `WindowBackgourndBrush`.
 
@@ -58,8 +58,8 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
 | Codex | Icon rail, a tab strip along the top, layered charcoal |
 | Questlog | Gold window frame, stone sidebar strip, transparent top bar |
-| Uplink | Sidebar at the top as a 56px navigation bar (uppercase tabs, glow and lit line on the current one), top panel as a 48px sub navigation strip |
-| Ancient | Sidebar at the top as a 64px slate top bar (uppercase title-font tabs, blue glow behind the current one), top panel as a 52px black strip with the view buttons left and search right, library art behind both |
+| Uplink | 56px navigation rail on the left (glow and lit line on the current item), top panel as a 48px sub navigation strip |
+| Ancient | 64px slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 
 ## Game page
 
