@@ -10,28 +10,28 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 
 | Icon | Add-on |
 | --- | --- |
-| <img src="src/Autogrid/info/icon.png" alt="Autogrid" width="48" height="48" /> | **Autogrid** (`autogrid`)<br><sub>Keeps your grid at the column count you want while you resize Playnite, scaling covers so the gutters stay even.</sub> |
-| <img src="src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="48" height="48" /> | **GameHoverDetails** (`gamehoverdetails`)<br><sub>Hover a game in the library and a small card appears beside it with the details you care about, like play time or developer.</sub> |
-| <img src="src/AutoStatus/info/icon.png" alt="AutoStatus" width="48" height="48" /> | **AutoStatus** (`autostatus`)<br><sub>Keeps completion status honest: games you stop playing drift to On Hold, and a game you launch goes back to Playing.</sub> |
-| <img src="src/RandomTheme/info/icon.png" alt="RandomTheme" width="48" height="48" /> | **RandomTheme** (`randomtheme`)<br><sub>Starts Playnite in a different installed theme each time, with separate picks for Desktop and Fullscreen.</sub> |
+| <img src="src/Autogrid/info/icon.png" alt="Autogrid" width="48" height="48" /> | **Autogrid** (`autogrid`)<br>Keeps your grid at the column count you want while you resize Playnite, scaling covers so the gutters stay even. |
+| <img src="src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="48" height="48" /> | **GameHoverDetails** (`gamehoverdetails`)<br>Hover a game in the library and a small card appears beside it with the details you care about, like play time or developer. |
+| <img src="src/AutoStatus/info/icon.png" alt="AutoStatus" width="48" height="48" /> | **AutoStatus** (`autostatus`)<br>Keeps completion status honest: games you stop playing drift to On Hold, and a game you launch goes back to Playing. |
+| <img src="src/RandomTheme/info/icon.png" alt="RandomTheme" width="48" height="48" /> | **RandomTheme** (`randomtheme`)<br>Starts Playnite in a different installed theme each time, with separate picks for Desktop and Fullscreen. |
 
 ### Themes
 
 | Icon | Add-on |
 | --- | --- |
-| <img src="src/themes/ShadcnUi/info/icon.png" alt="Shadcn UI" width="48" height="48" /> | **Shadcn UI** (`shadcnui`)<br><sub>A dark theme that feels like shadcn/ui: a rounded library card on a zinc frame, quiet controls and Lucide icons. Design system: [shadcn/ui](https://ui.shadcn.com).</sub> |
-| <img src="src/themes/ChakraUi/info/icon.png" alt="Chakra UI" width="48" height="48" /> | **Chakra UI** (`chakraui`)<br><sub>A dark theme on one flat surface, with a teal accent, segmented view controls and roomy spacing. Design system: [Chakra UI](https://chakra-ui.com).</sub> |
-| <img src="src/themes/MaterialUi/info/icon.png" alt="Material UI" width="48" height="48" /> | **Material UI** (`materialui`)<br><sub>A dark theme that follows Material's defaults, with an elevated app bar, a mini drawer and filled inputs. Design system: [Material UI](https://mui.com).</sub> |
-| <img src="src/themes/Primer/info/icon.png" alt="Primer" width="48" height="48" /> | **Primer** (`primer`)<br><sub>A dark theme that borrows GitHub's look, with a header band, a navigation rail, Octicons and green primary buttons. Design system: [GitHub Primer](https://primer.style).</sub> |
-| <img src="src/themes/Fluent2/info/icon.png" alt="Fluent 2" width="48" height="48" /> | **Fluent 2** (`fluent2`)<br><sub>A dark theme that feels like Windows 11, with a navigation rail, centered search and Fluent icons. Design system: [Microsoft Fluent 2](https://fluent2.microsoft.design).</sub> |
-| <img src="src/themes/Launchpad/info/icon.png" alt="Launchpad" width="48" height="48" /> | **Launchpad** (`launchpad`)<br><sub>A dark game-launcher look after the Battle.net app: an icon rail, a game list beside a full-width art page, and a big blue Play button.</sub> |
-| <img src="src/themes/Codex/info/icon.png" alt="Codex" width="48" height="48" /> | **Codex** (`codex`)<br><sub>Charcoal, ivory and gold, after the Assassin's Creed menus, with a left rail and game screens laid out like codex entries.</sub> |
-| <img src="src/themes/Questlog/info/icon.png" alt="Questlog" width="48" height="48" /> | **Questlog** (`questlog`)<br><sub>A dark fantasy theme after the World of Warcraft Vanilla interface, with gold frames, red leather buttons and a quest-log game page.</sub> |
-| <img src="src/themes/Uplink/info/icon.png" alt="Uplink" width="48" height="48" /> | **Uplink** (`uplink`)<br><sub>A sci-fi theme after the StarCraft II menus, with a lit navigation rail, cut-corner plates and blue glows.</sub> |
-| <img src="src/themes/Ancient/info/icon.png" alt="Ancient" width="48" height="48" /> | **Ancient** (`ancient`)<br><sub>After the Dota 2 main menu: a slate rail with a blue glow, a black top strip and a green Play button.</sub> |
-| <img src="src/themes/Clutch/info/icon.png" alt="Clutch" width="48" height="48" /> | **Clutch** (`clutch`)<br><sub>After the Counter-Strike 2 main menu: translucent black panels, uppercase view tabs and a green GO button.</sub> |
-| <img src="src/themes/Ayywi/info/icon.png" alt="Ayywi" width="48" height="48" /> | **Ayywi** (`ayywi`)<br><sub>A monochrome dark theme with black surfaces, hairline borders and pill buttons. Design system: [ayywi](https://github.com/danitesler/ayywi).</sub> |
-| <img src="src/themes/Hextech/info/icon.png" alt="Hextech" width="48" height="48" /> | **Hextech** (`hextech`)<br><sub>Near-black and gold, after the League of Legends client, with a left rail, gold-edged buttons and a blue Play button.</sub> |
+| <img src="src/themes/ShadcnUi/info/icon.png" alt="Shadcn UI" width="48" height="48" /> | **Shadcn UI** (`shadcnui`)<br>A dark theme that feels like shadcn/ui: a rounded library card on a zinc frame, quiet controls and Lucide icons. Design system: [shadcn/ui](https://ui.shadcn.com). |
+| <img src="src/themes/ChakraUi/info/icon.png" alt="Chakra UI" width="48" height="48" /> | **Chakra UI** (`chakraui`)<br>A dark theme on one flat surface, with a teal accent, segmented view controls and roomy spacing. Design system: [Chakra UI](https://chakra-ui.com). |
+| <img src="src/themes/MaterialUi/info/icon.png" alt="Material UI" width="48" height="48" /> | **Material UI** (`materialui`)<br>A dark theme that follows Material's defaults, with an elevated app bar, a mini drawer and filled inputs. Design system: [Material UI](https://mui.com). |
+| <img src="src/themes/Primer/info/icon.png" alt="Primer" width="48" height="48" /> | **Primer** (`primer`)<br>A dark theme that borrows GitHub's look, with a header band, a navigation rail, Octicons and green primary buttons. Design system: [GitHub Primer](https://primer.style). |
+| <img src="src/themes/Fluent2/info/icon.png" alt="Fluent 2" width="48" height="48" /> | **Fluent 2** (`fluent2`)<br>A dark theme that feels like Windows 11, with a navigation rail, centered search and Fluent icons. Design system: [Microsoft Fluent 2](https://fluent2.microsoft.design). |
+| <img src="src/themes/Launchpad/info/icon.png" alt="Launchpad" width="48" height="48" /> | **Launchpad** (`launchpad`)<br>A dark game-launcher look after the Battle.net app: an icon rail, a game list beside a full-width art page, and a big blue Play button. |
+| <img src="src/themes/Codex/info/icon.png" alt="Codex" width="48" height="48" /> | **Codex** (`codex`)<br>Charcoal, ivory and gold, after the Assassin's Creed menus, with a left rail and game screens laid out like codex entries. |
+| <img src="src/themes/Questlog/info/icon.png" alt="Questlog" width="48" height="48" /> | **Questlog** (`questlog`)<br>A dark fantasy theme after the World of Warcraft Vanilla interface, with gold frames, red leather buttons and a quest-log game page. |
+| <img src="src/themes/Uplink/info/icon.png" alt="Uplink" width="48" height="48" /> | **Uplink** (`uplink`)<br>A sci-fi theme after the StarCraft II menus, with a lit navigation rail, cut-corner plates and blue glows. |
+| <img src="src/themes/Ancient/info/icon.png" alt="Ancient" width="48" height="48" /> | **Ancient** (`ancient`)<br>After the Dota 2 main menu: a slate rail with a blue glow, a black top strip and a green Play button. |
+| <img src="src/themes/Clutch/info/icon.png" alt="Clutch" width="48" height="48" /> | **Clutch** (`clutch`)<br>After the Counter-Strike 2 main menu: translucent black panels, uppercase view tabs and a green GO button. |
+| <img src="src/themes/Ayywi/info/icon.png" alt="Ayywi" width="48" height="48" /> | **Ayywi** (`ayywi`)<br>A monochrome dark theme with black surfaces, hairline borders and pill buttons. Design system: [ayywi](https://github.com/danitesler/ayywi). |
+| <img src="src/themes/Hextech/info/icon.png" alt="Hextech" width="48" height="48" /> | **Hextech** (`hextech`)<br>Near-black and gold, after the League of Legends client, with a left rail, gold-edged buttons and a blue Play button. |
 
 ## Installation
 
