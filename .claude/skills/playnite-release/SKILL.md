@@ -18,7 +18,7 @@ Full database procedure: [addon-database.md](addon-database.md).
 ## Hard rules
 
 - **Never push, tag, create a release, or open a PR unless the user asks.** Preparing files locally is fine.
-- **Several add-ons, several releases.** Never combine add-ons into one release, one tag or one database PR, even when they are ready together. Do them one after another, each with its own tag `{key}-v{version}`, package, notes and PR.
+- **Several add-ons, several releases.** Never combine add-ons into one release, one tag or one database PR, even when they are ready together. Do them one after another, each with its own tag `{key}-v{version}`, package, notes and PR. Database PRs go to Josef Nemec's upstream repo: one PR per add-on even when several are requested in one prompt, and **before pushing, show the user the copy (PR title, description, manifest text) and wait for their review**.
 - **Version bumps only when cutting a release.** Not during features, fixes, refactors, builds or validation. Before editing any version: state the current version (manifest + `Directory.Build.props`), suggest the next semver with a one-line reason, and ask for the exact string unless the user gave it.
 - **Tag is `{key}-v{version}`** (`autogrid-v1.1.1`). Bare `v1.0.0` would collide across add-ons. Scripts derive it (`Get-ExtensionReleaseTag`).
 - **One GitHub Release per add-on**: its tag, title, notes, only its own `.pext`/`.pthm`. Never an umbrella release; one add-on per `gh release create`.
