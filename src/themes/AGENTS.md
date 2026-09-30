@@ -58,6 +58,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
 | Codex | Icon rail, a tab strip along the top, layered charcoal |
 | Questlog | Gold window frame, stone sidebar strip, transparent top bar |
+| Hextech | Left icon rail (Phosphor icons), League client look |
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
 | Ancient | 64px slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered uppercase view tabs between thin rules, icon rail, translucent panels over the library art |
@@ -98,6 +99,10 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 - **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`).
 - **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shadcn UI, Chakra UI, Material UI, Fluent 2), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primer, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
+
+## Previews and screenshots
+
+Two different pictures, never mixed up. **`art/preview-grid.html` + `preview-grid.png`**: an approximate HTML replica of the grid view, made in the cloud on a theme's first build and sent to the user (`node scripts/render-theme-preview.mjs <html>`); labelled as not a capture. **`info/screenshots/*.png`**: real Playnite captures from `scripts/take-screenshots.ps1`, local Windows only, needed for the release and the listing. Playnite is never started on a server.
 
 ## Per-theme notes
 

@@ -115,3 +115,7 @@ Follows the shared skeleton. Differences:
 ## Not verified yet
 
 Seen running (Playnite 10.60 under Wine, stand-in fonts): details, grid (with side panel), list, main menu. Not yet checked on Windows: settings tabs and group boxes, game edit dialog, top panel dropdowns, filter panel, notifications, progress dialog, the sidebar at top/bottom/right, ThemeModifier edits.
+
+## Preview and screenshots
+
+`art/preview-grid.html` is an approximate HTML replica of the grid view (this theme's token values and sizes; fonts stand in), rendered to `art/preview-grid.png` with `node scripts/render-theme-preview.mjs src/themes/Clutch/art/preview-grid.html`. It is a mockup, not a Playnite capture. Real screenshots (`info/screenshots/grid.png`, `details.png`) come from `.\scripts\take-screenshots.ps1 -Extension clutch` on a local Windows machine (never in a cloud session) and are still to add before the release and the database PR.

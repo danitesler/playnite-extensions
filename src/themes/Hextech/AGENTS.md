@@ -84,3 +84,7 @@ Everything else (combo boxes, check boxes, tabs, group boxes, list, game page) i
 ## Not verified yet
 
 Built and statically checked on Linux (`build-theme.ps1` under PowerShell 7). **Never loaded in Playnite**: no WPF or Windows here, so the XAML has not been compiled against the WPF assemblies and there is no real screenshot. Check first: the rail (gold bar on the current item, all four Sidebar positions, window buttons clear of the toolbar), the hexagon button opening the main menu, `SideItem.Title` showing as the tooltip, the two SidebarLibrary/Statistics icon `ContentControl`s in `Media.xaml`, menus and slider thumb, then the standard first-run list in `../AGENTS.md`.
+
+## Preview and screenshots
+
+`art/preview-grid.html` is an approximate HTML replica of the grid view (this theme's token values and sizes; fonts stand in), rendered to `art/preview-grid.png` with `node scripts/render-theme-preview.mjs src/themes/Hextech/art/preview-grid.html`. It is a mockup, not a Playnite capture. Real screenshots (`info/screenshots/grid.png`, `details.png`) come from `.\scripts\take-screenshots.ps1 -Extension hextech` on a local Windows machine (never in a cloud session) and are still to add before the release and the database PR.

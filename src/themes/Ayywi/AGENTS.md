@@ -99,3 +99,7 @@ Everything was checked statically (`build-theme.ps1`, `validate-extension.ps1 -M
 - Sidebar Library and Statistics icons trigger on `SideItem.Icon` equal to `SidebarLibraryIcon` / `SidebarStatisticsIcon`; if Playnite passes something else, Playnite's own glyphs show.
 - `PasswordBox.SelectionOpacity`, the rotated horizontal scroll bar, and the `LOC*` caption keys in the metadata pane (a wrong key shows an empty caption).
 - `BitmapCache` on every cover tile in a very large library.
+
+## Preview and screenshots
+
+`art/preview-grid.html` is an approximate HTML replica of the grid view (this theme's token values and sizes; fonts stand in), rendered to `art/preview-grid.png` with `node scripts/render-theme-preview.mjs src/themes/Ayywi/art/preview-grid.html`. It is a mockup, not a Playnite capture. Real screenshots (`info/screenshots/grid.png`, `details.png`) come from `.\scripts\take-screenshots.ps1 -Extension ayywi` on a local Windows machine (never in a cloud session) and are still to add before the release and the database PR.

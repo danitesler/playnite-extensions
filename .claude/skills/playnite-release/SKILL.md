@@ -18,6 +18,7 @@ Full database procedure: [addon-database.md](addon-database.md).
 ## Hard rules
 
 - **Never push, tag, create a release, or open a PR unless the user asks.** Preparing files locally is fine.
+- **Several add-ons, several releases.** Never combine add-ons into one release, one tag or one database PR, even when they are ready together. Do them one after another, each with its own tag `{key}-v{version}`, package, notes and PR.
 - **Version bumps only when cutting a release.** Not during features, fixes, refactors, builds or validation. Before editing any version: state the current version (manifest + `Directory.Build.props`), suggest the next semver with a one-line reason, and ask for the exact string unless the user gave it.
 - **Tag is `{key}-v{version}`** (`autogrid-v1.1.1`). Bare `v1.0.0` would collide across add-ons. Scripts derive it (`Get-ExtensionReleaseTag`).
 - **One GitHub Release per add-on**: its tag, title, notes, only its own `.pext`/`.pthm`. Never an umbrella release; one add-on per `gh release create`.
@@ -37,11 +38,12 @@ Full database procedure: [addon-database.md](addon-database.md).
 ```
 
    Output: `artifacts/releases/<key>/` (themes: `artifacts/releases/themes/<key>/`) with a zip and the Toolbox package. Packaging does not compile: it expects the build output (`bin/Release/net462/` for plugins, `artifacts/builds/themes/<key>/` for themes). `-VerifyInstaller` tolerates a `PackageUrl` that is not live yet; add `-StrictInstallerVerification` after the release exists. Theme `-Mode Package` fails until the `Screenshots` listed in the database manifest exist under `info/screenshots/`.
-5. When the user says to publish, in this order (the raw manifest URL points at `main` and the package URL at the release, so both must exist or auto-update breaks):
+5. **Screenshots (themes always, other add-ons with UI on first listing or a visual change):** on the user's Windows machine run `.\scripts\take-screenshots.ps1 -Extension <key> -CloseRunning`. It builds and deploys the theme, opens Playnite by itself, switches it to the theme, saves `info/screenshots/grid.png` and `details.png`, closes Playnite and restores the user's config. Look at the images (layout, no private games or notifications), commit them to `main` with the version commit, list them in the `Screenshots:` block of `danitesler_<key>.yaml`, and add them to the release notes. **Never run it in a cloud/Linux session** (repo rule: no Playnite on servers); there, say the screenshots are pending and stop, do not substitute the HTML mockup for a release.
+6. When the user says to publish, in this order (the raw manifest URL points at `main` and the package URL at the release, so both must exist or auto-update breaks):
    1. `gh release create <tag> <package> [zip] --title "<Name> <version>" --notes "<changelog>"` (this add-on only).
    2. Merge/push the version commit to `main`.
    3. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
-6. Verify: `curl -sI <PackageUrl>` returns 200 (after redirects); `curl -s <InstallerManifestUrl>` shows the new top entry.
+7. Verify: `curl -sI <PackageUrl>` returns 200 (after redirects); `curl -s <InstallerManifestUrl>` shows the new top entry.
 
 `Toolbox.exe` is found automatically (`%LOCALAPPDATA%\Playnite`, Program Files, PATH, `%TEMP%`; override `-ToolboxExe` or `$env:TOOLBOX_EXE`). Manual: `Toolbox.exe verify Installer <InstallerManifest.yaml>`, `Toolbox.exe pack <build dir> <out dir>`.
 

@@ -45,7 +45,7 @@ As of 2026-09-29 only `autogrid` and `gamehoverdetails` are listed (merged in up
 Preconditions (verify, do not assume):
 
 1. Release exists for the version in `InstallerManifest.yaml` and `curl -sI <PackageUrl>` succeeds (see `playnite-release`).
-2. Manifests, `icon.png` and `info/screenshots/*` are on `main` (raw URLs return 200). Check every URL in the listing: `grep -oE 'https://[^ ]+' <file> | xargs -n1 curl -sI -o /dev/null -w '%{http_code} %{url_effective}\n'`.
+2. Manifests, `icon.png` and `info/screenshots/*` (real captures from `scripts/take-screenshots.ps1`, not the HTML mockup) are on `main` (raw URLs return 200). Check every URL in the listing: `grep -oE 'https://[^ ]+' <file> | xargs -n1 curl -sI -o /dev/null -w '%{http_code} %{url_effective}\n'`.
 3. `.\scripts\validate-extension.ps1 -Extension <key> -Mode Package` passes; also `Toolbox.exe verify Addon <danitesler_key.yaml>` and `verify Installer <InstallerManifest.yaml>`.
 
 Then (only when the user asks to push/open the PR):
@@ -59,7 +59,7 @@ git add addons && git commit -m "Add <Name>" && git push -u origin HEAD
 gh pr create -R JosefNemec/PlayniteAddonDatabase --base master --title "Add <Name>" --body "<what it is, type, link to repo>"
 ```
 
-- One PR may carry several files (PR 561 added two add-ons). Title `Add <Name>` / `Add <A> and <B>`.
+- **One PR per add-on, always.** Several new add-ons or themes: repeat the whole sequence for each, on its own branch (`add-danitesler-<key>`), with its own PR titled `Add <Name>`, and never put two listing files in one PR. (Upstream PR 561 bundled two; do not repeat that.) Start each branch from a fresh `master` so the PRs stay independent.
 - Do not clone the database inside this repo. Use a sibling directory or the scratchpad.
 - After merge the add-on shows in the browser within about a minute: `https://playnite.link/addons.html#<AddonId>`, install link `playnite://playnite/installaddon/<AddonId>`.
 
