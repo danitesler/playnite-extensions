@@ -26,6 +26,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Questlog** (`questlog`) — Desktop theme, theme API 2.9.0, fantasy RPG look inspired by the World of Warcraft Vanilla interface (gold frames, red leather buttons, tooltip navy, quest log game page); unofficial, original artwork only, no game files. Notes in **`src/themes/Questlog/AGENTS.md`**.
 - **Uplink** (`uplink`) — Desktop theme, theme API 2.9.0, sci-fi look inspired by the StarCraft II menus (navigation rail on the left with a lit current item, sub navigation strip on top (uppercase tab bar when the sidebar is at the top), cut-corner plates, blue glows; text colors from the game's UI style data); unofficial, original artwork only, no game files. Notes in **`src/themes/Uplink/AGENTS.md`**.
 - **Ancient** (`ancient`) — Desktop theme, theme API 2.9.0, inspired by the Dota 2 main menu (slate navigation rail on the left with a blue glow on the current item, black secondary strip on top, bevelled grey buttons, green Play button; values read from the game's Panorama CSS); unofficial, original artwork only, no game files. Notes in **`src/themes/Ancient/AGENTS.md`**.
+- **Hextech** (`hextech`) — Desktop theme, theme API 2.9.0, near-black and gold with hextech blue, inspired by the League of Legends client: left navigation rail, flat gold-edged buttons, blue Play button. Unofficial (no Riot assets), palette approximated from community kits. Notes in **`src/themes/Hextech/AGENTS.md`**.
 
 ## Repository layout
 

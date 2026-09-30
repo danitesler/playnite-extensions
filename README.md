@@ -39,6 +39,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 ### Disclaimer
 
 The themes are independent, unofficial works inspired by the design systems and interfaces they name (shadcn/ui, Chakra UI, Material UI, Primer, Fluent 2, Battle.net, Assassin's Creed, World of Warcraft, StarCraft II, Dota 2). They are not affiliated with, endorsed by or sponsored by their owners. All names and marks belong to their respective owners and are used only to say what inspired a theme. No third-party logos, game files or proprietary artwork are included; the artwork is original or under the open licenses in each theme's `info/` folder.
+| <img src="src/themes/Hextech/info/icon.png" alt="Hextech" width="80" height="80" /> | **Hextech** (`hextech`) | A near-black and gold desktop theme inspired by the League of Legends client: a left navigation rail, flat gold-edged buttons, diamond sliders and a hextech-blue Play button. Unofficial, not affiliated with Riot Games; the palette is approximated and no logos, icons or fonts are included. |
+The themes are independent, unofficial works inspired by the design systems and interfaces they name (shadcn/ui, Chakra UI, Material UI, Primer, Fluent 2, Battle.net, Assassin's Creed, World of Warcraft, League of Legends). They are not affiliated with, endorsed by or sponsored by their owners. All names and marks belong to their respective owners and are used only to say what inspired a theme. No third-party logos, game files or proprietary artwork are included; the artwork is original or under the open licenses in each theme's `info/` folder.
 
 ## Installation
 
