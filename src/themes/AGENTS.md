@@ -58,6 +58,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
 | Codex | Icon rail, a tab strip along the top, layered charcoal |
 | Questlog | Gold window frame, stone sidebar strip, transparent top bar |
+| Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
 
 ## Game page
 

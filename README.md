@@ -33,6 +33,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/themes/Launchpad/info/icon.png" alt="Launchpad" width="80" height="80" /> | **Launchpad** (`launchpad`) | A dark game-launcher desktop theme with a top app bar, a game list next to a game page with full-width art, and a big blue Play button. Inspired by the Battle.net app; unofficial, not affiliated with Blizzard Entertainment; colors are approximated and no logos or icons are included. |
 | <img src="src/themes/Codex/info/icon.png" alt="Codex" width="80" height="80" /> | **Codex** (`codex`) | A dark desktop theme in charcoal, ivory and gold, with a tab strip along the top, diamond and corner-bracket marks, hairline icons, and entry-style game info screens. Inspired by the Assassin's Creed menus; unofficial, not affiliated with Ubisoft. |
 | <img src="src/themes/Questlog/info/icon.png" alt="Questlog" width="80" height="80" /> | **Questlog** (`questlog`) | A fan-made dark fantasy desktop theme: gold and bronze frames, red leather buttons, the navy tooltip, and a game page laid out like a quest log. Inspired by the World of Warcraft Vanilla interface; unofficial, not affiliated with Blizzard Entertainment; all artwork is original and no game files are included. |
+| <img src="src/themes/Ayywi/info/icon.png" alt="Ayywi" width="80" height="80" /> | **Ayywi** (`ayywi`) | A monochrome dark desktop theme in the ayywi design system: black surfaces, white as the primary color, hairline borders, pill buttons and segmented tabs, Lucide icons. |
 
 ### Disclaimer
 
