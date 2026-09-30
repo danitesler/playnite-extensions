@@ -10,20 +10,20 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 
 | Icon | Name | Description |
 | --- | --- | --- |
-| <img src="src/Autogrid/info/icon.png" alt="Autogrid" width="64" height="64" /> | **Autogrid** (`autogrid`) | Keeps the Desktop grid at a target column or row count as you resize Playnite, scaling covers automatically to keep gutters even. |
-| <img src="src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="64" height="64" /> | **GameHoverDetails** (`gamehoverdetails`) | A hover card beside library tiles showing the game details you pick, up to five fields like play time or developer, in your theme colors or over the game's background art. |
-| <img src="src/AutoStatus/info/icon.png" alt="AutoStatus" width="64" height="64" /> | **AutoStatus** (`autostatus`) | Keeps completion status in step with how you play: stale Playing games move to On Hold after a number of days you pick, and starting an On Hold, Abandoned, or Plan to Play game sets it back to Playing. |
-| <img src="src/RandomTheme/info/icon.png" alt="RandomTheme" width="64" height="64" /> | **RandomTheme** (`randomtheme`) | Picks a random installed theme each time Playnite starts, with separate Desktop and Fullscreen settings, a list to leave themes out, and a "Randomize now" button. |
+| <img src="src/Autogrid/info/icon.png" alt="Autogrid" width="64" height="64" /> | **Autogrid** (`autogrid`) | Keeps the grid at a set column or row count as you resize, scaling covers to fit. |
+| <img src="src/GameHoverDetails/info/icon.png" alt="GameHoverDetails" width="64" height="64" /> | **GameHoverDetails** (`gamehoverdetails`) | A hover card beside library tiles with up to five details you pick, like play time or developer. |
+| <img src="src/AutoStatus/info/icon.png" alt="AutoStatus" width="64" height="64" /> | **AutoStatus** (`autostatus`) | Moves stale Playing games to On Hold, and sets a game to Playing when you start it. |
+| <img src="src/RandomTheme/info/icon.png" alt="RandomTheme" width="64" height="64" /> | **RandomTheme** (`randomtheme`) | Picks a random installed theme on each start, separately for Desktop and Fullscreen. |
 
 ### Themes
 
 | Icon | Name | Description |
 | --- | --- | --- |
-| <img src="src/themes/ShadcnUi/info/icon.png" alt="Shadcn UI" width="64" height="64" /> | **Shadcn UI** (`shadcnui`) | Dark, shadcn/ui zinc: rounded inset library card, borderless controls, Lucide icons. |
-| <img src="src/themes/ChakraUi/info/icon.png" alt="Chakra UI" width="64" height="64" /> | **Chakra UI** (`chakraui`) | Dark, Chakra UI tokens with a teal accent and segmented view controls. |
-| <img src="src/themes/MaterialUi/info/icon.png" alt="Material UI" width="64" height="64" /> | **Material UI** (`materialui`) | Dark, Material UI: elevated app bar, mini drawer, filled inputs. |
-| <img src="src/themes/Primer/info/icon.png" alt="Primer" width="64" height="64" /> | **Primer** (`primer`) | Dark, GitHub Primer: header band, navigation rail, Octicons, green primary buttons. |
-| <img src="src/themes/Fluent2/info/icon.png" alt="Fluent 2" width="64" height="64" /> | **Fluent 2** (`fluent2`) | Dark, Microsoft Fluent 2: Windows 11 navigation rail, centered search, Fluent icons. |
+| <img src="src/themes/ShadcnUi/info/icon.png" alt="Shadcn UI" width="64" height="64" /> | **Shadcn UI** (`shadcnui`) | Dark, [shadcn/ui](https://ui.shadcn.com) zinc: rounded inset library card, borderless controls, Lucide icons. |
+| <img src="src/themes/ChakraUi/info/icon.png" alt="Chakra UI" width="64" height="64" /> | **Chakra UI** (`chakraui`) | Dark, [Chakra UI](https://chakra-ui.com) tokens with a teal accent and segmented view controls. |
+| <img src="src/themes/MaterialUi/info/icon.png" alt="Material UI" width="64" height="64" /> | **Material UI** (`materialui`) | Dark, [Material UI](https://mui.com): elevated app bar, mini drawer, filled inputs. |
+| <img src="src/themes/Primer/info/icon.png" alt="Primer" width="64" height="64" /> | **Primer** (`primer`) | Dark, [GitHub Primer](https://primer.style): header band, navigation rail, Octicons, green primary buttons. |
+| <img src="src/themes/Fluent2/info/icon.png" alt="Fluent 2" width="64" height="64" /> | **Fluent 2** (`fluent2`) | Dark, [Microsoft Fluent 2](https://fluent2.microsoft.design): Windows 11 navigation rail, centered search, Fluent icons. |
 | <img src="src/themes/Launchpad/info/icon.png" alt="Launchpad" width="64" height="64" /> | **Launchpad** (`launchpad`) | Dark game-launcher look after the Battle.net app: icon rail, game list, full-width art, blue Play button. |
 | <img src="src/themes/Codex/info/icon.png" alt="Codex" width="64" height="64" /> | **Codex** (`codex`) | Charcoal, ivory and gold after the Assassin's Creed menus: left icon rail, entry-style game screens. |
 | <img src="src/themes/Questlog/info/icon.png" alt="Questlog" width="64" height="64" /> | **Questlog** (`questlog`) | Dark fantasy after the World of Warcraft Vanilla interface: gold frames, red leather buttons, quest-log game page. |
