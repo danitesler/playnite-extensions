@@ -69,8 +69,8 @@ The double frame (`DoubleFrameTemplate`): two 1px lines 2px apart, the outer a p
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | The main menu band as an icon rail: 72px of `#020202`, the medallion (40px, `PART_ElemMainMenu`) at the top with a 32px brown rule under it, then the items. The right edge is two jagged polygons in the band color (outer one at half strength) hanging 20px over the page. Right docking flips the edge; top/bottom: a 56px strip, no edge, 150px clear for the caption buttons. |
-| `CustomControls/SidebarItem.xaml` | Main menu items as icons: 52px squares, 24px icon, grey at rest, white with a grey double frame under the pointer, white in the light double frame when current; the title is the tooltip. |
+| `Views/Sidebar.xaml` | The main menu band as an icon rail: 44px of `#020202`, the medallion (24px, `PART_ElemMainMenu`) at the top with a 24px brown rule under it, then the items. The right edge is two jagged polygons in the band color (outer one at half strength) hanging 20px over the page. Right docking flips the edge; top/bottom: a 56px strip, no edge, 150px clear for the caption buttons. |
+| `CustomControls/SidebarItem.xaml` | Main menu items as icons: 44x40 items, 16px icon, grey at rest, white with a grey double frame under the pointer, white in the light double frame when current; the title is the tooltip. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | Header row on the bare page, 64px: search field (prompt plate, brown line) at the left; view switches centered as uppercase screen names with the gold page dot under the current one, between two small brown arrows (Playnite's separators); grey icons turning white; filter turns tracked orange while active. |
 | `DerivedStyles/MainWindowStyle.xaml` | Close is the game's close box (X in the brown double frame, light on hover); minimize and maximize are bare glyphs. Caption height 64. |
 | `Views/Library.xaml` | Background art behind the header row, shaded like the game's backdrop; library on black at 55%, 16px in from the band. |

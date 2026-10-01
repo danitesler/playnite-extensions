@@ -304,7 +304,6 @@ def details():
                            VerticalAlignment="Center" RenderOptions.BitmapScalingMode="Fant" />
 {indent(TITLE, 20)}
                 </DockPanel>
-{indent(STEAM, 16)}
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Right" Width="{{DynamicResource GameDetailsPaneWidth}}" Margin="40,0,0,0">
                         <Image x:Name="PART_ImageCover" Height="{{Settings GameDetailsCoverHeight}}" HorizontalAlignment="Left"
@@ -312,6 +311,7 @@ def details():
 {indent(pane(True), 24)}
                     </StackPanel>
                     <StackPanel>
+{indent(STEAM, 24)}
 {indent(DESCRIPTION, 24)}
                     </StackPanel>
                 </DockPanel>
@@ -398,12 +398,12 @@ def grid():
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,28">
 {indent(actions(40), 24)}
                     </StackPanel>
-{indent(STEAM, 20)}
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Right" Width="{{DynamicResource GridDetailsPaneWidth}}" Margin="24,0,0,0">
 {indent(pane(False), 28)}
                         </StackPanel>
                         <StackPanel>
+{indent(STEAM, 28)}
 {indent(DESCRIPTION, 28)}
                         </StackPanel>
                     </DockPanel>

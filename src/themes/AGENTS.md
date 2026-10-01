@@ -62,14 +62,14 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
 | Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered uppercase view tabs between thin rules, 44px compact icon rail, translucent panels over the library art |
-| Libertalia | Black icon rail and a bar-less top row over the darkened library art; view switches as title case menu entries between thin "|" rules, selection as a feathered smudge, framed near-black panels |
+| Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; view switches as title case menu entries between thin "|" rules, selection as a feathered smudge, framed near-black panels |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
-| Dropzone | 64px sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of capital view tabs (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
+| Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of capital view tabs (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
 | Attache | 208px rail of uppercase words on near black (the current one larger and stepped out), transparent 56px top strip over darkened library art, pewter selection plates |
-| Biome | Night-sky window; 64px list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
-| Medallion | 72px near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
-| Heist | 64px rail of square plates on a light panel; top panel as the pause menu header (large condensed title) over a tab strip of 38px plates with an 8px blue bar over the current one; library art blurred behind |
-| Overworld | 64px rail of 40px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
+| Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
+| Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
+| Heist | 44px compact rail of square plates on a light panel; top panel as the pause menu header (large condensed title) over a tab strip of 38px plates with an 8px blue bar over the current one; library art blurred behind |
+| Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
 
 ## Game page
 

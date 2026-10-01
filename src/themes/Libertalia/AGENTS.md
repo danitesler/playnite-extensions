@@ -61,7 +61,7 @@ Type: 12 / 14 / 16 / 19 / 30, title case, normal weight everywhere (the game's 1
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 56px column on the window black, the compass (main menu) in a 64px cell on top; khaki glyphs, the current one ivory on a round smudge. Top/bottom docking: a 64px strip where views are title case entries. |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact column on the window black, the compass (main menu) in a 44x64 cell on top, 44x40 items; khaki glyphs, the current one ivory on a round smudge. Top/bottom docking: a 64px strip where views are title case entries. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 64px, no fill. Search at the left; the view switches as title case 19px entries in the middle between the prompt bar's 1px "\|" rules (`Canvas` separators), current one ivory on the smudge; filter and notifications at the right, 150px kept clear for the caption buttons. |
 | `Views/Library.xaml` | Background art over both rows, darkened like the pause menu: black 55% over all, 80% at the left edge fading out by 55% of the width (where the list sits), shades along top and bottom. The library has no fill. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons with thin glyphs, rust close hover, 64px caption height. |

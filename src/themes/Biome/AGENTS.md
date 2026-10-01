@@ -69,7 +69,7 @@ Pixel icons are drawn aliased (`IconTemplate`) and only at 24px or 12px (whole o
 |------|---------------|
 | `Views/Library.xaml` | Night sky: window color at the top, `ContentBackgroundBrush` rising from the bottom (masked, cached). Background art at 45% with a sky-colored shade under the top bar. The library layer has no fill. |
 | `Views/TopPanel.xaml` | The title screen: 64px, no fill. Search bar panel at the left; view switches in the middle as outlined menu words (idle white 60%, hover/current gold), grouping/sort/random glyphs beside them, Playnite's two separators as plain gaps; filters, notifications (Hardcore red badge), progress on the right; 150px clear for caption buttons. 48px when the sidebar is at the top. |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 64px rail in the list panel blue with a 2px black edge; tree mark in a 64px cell; items are 44px hotbar slots (hover: panel + black edge; current: hover blue + gold edge). Top/bottom: a 64px strip, views as outlined words. |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact rail in the list panel blue with a 2px black edge; tree mark in a 44x64 cell, 44x40 items; items are 32px hotbar slots (hover: panel + black edge; current: hover blue + gold edge). Top/bottom: a 64px strip, views as outlined words. |
 | `CustomControls/TopPanelItem.xaml` | No plate; muted, gold on hover or toggled. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, 24px pixel glyphs, hover panel with gold edge, red close; black window edge; caption height 64. |
 

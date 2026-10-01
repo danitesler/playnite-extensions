@@ -63,7 +63,7 @@ Type: 12 / 14 / 16 / 20 / 34. `HtmlTextView` reads the Colors of the brushes on 
 | File | What it draws |
 |------|---------------|
 | `Views/TopPanel.xaml` | The pause menu header and tab strip. A 56px header row: the localized "Library" in large condensed capitals at the left (where the game prints its title), a running task and notifications at the right, 150px clear for the caption buttons. Under it the strip: every top bar item is a tab (`CustomControls/TopPanelItem.xaml`): 38px PAUSE_BG plate under an 8px bar; the view switches are 120px text tabs, the rest 38px icon tabs; Playnite's separators are 8px of space; search (260px plate) and the filter tab close it at the right. 3px gap to the library. With the sidebar at the top, only the strip. |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 64px rail on the light panel: the star on a freemode blue 44px plate on top, items as 44px PAUSE_BG plates 3px apart, current = white plate with black glyph. Top/bottom: a 56px strip, views as text tabs. |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact rail on the light panel: the star on a freemode blue 44px plate on top, items as 44x40 PAUSE_BG plates 3px apart, current = white plate with black glyph. Top/bottom: a 56px strip, views as text tabs. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons in white, red close hover, caption height 56 (the header row). |
 | `Views/Library.xaml` | Background art over everything, blurred (radius 28) and tinted (84% at the top easing to 55%), library layer at 30% black. |
 | `Views/MainWindow.xaml` | Default layout, notifications slide in from the right. |
