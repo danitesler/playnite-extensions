@@ -29,6 +29,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Hextech** (`hextech`) — Desktop theme, theme API 2.9.0, near-black and gold with hextech blue, inspired by the League of Legends client: left navigation rail, flat gold-edged buttons, blue Play button. Unofficial (no Riot assets), palette approximated from community kits. Notes in **`src/themes/Hextech/AGENTS.md`**.
 - **Clutch** (`clutch`) — Desktop theme, theme API 2.9.0, a dark tactical-shooter look inspired by the Counter-Strike 2 main menu (values read from the game's Panorama style sheets): 64px navbar with uppercase view tabs, green GO button, map-tile covers; unofficial, no Valve assets. Notes in **`src/themes/Clutch/AGENTS.md`**.
 - **Ayywi** (`ayywi`) — Desktop theme, theme API 2.9.0, the ayywi design system on its black dark theme (white primary, hairline borders, pill buttons, segmented tabs, Lucide icons). Notes in **`src/themes/Ayywi/AGENTS.md`**.
+- **Attache** (`attache`) — Desktop theme, theme API 2.9.0, inspired by the Resident Evil 4 (2023) main, pause and options menus (colors measured from screenshots): a main menu rail of uppercase words where the current one grows and steps out, a brushed pewter selection plate, a glowing tab mark, warm greys on near black; unofficial, original artwork only, no Capcom assets. Notes in **`src/themes/Attache/AGENTS.md`**.
 
 ## Repository layout
 
