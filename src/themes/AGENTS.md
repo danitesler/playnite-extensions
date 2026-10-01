@@ -68,6 +68,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Attache | 208px rail of uppercase words on near black (the current one larger and stepped out), transparent 56px top strip over darkened library art, pewter selection plates |
 | Biome | Night-sky window; 64px list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
 | Medallion | 72px near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
+| Heist | 64px rail of square plates on a light panel; top panel as the pause menu header (large condensed title) over a tab strip of 38px plates with an 8px blue bar over the current one; library art blurred behind |
 
 ## Game page
 

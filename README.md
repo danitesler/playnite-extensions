@@ -37,6 +37,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/themes/Dropzone/info/icon.png" alt="Dropzone" width="48" height="48" /> | **Dropzone** (`dropzone`)<br>Deep navy and PLAY yellow, after the Fortnite lobby: a rounded navbar strip with a light pill for the current view, a slanted rail tab and rounded Discover-style covers. |
 | <img src="src/themes/Attache/info/icon.png" alt="Attache" width="48" height="48" /> | **Attache** (`attache`)<br>After the Resident Evil 4 (2023) menus: a main menu of words on near black, a brushed pewter selection plate and warm grey type. |
 | <img src="src/themes/Medallion/info/icon.png" alt="Medallion" width="48" height="48" /> | **Medallion** (`medallion`)<br>Black and minimal, after The Witcher 3 main menu: a brush-edged icon rail, uppercase DIN text and thin double frames. |
+| <img src="src/themes/Heist/info/icon.png" alt="Heist" width="48" height="48" /> | **Heist** (`heist`)<br>After the GTA V pause menu: square black plates, white selected rows and tabs, and a blue bar over the current tab. |
 
 ## Installation
 
