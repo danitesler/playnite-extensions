@@ -66,6 +66,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
 | Dropzone | 64px sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of capital view tabs (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
 | Attache | 208px rail of uppercase words on near black (the current one larger and stepped out), transparent 56px top strip over darkened library art, pewter selection plates |
+| Biome | Night-sky window; 64px list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
 
 ## Game page
 
