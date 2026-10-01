@@ -62,6 +62,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
 | Ancient | 64px slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered uppercase view tabs between thin rules, icon rail, translucent panels over the library art |
+| Libertalia | Black icon rail and a bar-less top row over the darkened library art; view switches as title case menu entries between thin "|" rules, selection as a feathered smudge, framed near-black panels |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
 
 ## Game page
