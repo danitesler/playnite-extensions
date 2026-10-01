@@ -264,11 +264,11 @@ def hero(brush, name="HeroArt"):
 </Grid>'''
 
 
-def spacer(height):
+def spacer(height, banner=340):
     return f'''<Border IsHitTestVisible="False">
     <Border.Style>
         <Style TargetType="Border">
-            <Setter Property="Height" Value="{height}" />
+            <Setter Property="Height" Value="{{Binding ActualHeight, ElementName=HeroArt, Converter={{StaticResource MathConverter}}, ConverterParameter='x * {height} / {banner}'}}" />
             <Style.Triggers>
                 <DataTrigger Binding="{{Binding ActualHeight, ElementName=HeroArt}}" Value="0">
                     <Setter Property="Height" Value="0" />

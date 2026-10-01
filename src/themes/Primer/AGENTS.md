@@ -14,38 +14,9 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | Components | `@primer/react` 38.40 CSS: Button, IconButton, TextInput, Select, Checkbox, Radio, ToggleSwitch, ActionList, ActionMenu / Overlay, UnderlineNav, NavList, ProgressBar, Tooltip; GitHub's Box / Box-header |
 | Icons | Octicons 19.38.0 (MIT, `info/LICENSE-octicons.txt`), 16px set |
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | Primer's functional CSS variables, verbatim names and values (aliases written out, with the alias in a comment). |
-| `src/Common.xaml` | `PopupBorder`, `FocusVisual` (inside), `CheckBoxFocusVisual` (checkbox and radio), component spacing. |
-| `src/Media.xaml` | Octicons (Playnite's roles plus triangle-down, check, chevron-right, trash, pencil, plus) and the menu icon paths. |
-| `src/Images/Octicons/` | Octicons rendered to PNG for Playnite's menu icons. |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the Primer token behind each one.
-
-| Token | Dark value | Key | Used for |
-|-------|------------|-----|----------|
-| `bgColor-default` / `-muted` / `-inset` | `#0d1117` / `#151b23` / `#010409` | `WindowBackgourndBrush`, `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush` / `ExpanderBackgroundBrush` / `ShellBackgroundBrush`, `TopPanelBackgroundBrush` | page and inputs / Box header / header band |
-| `fgColor-default` / `-muted` | `#f0f6fc` / `#9198a1` | `TextBrush` / `TextBrushDarker` | text, secondary text and icons |
-| `bgColor-accent-emphasis` | `#1f6feb` | `GlyphBrush` | checked, selected, slider fill |
-| `focus-outlineColor` | `#1f6feb` | `FocusBrush` | focus outline, focused input edge |
-| `button-primary-bgColor-rest` / `-hover` / `-fgColor-rest` | `#238636` / `#29903b` / white | `PrimaryButtonBackgroundBrush` / `PrimaryButtonHoverBackgroundBrush` / `PrimaryButtonForegroundBrush` | primary buttons, Play (green) |
-| `control-bgColor-rest` / `-hover` / `-active` | `#212830` / `#262c36` / `#2a313c` | `ButtonBackgroundBrush` / `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` | default buttons, pressed toggles |
-| `control-fgColor-rest` | `#f0f6fc` | `ButtonForegroundBrush` | button text |
-| `control-borderColor-rest` / `-emphasis` | `#3d444d` / `#656c76` | `NormalBorderBrush` / `CheckBoxBorderBrush` | control and checkbox edges |
-| `control-transparent-bgColor-hover` / `-selected` | `#656c76` at 20% | `HoverBrush`, `SliderTrackBrush` / `SelectedBrush` | ActionList hover and selection, slider track |
-| `overlay-bgColor`, `overlay-borderColor` | `#010409`, `borderColor-muted` | `PopupBackgroundBrush`, `PopupBorderBrush` | menus, dropdowns, popovers |
-| `borderColor-default` / `-muted` / `-emphasis` | `#3d444d` / 70% / `#656c76` | `WindowPanelSeparatorBrush`, `ScrollBarThumbBrush` / `MenuSeparatorBrush` / `GridViewItemHoverBorderBrush` | Box edge, scrollbar / menu dividers / cover hover |
-| `underlineNav-borderColor-active` | `#f78166` | `TabItemIndicatorBrush` | UnderlineNav bar (coral) |
-| `tooltip-bgColor` / `-fgColor` | `#3d444d` / white | `TooltipBackgroundBrush` / `TooltipForegroundBrush` | tooltips |
-| `button-danger-bgColor-hover` / `-fgColor-hover` | `#b62324` / white | `DangerBrush` / `DangerForegroundBrush` | close button hover |
-| `progressBar-bgColor-success` / `-track-bgColor` | `#238636` / `#3d444d` | `ProgressBarForegroundBrush` / `ProgressBarTrackBrush` | progress |
-| `fgColor-danger` / `-attention` / `-success` | `#f85149` / `#d29922` / `#3fb950` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | warnings, data-changed, ratings |
-| `bgColor-accent-muted` / `fgColor-accent` | `#388bfd1a` / `#4493f8` | `PropertyItemBackgroundBrush` / `PropertyItemForegroundBrush` | topic tags in the game overview (hover: `bgColor-accent-emphasis`, `PropertyItemHoverBackgroundBrush`) |
 
 `ButtonBackgroundBrush` holds Primer's default button fill (`control-bgColor-rest`), so Playnite's notification toasts, which read it too, share that color.
 
@@ -53,15 +24,11 @@ Primer has two accents: blue (`accent`) for focus, checked controls, selection a
 
 Siblings: Primer's other dark themes (`dark-dimmed`, `dark-high-contrast`, `dark-colorblind`, `dark-tritanopia`) use the same token names; swap the values in `tokens.css` from that theme's CSS.
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Primer |
-|-----|-------|--------|
-| `ButtonPadding`, `InputPadding` | 12,5 | control medium: 32px, 12px inline |
-| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding` | 8 / 8,6 | ActionList padding-block 8px, items 6px 8px (32px) |
-| `GroupBoxPadding`, `GroupBoxHeaderPadding` | 16, 16 | Box body and Box-header |
-| `TooltipPadding` | 8,4 | Tooltip condensed padding |
-| `IconSize` | 16 | Octicons 16px |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -80,31 +47,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 
 ## Components
 
-| Playnite file | Primer component |
-|---------------|------------------|
-| `DefaultControls/Button.xaml` | Button: `default` for regular buttons, `primary` (green) for `IsDefault`; medium weight |
-| `DerivedStyles/PlayButton.xaml` | Button `primary` |
-| `DerivedStyles/PropertyItemButton.xaml` | Link (fgColor-default, accent and underline on hover); in a list tagged `Chip`, a topic-tag (22px pill, `bgColor-accent-muted` / `fgColor-accent`, accent-emphasis fill on hover) |
-| `DefaultControls/ToggleButton.xaml` | Button `default` with `aria-pressed` (`control-bgColor-active` when pressed) |
-| `DefaultControls/RepeatButton.xaml` | Button `default` |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | TextInput: accent border plus 1px inset accent on focus (+ `BareTextBox`) |
-| `DefaultControls/ComboBox.xaml` | Select trigger (triangle-down) opening an ActionMenu; single-select check in the leading slot |
-| `DefaultControls/CheckBox.xaml` | Checkbox: 16px, `control-borderColor-emphasis` edge, radius small, accent fill with Primer's own mark, 2px focus outline 2px outside |
-| `DefaultControls/RadioButton.xaml` | Radio: checked = 4px accent ring around a white center, outside focus outline |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | No Primer slider: ProgressBar track (8px, accent fill to the thumb center) with the ToggleSwitch knob |
-| `DefaultControls/ProgressBar.xaml` | ProgressBar: green bar on `progressBar-track-bgColor`, radius small |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | GitHub's scrollbar: `borderColor-default` thumb, `fgColor-muted` on hover and drag |
-| `DefaultControls/ToolTip.xaml` | Tooltip: `tooltip-bgColor`, white text |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | ActionMenu: Overlay (radius large, 8px list padding) and ActionList items (radius medium, muted leading and trailing visuals, check, chevron-right, full-width `borderColor-muted` dividers) |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | ActionMenu, one-line styles `BasedOn` the ContextMenu |
-| `DefaultControls/TabControl.xaml` | UnderlineNav: semibold selected item with the 2px coral bar |
-| `DefaultControls/GroupBox.xaml` | Box: `borderColor-default` edge, radius medium, `bgColor-muted` Box-header with a semibold title |
-| `DefaultControls/ListBox.xaml` | ActionList items: transparent hover and selected fills |
-| `CustomControls/SearchBox.xaml` | TextInput with a leading search octicon |
-| `DerivedStyles/DetailsViewItemStyle.xaml` | Inset ActionList rows |
-| `DerivedStyles/GridViewItemStyle.xaml` | Cover outline: `borderColor-emphasis` on hover, focus-outline accent when selected |
-| `DerivedStyles/WindowBarButton.xaml` | Dialog title bar buttons: invisible IconButtons, danger close |
-| `DerivedStyles/HighlightBorder.xaml` | TextInput chrome for Default templates the theme does not replace |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from Primer
 
@@ -116,7 +59,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 
 ## Not verified yet
 
-Built and statically checked on Linux; **not yet loaded in Playnite**. First run: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Also: green default buttons in dialogs, the coral tab bar alignment, the thick radio ring, the inside focus outline on green and blue buttons, the Box headers in settings, the leading check in dropdowns, and the checkbox mark.
+Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. Also: green default buttons in dialogs, the coral tab bar alignment, the thick radio ring, the inside focus outline on green and blue buttons, the Box headers in settings, the leading check in dropdowns, and the checkbox mark.
 
 Layout checks: the band continuing through the sidebar's top, the right-hand cluster at narrow widths, the current-item bar next to the selected sidebar item (not clipped), the unread dot, the pill-shaped slider knob.
 

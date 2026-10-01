@@ -24,46 +24,17 @@ Next-gen 4.0 added main menu items but no restyle that we could find. Pre-1.20 (
 
 `src/tokens.css` names each value after its screen and element. `Constants.template.xaml` maps them:
 
-| Token | Value | Key | Used for |
-|-------|-------|-----|----------|
-| `text-label` | `#adadad` | `TextColor` / `TextBrush` | text (settings labels) |
-| `text-subtitle` | `#7f7f7f` | `TextColorDarker` | captions, not installed games |
-| `text-active` | `#ffffff` | `ButtonForegroundBrush`, `SelectedForegroundBrush` | hovered and current items |
-| `menu-item` | `#979797` | `SidebarItemForegroundBrush` | menu band items, header row icons and tabs at rest |
-| `accent-bar` | `#d07201` | `GlyphColor`, `PrimaryButtonGlowBrush` | the bar beside a selected row, checks, Play hover frame |
-| `amber-wash` | `#593a04` | `SelectedBrush`, `ListItemSelectedBrush`, `MenuItemHoverBrush`, `PrimaryButtonHoverBackgroundBrush` | selection wash, always faded left to right through a mask |
-| `frame-focus` | `#c6c6c6` | `FocusBrush`, `GridViewItemSelectedBorderBrush` | the light double frame (current item, focus, selected cover) |
-| `frame-hover` | `#686868` | `FrameHoverBrush`, `InputHoverBorderBrush`, `GridViewItemHoverBorderBrush` | frame under the pointer |
-| `frame-brown` | `#44362d` | `NormalBorderBrush`, `PopupBorderColor`, `ButtonBorderBrush`, `InputBorderBrush`, `FrameBrush`, `WindowPanelSeparatorColor`, `TopPanelSeparatorBrush` | static frames, rules, popup edges |
-| `frame-faint` | `#231c16` | `PanelSeparatorColor`, `MenuSeparatorBrush` | panel edges |
-| `scene-black` / `menu-band` / `panel` / `prompt-plate` / `settings-row` / `keycap` | `#000` / `#020202` / `#070707` / `#080808` / `#0c0c0c` / `#191919` | `WindowBackgourndBrush`, `GameOverviewBackgroundBrush` / `ShellBackgroundBrush` / `MainColorDark`, `PopupBackgroundColor`, `ExpanderBackgroundBrush` / `ButtonBackgroundBrush`, `InputBackgroundBrush` / `MainColor`, `TooltipBackgroundBrush` / `ButtonPressedBackgroundBrush` | surfaces |
-| `row-strip` | `#1e1915` | `SlotBorderBrush` | 5px strip on game list rows |
-| `quest-frame` / `quest-fill` / `category-light` | `#9a6020` / `#1b1505` / `#ede0cf` | `PrimaryButtonBorderBrush` / `PrimaryButtonBackgroundBrush` / `PrimaryButtonForegroundBrush` | Play (selected quest header) |
-| `category-closed` | `#a18869` | `HeadingForegroundBrush`, scroll thumb hover | section headings |
-| `page-dot` | `#a67f3e` | `TabItemIndicatorBrush` | dot under the current view and tab |
-| `scroll-thumb`, `slider-thumb`, `slider-track` | `#5e4d43`, `#a9a5a4`, `#080808` | scroll, slider and progress keys | controls |
-| `logo-red` | `#c81820` | `DangerBrush`, `NegativeRatingBrush` | close in dialogs, notification count |
-| `tracked` | `#fc9700` | `WarningBrush`, `DataChangeNotifColor` | active filter, update icon |
-
 Radii: 0 everywhere (`ControlCornerRadius`, `CornerRadiusLarge`); 2px pills only for the slider and scroll thumbs (`CornerRadiusSmall`, `CornerRadiusFull`). Type: 12 / 14 / 16 / 20 / 32,  Library art: `Views/Library.xaml` shades it 65% black beside the band easing to 35%, black over the bottom fifth.
 
 Shared keys added to `scripts/data/theme-keys.json` for this theme: `DoubleFrameTemplate`, `FrameHoverBrush`, `SidebarItemForegroundBrush`.
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Game measure (1080p) |
-|-----|-------|----------------------|
-| `ButtonPadding` | 18,8 | prompt plate, 32px tall at 14px type |
-| `InputPadding` | 10,7 | graphics preset field, 34px tall |
-| `MenuPadding` / `MenuItemPadding` | 1,6 / 16,8 | journal list rows, label about 20px in, x0.8 |
-| `ComboBoxDropDownPadding` / `ComboBoxItemPadding` | 1,4 / 14,8 | same panel |
-| `ListBoxItemPadding` | 14,7 | settings row label 26px in from the strip, x0.55 |
-| `GroupBoxHeaderMargin` | 0,0,0,12 | section name, rule, list |
-| `TooltipPadding` | 12,8 | |
-| `IconSize` | 20 | inventory filter icons, about 22px |
-| `GameBannerHeight` / `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 340 / 300 / 280 | shared game page keys |
-
 The double frame (`DoubleFrameTemplate`): two 1px lines 2px apart, the outer a plain rectangle, the inner stepped 4px inward at each corner, as sampled from the selected settings row (2px lines with a 4px gap at 4K).
+
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -71,7 +42,7 @@ The double frame (`DoubleFrameTemplate`): two 1px lines 2px apart, the outer a p
 |------|---------------|
 | `Views/Sidebar.xaml` | The main menu band as an icon rail: 44px of `#020202`, the medallion (24px, `PART_ElemMainMenu`) at the top with a 24px brown rule under it, then the items. The right edge is two jagged polygons in the band color (outer one at half strength) hanging 20px over the page. Right docking flips the edge; top/bottom: a 56px strip, no edge, 150px clear for the caption buttons. |
 | `CustomControls/SidebarItem.xaml` | Main menu items as icons: 44x40 items, 16px icon, grey at rest, white with a grey double frame under the pointer, white in the light double frame when current; the title is the tooltip. |
-| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | Header row on the bare page, 64px: search field (prompt plate, brown line) at the left; view switches centered as uppercase screen names with the gold page dot under the current one, between two small brown arrows (Playnite's separators); grey icons turning white; filter turns tracked orange while active. |
+| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | Header row on the bare page, 64px: search field (prompt plate, brown line) at the left; icon view switches centered between two small brown arrows (Playnite's separators); grey icons turning white; filter turns tracked orange while active. |
 | `DerivedStyles/MainWindowStyle.xaml` | Close is the game's close box (X in the brown double frame, light on hover); minimize and maximize are bare glyphs. Caption height 64. |
 | `Views/Library.xaml` | Background art behind the header row, shaded like the game's backdrop; library on black at 55%, 16px in from the band. |
 
@@ -81,21 +52,7 @@ Follows the shared skeleton. Differences: the page is black (`GameOverviewBackgr
 
 ## Components
 
-| Playnite file | Game element |
-|---------------|--------------|
-| `DefaultControls/Button.xaml`, `ToggleButton.xaml` | framed box: prompt plate in the brown double frame, uppercase label; frame light on hover (toggle: grey on hover, light when checked); default buttons as Play |
-| `DefaultControls/RepeatButton.xaml` | small plate with one brown line |
-| `DerivedStyles/PlayButton.xaml` | selected quest header |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml`, `ComboBox.xaml`, `CustomControls/SearchBox.xaml`, `DerivedStyles/HighlightBorder.xaml` | graphics preset field: 1px brown line, grey on hover, light with focus |
-| `DefaultControls/ComboBox.xaml` (list), `ContextMenu.xaml`, `Menu.xaml`, `ListBox.xaml` | journal panel and list rows: amber wash fading right plus the orange bar on hover or selection |
-| `DerivedStyles/DetailsViewItemStyle.xaml` | settings rows: `#0c0c0c` strips with a 2px gap and the 5px brown strip; selected = amber wash + orange bar |
-| `DerivedStyles/GridViewItemStyle.xaml` | item slot: grey frame on hover, light double frame when selected (6px outside the cover) |
-| `DefaultControls/TabControl.xaml` | graphics preset row / journal header: uppercase tabs, current white with the page dot, brown rule under the strip |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | objective box: square, orange check |
-| `DefaultControls/Slider.xaml`, `ProgressBar.xaml` | settings slider (dark framed track, light pill) and the XP bar |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | settings scroll thumb, no track |
-| `DefaultControls/GroupBox.xaml` | section name with rule |
-| `DerivedStyles/PropertyItemButton.xaml` | values in label grey turning white; chips as small key caps |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations
 
@@ -108,7 +65,7 @@ Follows the shared skeleton. Differences: the page is black (`GameOverviewBackgr
 
 ## Not verified yet
 
-Built and statically checked only (cloud session; Playnite was not started). Not yet seen running: everything. Priority checks on Windows: the brush edge drawing over the content beside the band, the double frame at 125% and 150% DPI (1px lines), the view switch dot binding (`IsToggled` through `BooleanToVisibilityConverter`), the sidebar at top/bottom/right, settings tabs, the game edit dialog, ThemeModifier edits.
+Built and statically checked only (cloud session; Playnite was not started). Not yet seen running: everything. Priority checks on Windows: the brush edge drawing over the content beside the band, the double frame at 125% and 150% DPI (1px lines), the sidebar at top/bottom/right, settings tabs, the game edit dialog, ThemeModifier edits.
 
 ## Preview and screenshots
 

@@ -50,12 +50,3 @@ Full database procedure: [addon-database.md](addon-database.md).
 ## Installer manifest shape
 
 `src/<AddOn>/info/InstallerManifest.yaml` is minimal: `AddonId` + `Packages`. Name, description, URLs and icon live in `extension.yaml`/`theme.yaml` and `danitesler_<key>.yaml`. Validation reads the **first** package: its version must equal the manifest's and its `PackageUrl` must match the tag and package name. `AddonId` never changes (a new id is a new add-on and breaks auto-update).
-
-## Reply footer (required after packaging)
-
-```text
-✅ success - release packaged
-Extension: <key>
-Output: artifacts/releases/<key>/
-```
-or `❌ error - not release` with `Reason: <first error, exit code, Toolbox path, or validation message>`. Several keys: list them under `Extension:`.

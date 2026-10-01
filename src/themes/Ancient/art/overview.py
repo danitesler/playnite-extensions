@@ -170,6 +170,25 @@ STEAM = '''<Grid>
                         <RemoveStoryboard BeginStoryboardName="SteamScreenshotsLoading" />
                     </MultiDataTrigger.ExitActions>
                 </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
+                        <Condition Binding="{Binding Game.Source}" Value="Steam" />
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="SteamScreenshotsLoadingSource">
+                            <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Duration="0:0:12">
+                                    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                    <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
+                                </ObjectAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </MultiDataTrigger.EnterActions>
+                    <MultiDataTrigger.ExitActions>
+                        <RemoveStoryboard BeginStoryboardName="SteamScreenshotsLoadingSource" />
+                    </MultiDataTrigger.ExitActions>
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
     </Grid.Style>
@@ -264,11 +283,11 @@ def hero(brush, name="HeroArt"):
 </Grid>'''
 
 
-def spacer(height):
+def spacer(height, banner=340):
     return f'''<Border IsHitTestVisible="False">
     <Border.Style>
         <Style TargetType="Border">
-            <Setter Property="Height" Value="{height}" />
+            <Setter Property="Height" Value="{{Binding ActualHeight, ElementName=HeroArt, Converter={{StaticResource MathConverter}}, ConverterParameter='x * {height} / {banner}'}}" />
             <Style.Triggers>
                 <DataTrigger Binding="{{Binding ActualHeight, ElementName=HeroArt}}" Value="0">
                     <Setter Property="Height" Value="0" />
@@ -279,18 +298,9 @@ def spacer(height):
 </Border>'''
 
 
-def edit_button(ancestor, margin, size):
-    return f'''<Button x:Name="PART_ButtonEditGame" Margin="{margin}" Height="{size}" Width="{size}" Padding="0" Focusable="False">
-    <Button.Style>
-        <Style TargetType="Button" BasedOn="{{StaticResource {{x:Type Button}}}}">
-            <Setter Property="Visibility" Value="Hidden" />
-            <Style.Triggers>
-                <DataTrigger Binding="{{Binding IsMouseOver, RelativeSource={{RelativeSource AncestorType={ancestor}}}}}" Value="True">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Button.Style>
+def edit_button(margin, size, column=None):
+    col = f' Grid.Column="{column}"' if column is not None else ""
+    return f'''<Button x:Name="PART_ButtonEditGame"{col} Margin="{margin}" Height="{size}" Width="{size}" Padding="0" Focusable="False">
     <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
                     Content="{{DynamicResource IconEdit}}"
                     ContentTemplate="{{DynamicResource IconTemplate}}" />
@@ -342,7 +352,7 @@ def details():
             </Grid>
             <Button Name="PART_ButtonMoreActions" Content="{{DynamicResource LOCMoreAction}}"
                     MinWidth="150" Height="48" Margin="12,0,0,0" />
-{indent(edit_button("DockPanel", "12,0,0,0", 48), 12)}
+{indent(edit_button("12,0,0,0", 48), 12)}
         </StackPanel>
     </StackPanel>
 </DockPanel>'''
@@ -397,7 +407,7 @@ def grid_panel():
     <Button Name="PART_ButtonPlayAction" Grid.Column="0" Height="44" Style="{{DynamicResource PlayButton}}" />
     <Button Name="PART_ButtonContextAction" Grid.Column="0" Height="44" />
     <Button Name="PART_ButtonMoreActions" Content="{{DynamicResource LOCMoreAction}}" Grid.Column="1" Height="44" Margin="10,0,0,0" />
-{indent(edit_button("Grid", "10,0,8,0", 44), 4)}
+{indent(edit_button("10,0,0,0", 44, column=2), 4)}
 </Grid>
 <Grid VerticalAlignment="Top">
     <Grid.ColumnDefinitions>

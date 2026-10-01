@@ -20,51 +20,17 @@ Blizzard publishes no design system, no tokens and no component specs, so unlike
 
 To tighten the colors, sample a screenshot of the client and edit the values in `src/tokens.css` (see Tokens). No XAML changes are needed.
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | The theme's own approximated tokens (`lp-*`): surfaces, lines, text, launcher blue, status colors, radii. |
-| `src/Common.xaml` | `PopupBorder`, `FocusVisual`, `CheckBoxFocusVisual`, component spacing. |
-| `src/Media.xaml` | Phosphor `Icon<Role>` geometries, `IconTemplate` (256 grid), search/clear templates, menu icon paths. |
-| `src/Images/Phosphor/` | Menu icons rendered to PNG (48px, muted text color; red for exit and remove). |
-| `src/Views/DetailsViewGameOverview.xaml`, `GridViewGameOverview.xaml`, `LibraryDetailsView.xaml`, `src/DerivedStyles/DetailsView*.xaml`, `PlayButton.xaml`, `PropertyItemButton.xaml`, `GridViewItemStyle.xaml` | Game list and game page. |
-| `icons.json` | Icon sources for `render-icons.ps1` (Windows). The geometry job writes `icons.generated.xaml` (not committed): paste into `src/Media.xaml`. |
-
 ## Tokens
-
-| Token | Value | Key | Used for |
-|-------|-------|-----|----------|
-| `lp-frame` | `#0a0c10` | `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush` | window frame, icon rail, top bar, action bar, input wells |
-| `lp-rail` | `#0e1116` | `NormalBrushDark` (`MainColorDark`) | game list, filter and explorer panels, grid side panel |
-| `lp-page` | `#12151b` | `WindowBackgourndBrush`, `ContentBackgroundBrush` | game page and library |
-| `lp-card` / `-hover` / `-active` | `#181c24` / `#202531` / `#2a3040` | `ExpanderBackgroundBrush`, `TopPanelSearchBoxBackgroundBrush`, `MainColor` / `HoverBrush`, `ListItemHoverBrush`, `MenuItemHoverBrush` / `SelectedBrush`, `ListItemSelectedBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush` | cards, hover, selected rows, rails |
-| `lp-popup` | `#1b1f28` | `PopupBackgroundBrush`, `TooltipBackgroundBrush` | menus, dropdowns, tooltips |
-| `lp-button` / `-hover` / `-pressed` | `#2a3040` / `#353d51` / `#212633` | `ButtonBackgroundBrush` / `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` | secondary buttons |
-| `lp-button` / `-hover`, `lp-text` | | `PropertyItemBackgroundBrush` / `PropertyItemHoverBackgroundBrush`, `PropertyItemForegroundBrush` | chips in the game overview (platforms, genres, categories, features, tags) |
-| `lp-divider` / `lp-border` / `-strong` | `#1d212a` / `#2a303b` / `#414958` | `PanelSeparatorBrush`, `WindowPanelSeparatorBrush`, `MenuSeparatorBrush` / `NormalBorderBrush`, `InputBorderBrush`, `PopupBorderBrush` / `CheckBoxBorderBrush`, `ScrollBarThumbBrush`, `InputHoverBorderBrush`, `GridViewItemHoverBorderBrush` | dividers, control edges |
-| `lp-text` / `-muted` / `-dim` | `#f5f7fa` / `#a4abb8` / `#6f7786` | `TextBrush` / `TextBrushDarker` / `CheckBoxHoverBorderBrush`, `ScrollBarThumbHoverBrush`, `TabItemHoverIndicatorBrush` | text, secondary text and icons |
-| `lp-blue` / `-hover` / `-pressed` | `#148eff` / `#38a1ff` / `#0c72d4` | `GlyphBrush`, `PrimaryButtonBackgroundBrush`, `FocusBrush`, `TabItemIndicatorBrush` / `PrimaryButtonHoverBackgroundBrush` / `PrimaryButtonPressedBackgroundBrush` | Play, selection, checked controls, focus |
-| `lp-on-blue` | `#ffffff` | `TextBrushDark`, `PrimaryButtonForegroundBrush`, `DangerForegroundBrush` | text on blue and red fills |
-| `lp-red` / `-deep` | `#ff5a52` / `#d13438` | `WarningBrush`, `NegativeRatingBrush` / `DangerBrush` | warnings, close hover |
-| `lp-amber`, `lp-green` | `#f5b031`, `#3fcf8e` | `DataChangeNotifBrush`, `MixedRatingBrush`, `PositiveRatingBrush` | data-changed text, ratings |
-| `lp-radius-sm` / `-radius` / `-lg` | 2 / 3 / 6 px | `CornerRadiusSmall` / `ControlCornerRadius` / `CornerRadiusLarge` | the client is nearly square-cornered |
 
 Controls read brushes only, so ThemeModifier's palette edits and the shared brushes in the generated `thememodifier.yaml` recolor them. **One exception**: the description text on the game page (`HtmlTextView`) takes Color-typed properties (`HtmlForeground`, `LinkForeground`, default black), so it reads `TextColor` and `GlyphColor`; ThemeModifier brush edits do not reach it. The build check allows exactly those two properties.
 
 Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundled (and a `Fonts/` folder cannot ship in a Playnite theme).
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Notes |
-|-----|-------|-------|
-| `ButtonPadding` | 18,8 | 36px buttons |
-| `InputPadding` | 12,7 | 36px inputs; search and select are 34px |
-| `MenuPadding`, `ComboBoxDropDownPadding` | 4 | popup surface |
-| `MenuItemPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding` | 12,8 | 36px rows |
-| `GroupBoxPadding`, `GroupBoxHeaderPadding` | 16 / 16,12 | cards |
-| `TooltipPadding` | 10,6 | |
-| `IconSize` | 20 | toolbar icons |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell and game page
 
@@ -83,23 +49,7 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 
 ## Components
 
-| Playnite file | Battle.net component |
-|---------------|----------------------|
-| `DefaultControls/Button.xaml`, `RepeatButton.xaml`, `ToggleButton.xaml` | Flat grey-blue secondary button; `IsDefault` is the blue primary; checked toggles get a blue edge and text |
-| `DerivedStyles/PlayButton.xaml` | Play: blue, bold 20px white text, lighter hover, deeper pressed |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml`, `CustomControls/SearchBox.xaml` | Dark input well, 1px edge that lightens on hover and turns blue on focus |
-| `DefaultControls/ComboBox.xaml` | Dark select with a caret; popup rows with a blue bar on the selected one |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | 18px box / ring; blue fill and white check / blue dot when on |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 4px rail, blue fill, 16px white round thumb |
-| `DerivedStyles/PropertyItemButton.xaml` | Values in the game details that filter: launcher-blue link text, white under the pointer; in a list tagged `Chip`, a 24px chip in the secondary-button grey, one step lighter on hover |
-| `DefaultControls/ProgressBar.xaml` | 6px blue bar on a dark track |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | 6px rounded thumb, no arrows |
-| `DefaultControls/Menu.xaml`, `ContextMenu.xaml`, `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | 36px rows with a hover fill, Phosphor check and caret, divider separators |
-| `DefaultControls/TabControl.xaml` | Semibold labels, blue 3px underline on the selected tab |
-| `DefaultControls/GroupBox.xaml` | Card with a divider under a semibold title |
-| `DefaultControls/ListBox.xaml` | Rows with a card hover and a blue bar on the selected row |
-| `DefaultControls/ToolTip.xaml` | Dark tooltip with a 1px edge |
-| `DerivedStyles/HighlightBorder.xaml`, `WindowBarButton.xaml`, `GridViewItemStyle.xaml` | Input chrome for unrestyled templates; dialog caption buttons; cover outline (grey hover, blue selected) |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from the Battle.net app it is inspired by
 

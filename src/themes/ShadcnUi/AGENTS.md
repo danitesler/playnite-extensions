@@ -14,53 +14,23 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | Components | `shadcn-ui/ui` `apps/v4/registry/new-york-v4/ui/*.tsx` (Button, Input, Select, Checkbox, RadioGroup, Slider, Progress, Tabs, Tooltip, DropdownMenu, Card, Sidebar, ScrollArea, Toggle, Command); blocks `sidebar-07`, `dashboard-01` |
 | Icons | lucide 1.48.0 (ISC), `info/LICENSE-lucide.txt` |
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | shadcn's CSS variables, verbatim (zinc dark + radius scale). Another shadcn palette can replace it whole. |
-| `src/Common.xaml` | `PopupBorder`, `FocusVisual`, component spacing. |
-| `src/Media.xaml` | lucide icons, search / clear icon templates, menu icon colors. |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the shadcn variable behind each one. Variables in `tokens.css`: background, foreground, card(-foreground), popover(-foreground), primary(-foreground), secondary(-foreground), muted(-foreground), accent(-foreground), destructive, border, input, ring, sidebar, sidebar-foreground, sidebar-primary(-foreground), sidebar-accent(-foreground), sidebar-border. Optional ones fall back the way shadcn pairs them (`popover` → `card`, `sidebar-*` → the base token), so a pasted palette without them still renders.
-
-| Token (Tailwind class) | Key | Used by |
-|------------------------|-----|---------|
-| `background` / `foreground` | `WindowBackgourndBrush` / `TextBrush`, `TooltipBackgroundBrush` | inset card, dialogs / text; tooltips are inverted (`TooltipForegroundBrush` = `background`) |
-| `muted-foreground` | `TextBrushDarker` | secondary text and icons |
-| `primary` / `primary-foreground` | `GlyphBrush` / `TextBrushDark` | default Button, Play, checked, slider, progress |
-| `primary/90` (`hover:bg-primary/90`) | `PrimaryButtonHoverBackgroundBrush` | default Button, Play |
-| `primary/20` (`bg-primary/20`) | `ProgressBarTrackBrush` | Progress track |
-| `secondary` / `secondary/80` / `secondary-foreground` | `ButtonBackgroundBrush` / `ButtonHoverBackgroundBrush` / `ButtonForegroundBrush` | secondary Button |
-| `accent` | `HoverBrush`, `SelectedBrush`, `ButtonPressedBackgroundBrush` | ghost hover, selected rows and nav item, toggled buttons |
-| `accent/50` (`dark:hover:bg-accent/50`) | `ListItemHoverBrush` | list and details rows |
-| `input` | `NormalBorderBrush` | Input, Select, Checkbox, RadioGroup, outline Button edges |
-| `input/30` / `input/50` (`dark:bg-input/30`, `dark:hover:bg-input/50`) | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush` / `InputHoverBackgroundBrush` | Input, Select, RadioGroup, outline Button, active tab |
-| `ring` / `ring/50` (`ring-ring/50`) | `FocusBrush` / `FocusHaloBrush` | focused input edge / 3px focus ring, slider halo |
-| `destructive` / `destructive/60` (`dark:bg-destructive/60`) | `WarningBrush` / `DangerBrush` | errors, notification badge / close button hover |
-| `card`, `muted`, `border` | `ExpanderBackgroundBrush`, `TopPanelSearchBoxBackgroundBrush` / `SliderTrackBrush`, `TabControlHeaderBackgroundBrush` / `WindowPanelSeparatorBrush`, `ScrollBarThumbBrush` | cards, header search / slider rail, tab list / dividers, scrollbar |
-| `sidebar` / `sidebar-primary` | `ShellBackgroundBrush` / `MainMenuButtonBackgroundBrush` | window frame / logo tile |
-| white (`bg-white`) | `SliderThumbBackgroundBrush` | slider thumb |
-| `secondary` / `secondary-foreground` / `secondary/90` | `PropertyItemBackgroundBrush` / `PropertyItemForegroundBrush` / `PropertyItemHoverBackgroundBrush` | Badges in the game overview |
 
 `ButtonBackgroundBrush` holds shadcn's secondary Button fill, so Playnite's notification toasts, which read it too, share that color.
 
 `border` and `input` stay translucent white, as in shadcn; only popup edges (`PopupBorderColor`) are flattened onto the popover, because WPF popups are layered windows. Radii: `CornerRadiusSmall`, `ControlCornerRadius`, `CornerRadiusLarge`, `CornerRadiusXLarge` = Tailwind `rounded-sm` / `-md` / `-lg` / `-xl` from the `--radius-*` tokens, `CornerRadiusFull` = pill. Fonts: `--font-sans` / `--font-mono` when a palette sets them, else Segoe UI / Consolas.
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | shadcn |
-|-----|-------|--------|
-| `ButtonPadding` | 16,8 | Button size default (h-9, px-4) |
-| `InputPadding` | 12,7 | Input, SelectTrigger (h-9, px-3, 1px border) |
-| `MenuPadding`, `ComboBoxDropDownPadding` | 4 | DropdownMenuContent / SelectContent p-1 |
-| `MenuItemPadding`, `ComboBoxItemPadding` | 8,6 | DropdownMenuItem / SelectItem px-2 py-1.5 |
-| `ListBoxItemPadding` | 8,6 | CommandItem (list rows) |
-| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 24, 0,0,0,24 | Card py-6 px-6, gap-6 |
-| `TooltipPadding` | 12,6 | TooltipContent px-3 py-1.5 |
-| `IconSize` | 16 | size-4 |
+*(Control padding and dimensions: see `src/Common.xaml`)*
+
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -82,32 +52,11 @@ The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap
 
 ## Components
 
-| Playnite file | shadcn component |
-|---------------|------------------|
-| `DefaultControls/Button.xaml` | Button: `secondary` for regular buttons, `default` for `IsDefault`; font-medium |
-| `DerivedStyles/PlayButton.xaml` | Button `default` |
-| `DerivedStyles/PropertyItemButton.xaml` | text link (hover:underline); tagged `Chip`, a Badge `secondary` (rounded-md, text-xs, hover:bg-secondary/90) |
-| `DefaultControls/ToggleButton.xaml` | Toggle `outline` (transparent, border-input, accent on hover and when on) |
-| `DefaultControls/RepeatButton.xaml` | Button `outline` (dark: input/30 fill, input edge) |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (+ `BareTextBox` for hosts that draw their own chrome) |
-| `DefaultControls/ComboBox.xaml` | Select (trigger, SelectContent, SelectItem with the check on the right) |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | Checkbox, RadioGroupItem (no hover state) |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: h-1.5 muted track, primary range to the thumb center, size-4 white thumb with a primary edge and ring-4 `ring/50` on hover, drag and focus. SliderEx is `BasedOn` the Slider style. |
-| `DefaultControls/ProgressBar.xaml` | Progress (primary/20 track; indeterminate = sliding segment) |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | ScrollArea scrollbar: w-2.5, no rail, rounded-full `bg-border` thumb (`ScrollBarThumb`) |
-| `DefaultControls/ToolTip.xaml` | Tooltip: `bg-foreground` / `text-background`, rounded-md, text-xs |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | DropdownMenu (content, items, muted icons and shortcuts, sub-menus) |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | DropdownMenu surfaces, one-line styles `BasedOn` the ContextMenu |
-| `DefaultControls/TabControl.xaml` | Tabs, default variant (muted list; active trigger `input/30` with an `input` edge) |
-| `DefaultControls/GroupBox.xaml` | Card, without the border line |
-| `DefaultControls/ListBox.xaml` | CommandItem states (accent/50 hover, accent selected) |
-| `CustomControls/SearchBox.xaml` | Input with a leading search icon and a "Search" placeholder |
-| `DerivedStyles/DetailsViewItemStyle.xaml` | Details rows as CommandItems |
-| `DerivedStyles/GridViewItemStyle.xaml` | Cover ring (ring-2 ring-offset-2) on hover and selection only |
-| `DerivedStyles/WindowBarButton.xaml` | Ghost icon buttons; close = `destructive/60` |
-| `DerivedStyles/HighlightBorder.xaml` | Input chrome for Default templates the theme does not replace |
-
 Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Playnite's template recolored through the palette keys.
+
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from shadcn
 
@@ -119,7 +68,7 @@ Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Play
 
 ## Not verified yet
 
-Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope); **not yet loaded in Playnite**. First run on Windows: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs.
+Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope); **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`.
 
 Layout checks: the inset card's rounded corners over the library background image (details view), window buttons centered in the card header, the sidebar at each position (Settings → Appearance → Layout), the search placeholder hiding while typing, lucide icons in the top bar and on Library / Statistics, the blue logo tile, and slider ranges ending under the thumb (grid zoom slider).
 

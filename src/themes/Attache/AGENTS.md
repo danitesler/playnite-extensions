@@ -30,44 +30,20 @@ What the screenshots show, and what the theme follows:
 
 `src/tokens.css` holds the measured values under this theme's own names.
 
-| Token | Key | Used for |
-|-------|-----|----------|
-| `page` #050505 | `WindowBackgourndBrush`, `ShellBackgroundBrush`, `ContentBackgroundBrush`, `GameOverviewBackgroundBrush`, `ScrimBrush`, `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `TextColorDark` | Everything sits on near black |
-| `scene` #10110f | `MainColorDark`, `PopupBackgroundColor`, `TooltipBackgroundBrush`, `ExpanderBackgroundBrush` | Popups, cards |
-| `slot` #1d1d1b / `slot-hover` | `MainColor`, `ButtonBackgroundBrush`, `ListItemHoverBrush`, `PropertyItem*` / `HoverColor`, `ToggleButtonCheckedBackgroundBrush` | Buttons, chips, hovered rows |
-| `hairline` #232323, `tab-divider`, `hairline-strong` | `WindowPanelSeparatorColor`, `PanelSeparatorColor`, `MenuSeparatorBrush`, `PopupBorderColor`, `NormalBorderBrush`, `InputBorderBrush`, `ButtonBorderBrush` | Rules, edges (`hairline-strong` lifts edges so inputs read on black) |
-| `text-body` #ccc7ba | `TextColor`, `FocusBrush`, `ProgressBarForegroundBrush` | Values, descriptions |
-| `text-idle` #7c7772 | `TextColorDarker`, `CheckBoxBorderBrush`, `InputHoverBorderBrush` | Labels at rest |
-| `text-tab` #726d68 | `HeadingForegroundBrush` | Section captions, inactive tabs |
-| `text-menu` #aaa9a7 / `text-menu-current` #faf9f4 | `SidebarItemForegroundBrush` / `SidebarItemSelectedForegroundBrush`, `PrimaryButtonForegroundBrush` | Main menu words |
-| `text-current` #f4e9dc | `SelectedForegroundBrush` | Text on the plate |
-| `plate-core` #1f1f20 / `plate-sheen` #4e4b47 / `plate-edge` #8d877d | `SelectedBrush`, `MenuItemHoverBrush`, `ButtonHoverBackgroundBrush`, `PrimaryButtonBackgroundBrush` / `SelectedSheenBrush` / `SelectedBorderBrush`, `PrimaryButtonBorderBrush`, `GridViewItemSelectedBorderBrush` | The pewter plate |
-| `tab-line` #8d877d | `TabItemIndicatorBrush` | Tab mark, current toggle |
-| `new-dot` #ab854d | `GlyphColor`, `WarningBrush`, `DataChangeNotifColor` | The only accent: checked boxes, links, the notifications dot |
-| `completed` #96d397 / `speaker` #d4c24a / `herb-red` | `PositiveRatingBrush` / `MixedRatingBrush` (and the favorite star) / `NegativeRatingBrush` | Scores |
-| `logo-red` #b0182a | `DangerBrush` | Close hover, exit and remove icons |
-
 `GlyphColor` is amber, not the menus' warm white, so links and checked states stay distinguishable from body text.
 
 Radii are 0 everywhere. Fonts: Segoe UI for body text; `HeadingFontFamily` is **Bahnschrift SemiCondensed** (it falls back to Bahnschrift, then Segoe UI), the condensed grotesque Windows ships, closest to the menus' Helvetica Condensed-like face. WPF has no `text-transform`. Text a template can reach goes through Playnite's `StringToUpperCaseConverter`: sidebar words and the game page section captions. Text it cannot reach uses small caps (`Typography.Capitals`) set a step larger, because small caps are short: tabs and group box captions at `FontSizeLarger`, the Play label at 24, the game name at 38.
 
-## Component spacing (`src/Common.xaml`)
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
-| Key | Value | From |
-|-----|-------|------|
-| `ButtonPadding` | 18,8 | 34px controls |
-| `InputPadding` | 10,7 | 34px |
-| `MenuPadding` / `MenuItemPadding` | 0,6 / 16,8,24,8 | Rows run edge to edge, like the options list |
-| `ComboBoxDropDownPadding` / `ComboBoxItemPadding` / `ListBoxItemPadding` | 0,4 / 12,7 / 12,7 | |
-| `GroupBoxPadding` / `GroupBoxHeaderMargin` | 16 / 0,0,0,10 | |
-| `TooltipPadding` | 12,7,12,8 | |
-| `IconSize` | 18 | Thin Phosphor Light glyphs |
-| `GameBannerHeight` / `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 360 / 300 / 220 | |
+## Component spacing (`src/Common.xaml`)
 
 Shared templates in `Common.xaml`:
 - `SelectionBarTemplate`: the pewter plate. It draws Background as the body, Foreground as the sheen toward the edges, BorderBrush as the edge hairlines, with the smoke texture on top and soft ends.
 - `TabItemIndicatorTemplate`: the tab mark.
 - `HeadingTextBlock`, `FocusVisual` (a 1px warm-white outline) and `SteamScreenshotsSkeletonTemplate`.
+
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -89,18 +65,7 @@ It follows the skeleton in `../AGENTS.md`. Differences:
 
 ## Components
 
-| Playnite file | Menu element |
-|---------------|--------------|
-| Button, ToggleButton | Slot-grey plate with a hairline edge. On hover the pewter plate slides on. A toggle that is on gets a 2px warm line at its left. |
-| PlayButton | The pewter plate, always lit, with the label in small caps |
-| ListBox, ComboBox items, DetailsViewItemStyle, Menu, ContextMenu | Options-list rows. Hover lifts the row to slot grey; the current or highlighted row gets the pewter plate. |
-| TabControl | Options tabs with vertical rules and the tab mark. With the strip on the left (Settings), the tabs become plate rows. |
-| Slider | A hairline with a 2x14 tick as the thumb, as in the options sliders. The part before the thumb is a lighter hairline. |
-| ScrollViewer | The save list's thin scroll bar: a 2px line that widens on hover. |
-| CheckBox, RadioButton | Warm-grey hairline. Checked fills with amber and shows a black check. |
-| GridViewItemStyle | Bare covers. Hover draws a 1px warm-grey outline; selected draws a 2px `plate-edge` outline. |
-| PropertyItemButton | Plain warm text, underlined on hover. Chips are square, slot grey with a hairline edge. |
-| SearchBox, TextBox, PasswordBox, HighlightBorder | Black inputs with hairline edges (the search box has a bottom line only). The edge turns warm white while typing. |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations
 

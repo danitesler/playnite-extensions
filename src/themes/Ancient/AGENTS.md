@@ -22,51 +22,15 @@ Valve publishes no design system, but the game's interface stylesheets are publi
 
 ## Tokens
 
-| Token | Value | Key | Used for |
-|-------|-------|-----|----------|
-| `void` | `#07090b` | `WindowBackgourndBrush` | window |
-| `topbar` | `#121619` | `ShellBackgroundBrush` | top bar, shaded darker toward the window edge |
-| `deck` | `#0d1114` | `ContentBackgroundBrush`, `NormalBrushDark` | library layer, under the art |
-| `strip` | black 67% | `TopPanelBackgroundBrush` | secondary strip, thinning out at the right |
-| `chat` | `#161e24` | `NormalBrush`, `ExpanderBackgroundBrush`, `BackgroundToneColor`, `GridItemBackgroundColor` | side panels, cards, game details pane, grid panel |
-| `tooltip` | `#252b30` | `TooltipBackgroundBrush` | tooltips |
-| `menu` / `menu-hover` | `#3d4448` / `#585e62` | `PopupBackgroundBrush` / `MenuItemHoverBrush` | dropdown lists, menus |
-| `bevel` / `-hover` / `-pressed` | `#4d5860` / `#6c7d88` / `#555555` | `ButtonBackgroundBrush` / `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` | ButtonBevel (lighter stop; the shade darkens the top) |
-| `dark-fill` / `-hover` | `#292e2e` / `#393e3e` | `PropertyItemBackgroundBrush` / `PropertyItemHoverBackgroundBrush` | ButtonDark, dropdowns, chips, toggles |
-| `frame` / `frame-hover` / `frame-lit` | `#5e686966` / `#5e6869` / `#697879` | `NormalBorderBrush`, `ButtonBorderBrush`, `CheckBoxBorderBrush` / `InputHoverBorderBrush` / `CheckBoxHoverBorderBrush` | 2px control edges |
-| `input` / `input-border` | `#1a1a1a` / `#444444` | `InputBackgroundBrush` / `InputBorderBrush` | TextEntry |
-| `text` / `text-soft` | `#a5ada2` / `#7f8b8d` | `TextBrush`, `PropertyItemForegroundBrush` / `TextBrushDarker` | baseText, muted labels and tabs |
-| `white` | `#ffffff` | `SelectedForegroundBrush`, `ButtonForegroundBrush`, `PrimaryButtonForegroundBrush`, `TooltipForegroundBrush`, `DangerForegroundBrush`, `TabItemIndicatorBrush` | hover and current text, button labels |
-| `tick` | `#a0d6d7` | `GlyphBrush`, `FocusBrush` | accent: ticked box, selection, links, focus |
-| `tick-halo` | `#5b62bf77` | `CheckBoxCheckedHoverBackgroundBrush` | halo around a ticked box |
-| `nav-glow` | `#3382ff` | `SidebarItemSelectedGlowBrush`, `FocusHaloBrush`; as washes: `SelectedBrush`, `ListItemSelectedBrush`, `ToggleButtonCheckedBackgroundBrush`, `HighlightGlyphBrush` | glow behind the current tab, selected rows |
-| `text-subtab` | `#768e8d` | `TabItemHoverIndicatorBrush` | glow behind selected strip items and tabs |
-| `gear` | `#444a55` | `MainMenuButtonForegroundBrush` | home button, caption buttons |
-| `scroll` | `#566767` | `ScrollBarThumbBrush`, `ThumbBrush` | scroll thumb, slider range |
-| `slider-thumb` / `-hover` | `#91a5b9` / `#b8c5d3` | `SliderThumbBackgroundBrush` / `SliderThumbHoverBorderBrush` | slider thumb |
-| `play` / `-hover` / `-pressed` | `#5aa15e` / `#87d695` / `#3f7a43` | `PrimaryButton*BackgroundBrush`, `ProgressBarForegroundBrush` | PLAY, default buttons, progress |
-| `play-light` / `bevel-shadow` | white 27% / black | `BevelLightBrush` / `BevelShadowBrush`, `SlotBorderBrush`, `MenuSeparatorBrush`, `PopupBorderBrush`, `CheckBoxCheckMarkBkBrush` | bevel edges, shades, black slots and lines |
-| `off-white` | `#cccccc` | `GridViewItemHoverBorderBrush`, `FrameBrush` | cover hover and current frames |
-| `line` | `#1f2629` | `WindowPanelSeparatorBrush`, `PanelSeparatorBrush` | the light half of paired separators |
-| `gold`, `win`, `lose`, `mixed`, `danger` | `#ffcc33`, `#88ff88`, `#ff4433`, `#e4c269`, `#b0261e` | `DataChangeNotifBrush`, `PositiveRatingBrush`, `NegativeRatingBrush` + `WarningBrush`, `MixedRatingBrush`, `DangerBrush` | signals |
-
 Type: body `Radiance, Segoe UI`; `HeadingFontFamily` `Reaver, Trajan Pro, Cinzel, Georgia` (tabs, titles, captions). Nothing is bundled; most machines get Segoe UI and Georgia. Sizes 12 / 14 / 16 / 20 / 28. Corners are square (`ControlCornerRadius` 0).
 
 Keys this theme added to `scripts/data/theme-keys.json`: **`BevelLightBrush`**, **`BevelShadowBrush`** (the bevel's edges and the shade over gradient fills), **`SidebarItemSelectedGlowBrush`** (glow behind the current tab), **`BevelTemplate`** (ControlTemplate for a plain `Control`: host `Background` shaded toward the top, lit top/left and dark bottom/right edges).
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Game |
-|-----|-------|------|
-| `ButtonPadding` | 16,8 | ButtonBevel min-height 36 |
-| `InputPadding` | 8,7 | TextEntry 36px |
-| `MenuPadding`, `ComboBoxDropDownPadding` | 0 | DropDownMenu rows edge to edge |
-| `MenuItemPadding`, `ComboBoxItemPadding` | 16,7,16,6 | DropDownMenu Label padding 6,0,2,16 |
-| `ListBoxItemPadding` | 12,6 | |
-| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 16, 0,0,0,12 | |
-| `TooltipPadding` | 12,8 | tooltip #Contents padding 16 at 18px text |
-| `IconSize` | 20 | |
-| `GameBannerHeight`, `GameDetailsPaneWidth`, `GridDetailsPaneWidth` | 340, 290, 280 | |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -85,24 +49,7 @@ Follows the shared skeleton, generated by `art/overview.py` (edit it, then rerun
 
 ## Components
 
-| Playnite file | Game component |
-|---------------|----------------|
-| `DefaultControls/Button.xaml`, `RepeatButton.xaml` | `.ButtonBevel` through `BevelTemplate`: slate gradient, bevel edges, uppercase white label, label nudged 1px when pressed; `IsDefault` = the PLAY green |
-| `DerivedStyles/PlayButton.xaml` | `.PlayButton`: green bright at the top, darker at the bottom; hover fills the bottom with light green; bevel edges; bold uppercase label at 20px |
-| `DefaultControls/ToggleButton.xaml` | `.ButtonDark`: dark fill, 2px faint edge, muted label; on = blue glow wash |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | tick box / radio: black, 2px faint edge; checked = pale teal fill in a black ring with a violet halo |
-| `DefaultControls/ComboBox.xaml` | `DropDown` (dark gradient, 2px edge, chevron) and `DropDownMenu` (#3d4448, rows split by dark lines, #585e62 hover) |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml`, `CustomControls/SearchBox.xaml` | `TextEntry`; the search glyph sits at the right like `#SearchButton` |
-| `DefaultControls/Slider.xaml` | black slot, slate range, steel-blue 10x20 thumb |
-| `DefaultControls/ScrollViewer.xaml` | 8px slate thumb, no rail or arrows |
-| `DefaultControls/ToolTip.xaml`, `ContextMenu.xaml`, `Menu.xaml` | tooltip `#Contents`; menus as `DropDownMenu` |
-| `DefaultControls/TabControl.xaml` | secondary tabs: muted, white with a glow and a thin line when selected |
-| `DefaultControls/GroupBox.xaml` | chat-panel slate card with a black edge, caption over the paired separator |
-| `DerivedStyles/GridViewItemStyle.xaml` | hero card: dimmed at rest (the game desaturates), lifts on hover with a light edge; current = 2px light frame and a blue glow from the bottom |
-| `DerivedStyles/DetailsViewItemStyle.xaml`, `DefaultControls/ListBox.xaml` | list rows: dark line under each, veil on hover, blue wash when selected |
-| `DerivedStyles/PropertyItemButton.xaml` | links underline white on hover (`.LabelLink`); chips are small ButtonDark plates |
-| `DerivedStyles/*GroupStyle.xaml` | hero grid category titles: title font, count, paired separator |
-| `Common.xaml` | `BevelTemplate`, `DividerTemplate` (paired separator), `HeadingTextBlock`, `FocusVisual` (1px pale teal outline) |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations
 

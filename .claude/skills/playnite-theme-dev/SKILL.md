@@ -16,7 +16,7 @@ Every theme is standalone: no shared kits, no inheritance, never read another th
 
 ## After every change: build and deploy
 
-Every edit under `src/themes/<Theme>/` ends with `.\scripts\build-theme.ps1 -Extension <key> -Deploy [-DeployPath <Themes folder>]` (a plain build without `-Deploy` is not enough), then ask the user to restart Playnite. Redeploys replace the same folder, so no duplicates stack up. If Deploy fails with "themes folder not found", ask for the portable `-DeployPath`.
+Every edit under `src/themes/<Theme>/` ends with `.\scripts\build-theme.ps1 -Extension <key> -Deploy -Restart [-DeployPath <Themes folder>]` (auto-activates the theme in `config.json` and launches/restarts Playnite on Windows). Redeploys replace the same folder, so no duplicates stack up. If Deploy fails with "themes folder not found", ask for the portable `-DeployPath`.
 
 ## New theme for a design system
 
@@ -30,7 +30,7 @@ Every edit under `src/themes/<Theme>/` ends with `.\scripts\build-theme.ps1 -Ext
 8. **Controls:** for each, open the Default file at the snapshot's Playnite tag, keep structure and part names, restyle to the system's component (name it and its tokens in the file header). Usual set: Button, ToggleButton, RepeatButton, TextBox (+`BareTextBox`), PasswordBox, ComboBox, CheckBox, RadioButton, Slider (`SliderRangeButton`, `SliderThumb`; one-line SliderEx), ProgressBar, ScrollViewer (`ScrollBarThumb`)/Thumb, ToolTip, ContextMenu/Menu (one-line GameMenu, GameGroupMenu, TrayContextMenu), TabControl, GroupBox, ListBox, SearchBox, DetailsViewItemStyle, GridViewItemStyle, PlayButton, WindowBarButton, HighlightBorder.
    **Game page:** `Views/DetailsViewGameOverview.xaml` and `Views/GridViewGameOverview.xaml` follow the skeleton and metadata pane in `src/themes/AGENTS.md` -> Game page, dressed in the system's components.
 9. **Mockup (first build only):** once the theme builds for the first time, render the approximate HTML replica of the grid view (`art/preview-grid.html` -> `art/preview-grid.png` in Chromium/Playwright, same token values, sizes and shell as the XAML; fonts may stand in) and send the PNG to the user with `SendUserFile`, labelled approximate. This is the only picture a cloud session can give: **never start Playnite on a server**; real screenshots come from `scripts/take-screenshots.ps1` on the user's machine (see `playnite-release`).
-10. **Build:** `.\scripts\build-theme.ps1 -Extension mytheme -Deploy [-DeployPath <Themes folder>]`, restart Playnite, Settings -> Appearance -> Theme. Warns about required shared keys still missing.
+10. **Build:** `.\scripts\build-theme.ps1 -Extension mytheme -Deploy -Restart [-DeployPath <Themes folder>]` (auto-sets active theme and starts/restarts Playnite). Warns about required shared keys still missing.
 11. **Finish:** `info/icon.png` (512x512, `.\scripts\render-addon-icon.ps1 -Svg logo.svg -Extension <key>`, default orange mark: never pass `-Color`, all tiles share it), database listing `info/danitesler_<key>.yaml`, `AGENTS.md` in the section order of `src/themes/AGENTS.md` -> Per-theme notes (only what differs from the shared anatomy), then `.\scripts\validate-extension.ps1 -Extension mytheme -Mode Package`. Check in ThemeModifier that palette edits (Editor tab) and shared brushes (Edit constants) recolor the restyled controls.
 
 ## Token-only change (sibling dark theme, brand swap)
@@ -67,14 +67,3 @@ Edit or add `src/themes/<Theme>/src/<Default path>.xaml`: start from Playnite's 
 - A control ignores tokens: its Default template hard-codes a color or reads a Playnite key; override that style.
 - No change visible: themes load at startup only; restart after `-Deploy`.
 
-## Reply footer (required after a theme build)
-
-```text
-✅ theme built - <key>
-Output: artifacts/builds/themes/<key>/
-```
-or
-```text
-❌ theme build failed - <key>
-Reason: <first error line>
-```

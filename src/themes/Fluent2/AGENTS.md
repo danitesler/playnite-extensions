@@ -15,49 +15,19 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | Shell | Windows 11 / WinUI: NavigationView (LeftCompact), title bar, caption buttons, content layer (`OverlayCornerRadius` 8px) |
 | Icons | Fluent UI System Icons, `@fluentui/svg-icons` 1.1.342 (MIT, `info/LICENSE-fluentui-system-icons.txt`): Regular 20px, `checkmark_16_filled` |
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | Fluent's tokens, verbatim names (`--colorNeutralBackground1`, as FluentProvider writes them) and dark values. |
-| `src/Common.xaml` | `PopupBorder` (MenuPopover surface), `FocusVisual`, component spacing. |
-| `src/Media.xaml` | Fluent System Icons (Playnite's roles plus chevron right/down and the 16px checkmark), `IconTemplate` (20px) and `IconSmallTemplate`. |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the Fluent token behind each one (`borderRadiusMedium` is `ControlCornerRadius`, `strokeWidthThin` is `ControlBorderThickness`).
-
-| Token | Dark value | Key | Used for |
-|-------|------------|-----|----------|
-| `colorNeutralBackground2` | `#1f1f1f` | `WindowBackgourndBrush` | base layer: window, title-bar row, rail |
-| `colorNeutralBackground1` | `#292929` | `ContentBackgroundBrush`, `ButtonBackgroundBrush`, `InputBackgroundBrush`, `PopupBackgroundBrush`, `ExpanderBackgroundBrush`, `TooltipBackgroundBrush`, `SliderThumbBackgroundBrush` | content layer, buttons, inputs, menus, cards, tooltips |
-| `colorNeutralBackground1Hover` / `Pressed` / `Selected` | `#3d3d3d` / `#1f1f1f` / `#383838` | `ButtonHoverBackgroundBrush`, `MenuItemHoverBrush` / `ButtonPressedBackgroundBrush` / `ToggleButtonCheckedBackgroundBrush` | button and option hover / pressed / toggled |
-| `colorSubtleBackgroundHover` / `Selected` | `#383838` / `#333333` | `HoverBrush` / `SelectedBrush` | subtle buttons, nav items (hover and current), list and table rows |
-| `colorNeutralForeground1` / `3` | `#ffffff` / `#adadad` | `TextBrush`, `DangerForegroundBrush`, `ScrollBarThumbHoverBrush` / `TextBrushDarker`, `ScrollBarThumbBrush` | text, secondary text, scrollbar |
-| `colorCompoundBrandBackground` / `Stroke` / `Foreground1` / `BackgroundHover` | `#479ef5` / hover `#62abf5` | `GlyphBrush` / `SliderHoverForegroundBrush` | checked, focus underline, tab and nav indicators, slider, progress |
-| `colorBrandBackground` / `Hover`, `colorNeutralForegroundOnBrand` | `#115ea3` / `#0f6cbd`, white | `PrimaryButtonBackgroundBrush` / `PrimaryButtonHoverBackgroundBrush`, `PrimaryButtonForegroundBrush` | primary buttons, Play, CounterBadge |
-| `colorNeutralStroke1` / `Stroke2` | `#666666` / `#525252` | `NormalBorderBrush`, `ThumbBrush` / `WindowPanelSeparatorBrush`, `PopupBorderBrush` | control edges / dividers and popup edge |
-| `colorNeutralStrokeAccessible` / `Hover` | `#adadad` / `#bdbdbd` | `InputUnderlineBrush`, `CheckBoxBorderBrush`, `SliderTrackBrush`, `ThumbHoverBrush` / `InputHoverUnderlineBrush`, `CheckBoxHoverBorderBrush`, `GridViewItemHoverBorderBrush` | input bottoms, checkbox, slider rail / their hover |
-| `colorNeutralStroke1Hover` | `#757575` | `InputHoverBorderBrush`, `TabItemHoverIndicatorBrush` | hover edges |
-| `colorStrokeFocus2` | `#ffffff` | `FocusBrush` | keyboard focus outline |
-| `colorNeutralBackground6` | `#333333` | `ProgressBarTrackBrush` | progress track |
-| `colorPaletteRedBackground3` | `#d13438` | `DangerBrush` | close caption button hover |
-| `colorStatus{Danger,Warning,Success}Foreground1` | `#dc626d` / `#faa06b` / `#54b054` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush` / `PositiveRatingBrush` | warnings, data-changed, ratings |
 
 Fluent has two blues: `colorBrandBackground` (dark, white text) fills primary buttons; the lighter compound brand (dark text) marks state. Font: `fontFamilyBase` (Segoe UI); the Playnite size ramp follows Fluent's (12 / 14 / 16 / 20 / 28).
 
 Siblings: `createDarkTheme(brandVariants)` gives any brand ramp, and `teamsDarkTheme` uses the same names; swap the values in `tokens.css`.
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Fluent |
-|-----|-------|--------|
-| `ButtonPadding`, `InputPadding` | 12,5 | Button / Input / Dropdown medium: 32px |
-| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding` | 4 / 8,6 | MenuPopover and Dropdown listbox 4px; MenuItem 6px + 2px label inset, 32px |
-| `ComboBoxItemPadding`, `ListBoxItemPadding` | 8,6 | Option 6px 8px |
-| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 12, 0,0,0,12 | Card medium padding and gap |
-| `TooltipPadding` | 11,4,11,6 | Tooltip 4px 11px 6px |
-| `IconSize` | 20 | Button medium icons |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -78,29 +48,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 
 ## Components
 
-| Playnite file | Fluent component |
-|---------------|------------------|
-| `DefaultControls/Button.xaml` | Button: secondary (Background1, Stroke1 edge) for regular buttons, primary (`colorBrandBackground`) for `IsDefault`; semibold |
-| `DerivedStyles/PlayButton.xaml` | Button primary |
-| `DerivedStyles/PropertyItemButton.xaml` | Link `subtle` (underline on hover); tagged `Chip`, an InteractionTag small `outline` (`colorNeutralStroke1` edge, subtle hover) |
-| `DefaultControls/ToggleButton.xaml` | ToggleButton: Button chrome, `Background1Selected` when checked |
-| `DefaultControls/RepeatButton.xaml` | Button secondary |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Input (outline): accessible-stroke bottom, 2px compound-brand underline that grows from the center on focus (+ `BareTextBox`) |
-| `DefaultControls/ComboBox.xaml` | Dropdown: Input chrome, chevron_down; listbox popover with Options (hover `Background1Hover`, leading 16px checkmark) |
-| `DefaultControls/CheckBox.xaml` | Checkbox: 16px, borderRadiusSmall, accessible edge; checked = compound-brand fill, inverted mark |
-| `DefaultControls/RadioButton.xaml` | Radio: accessible edge; checked = brand edge + brand dot |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 4px accessible-stroke rail, compound-brand progress, 20px thumb (brand disc in a Background1 ring) |
-| `DefaultControls/ProgressBar.xaml` | ProgressBar: `Background6` track, compound-brand bar, borderRadiusMedium, 33% indeterminate segment |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | Windows 11 scrollbar: 2px line at rest widening to a 6px thumb over the bar (`ScrollBarThumb`) |
-| `DefaultControls/ToolTip.xaml` | Tooltip: Background1, Foreground1, borderRadiusMedium |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | Menu: MenuPopover (borderRadiusMedium, 4px) and MenuItems (32px, `Background1Hover`, Foreground3 shortcuts, checkmark_16_filled, chevron_right_20), MenuDivider in `Stroke2` |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | MenuPopover, one-line styles `BasedOn` the ContextMenu |
-| `DefaultControls/TabControl.xaml` | TabList: subtle hover fill, 3px rounded indicator (`Stroke1Hover` on hover, compound brand when selected), selected label semibold |
-| `DefaultControls/GroupBox.xaml` | Card (filled, medium): Background1, borderRadiusMedium, 12px padding, semibold header |
-| `DefaultControls/ListBox.xaml`, `DerivedStyles/DetailsViewItemStyle.xaml` | TableRow (subtle): `SubtleBackgroundHover` / `SubtleBackgroundSelected`, borderRadiusMedium |
-| `DerivedStyles/GridViewItemStyle.xaml` | Cover outline: `StrokeAccessibleHover` on hover, compound brand when selected |
-| `DerivedStyles/WindowBarButton.xaml` | Dialog caption buttons: subtle hover, red close |
-| `DerivedStyles/HighlightBorder.xaml` | Input edge for Default templates the theme does not replace |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from Fluent
 
@@ -114,7 +62,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 
 ## Not verified yet
 
-Built and statically checked on Linux; **not yet loaded in Playnite**. First run: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Also: the focus underline animation on text boxes and dropdowns (and that it resets when focus leaves), the curved bottom edge at the corners, the white 2px focus outline next to panel edges, the checkmark and chevron icons in menus and dropdowns, and how visible the subtle selected row is in the details view.
+Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. Also: the focus underline animation on text boxes and dropdowns (and that it resets when focus leaves), the curved bottom edge at the corners, the white 2px focus outline next to panel edges, the checkmark and chevron icons in menus and dropdowns, and how visible the subtle selected row is in the details view.
 
 Layout checks: the content layer's rounded corner with the background image on (details view), the corner going square with the rail on the right or hidden, the centered search shrinking in narrow windows, caption buttons flush with the corner (also maximized), and the rail's brand pill.
 

@@ -200,7 +200,7 @@ STEAM = '''<Grid Margin="0,0,0,28">
 </Grid>'''
 
 
-def hero(spacer):
+def hero(spacer, banner=360):
     return '''<Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
     <Grid.Style>
         <Style TargetType="Grid">
@@ -243,12 +243,12 @@ def hero(spacer):
             </LinearGradientBrush>
         </Rectangle.OpacityMask>
     </Rectangle>
-</Grid>''', '''<Border IsHitTestVisible="False">
+</Grid>''', f'''<Border IsHitTestVisible="False">
     <Border.Style>
         <Style TargetType="Border">
-            <Setter Property="Height" Value="''' + str(spacer) + '''" />
+            <Setter Property="Height" Value="{{Binding ActualHeight, ElementName=HeroArt, Converter={{StaticResource MathConverter}}, ConverterParameter='x * {spacer} / {banner}'}}" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding ActualHeight, ElementName=HeroArt}" Value="0">
+                <DataTrigger Binding="{{Binding ActualHeight, ElementName=HeroArt}}" Value="0">
                     <Setter Property="Height" Value="0" />
                 </DataTrigger>
             </Style.Triggers>

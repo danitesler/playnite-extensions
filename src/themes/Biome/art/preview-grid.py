@@ -44,7 +44,7 @@ body{{width:1600px;height:900px;overflow:hidden;display:flex;color:#fff;font:14p
 background:linear-gradient(var(--sky) 0%,color-mix(in srgb,var(--horizon) 35%,var(--sky)) 55%,var(--horizon) 100%)}}
 .ic{{fill:currentColor;display:block}}
 .out{{font-weight:900;text-shadow:-1.5px 0 #000,1.5px 0 #000,0 -1.5px #000,0 1.5px #000,-1px -1px #000,1px 1px #000,-1px 1px #000,1px -1px #000}}
-.rail{{width:64px;background:var(--outer);border-right:2px solid var(--edge);display:flex;flex-direction:column;align-items:center}}
+.rail{{width:64px;background:transparent;display:flex;flex-direction:column;align-items:center}}
 .rail .mm{{height:64px;display:grid;place-items:center;color:#fff}}
 .slot{{width:44px;height:44px;margin:4px 0;display:grid;place-items:center;border-radius:6px;border:2px solid transparent;color:var(--muted)}}
 .slot.cur{{background:var(--hover);border-color:var(--gold);color:#fff}}

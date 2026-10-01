@@ -46,6 +46,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 - **Main menu**: `PART_ElemMainMenu` uses `MainMenuButton`, in the sidebar; the top bar shows it only when the sidebar is hidden.
 - **Sidebar** is designed for the **left** (Playnite's default; repo rule in `AGENTS.md`): a compact vertical rail at the window's left edge with the main menu button at its top — 44px wide, items 44x40 with 16px glyphs (32px plates where the design uses plates), main menu button 44 wide. Right mirrors it; top and bottom are fallbacks drawn as a strip. No theme asks users to move the sidebar.
 - **Library background art** (`Views/Library.xaml`): where a theme feathers it, the `OpacityMask` sits inside a `BitmapCache` wrapper (as for every masked image).
+- **View switches are icons only** (`Views/TopPanel.xaml`): `TopPanelSwitchDetailsViewTemplate`, `TopPanelSwitchGridViewTemplate` and `TopPanelSwitchListViewTemplate` draw `IconDetailsView` / `IconGridView` / `IconListView` through `IconTemplate` at `IconSize`. No text word labels. `TopPanelItem` already exposes the item's `Title` as its tooltip.
 - **Layers**: at most three surfaces, named by shared keys: `ShellBackgroundBrush` (frame, rail), `TopPanelBackgroundBrush` (top bar), `ContentBackgroundBrush` (the library layer), on `WindowBackgourndBrush`.
 
 | Theme | Layout |
@@ -61,14 +62,13 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Hextech | Left icon rail (Phosphor icons), League client look |
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
 | Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
-| Clutch | 64px black navbar with centered uppercase view tabs between thin rules, 44px compact icon rail, translucent panels over the library art |
-| Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; view switches as title case menu entries between thin "|" rules, selection as a feathered smudge, framed near-black panels |
+| Clutch | 64px black navbar with centered icon view buttons between thin rules, 44px compact icon rail, translucent panels over the library art |
+| Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; icon view switches between thin "|" rules, selection as a feathered smudge, framed near-black panels |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
-| Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of capital view tabs (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
+| Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of icon view buttons (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
 | Attache | 208px rail of uppercase words on near black (the current one larger and stepped out), transparent 56px top strip over darkened library art, pewter selection plates |
-| Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
+| Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar with icon view switches (gold when current), panels with 2px black edges |
 | Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
-| Heist | 44px compact rail of square plates on a light panel; top panel as the pause menu header (large condensed title) over a tab strip of 38px plates with an 8px blue bar over the current one; library art blurred behind |
 | Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
 
 ## Game page
@@ -76,7 +76,14 @@ Each theme lays the shell out its own way; the mechanics are the same:
 `DetailsViewGameOverview.xaml` (details view, right pane) and `GridViewGameOverview.xaml` (grid side panel) share one skeleton, top to bottom:
 
 1. **Banner** (`HeroArt`): `PART_ImageBackground` as a band of height `GameBannerHeight` (shared key in `Common.xaml`, default 320; ThemeModifier edits it, 0 to 600). Masked to fade out downward, a page-colored scrim darkens it toward the title, all in a `BitmapCache` wrapper. It collapses when the game has no background art or Playnite hides the image; 0 turns it off.
-2. **Room above the title**: a spacer whose height drops when `HeroArt` has no height, so the title sits low on the banner or at the top of the page.
+2. **Room above the title**: a spacer whose height scales proportionally with `HeroArt` via Playnite's global `{StaticResource MathConverter}` (`HexInnovation.MathConverter`):
+   ```xaml
+   <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='x * <DefaultSpacer> / <DefaultBanner>'}" />
+   ```
+   accompanied by an `ActualHeight == 0` DataTrigger that drops the height to `0` (or fallback top padding where required, e.g. `24` or `52`).
+   This ensures:
+   - **Exact default alignment**: At default `GameBannerHeight`, the ratio `x * <DefaultSpacer> / <DefaultBanner>` produces exactly `<DefaultSpacer>`. The title and header sit in their designed position over the darkened gradient scrim of the banner rather than being pushed down into empty solid background.
+   - **Dynamic scaling with ThemeModifier**: When the user adjusts "Banner height (0 = off)" in ThemeModifier, decreasing the value shifts top elements closer to the top (and to 0 when banner is turned off), and increasing it shifts them further down proportionally. Never bind spacer height directly to `{DynamicResource GameBannerHeight}`.
 3. **Header**: `PART_ImageIcon` and `PART_TextDisplayName`, then the actions (`PART_ButtonPlayAction` and `PART_ButtonContextAction` stacked in one cell, `PART_ButtonMoreActions`, `PART_ButtonEditGame`). Details view: actions beside the title. Grid panel: actions under it, and a close button (`CloseGameSideBarCommand`) over the top-right corner.
 4. **Two columns**: **Steam screenshots**, then description (`PART_HtmlDescription`) and notes on the **left**; the **metadata pane** on the **right** (details view: fixed width beside the text; grid panel: a narrower column). Screenshots never span the full page over the metadata pane. They sit in the left column, above the description, in both the details view and the grid side panel. Host is `SteamScreenshots_SteamScreenshotsViewControl`, shown while `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}` is true, plus a 12 s skeleton for Steam games (the plugin hides its control on every game change and needs about a second). The bindings use `FallbackValue=PluginUnavailable` (not `False`), so with the plugin missing or disabled neither the control nor the skeleton shows.
 
@@ -125,10 +132,9 @@ A theme's `AGENTS.md` keeps only what is its own, in this order:
 9. **Not verified yet**: theme-specific checks beyond the list below.
 
 ## Build and try
-
+ 
 ```powershell
-.\scripts\build-theme.ps1 -Extension <key> -Deploy   # artifacts/builds/themes/<key>, copied to %AppData%\Playnite\Themes\Desktop\<Id>
-# restart Playnite -> Settings -> Appearance -> Theme
+.\scripts\build-theme.ps1 -Extension <key> -Deploy -Restart   # artifacts/builds/themes/<key>, copied to %AppData%\Playnite\Themes\Desktop\<Id>, sets theme in config.json and launches/restarts Playnite
 ```
 
 Portable Playnite: add `-DeployPath <Playnite folder>\Themes`. If Playnite rejects a theme it falls back to Default and logs the XAML error in `playnite.log`.
