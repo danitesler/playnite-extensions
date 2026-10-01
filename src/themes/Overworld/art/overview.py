@@ -126,8 +126,8 @@ def group_xaml(name, fields, beside):
 def pane_xaml(beside):
     top = -(2 * GROUP_GAP + 1 + FIELD_GAP)
     groups = "\n".join(group_xaml(n, f, beside) for n, f in GROUPS)
-    # The pane is a dashboard side panel: slate (ExpanderBackgroundBrush), 1px black edge.
-    return ('<Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource BevelShadowBrush}"\n'
+    # The pane is a list panel of the game's menus (ExpanderBackgroundBrush) in the 1px black widget outline.
+    return ('<Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource SlotBorderBrush}"\n'
             '        BorderThickness="1" Padding="16,4,16,4">\n'
             '    <Border ClipToBounds="True">\n'
             f'        <StackPanel Margin="0,{top},0,-{FIELD_GAP}">\n'
@@ -250,7 +250,7 @@ def hero(brush, name="HeroArt"):
             </LinearGradientBrush>
         </Border.OpacityMask>
     </Border>
-    <!-- Side vignette, like the dashboard's darkened scene edges. -->
+    <!-- Side vignette, like the dimmed edges of the title screen panorama. -->
     <Border Background="{{DynamicResource {brush}}}">
         <Border.OpacityMask>
             <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
@@ -297,13 +297,44 @@ def edit_button(ancestor, margin, size):
 </Button>'''
 
 
-def title(size):
-    return f'''<TextBlock Name="PART_TextDisplayName"
-           FontFamily="{{DynamicResource HeadingFontFamily}}"
-           FontSize="{size}" FontWeight="SemiBold"
-           Typography.Capitals="AllSmallCaps"
-           TextWrapping="Wrap" VerticalAlignment="Center"
-           Foreground="{{DynamicResource SelectedForegroundBrush}}" />'''
+def title(size, shadow):
+    # The pixel font in white with the game's text shadow (TextShadowBrush, offset by about size / 12), drawn by a
+    # second TextBlock bound to the part's text, since PART_TextDisplayName may appear only once.
+    return f'''<Grid>
+    <TextBlock Text="{{Binding Text, ElementName=PART_TextDisplayName}}" Margin="{shadow},{shadow},-{shadow},-{shadow}"
+               FontFamily="{{DynamicResource HeadingFontFamily}}" FontSize="{size}"
+               TextWrapping="Wrap" VerticalAlignment="Center" IsHitTestVisible="False"
+               Foreground="{{DynamicResource TextShadowBrush}}" />
+    <TextBlock Name="PART_TextDisplayName"
+               FontFamily="{{DynamicResource HeadingFontFamily}}" FontSize="{size}"
+               TextWrapping="Wrap" VerticalAlignment="Center"
+               Foreground="{{DynamicResource SelectedForegroundBrush}}" />
+</Grid>'''
+
+
+def splash(size, margin):
+    # The title screen's splash text ([src] SplashRenderer: yellow, rotated -20 degrees, at the logo's right end), here
+    # the game's completion status with an exclamation mark; hidden while the game has none.
+    return f'''<Grid Margin="{margin}" VerticalAlignment="Top" HorizontalAlignment="Left" IsHitTestVisible="False">
+    <Grid.Style>
+        <Style TargetType="Grid">
+            <Style.Triggers>
+                <DataTrigger Binding="{{Binding Game.CompletionStatus}}" Value="{{x:Null}}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Grid.Style>
+    <Grid.RenderTransform>
+        <RotateTransform Angle="-20" />
+    </Grid.RenderTransform>
+    <TextBlock Text="{{Binding Game.CompletionStatus.Name, StringFormat={{}}{{0}}!}}" Margin="2,2,-2,-2"
+               FontFamily="{{DynamicResource HeadingFontFamily}}" FontSize="{size}"
+               Foreground="{{DynamicResource TextShadowBrush}}" />
+    <TextBlock Text="{{Binding Game.CompletionStatus.Name, StringFormat={{}}{{0}}!}}"
+               FontFamily="{{DynamicResource HeadingFontFamily}}" FontSize="{size}"
+               Foreground="{{DynamicResource GlyphBrush}}" />
+</Grid>'''
 
 
 HEADER_NOTE = """    HtmlForeground and LinkForeground are Color-typed properties of HtmlTextView, so they read Color keys (the build
@@ -330,11 +361,21 @@ def details():
     </Border>
 
     <StackPanel VerticalAlignment="Bottom" DockPanel.Dock="Left">
-        <DockPanel>
-            <Image Name="PART_ImageIcon" MaxHeight="40" MaxWidth="40" DockPanel.Dock="Left" Margin="0,0,14,0"
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Image Name="PART_ImageIcon" MaxHeight="40" MaxWidth="40" Margin="0,0,14,0"
                    VerticalAlignment="Center" RenderOptions.BitmapScalingMode="Fant" />
-{indent(title(38), 12)}
-        </DockPanel>
+            <Grid Grid.Column="1" MaxWidth="640">
+{indent(title(38, 3), 16)}
+            </Grid>
+            <Grid Grid.Column="2">
+{indent(splash(18, "12,-6,0,0"), 16)}
+            </Grid>
+        </Grid>
         <Control Template="{{DynamicResource DividerTemplate}}" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
                  Width="420" HorizontalAlignment="Left" Margin="0,12,0,0" />
         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,18,0,0">
@@ -375,12 +416,13 @@ def details():
         </Grid>
     </Grid>
 </ScrollViewer>'''
-    return wrap("DetailsViewGameOverview", f'''    The game page of the Details view, read like a hero page of the Dota 2 dashboard: the game's art as a wide banner
-    behind the header, darkened toward the title and at the sides; the title in the title font, large and white, over
-    the paired separator; then the green PLAY button (DerivedStyles/PlayButton.xaml) with the grey bevel buttons
-    beside it, and the cover in a black slot on the right. Below, two columns: Steam screenshots, description and
-    notes on the left under section captions; on the right Game details, every metadata field in one dashboard side
-    panel (slate, 1px black edge) of six groups split by 1px dark lines, captions beside the values.
+    return wrap("DetailsViewGameOverview", f'''    The game page of the Details view, laid out like the title screen: the game's art as a wide banner (the
+    panorama), darkened toward the title and at the sides; the title in the pixel font, large and white with the game's
+    text shadow, and beside it a yellow splash text rotated -20 degrees (the completion status); a header separator;
+    then the green Play button (DerivedStyles/PlayButton.xaml) with stone buttons beside it, and the cover in a black
+    outline on the right. Below, two columns: Steam screenshots, description and notes on the left under pixel-font
+    captions; on the right Game details, every metadata field in one list panel (1px black outline) of six groups
+    split by separators, captions beside the values.
 {HEADER_NOTE}''', body)
 
 
@@ -388,8 +430,9 @@ def grid_panel():
     header = f'''<DockPanel>
     <Image Name="PART_ImageIcon" DockPanel.Dock="Left" MaxHeight="32" MaxWidth="32"
            RenderOptions.BitmapScalingMode="Fant" Margin="0,0,12,0" />
-{indent(title("{DynamicResource FontSizeLargest}"), 4)}
+{indent(title("{DynamicResource FontSizeLargest}", 2), 4)}
 </DockPanel>
+{splash(14, "0,8,0,-4")}
 <Control Template="{{DynamicResource DividerTemplate}}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" Margin="0,10,0,0" />
 <Grid Margin="0,16,0,24" Background="Transparent">
     <Grid.ColumnDefinitions>
@@ -437,7 +480,7 @@ def grid_panel():
     </Button.Template>
 </Button>'''
 
-    body = f'''<Border BorderBrush="{{DynamicResource BevelShadowBrush}}" Background="{{DynamicResource NormalBrush}}">
+    body = f'''<Border BorderBrush="{{DynamicResource SlotBorderBrush}}" Background="{{DynamicResource NormalBrush}}">
     <Border.Style>
         <Style TargetType="Border">
             <Setter Property="BorderThickness" Value="1,0,0,0" />
@@ -491,11 +534,12 @@ def grid_panel():
 {indent(close, 8)}
     </Grid>
 </Border>'''
-    return wrap("GridViewGameOverview", f'''    The game panel beside the cover grid, a dashboard side panel (NormalBrush, the chat panel slate #161E24) with a
-    1px black edge on the grid side: the game's art as a banner at the top, darkened toward the title; the title in
-    the title font over the paired separator; the green PLAY button and a grey bevel button under it; then two
-    columns: Steam screenshots, description and notes on the left, Game details on the right (the six metadata
-    groups in a slate card, captions above values). A close button sits over the top-right corner.
+    return wrap("GridViewGameOverview", f'''    The game panel beside the cover grid, a list panel of the game's menus (NormalBrush) with a 1px black outline on
+    the grid side: the game's art as a banner at the top, darkened toward the title; the title in the pixel font with
+    its shadow, the yellow splash (completion status) under it, a header separator; the green Play button and a stone
+    button under it; then two columns: Steam screenshots, description and notes on the left, Game details on the
+    right (the six metadata groups in a list panel, captions above values). A close button sits over the top-right
+    corner.
 {HEADER_NOTE}''', body)
 
 

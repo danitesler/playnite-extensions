@@ -29,6 +29,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Hextech** (`hextech`) — Desktop theme, theme API 2.9.0, near-black and gold with hextech blue, inspired by the League of Legends client: left navigation rail, flat gold-edged buttons, blue Play button. Unofficial (no Riot assets), palette approximated from community kits. Notes in **`src/themes/Hextech/AGENTS.md`**.
 - **Clutch** (`clutch`) — Desktop theme, theme API 2.9.0, a dark tactical-shooter look inspired by the Counter-Strike 2 main menu (values read from the game's Panorama style sheets): 64px navbar with uppercase view tabs, green GO button, map-tile covers; unofficial, no Valve assets. Notes in **`src/themes/Clutch/AGENTS.md`**.
 - **Ayywi** (`ayywi`) — Desktop theme, theme API 2.9.0, the ayywi design system on its black dark theme (white primary, hairline borders, pill buttons, segmented tabs, Lucide icons). Notes in **`src/themes/Ayywi/AGENTS.md`**.
+- **Overworld** (`overworld`) — Desktop theme, theme API 2.9.0, inspired by the Minecraft Java Edition title screen and menus (stone buttons with a white highlight outline, black text fields, a dark tab strip over the blurred game art, white-outlined list selection, purple-edged tooltips, original 16x16 pixel icons, a yellow splash text, Bedrock's green Play button; values decoded from the 1.21 GUI sprites and client); unofficial, no Mojang assets. Notes in **`src/themes/Overworld/AGENTS.md`**.
 
 ## Repository layout
 
