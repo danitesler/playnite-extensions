@@ -63,6 +63,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Ancient | 64px slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered uppercase view tabs between thin rules, icon rail, translucent panels over the library art |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
+| Biome | Night-sky window; 64px list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
 
 ## Game page
 
