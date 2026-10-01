@@ -49,7 +49,7 @@ What the screenshots show, and what the theme follows:
 
 `GlyphColor` is amber, not the menus' warm white, so links and checked states stay distinguishable from body text.
 
-Radii are 0 everywhere. Fonts: Segoe UI for body text; `HeadingFontFamily` is **Bahnschrift SemiCondensed** (it falls back to Bahnschrift, then Segoe UI). Bahnschrift is the condensed grotesque Windows ships, closest to the menus' Helvetica Condensed-like face. Section captions, tabs and the Play label use small caps (`Typography.Capitals`), because WPF has no `text-transform`. Sidebar words use Playnite's `StringToUpperCaseConverter`.
+Radii are 0 everywhere. Fonts: Segoe UI for body text; `HeadingFontFamily` is **Bahnschrift SemiCondensed** (it falls back to Bahnschrift, then Segoe UI), the condensed grotesque Windows ships, closest to the menus' Helvetica Condensed-like face. WPF has no `text-transform`. Text a template can reach goes through Playnite's `StringToUpperCaseConverter`: sidebar words and the game page section captions. Text it cannot reach uses small caps (`Typography.Capitals`) set a step larger, because small caps are short: tabs and group box captions at `FontSizeLarger`, the Play label at 24, the game name at 38.
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -62,7 +62,7 @@ Radii are 0 everywhere. Fonts: Segoe UI for body text; `HeadingFontFamily` is **
 | `GroupBoxPadding` / `GroupBoxHeaderMargin` | 16 / 0,0,0,10 | |
 | `TooltipPadding` | 12,7,12,8 | |
 | `IconSize` | 18 | Thin Phosphor Light glyphs |
-| `GameBannerHeight` / `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 360 / 300 / 260 | |
+| `GameBannerHeight` / `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 360 / 300 / 220 | |
 
 Shared templates in `Common.xaml`:
 - `SelectionBarTemplate`: the pewter plate. It draws Background as the body, Foreground as the sheen toward the edges, BorderBrush as the edge hairlines, with the smoke texture on top and soft ends.
@@ -76,14 +76,14 @@ Shared templates in `Common.xaml`:
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | **The main menu.** A 208px rail on `page` with a hairline toward the library. The main menu button sits in a 56px header, then a short rule. Items are words only (no icons): uppercase Bahnschrift at 16px in `text-menu`, in 44px rows. The current word turns `text-menu-current`, grows to 19px and steps 12px to the left. Hover brightens a word in place. Top and bottom are fallbacks: a 56px strip of words, with 148px kept clear for the caption buttons. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | A 56px transparent strip over the library art with a hairline under it. The search box (underline only) is on the left; thin icons are on the right. The current view or open panel gets the tab mark. Notifications show an amber dot instead of a count. 148px is kept clear on the right. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, 12px from the top. Close turns `logo-red`. |
-| `Views/Library.xaml` | The background art sits behind the top strip and the library, anchored top right and faded toward the left and the bottom, under an 85% `ScrimBrush` veil (the title-screen scene). |
+| `Views/Library.xaml` | The background art sits behind the top strip and the library, anchored top right and faded toward the left and the bottom, under a 75% `ScrimBrush` veil (the title-screen scene). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Black columns with a hairline edge and 16px gutters. |
 
 ## Game page
 
 It follows the skeleton in `../AGENTS.md`. Differences:
 - **Banner:** darkened by three scrims (35% overall, heavier at the left, heavier toward the title), like the menus' scenes.
-- **Title:** small caps, in warm white.
+- **Title:** small caps at 38px, in warm white. Section captions are uppercase words over a hairline.
 - **Actions:** Play is the always-lit pewter plate; More and Edit are square buttons (44px in details, 40px in the grid panel).
 - **Metadata pane:** no card. Group rules are hairlines.
 
