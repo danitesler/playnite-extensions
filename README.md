@@ -32,6 +32,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/themes/Clutch/info/icon.png" alt="Clutch" width="48" height="48" /> | **Clutch** (`clutch`)<br>After the Counter-Strike 2 main menu: translucent black panels, uppercase view tabs and a green GO button. |
 | <img src="src/themes/Ayywi/info/icon.png" alt="Ayywi" width="48" height="48" /> | **Ayywi** (`ayywi`)<br>A monochrome dark theme with black surfaces, hairline borders and pill buttons. Design system: [ayywi](https://github.com/danitesler/ayywi). |
 | <img src="src/themes/Hextech/info/icon.png" alt="Hextech" width="48" height="48" /> | **Hextech** (`hextech`)<br>Near-black and gold, after the League of Legends client, with a left rail, gold-edged buttons and a blue Play button. |
+| <img src="src/themes/Heist/info/icon.png" alt="Heist" width="48" height="48" /> | **Heist** (`heist`)<br>After the GTA V pause menu: square black plates, white selected rows and tabs, and a blue bar over the current tab. |
 
 ## Installation
 
