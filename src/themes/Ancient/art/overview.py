@@ -126,9 +126,9 @@ def group_xaml(name, fields, beside):
 def pane_xaml(beside):
     top = -(2 * GROUP_GAP + 1 + FIELD_GAP)
     groups = "\n".join(group_xaml(n, f, beside) for n, f in GROUPS)
-    # The pane is a dashboard side panel: slate (ExpanderBackgroundBrush), 1px black edge.
-    return ('<Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource BevelShadowBrush}"\n'
-            '        BorderThickness="1" Padding="16,4,16,4">\n'
+    # No card of its own: transparent with no edge, so the fields start flush
+    # with the Game details caption; groups still split by 1px dark lines.
+    return ('<Border Background="Transparent" BorderThickness="0" Padding="0,4,0,4">\n'
             '    <Border ClipToBounds="True">\n'
             f'        <StackPanel Margin="0,{top},0,-{FIELD_GAP}">\n'
             + indent(groups, 12) + "\n"
@@ -335,9 +335,7 @@ def details():
                    VerticalAlignment="Center" RenderOptions.BitmapScalingMode="Fant" />
 {indent(title(38), 12)}
         </DockPanel>
-        <Control Template="{{DynamicResource DividerTemplate}}" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
-                 Width="420" HorizontalAlignment="Left" Margin="0,12,0,0" />
-        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,18,0,0">
+        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,12,0,0">
             <Grid>
                 <Button Name="PART_ButtonPlayAction" Width="220" Height="48" Style="{{DynamicResource PlayButton}}" />
                 <Button Name="PART_ButtonContextAction" Width="220" Height="48" />
@@ -376,11 +374,11 @@ def details():
     </Grid>
 </ScrollViewer>'''
     return wrap("DetailsViewGameOverview", f'''    The game page of the Details view, read like a hero page of the Dota 2 dashboard: the game's art as a wide banner
-    behind the header, darkened toward the title and at the sides; the title in the title font, large and white, over
-    the paired separator; then the green PLAY button (DerivedStyles/PlayButton.xaml) with the grey bevel buttons
+    behind the header, darkened toward the title and at the sides; the title in the title font, large and white, with
+    no rule under it; then the green PLAY button (DerivedStyles/PlayButton.xaml) with the grey bevel buttons
     beside it, and the cover in a black slot on the right. Below, two columns: Steam screenshots, description and
-    notes on the left under section captions; on the right Game details, every metadata field in one dashboard side
-    panel (slate, 1px black edge) of six groups split by 1px dark lines, captions beside the values.
+    notes on the left under section captions; on the right Game details, every metadata field with no card of its own
+    (transparent, no edge, flush with the caption), six groups split by 1px dark lines, captions beside the values.
 {HEADER_NOTE}''', body)
 
 
@@ -390,8 +388,7 @@ def grid_panel():
            RenderOptions.BitmapScalingMode="Fant" Margin="0,0,12,0" />
 {indent(title("{DynamicResource FontSizeLargest}"), 4)}
 </DockPanel>
-<Control Template="{{DynamicResource DividerTemplate}}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" Margin="0,10,0,0" />
-<Grid Margin="0,16,0,24" Background="Transparent">
+<Grid Margin="0,12,0,24" Background="Transparent">
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" MaxWidth="200" />
         <ColumnDefinition Width="*" MaxWidth="150" />
@@ -437,7 +434,7 @@ def grid_panel():
     </Button.Template>
 </Button>'''
 
-    body = f'''<Border BorderBrush="{{DynamicResource BevelShadowBrush}}" Background="{{DynamicResource NormalBrush}}">
+    body = f'''<Border BorderBrush="{{DynamicResource BevelShadowBrush}}" Background="Transparent">
     <Border.Style>
         <Style TargetType="Border">
             <Setter Property="BorderThickness" Value="1,0,0,0" />
@@ -478,7 +475,7 @@ def grid_panel():
                     </Style>
                 </ScrollViewer.Style>
                 <Grid>
-{indent(hero("NormalBrush"), 20)}
+{indent(hero("ContentBackgroundBrush"), 20)}
                     <StackPanel Margin="24,0,24,0">
 {indent(spacer(110), 24)}
                         <StackPanel Margin="0,20,0,0">
@@ -491,11 +488,11 @@ def grid_panel():
 {indent(close, 8)}
     </Grid>
 </Border>'''
-    return wrap("GridViewGameOverview", f'''    The game panel beside the cover grid, a dashboard side panel (NormalBrush, the chat panel slate #161E24) with a
-    1px black edge on the grid side: the game's art as a banner at the top, darkened toward the title; the title in
-    the title font over the paired separator; the green PLAY button and a grey bevel button under it; then two
+    return wrap("GridViewGameOverview", f'''    The game panel beside the cover grid, transparent like the Details view so the library art shows through: the
+    game's art as a banner at the top with the same scrim and gradient transition toward the title; the title in
+    the title font with no rule under it; the green PLAY button and a grey bevel button under it; then two
     columns: Steam screenshots, description and notes on the left, Game details on the right (the six metadata
-    groups in a slate card, captions above values). A close button sits over the top-right corner.
+    groups with no card, captions above values). A 1px edge on the grid side and a close button over the top-right corner.
 {HEADER_NOTE}''', body)
 
 

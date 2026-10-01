@@ -40,7 +40,7 @@ The game's fonts (Stratum2, Noto Sans) are not bundled. Body text is Segoe UI; h
 | `contextmenu-item-hover` | `#00000080` | `MenuItemHoverBrush` | menu rows (faded right through a mask) |
 | `textentry-*` | edge `rgb(75,75,75)`, hover `#828282`, fill black 25% | `Input*Brush`, `NormalBorderBrush` | inputs, lists |
 | `go-*` | text `rgb(85,228,20)`, plate `rgba(9,49,9,0.65)`, edge `rgba(9,219,9,0.34)`, glow `rgba(6,141,6,0.77)` | `PrimaryButton*Brush`, `PrimaryButtonBorderBrush`, `PrimaryButtonGlowBrush` | GO / Play |
-| `maptile-selected` / `maptile-hover` | white 85% / white 40% | `GridViewItemSelectedBorderBrush` / `GridViewItemHoverBorderBrush` | cover edges |
+| `maptile-selected` / `maptile-hover` | white 85% / white 40% | `GridViewItemSelectedBorderBrush` / `GridViewItemHoverBorderBrush` | defined but unused, tiles draw no edge (Hover stays: required key) |
 | `navbar-separator` | white 30% | `TopPanelSeparatorBrush` | rules between the view tabs |
 | `tooltip-short` / edge / text | `#1e2d3d` / lighter / `#c8c8c8` | `TooltipBackgroundBrush`, `TooltipBorderBrush`, `TooltipForegroundBrush` | tooltips |
 | `settings-section-title` | `rgba(222,222,222,0.4)` | `HeadingForegroundBrush` | uppercase section titles |
@@ -69,8 +69,8 @@ Type: 12 / 14 / 16 / 20 / 32. `HtmlTextView` reads the Colors of the brushes on 
 
 | File | What it draws |
 |------|---------------|
-| `Views/TopPanel.xaml` | The main menu navbar: 64px on black 75%. Search at the left; the view switches as uppercase 20px Bahnschrift tabs in the middle (`TopPanelSwitch*ViewTemplate`, text from the item's Title through `StringToUpperCaseConverter`), selected in `selectedNavColor` on its wash; Playnite's two section separators are `Canvas`es, drawn as 1px white-30% rules by an implicit `Canvas` style. Filter (uppercase label), notifications and progress at the right, 150px kept clear for the window buttons. |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 56px icon rail on the navbar color with the crosshair (main menu) on top; 40px plates, selected = wash + blue glyph. Top/bottom docking: a 64px strip where view items become uppercase tabs. |
+| `Views/TopPanel.xaml` | The main menu navbar: 64px on black 75%. Search at the left; the view switches as icon buttons in the middle (`TopPanelSwitch*ViewTemplate` -> `IconDetailsView` / `IconGridView` / `IconListView`, no text; the item's Title is the tooltip), selected in `selectedNavColor` on its wash; Playnite's two section separators are `Canvas`es, drawn as 1px white-30% rules by an implicit `Canvas` style. Filter (uppercase label when active), notifications and progress at the right, 150px kept clear for the window buttons. |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px icon rail on the navbar color with the crosshair (main menu) on top; 32px plates, selected = wash + blue glyph. Top/bottom docking: a 64px strip where view items become uppercase tabs. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons (Material window icons), red close hover, 64px caption height. |
 | `Views/MainWindow.xaml` | Default layout, notifications slide in from the right. |
 | `Views/Library.xaml` | Background art over both rows with the menu vignette; library layer at `rgba(20,20,20,0.4)`. |
@@ -80,6 +80,7 @@ Type: 12 / 14 / 16 / 20 / 32. `HtmlTextView` reads the Colors of the brushes on 
 Follows the shared skeleton. Differences:
 
 - Header: name in Bahnschrift bold 32px (Playnite sets its text, so it keeps its case); actions at the **right** of the title in the details view (GO button, then square Options and edit buttons), under the title in the grid panel.
+- Steam screenshots live in the left column above the description (not full width); metadata stays on the right.
 - Section titles (Description, Notes, Steam screenshots) are the game's settings section titles: uppercase Bahnschrift, 40% white, 1px rule under them. Uppercasing goes through a `ContentControl` whose inline `DataTemplate` runs `StringToUpperCaseConverter` on the `LOC` string.
 - Metadata pane on a black 75% panel with 3px corners; in the details view the cover sits above it. Rhythm: 12px around group rules, 6px around fields, caption column 128px (details), caption above value (grid).
 - Banner scrim: the map tile gradient (`.map-selection-btn__gradient`, black to 70% at the bottom) in `ScrimBrush`.
@@ -101,7 +102,7 @@ Follows the shared skeleton. Differences:
 | `DefaultControls/ToolTip.xaml` | `.ShortTextTooltip`: navy `#1e2d3d`, 5px corners |
 | `DefaultControls/GroupBox.xaml` | settings section: title only, no card |
 | `DefaultControls/ListBox.xaml`, `DerivedStyles/DetailsViewItemStyle.xaml` | list rows: hover wash, selected wash + blue text (+ 2px bar in the game list) |
-| `DerivedStyles/GridViewItemStyle.xaml` | map tile: square, 2px white-40% edge on hover, 4px white-85% edge when selected |
+| `DerivedStyles/GridViewItemStyle.xaml` | map tile: square, no outline in any state |
 | `DerivedStyles/PropertyItemButton.xaml` | links in `selectedNavColor`; chips as small popup buttons |
 
 ## Deviations

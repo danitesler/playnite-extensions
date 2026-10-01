@@ -44,7 +44,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 
 - **Window buttons** are drawn by `MainWindowStyle.xaml` (`MainWindowButton`). The top bar keeps their width clear on its right (plus a gap), and a sidebar docked at the top or bottom does the same. Change one, change the other.
 - **Main menu**: `PART_ElemMainMenu` uses `MainMenuButton`, in the sidebar; the top bar shows it only when the sidebar is hidden.
-- **Sidebar** is designed for the **left** (Playnite's default; repo rule in `AGENTS.md`): a vertical rail at the window's left edge with the main menu button at its top. Right mirrors it; top and bottom are fallbacks drawn as a strip. No theme asks users to move the sidebar.
+- **Sidebar** is designed for the **left** (Playnite's default; repo rule in `AGENTS.md`): a compact vertical rail at the window's left edge with the main menu button at its top — 44px wide, items 44x40 with 16px glyphs (32px plates where the design uses plates), main menu button 44 wide. Right mirrors it; top and bottom are fallbacks drawn as a strip. No theme asks users to move the sidebar.
 - **Library background art** (`Views/Library.xaml`): where a theme feathers it, the `OpacityMask` sits inside a `BitmapCache` wrapper (as for every masked image).
 - **Layers**: at most three surfaces, named by shared keys: `ShellBackgroundBrush` (frame, rail), `TopPanelBackgroundBrush` (top bar), `ContentBackgroundBrush` (the library layer), on `WindowBackgourndBrush`.
 
@@ -60,8 +60,8 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Questlog | Gold window frame, stone sidebar strip, transparent top bar |
 | Hextech | Left icon rail (Phosphor icons), League client look |
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
-| Ancient | 64px slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
-| Clutch | 64px black navbar with centered uppercase view tabs between thin rules, icon rail, translucent panels over the library art |
+| Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
+| Clutch | 64px black navbar with centered uppercase view tabs between thin rules, 44px compact icon rail, translucent panels over the library art |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
 
 ## Game page
@@ -71,8 +71,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 1. **Banner** (`HeroArt`): `PART_ImageBackground` as a band of height `GameBannerHeight` (shared key in `Common.xaml`, default 320; ThemeModifier edits it, 0 to 600). Masked to fade out downward, a page-colored scrim darkens it toward the title, all in a `BitmapCache` wrapper. It collapses when the game has no background art or Playnite hides the image; 0 turns it off.
 2. **Room above the title**: a spacer whose height drops when `HeroArt` has no height, so the title sits low on the banner or at the top of the page.
 3. **Header**: `PART_ImageIcon` and `PART_TextDisplayName`, then the actions (`PART_ButtonPlayAction` and `PART_ButtonContextAction` stacked in one cell, `PART_ButtonMoreActions`, `PART_ButtonEditGame`). Details view: actions beside the title. Grid panel: actions under it, and a close button (`CloseGameSideBarCommand`) over the top-right corner.
-4. **Steam screenshots**: the SteamScreenshots add-on's host (`SteamScreenshots_SteamScreenshotsViewControl`), shown while `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}` is true, plus a 12 s skeleton for Steam games (the plugin hides its control on every game change and needs about a second). The bindings use `FallbackValue=PluginUnavailable` (not `False`), so with the plugin missing or disabled neither the control nor the skeleton shows.
-5. **Two columns**: description (`PART_HtmlDescription`) and notes on the left; the **metadata pane** on the right (details view: fixed width beside the text; grid panel: a narrower column).
+4. **Two columns**: **Steam screenshots**, then description (`PART_HtmlDescription`) and notes on the **left**; the **metadata pane** on the **right** (details view: fixed width beside the text; grid panel: a narrower column). Screenshots never span the full page over the metadata pane. They sit in the left column, above the description, in both the details view and the grid side panel. Host is `SteamScreenshots_SteamScreenshotsViewControl`, shown while `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}` is true, plus a 12 s skeleton for Steam games (the plugin hides its control on every game change and needs about a second). The bindings use `FallbackValue=PluginUnavailable` (not `False`), so with the plugin missing or disabled neither the control nor the skeleton shows.
 
 ### Metadata pane
 
