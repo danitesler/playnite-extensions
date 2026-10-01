@@ -1,0 +1,239 @@
+<!doctype html>
+<!--
+  Attache: approximate HTML replica of the Playnite grid view, for a first look outside Playnite.
+  Same token values, sizes and shell as the XAML (src/tokens.css, Common.xaml, Sidebar, TopPanel, Library, the grid
+  side panel). Fonts stand in: Barlow Semi Condensed for Bahnschrift SemiCondensed, Inter for Segoe UI. The covers and
+  the scene are drawn with CSS for this mockup; they are not game art. NOT a Playnite capture.
+  Render: NODE_PATH=$(npm root -g) node scripts/render-theme-preview.mjs src/themes/Attache/art/preview-grid.html
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600">
+<title>Attache preview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500&family=Inter:wght@400;500&display=swap">
+<style>
+  :root {
+    --page: #050505; --scene: #10110f; --slot: #1d1d1b; --slot-hover: #262624;
+    --hairline: #232323; --tab-divider: #2a2a28; --hairline-strong: #3d3c39; --scrollbar: #646561;
+    --text-idle: #7c7772; --text-tab: #726d68; --text-menu: #aaa9a7; --text-body: #ccc7ba;
+    --text-current: #f4e9dc; --text-menu-current: #faf9f4;
+    --plate-core: #1f1f20; --plate-sheen: #4e4b47; --plate-edge: #8d877d; --tab-line: #8d877d;
+    --new-dot: #ab854d; --completed: #96d397; --speaker: #d4c24a; --logo-red: #b0182a;
+    --heading: 'Barlow Semi Condensed', 'Bahnschrift', sans-serif;
+    --body: 'Inter', 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1600px; height: 900px; background: var(--page); overflow: hidden; }
+  body { font-family: var(--body); font-size: 14px; color: var(--text-body); }
+  .window { position: absolute; inset: 0; border: 1px solid var(--hairline); display: flex; }
+
+  /* Sidebar: the main menu column */
+  .rail { width: 208px; flex: none; background: var(--page); border-right: 1px solid var(--hairline); position: relative; z-index: 2; }
+  .rail .head { height: 56px; padding-left: 16px; display: flex; align-items: center; }
+  .rail .menu-btn { width: 56px; height: 56px; display: grid; place-items: center; }
+  .rail .rule { height: 1px; background: var(--hairline); margin: 0 24px 40px 36px; }
+  .item { height: 44px; display: flex; align-items: center; padding-left: 36px; font-family: var(--heading);
+          font-size: 16px; color: var(--text-menu); text-transform: uppercase; }
+  .item.current { padding-left: 24px; font-size: 19px; color: var(--text-menu-current); }
+
+  /* Library layer */
+  .library { flex: 1; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+  .scene { position: absolute; inset: 0; pointer-events: none;
+           -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 45%), linear-gradient(to bottom, #000 35%, transparent 90%);
+           -webkit-mask-composite: source-in; mask-composite: intersect;
+           background:
+             radial-gradient(ellipse 30% 45% at 72% 38%, rgba(120,150,190,.55), transparent 70%),
+             radial-gradient(ellipse 60% 30% at 60% 70%, rgba(70,95,130,.45), transparent 70%),
+             repeating-linear-gradient(96deg, transparent 0 60px, rgba(5,8,14,.75) 60px 66px, transparent 66px 140px),
+             repeating-linear-gradient(84deg, transparent 0 90px, rgba(5,8,14,.6) 90px 98px, transparent 98px 210px),
+             linear-gradient(#0e1828, #0a1220 60%, #060a10); }
+  .veil { position: absolute; inset: 0; background: var(--page); opacity: .75; pointer-events: none; }
+
+  .top { position: relative; height: 56px; flex: none; border-bottom: 1px solid var(--hairline);
+         display: flex; align-items: stretch; padding: 0 148px 0 24px; }
+  .search { width: 300px; height: 34px; align-self: center; border-bottom: 1px solid var(--hairline-strong);
+            display: flex; align-items: center; gap: 10px; padding-left: 6px; color: var(--text-idle); }
+  .tools { margin-left: auto; display: flex; align-items: stretch; }
+  .tool { width: 36px; margin-left: 2px; display: grid; place-items: center; color: var(--text-idle); position: relative; }
+  .tool.on { color: var(--text-current); }
+  .tool.on::after, .tabmark { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16px;
+         background: linear-gradient(to bottom, transparent, rgba(141,135,125,.3));
+         -webkit-mask-image: linear-gradient(to right, transparent, #000 30%, #000 70%, transparent); }
+  .tool.on::before { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--tab-line);
+         -webkit-mask-image: linear-gradient(to right, transparent, #000 30%, #000 70%, transparent); }
+  .gap { width: 14px; }
+  .dot { position: absolute; top: 14px; right: 4px; width: 12px; height: 12px; border-radius: 50%;
+         background: radial-gradient(circle, var(--new-dot) 0 3px, rgba(171,133,77,.3) 3.5px 6px, transparent 6px); }
+  .caption { position: absolute; top: 12px; right: 8px; display: flex; z-index: 3; }
+  .caption div { width: 44px; height: 32px; display: grid; place-items: center; color: var(--text-idle); }
+
+  .body { position: relative; flex: 1; display: flex; min-height: 0; }
+  .grid { flex: 1; padding: 20px 14px; display: flex; flex-wrap: wrap; align-content: flex-start; }
+  .cover { width: 138px; height: 207px; margin: 8px; position: relative; overflow: hidden;
+           display: flex; align-items: flex-end; padding: 10px; font-family: var(--heading); font-size: 17px;
+           line-height: 1.05; color: rgba(255,255,255,.85); text-transform: uppercase; }
+  .cover.sel { outline: 2px solid var(--plate-edge); outline-offset: 2px; overflow: visible; }
+  .cover.hover { outline: 1px solid var(--text-idle); outline-offset: 2px; }
+
+  /* Grid side panel */
+  .panel { width: 560px; flex: none; position: relative; background: var(--page); border-left: 1px solid var(--hairline); overflow: hidden; }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 360px;
+          -webkit-mask-image: linear-gradient(#000 40%, transparent);
+          background:
+            radial-gradient(ellipse 22% 40% at 64% 34%, rgba(225,170,90,.6), transparent 70%),
+            radial-gradient(ellipse 50% 22% at 50% 78%, rgba(90,70,50,.6), transparent 70%),
+            repeating-linear-gradient(90deg, transparent 0 46px, rgba(8,6,5,.7) 46px 52px, transparent 52px 120px),
+            linear-gradient(#2a241c, #17130f 70%, #0b0907); }
+  .hero::after { content: ''; position: absolute; inset: 0;
+          background: linear-gradient(to right, rgba(5,5,5,.8), transparent 60%), linear-gradient(transparent 30%, rgba(5,5,5,.8)), rgba(5,5,5,.35); }
+  .pcontent { position: relative; padding: 0 24px 24px; }
+  .spacer { height: 150px; }
+  .titlerow { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+  .gicon { width: 32px; height: 32px; background: linear-gradient(135deg, #6b5a40, #2a2218); }
+  .title { font-family: var(--heading); font-size: 30px; color: var(--text-current); text-transform: uppercase; font-variant: small-caps; letter-spacing: .01em; }
+  .actions { display: flex; gap: 8px; margin-bottom: 28px; }
+  .plate { position: relative; height: 40px; min-width: 180px; display: grid; place-items: center;
+           font-family: var(--heading); font-size: 20px; color: var(--text-menu-current); text-transform: uppercase; }
+  .plate::before { content: ''; position: absolute; inset: 0;
+           background:
+             url('../src/Images/smoke.png') center / 100% 100%,
+             linear-gradient(rgba(78,75,71,1), rgba(78,75,71,.44) 25%, rgba(78,75,71,0) 50%, rgba(78,75,71,.31) 75%, rgba(78,75,71,1)),
+             var(--plate-core);
+           border-top: 1px solid var(--plate-edge); border-bottom: 1px solid rgba(141,135,125,.85);
+           -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,.25), #000 3%, #000 97%, rgba(0,0,0,.25)); }
+  .plate span { position: relative; }
+  .sq { width: 40px; height: 40px; background: var(--slot); border: 1px solid var(--hairline-strong); display: grid; place-items: center; color: var(--text-body); }
+  .cols { display: flex; gap: 24px; }
+  .desc { flex: 1; }
+  .cap { font-family: var(--heading); font-size: 16px; color: var(--text-tab); text-transform: uppercase;
+         border-bottom: 1px solid var(--hairline); padding-bottom: 8px; margin-bottom: 12px; }
+  .desc p { line-height: 1.55; margin-bottom: 10px; }
+  .pane { width: 220px; flex: none; }
+  .group { border-top: 1px solid var(--hairline); padding-top: 12px; margin-top: 12px; }
+  .group:first-child { border-top: 0; padding-top: 0; margin-top: -8px; }
+  .f { margin: 8px 0; }
+  .f .l { font-size: 12px; color: var(--text-idle); margin-bottom: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; color: var(--text-idle); background: var(--slot); border: 1px solid var(--hairline-strong); padding: 3px 8px 4px; }
+  .close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; background: var(--scene);
+           border: 1px solid var(--hairline-strong); display: grid; place-items: center; color: var(--text-body); z-index: 2; }
+  .label-approx { position: absolute; left: 224px; bottom: 10px; font-size: 11px; color: #3f3c38; z-index: 5; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+<div class="window">
+  <nav class="rail">
+    <div class="head"><div class="menu-btn" style="color:var(--text-menu)">
+      <svg width="20" height="20" viewBox="0 0 256 256" fill="currentColor"><path d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128ZM40,70H216a6,6,0,0,0,0-12H40a6,6,0,0,0,0,12ZM216,186H40a6,6,0,0,0,0,12H216a6,6,0,0,0,0-12Z"/></svg>
+    </div></div>
+    <div class="rule"></div>
+    <div class="item current">Library</div>
+    <div class="item">Statistics</div>
+    <div class="item">HowLongToBeat</div>
+    <div class="item">Success Story</div>
+  </nav>
+
+  <main class="library">
+    <div class="scene"></div><div class="veil"></div>
+    <div class="top">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M228.24,219.76l-51.38-51.38a86.15,86.15,0,1,0-8.48,8.48l51.38,51.38a6,6,0,0,0,8.48-8.48ZM38,112a74,74,0,1,1,74,74A74.09,74.09,0,0,1,38,112Z"/></svg>
+        <span>Search library</span>
+      </div>
+      <div class="tools">
+        <div class="tool" title="View settings"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M38,78H74a6,6,0,0,0,0-12H38a6,6,0,0,0,0,12ZM218,66H118a26,26,0,1,0,0,12H218a6,6,0,0,0,0-12Zm-122,20a14,14,0,1,1,14-14A14,14,0,0,1,96,86Zm122,92H182a6,6,0,0,0,0,12h36a6,6,0,0,0,0-12Zm-60-6a26,26,0,0,0-25.23,20H38a6,6,0,0,0,0,12h94.77A26,26,0,1,0,158,172Zm0,38a14,14,0,1,1,14-14A14,14,0,0,1,158,210Z"/></svg></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M227.21,154.82a6,6,0,0,1-2.03,8.24l-94,56a6,6,0,0,1-6.14,0l-94-56a6,6,0,1,1,6.14-10.3L128,206.82l90.93-54.06A6,6,0,0,1,227.21,154.82ZM218.93,122.76,128,176.82,37.07,122.76a6,6,0,1,0-6.14,10.3l94,56a6,6,0,0,0,6.14,0l94-56a6,6,0,1,0-6.14-10.3ZM26,80a6,6,0,0,1,3-5.16l94-56a6,6,0,0,1,6.14,0l94,56a6,6,0,0,1,0,10.32l-94,56a6,6,0,0,1-6.14,0l-94-56A6,6,0,0,1,26,80Zm17.81,0L128,130.06,212.19,80,128,29.94Z"/></svg></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M126,128a6,6,0,0,1-6,6H48a6,6,0,0,1,0-12h72A6,6,0,0,1,126,128ZM48,70H184a6,6,0,0,0,0-12H48a6,6,0,0,0,0,12Zm56,116H48a6,6,0,0,0,0,12h56a6,6,0,0,0,0-12Zm124.24-26.24a6,6,0,0,0-8.48,0L190,189.51V112a6,6,0,0,0-12,0v77.51l-29.76-29.75a6,6,0,0,0-8.48,8.48l40,40a6,6,0,0,0,8.48,0l40-40A6,6,0,0,0,228.24,159.76Z"/></svg></div>
+        <div class="gap"></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M208,138H48a14,14,0,0,0-14,14v40a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V152A14,14,0,0,0,208,138Zm2,54a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V152a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2ZM208,50H48A14,14,0,0,0,34,64v40a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V64A14,14,0,0,0,208,50Zm2,54a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V64a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></svg></div>
+        <div class="tool on"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M104,42H56A14,14,0,0,0,42,56v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V56A14,14,0,0,0,104,42Zm2,62a2,2,0,0,1-2,2H56a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Zm94-62H152a14,14,0,0,0-14,14v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V56A14,14,0,0,0,200,42Zm2,62a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Zm-98,34H56a14,14,0,0,0-14,14v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V152A14,14,0,0,0,104,138Zm2,62a2,2,0,0,1-2,2H56a2,2,0,0,1-2-2V152a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Zm94-62H152a14,14,0,0,0-14,14v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V152A14,14,0,0,0,200,138Zm2,62a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V152a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Z"/></svg></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M90,64a6,6,0,0,1,6-6H216a6,6,0,0,1,0,12H96A6,6,0,0,1,90,64Zm126,58H96a6,6,0,0,0,0,12H216a6,6,0,0,0,0-12Zm0,64H96a6,6,0,0,0,0,12H216a6,6,0,0,0,0-12ZM56,54H40a6,6,0,0,0,0,12H56a6,6,0,0,0,0-12Zm0,64H40a6,6,0,0,0,0,12H56a6,6,0,0,0,0-12Zm0,64H40a6,6,0,0,0,0,12H56a6,6,0,0,0,0-12Z"/></svg></div>
+        <div class="gap"></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M230,96a6,6,0,0,1-6,6H185.06l-38.12,42.89A6,6,0,0,1,142.46,147H110.54L72.42,189.89A6,6,0,0,1,68,192H32a6,6,0,0,1,0-12H65.3l38.12-42.89A6,6,0,0,1,107.9,135h31.82l38.12-42.89A6,6,0,0,1,182.32,90H224A6,6,0,0,1,230,96Z"/></svg></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M228.75,59.34A14,14,0,0,0,216,50H40a14,14,0,0,0-10.36,23.42l.06.07L94,141.47V216a6,6,0,0,0,9.33,5l32-21.33A6,6,0,0,0,138,194.67V141.47l64.33-68,.06-.07A14,14,0,0,0,228.75,59.34Z"/></svg></div>
+        <div class="tool"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M221.8,175.94C216.25,166.38,206,139.33,206,104a78,78,0,1,0-156,0c0,35.34-10.26,62.38-15.81,71.94A14,14,0,0,0,46.2,197H90.78a38,38,0,0,0,74.44,0H209.8a14,14,0,0,0,12-21.06ZM128,218a26,26,0,0,1-25-21h50A26,26,0,0,1,128,218Zm83.39-35a1.92,1.92,0,0,1-1.59,1H46.2a1.92,1.92,0,0,1-1.59-1,2,2,0,0,1,0-2C53.38,165.89,62,134.33,62,104a66,66,0,1,1,132,0c0,30.33,8.62,61.89,17.39,77A2,2,0,0,1,211.39,183Z"/></svg><span class="dot"></span></div>
+      </div>
+      <div class="caption">
+        <div><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z"/></svg></div>
+        <div><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34Zm2,174a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></svg></div>
+        <div><svg width="14" height="14" viewBox="0 0 256 256" fill="currentColor"><path d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z"/></svg></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="grid" id="grid"></div>
+      <aside class="panel">
+        <div class="hero"></div>
+        <div class="close"><svg width="12" height="12" viewBox="0 0 256 256" fill="currentColor"><path d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z"/></svg></div>
+        <div class="pcontent">
+          <div class="spacer"></div>
+          <div class="titlerow"><div class="gicon"></div><div class="title">Ember Village</div></div>
+          <div class="actions">
+            <div class="plate"><span>Play</span></div>
+            <div class="sq"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162ZM214,130.84c.06-1.89.06-3.79,0-5.68L229.33,106a6,6,0,0,0,1.11-5.29A105.34,105.34,0,0,0,219.76,74.9a6,6,0,0,0-4.53-3l-24.45-2.71q-1.93-2.07-4-4l-2.72-24.46a6,6,0,0,0-3-4.53,105.65,105.65,0,0,0-25.77-10.66A6,6,0,0,0,150,26.68l-19.2,15.37c-1.89-.06-3.79-.06-5.68,0L106,26.67a6,6,0,0,0-5.29-1.11A105.34,105.34,0,0,0,74.9,36.24a6,6,0,0,0-3,4.53L69.23,65.22q-2.07,1.94-4,4L40.76,72a6,6,0,0,0-4.53,3,105.65,105.65,0,0,0-10.66,25.77A6,6,0,0,0,26.68,106l15.37,19.2c-.06,1.89-.06,3.79,0,5.68L26.67,150.05a6,6,0,0,0-1.11,5.29A105.34,105.34,0,0,0,36.24,181.1a6,6,0,0,0,4.53,3l24.45,2.71q1.94,2.07,4,4L72,215.24a6,6,0,0,0,3,4.53,105.65,105.65,0,0,0,25.77,10.66,6,6,0,0,0,5.29-1.11L125.16,214c1.89.06,3.79.06,5.68,0l19.21,15.38a6,6,0,0,0,3.75,1.31,6.2,6.2,0,0,0,1.54-.2,105.34,105.34,0,0,0,25.76-10.68,6,6,0,0,0,3-4.53l2.71-24.45q2.07-1.93,4-4l24.46-2.72a6,6,0,0,0,4.53-3,105.49,105.49,0,0,0,10.66-25.77,6,6,0,0,0-1.11-5.29Z"/></svg></div>
+            <div class="sq"><svg width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path d="M225.91,74.79,181.22,30.08a14,14,0,0,0-19.8,0L38.1,153.41a13.94,13.94,0,0,0-4.1,9.9V208a14,14,0,0,0,14,14H92.69a13.94,13.94,0,0,0,9.9-4.1L225.91,94.58a14,14,0,0,0,0-19.79ZM94.1,209.41a2,2,0,0,1-1.41.59H48a2,2,0,0,1-2-2V163.31a2,2,0,0,1,.59-1.41L136,72.48,183.51,120ZM217.41,86.1,192,111.51,144.49,64,169.9,38.59a2,2,0,0,1,2.83,0l44.68,44.69a2,2,0,0,1,0,2.82Z"/></svg></div>
+          </div>
+          <div class="cols">
+            <div class="desc">
+              <div class="cap">Description</div>
+              <p>A lone agent walks into a fog-bound village to find someone who should not be there. The locals have stopped answering questions.</p>
+              <p>Search abandoned farmhouses, trade with a stranger by firelight and keep moving before the church bell rings again.</p>
+              <div class="cap" style="margin-top:28px">Notes</div>
+              <p style="color:var(--text-body)">Pick up again at chapter 4.</p>
+            </div>
+            <div class="pane">
+              <div class="group">
+                <div class="f"><div class="l">Completion status</div><div style="color:var(--completed)">Completed</div></div>
+                <div class="f"><div class="l">Time played</div>18h 42m</div>
+                <div class="f"><div class="l">Last played</div>Yesterday</div>
+              </div>
+              <div class="group">
+                <div class="f"><div class="l">Critic score</div><div style="color:var(--completed)">93</div></div>
+              </div>
+              <div class="group">
+                <div class="f"><div class="l">Developers</div>Fogline Studio</div>
+                <div class="f"><div class="l">Release date</div>2023-03-24</div>
+              </div>
+              <div class="group">
+                <div class="f"><div class="l">Genres</div><div class="chips"><span class="chip">Action</span><span class="chip">Survival horror</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+<div class="label-approx">Approximate HTML replica, not a Playnite capture</div>
+<script>
+  // Placeholder covers: invented titles on CSS gradients (no game art).
+  const games = [
+    ['Ember Village', '#3a2a1a', '#100b07', '#c98a45', 'sel'],
+    ['Hollow Pines', '#14212b', '#05080b', '#5f8aa6'],
+    ['Night Ferry', '#1d1d29', '#07070c', '#8e86b8', 'hover'],
+    ['Iron Harbor', '#2b2522', '#0b0908', '#a48d75'],
+    ['Deep Station', '#0f2626', '#040a0a', '#4f9c94'],
+    ['Ashen Road', '#2e1b17', '#0d0706', '#c0644b'],
+    ['The Lighthouse', '#1c2530', '#06090c', '#d9c38a'],
+    ['Salt Marsh', '#21261b', '#080a06', '#8fa36a'],
+    ['Cold Signal', '#18202e', '#05070b', '#7fa0d0'],
+    ['Red Orchard', '#2c1416', '#0c0506', '#b44a4f'],
+    ['Quarry 9', '#262421', '#0a0908', '#9c9484'],
+    ['Last Train', '#1b1b1f', '#070708', '#c7b28a'],
+    ['Wolf Hollow', '#1a2420', '#060908', '#78a08c'],
+    ['Paper Saint', '#2a2620', '#0a0907', '#d8cdb5'],
+    ['Under Ice', '#152431', '#050a0e', '#8cc3e0'],
+  ];
+  const grid = document.getElementById('grid');
+  for (const [name, a, b, glow, cls] of games) {
+    const el = document.createElement('div');
+    el.className = 'cover' + (cls ? ' ' + cls : '');
+    el.style.background = `radial-gradient(ellipse 70% 40% at 50% 30%, ${glow}55, transparent 70%), linear-gradient(${a}, ${b})`;
+    el.textContent = name;
+    grid.appendChild(el);
+  }
+</script>
+</body>
+</html>

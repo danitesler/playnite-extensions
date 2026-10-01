@@ -30,6 +30,7 @@ This repository is a reusable **Playnite add-on monorepo** for two kinds of add-
 - **Clutch** (`clutch`) — Desktop theme, theme API 2.9.0, a dark tactical-shooter look inspired by the Counter-Strike 2 main menu (values read from the game's Panorama style sheets): 64px navbar with uppercase view tabs, green GO button, map-tile covers; unofficial, no Valve assets. Notes in **`src/themes/Clutch/AGENTS.md`**.
 - **Ayywi** (`ayywi`) — Desktop theme, theme API 2.9.0, the ayywi design system on its black dark theme (white primary, hairline borders, pill buttons, segmented tabs, Lucide icons). Notes in **`src/themes/Ayywi/AGENTS.md`**.
 - **Dropzone** (`dropzone`) — Desktop theme, theme API 2.9.0, inspired by the Fortnite lobby (Chapter 6 menus; colors sampled from Epic's own documentation screenshots): rounded translucent navbar strip with the current view as a light grey pill, sidebar rail with a slanted blue current tab, yellow PLAY button, rounded Discover-style covers with a focus ring, island-page game page (cyan captions, slanted blue tags); unofficial, no Epic assets. Notes in **`src/themes/Dropzone/AGENTS.md`**.
+- **Attache** (`attache`) — Desktop theme, theme API 2.9.0, inspired by the Resident Evil 4 (2023) main, pause and options menus (colors measured from screenshots): a main menu rail of uppercase words where the current one grows and steps out, a brushed pewter selection plate, a glowing tab mark, warm greys on near black; unofficial, original artwork only, no Capcom assets. Notes in **`src/themes/Attache/AGENTS.md`**.
 
 ## Repository layout
 

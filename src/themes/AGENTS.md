@@ -64,6 +64,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Clutch | 64px black navbar with centered uppercase view tabs between thin rules, 44px compact icon rail, translucent panels over the library art |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
 | Dropzone | 64px sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of capital view tabs (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
+| Attache | 208px rail of uppercase words on near black (the current one larger and stepped out), transparent 56px top strip over darkened library art, pewter selection plates |
 
 ## Game page
 
