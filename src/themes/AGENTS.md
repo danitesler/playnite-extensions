@@ -69,6 +69,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Biome | Night-sky window; 64px list-panel rail with hotbar-slot items, see-through 64px top bar whose view switches are outlined menu words (gold when current), panels with 2px black edges |
 | Medallion | 72px near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
 | Heist | 64px rail of square plates on a light panel; top panel as the pause menu header (large condensed title) over a tab strip of 38px plates with an 8px blue bar over the current one; library art blurred behind |
+| Overworld | 64px rail of 40px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
 
 ## Game page
 
@@ -102,7 +103,7 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 ## Icons
 
-- **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`).
+- **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`, Overworld `art/icons.py` pixel bitmaps).
 - **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shadcn UI, Chakra UI, Material UI, Fluent 2), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primer, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
 
 ## Previews and screenshots
