@@ -64,6 +64,7 @@ Edit or add `src/themes/<Theme>/src/<Default path>.xaml`: start from Playnite's 
 ## Builds but looks wrong in Playnite
 
 - Reverts to Default: XAML threw at load. Check `%AppData%\Playnite\playnite.log` (portable: next to `Playnite.exe`) for file and line.
+- Playnite crashes or never finishes starting after a deploy: an unknown XAML member on an element (the build does not validate property names). Check the log tail for `XamlParseException: Cannot set unknown member '...'` — it names the bad attribute. Fix it in the theme source, rebuild, redeploy, restart.
 - A control ignores tokens: its Default template hard-codes a color or reads a Playnite key; override that style.
 - No change visible: themes load at startup only; restart after `-Deploy`.
 

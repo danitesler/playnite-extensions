@@ -29,8 +29,8 @@ Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius
 | File | What it draws |
 |------|---------------|
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 64px rail, 40px rounded-square items, current item inverted (white fill, black icon); works at all four positions |
-| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px bar with a hairline under it; view/filter/sort items in a pill strip like ayywi tabs (checked = white); pill search box; 168px kept clear for window buttons |
-| `DerivedStyles/MainWindowStyle.xaml` | 46x32 ghost pill window buttons, close hover in `DangerBrush` |
+| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px bar with a hairline under it; view/filter/sort items as 12px rounded-square buttons; 12px rounded search box; 168px kept clear for window buttons |
+| `DerivedStyles/MainWindowStyle.xaml` | 46x32 ghost rounded window buttons, close hover in `DangerBrush` |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | 16px gutters, ghost icon buttons |
 
 ## Game page

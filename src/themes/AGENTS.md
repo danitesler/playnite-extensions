@@ -64,7 +64,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered icon view buttons between thin rules, 44px compact icon rail, translucent panels over the library art |
 | Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; icon view switches between thin "|" rules, selection as a feathered smudge, framed near-black panels |
-| Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
+| Ayywi | One black surface; 64px icon rail, 56px top bar with 12px rounded toggles and search box, cards and hairlines instead of fills |
 | Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of icon view buttons (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
 | Attache | 44px compact icon rail with pewter selection plates on near black, transparent 56px top strip over darkened library art |
 | Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar with icon view switches (gold when current), panels with 2px black edges |
@@ -117,9 +117,15 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
 - **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view (hero banner, left screenshot carousel + description, right metadata pane, left compact navigation rail).
-- **`art/preview-settings.html` → `art/settings.png`**: HTML replica of the Settings view showcasing the theme's core UI controls (checkboxes, radio buttons, sliders, text inputs, combo boxes, buttons).
-Playnite itself is never launched or captured to produce release screenshots.
+## Control corner radii and shapes
 
+- **Why `CornerRadiusFull` distorts in WPF**: Unlike CSS (which scales corner radii uniformly), WPF's `Border` clamps horizontal and vertical radii independently: `radiusX = min(radiusX, width/2)` and `radiusY = min(radiusY, height/2)`. When a single huge radius (e.g. 9999 or 10000) is set on an element where `width != height`, WPF draws an ellipse/oval across the entire element rather than flat edges with circular caps.
+- **Base control styles must use `ControlCornerRadius`**: Generic `<Style TargetType="{x:Type Button}">`, `<RepeatButton>`, `<ToggleButton>`, `<SearchBox>`, and `<TabControl>` MUST use `{DynamicResource ControlCornerRadius}` (or theme-appropriate small radius, e.g. 4-12px), NEVER `CornerRadiusFull` (pill/stadium 9999+). In WPF, plugins (e.g. SteamScreenshots carousel navigation `<` and `>`, numeric spin buttons) and unconstrained dialogs inherit base styles; large radii on non-standard aspect ratios distort them into vertical ellipses/ovals.
+- **Action buttons (`PlayButton`) must use `ControlCornerRadius`**: The primary CTA on the game page must use `{DynamicResource ControlCornerRadius}` so its corner curvature matches adjacent secondary action buttons (e.g. `... More`, `Edit`).
+- **Metadata tag chips (`PropertyItemButton`) must use `ControlCornerRadius`**: Genre, feature, category, tag, and platform chips have variable text length. Setting `CornerRadiusFull` causes wide tags (e.g. "Turn-based strategy (TBS)") to become extreme horizontal ovals. Always use `{DynamicResource ControlCornerRadius}` (or `CornerRadiusSmall`).
+- **`CornerRadiusFull` is strictly for fixed 1:1 square elements**: Reserve pill/full radius ONLY for elements where `Width == Height` (e.g. 16x16 notification count badges, circular icon buttons).
+- **Scrollbar thumbs (`ScrollBarThumb`)**: Use half track width (e.g. `CornerRadius="3"` for a 6px thumb) or `CornerRadiusSmall`, never `CornerRadiusFull`. Large numbers scale disproportionately across axes in WPF's Border geometry and distort when rotated horizontally.
+- **No pill wrappers on dynamic toolbars**: Never wrap dynamic collections like `PART_PanelMainItems` in an outer pill container.
 
 ## Per-theme notes
 
