@@ -41,8 +41,9 @@ Full database procedure: [addon-database.md](addon-database.md).
 5. **Screenshots (themes always, other add-ons with UI on first listing or a visual change):** on the user's Windows machine run `.\scripts\take-screenshots.ps1 -Extension <key> -CloseRunning`. It builds and deploys the theme, opens Playnite by itself, switches it to the theme, saves `info/screenshots/grid.png` and `details.png`, closes Playnite and restores the user's config. Look at the images (layout, no private games or notifications), commit them to `main` with the version commit, list them in the `Screenshots:` block of `danitesler_<key>.yaml`, and add them to the release notes. **Never run it in a cloud/Linux session** (repo rule: no Playnite on servers); there, say the screenshots are pending and stop, do not substitute the HTML mockup for a release.
 6. When the user says to publish, in this order (the raw manifest URL points at `main` and the package URL at the release, so both must exist or auto-update breaks):
    1. `gh release create <tag> <package> [zip] --title "<Name> <version>" --notes "<changelog>"` (this add-on only).
-   2. Merge/push the version commit to `main`.
-   3. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
+   2. Update its title link in root `README.md` to point to the new release (`https://github.com/danitesler/playnite-extensions/releases/tag/<tag>`).
+   3. Merge/push the version commit to `main`.
+   4. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
 7. Verify: `curl -sI <PackageUrl>` returns 200 (after redirects); `curl -s <InstallerManifestUrl>` shows the new top entry.
 
 `Toolbox.exe` is found automatically (`%LOCALAPPDATA%\Playnite`, Program Files, PATH, `%TEMP%`; override `-ToolboxExe` or `$env:TOOLBOX_EXE`). Manual: `Toolbox.exe verify Installer <InstallerManifest.yaml>`, `Toolbox.exe pack <build dir> <out dir>`.

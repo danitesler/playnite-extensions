@@ -28,6 +28,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - **Build after edit**: Plugins: run `.\scripts\build-plugin.ps1 -Extension <key>` (remind user to replace DLL). Themes: run `.\scripts\build-theme.ps1 -Extension <key> -Deploy -Restart` (auto-sets active theme and restarts/launches Playnite on local Windows).
 - **No Server Execution**: Never run/install/emulate Playnite on non-Windows/server environments.
 - **Releases**: Package-only (`.pext`/`.pthm` + `.zip`). Tag `{key}-v{version}`. Never push, tag, release, or open PR unless asked.
+- **README Release Links**: Whenever a new release is cut for an add-on or theme, update its title link in root `README.md` to point to the new release (`https://github.com/danitesler/playnite-extensions/releases/tag/{key}-v{version}`). Unreleased add-ons remain unclickable plain text.
 - **Localization**: New strings go to `en_US.xaml` AND all `Localization/*.xaml`.
 - **Settings UI**: Stock controls only; Autogrid `SettingsView` is baseline.
 - **Theme Shell Layout**: Sidebar on Left (compact rail: 44px wide, 44x40 items, 16px glyphs).
