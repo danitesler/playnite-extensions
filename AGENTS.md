@@ -21,7 +21,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - Scaffold theme: `.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-DesignSystem "My DS"] [-TokensCss <css>]`
 - Render icons: `.\scripts\render-icons.ps1 -Extension <key>`
 - Tile icon: `.\scripts\render-addon-icon.ps1 -Svg logo.svg -Extension <key>`
-- Screenshots: `.\scripts\take-screenshots.ps1 -Extension <key> [-Views Grid,Details] [-CloseRunning]`
+- Screenshots: `.\scripts\take-screenshots.ps1 -Extension <key>` (renders `details.png` & `settings.png` from HTML)
 - Update API snapshot: `.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <path> -PlayniteVersion <tag>`
 
 ## Strict Mandates
@@ -34,7 +34,8 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - **Theme Shell Layout**: Sidebar on Left (compact rail: 44px wide, 44x40 items, 16px glyphs).
 - **Game Page Layout**: SteamScreenshots in left column above description; metadata on right. Game banner spacer scales proportionally with HeroArt via MathConverter (`'x * <DefaultSpacer> / <DefaultBanner>'`), keeping default title/gradient scrim positions intact while moving top elements up/down dynamically when Banner height (0 = off) is modified.
 - **Icons & Brushes**: Add-on tile icons (`info/icon.png`) use default orange (`#FF7A1A`). Themes use brushes only (never `Color` keys).
-- **New Theme Mockup**: Render HTML replica to `art/preview-grid.png` and send via `SendUserFile` on first build.
+- **New Theme Reference Research**: When modeling a theme after a reference without ready tokens (game, film, OS, design system), **conduct deep research before coding/scaffolding**. Gather data from screenshots/captures, reference codebases/repos, style guides, or specs: measure colors, identify typography/fallbacks, study chrome/selection styles and icons, and log all sources/rules in `AGENTS.md` -> `Sources`.
+- **Theme Screenshots & Mockups**: All release screenshots (`details.png` and `settings.png` in `info/screenshots/`) are generated exclusively from the HTML preview templates (`art/preview-details.html` and `art/preview-settings.html`) via `.\scripts\take-screenshots.ps1 -Extension <key>`. Never capture live Playnite desktop windows.
 - **PRs/Releases**: One GitHub Release & one PlayniteAddonDatabase PR per add-on. Show PR copy to user before pushing.
 
 ## Skills (`.claude/skills/`)

@@ -1,4 +1,4 @@
-# Medallion — theme notes
+﻿# Medallion â€” theme notes
 
 ## What this is
 
@@ -69,4 +69,4 @@ Built and statically checked only (cloud session; Playnite was not started). Not
 
 ## Preview and screenshots
 
-`art/preview-grid.html` / `.png`: approximate HTML replica of the grid view (stand-in font, placeholder covers), not a Playnite capture. Real screenshots: `.\scripts\take-screenshots.ps1 -Extension medallion` on Windows.
+Screenshots in `info/screenshots/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.

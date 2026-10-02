@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the **Resident Evil 4 (2023) menus**: the main menu, the pause/load screen and the options screen. It focuses on the main-menu elements: a column of uppercase words, the brushed pewter selection plate, the glowing tab mark, warm greys on near black. It keeps the minimal look of the other themes here.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the **Resident Evil 4 (2023) menus**: the main menu, the pause/load screen and the options screen. It focuses on the menu elements: a compact icon rail on the left, the brushed pewter selection plate, the glowing tab mark, warm greys on near black. It keeps the minimal look of the other themes here.
 
 Unofficial fan theme. It is not affiliated with Capcom and includes no Capcom logos, fonts, textures or game files (`info/NOTICE-Attache.txt`). The colors were measured on screenshots. The smoke texture and the tile mark are original (`art/`).
 
@@ -49,7 +49,7 @@ Shared templates in `Common.xaml`:
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | **The main menu.** A 208px rail on `page` with a hairline toward the library. The main menu button sits in a 56px header, then a short rule. Items are words only (no icons): uppercase Bahnschrift at 16px in `text-menu`, in 44px rows. The current word turns `text-menu-current`, grows to 19px and steps 12px to the left. Hover brightens a word in place. Top and bottom are fallbacks: a 56px strip of words, with 148px kept clear for the caption buttons. |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | **The compact icon rail.** A 44px rail on `page` with a hairline toward the library. The main menu button sits in a 44x56 header, then a short rule. Items are icons only: 44x40 rows with 16px glyphs in `SidebarItemForegroundBrush`. Hover brightens the icon in place with a subtle wash. The current item sits on the brushed pewter selection plate (`SelectionBarTemplate`) in `SelectedForegroundBrush`. Top and bottom are fallbacks: a 56px strip, with 148px kept clear for the caption buttons. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | A 56px transparent strip over the library art with a hairline under it. The search box (underline only) is on the left; thin icons are on the right. The current view or open panel gets the tab mark. Notifications show an amber dot instead of a count. 148px is kept clear on the right. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, 12px from the top. Close turns `logo-red`. |
 | `Views/Library.xaml` | The background art sits behind the top strip and the library, anchored top right and faded toward the left and the bottom, under a 75% `ScrimBrush` veil (the title-screen scene). |

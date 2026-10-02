@@ -45,7 +45,7 @@ As of 2026-09-29 only `autogrid` and `gamehoverdetails` are listed (merged in up
 Preconditions (verify, do not assume):
 
 1. Release exists for the version in `InstallerManifest.yaml` and `curl -sI <PackageUrl>` succeeds (see `playnite-release`).
-2. Manifests, `icon.png` and `info/screenshots/*` (real captures from `scripts/take-screenshots.ps1`, not the HTML mockup) are on `main` (raw URLs return 200). Check every URL in the listing: `grep -oE 'https://[^ ]+' <file> | xargs -n1 curl -sI -o /dev/null -w '%{http_code} %{url_effective}\n'`.
+2. Manifests, `icon.png` and `info/screenshots/*` (`details.png` and `settings.png` rendered from `art/preview-*.html` via `scripts/take-screenshots.ps1`) are on `main` (raw URLs return 200). Check every URL in the listing: `grep -oE 'https://[^ ]+' <file> | xargs -n1 curl -sI -o /dev/null -w '%{http_code} %{url_effective}\n'`.
 3. `.\scripts\validate-extension.ps1 -Extension <key> -Mode Package` passes; also `Toolbox.exe verify Addon <danitesler_key.yaml>` and `verify Installer <InstallerManifest.yaml>`.
 
 Then (only when the user asks to push/open the PR):

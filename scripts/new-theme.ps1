@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$Name,
@@ -82,8 +82,11 @@ $installerRel = $profile.installerManifest
 $databaseRel = $profile.databaseManifest
 $packageUrl = Get-ExpectedPackageUrl -Profile $profile -AddonId $addonId -Version $Version
 
+$artRel = "$($profile.dir)/art"
 New-Item -ItemType Directory -Path (Join-Path $repoRoot $infoRel) -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $repoRoot $sourceRel) -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $repoRoot $artRel) -Force | Out-Null
+
 
 # Theme XAML starts from Playnite's Default theme files (MIT); the notice ships inside the package.
 Copy-Item -Path (Join-Path $PSScriptRoot "data/LICENSE-Playnite.txt") -Destination (Join-Path $repoRoot "$infoRel/LICENSE-Playnite.txt")
@@ -302,6 +305,225 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 ## Not verified yet
 "@ | Set-Content -Path (Join-Path $themeRoot "AGENTS.md") -Encoding utf8
 
+@"
+<!doctype html>
+<!-- $Name: approximate HTML replica of Playnite Game Details view -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>$Name - Details Preview</title>
+<style>
+  :root {
+    --bg: #121214; --surface: #1a1a1e; --panel: #202026; --border: #33333d;
+    --text: #ffffff; --text-muted: #9e9ea8; --accent: #6366f1; --accent-hover: #4f46e5;
+    --accent-text: #ffffff; --radius: 8px; --chip-bg: #282830;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1600px; height: 900px; overflow: hidden; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; }
+  .rail { width: 44px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; z-index: 10; }
+  .rail-btn { width: 36px; height: 36px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; }
+  .rail-btn.active { background: var(--accent); color: var(--accent-text); }
+  .rail-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .top-bar { height: 48px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .tab { padding: 6px 14px; border-radius: var(--radius); color: var(--text-muted); font-size: 13px; font-weight: 500; }
+  .tab.active { background: var(--panel); color: var(--text); }
+  .search { margin-left: auto; width: 260px; height: 32px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0 10px; color: var(--text); font-size: 13px; display: flex; align-items: center; }
+  .hero-banner { height: 320px; position: relative; background: radial-gradient(ellipse at 70% 30%, #3730a3 0%, #1e1b4b 60%, var(--bg) 100%); overflow: hidden; }
+  .hero-wash { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--bg) 95%); }
+  .hero-content { position: absolute; bottom: 24px; left: 32px; right: 32px; z-index: 5; }
+  .game-title { font-size: 42px; font-weight: 800; line-height: 1.1; margin-bottom: 16px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+  .action-row { display: flex; gap: 12px; align-items: center; }
+  .play-btn { height: 44px; padding: 0 32px; background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius); font-weight: 700; font-size: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .sub-btn { height: 44px; width: 44px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); display: flex; align-items: center; justify-content: center; }
+  .sub-btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .content-columns { flex: 1; display: flex; gap: 32px; padding: 24px 32px; overflow: hidden; }
+  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+  .screenshots-row { display: flex; gap: 12px; }
+  .screen-thumb { flex: 1; height: 140px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--panel); overflow: hidden; position: relative; }
+  .desc-heading { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+  .desc-text { color: var(--text-muted); line-height: 1.6; font-size: 14px; }
+  .right-col { width: 340px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; height: fit-content; }
+  .meta-group { margin-bottom: 16px; }
+  .meta-group:last-child { margin-bottom: 0; }
+  .meta-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--chip-bg); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 12px; color: var(--text); }
+  .meta-value { font-size: 13px; color: var(--text); }
+</style>
+</head>
+<body>
+<div class="rail">
+  <div class="rail-btn active"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>
+  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+</div>
+<div class="main">
+  <div class="top-bar">
+    <div class="nav-tabs">
+      <div class="tab">Grid</div>
+      <div class="tab active">Details</div>
+    </div>
+    <div class="search">Search library...</div>
+  </div>
+  <div class="hero-banner">
+    <div class="hero-wash"></div>
+    <div class="hero-content">
+      <div class="game-title">Cyber Strike: Genesis</div>
+      <div class="action-row">
+        <button class="play-btn">&#9658; PLAY</button>
+        <div class="sub-btn"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+        <div class="sub-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div class="content-columns">
+    <div class="left-col">
+      <div class="screenshots-row">
+        <div class="screen-thumb" style="background: radial-gradient(circle at 50% 50%, #2e1065, #0f172a);"></div>
+        <div class="screen-thumb" style="background: radial-gradient(circle at 60% 40%, #1e1b4b, #020617);"></div>
+        <div class="screen-thumb" style="background: radial-gradient(circle at 40% 60%, #312e81, #0f172a);"></div>
+      </div>
+      <div>
+        <div class="desc-heading">About this game</div>
+        <p class="desc-text">Step into an immersive neo-cybernetic universe. Master high-speed orbital combat, customize tactical exosuits, and unravel the secrets of the central node in a deeply reactive single-player campaign.</p>
+      </div>
+    </div>
+    <div class="right-col">
+      <div class="meta-group">
+        <div class="meta-label">Genres</div>
+        <div class="chips"><div class="chip">Action</div><div class="chip">Sci-Fi</div><div class="chip">Tactical</div></div>
+      </div>
+      <div class="meta-group">
+        <div class="meta-label">Developer</div>
+        <div class="meta-value">Vector Shift Studios</div>
+      </div>
+      <div class="meta-group">
+        <div class="meta-label">Play Time</div>
+        <div class="meta-value">48 hours &bull; Last played yesterday</div>
+      </div>
+      <div class="meta-group">
+        <div class="meta-label">Score</div>
+        <div class="meta-value" style="font-weight: 700; color: #4ade80;">92 / 100</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+"@ | Set-Content -Path (Join-Path $repoRoot "$artRel/preview-details.html") -Encoding utf8
+
+@"
+<!doctype html>
+<!-- $Name: approximate HTML replica of Playnite Settings view -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>$Name - Settings Preview</title>
+<style>
+  :root {
+    --bg: #121214; --surface: #1a1a1e; --panel: #22222a; --border: #33333d;
+    --text: #ffffff; --text-muted: #9e9ea8; --accent: #6366f1; --accent-hover: #4f46e5;
+    --accent-text: #ffffff; --radius: 8px; --input-bg: #16161a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1600px; height: 900px; overflow: hidden; background: #0a0a0c; color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .dialog { width: 1200px; height: 750px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; }
+  .title-bar { height: 42px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; font-weight: 600; font-size: 14px; }
+  .win-controls { margin-left: auto; display: flex; gap: 8px; }
+  .win-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); }
+  .dialog-body { flex: 1; display: flex; overflow: hidden; }
+  .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 16px 8px; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { padding: 9px 14px; border-radius: var(--radius); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; }
+  .nav-item.active { background: var(--panel); color: var(--text); font-weight: 600; }
+  .content { flex: 1; padding: 28px 36px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+  .section-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+  .section-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .field-help { font-size: 12px; color: var(--text-muted); }
+  .input-text { height: 36px; background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0 12px; color: var(--text); font-size: 13px; outline: none; width: 340px; }
+  .input-text:focus { border-color: var(--accent); }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .checkbox { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--accent); background: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent-text); }
+  .checkbox.unchecked { background: var(--input-bg); border-color: var(--border); }
+  .radio { width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .radio.unselected { border-color: var(--border); }
+  .radio.unselected .radio-dot { display: none; }
+  .slider-bar { width: 300px; height: 6px; background: var(--border); border-radius: 3px; position: relative; display: flex; align-items: center; }
+  .slider-fill { width: 60%; height: 100%; background: var(--accent); border-radius: 3px; }
+  .slider-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent-text); border: 2px solid var(--accent); position: absolute; left: 60%; transform: translateX(-50%); box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+  .dialog-footer { height: 60px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; padding: 0 24px; gap: 12px; }
+  .btn { height: 36px; padding: 0 20px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
+  .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+</style>
+</head>
+<body>
+<div class="dialog">
+  <div class="title-bar">
+    <span>Settings</span>
+    <div class="win-controls"><div class="win-dot"></div></div>
+  </div>
+  <div class="dialog-body">
+    <div class="sidebar">
+      <div class="nav-item">General</div>
+      <div class="nav-item active">Appearance</div>
+      <div class="nav-item">Layout</div>
+      <div class="nav-item">Input</div>
+      <div class="nav-item">Advanced</div>
+    </div>
+    <div class="content">
+      <div>
+        <div class="section-title">Theme Configuration</div>
+        <div class="section-desc">Customize UI elements, controls, and visual effects for $Name.</div>
+      </div>
+      <div class="card">
+        <div class="field">
+          <div class="field-label">Library Title Display</div>
+          <input class="input-text" type="text" placeholder="Enter custom display name..." value="Personal Playnite Collection" />
+        </div>
+        <div class="row">
+          <div class="checkbox">✓</div>
+          <div>
+            <div class="field-label">Enable high contrast borders</div>
+            <div class="field-help">Sharpen panel outlines for increased visibility.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="checkbox unchecked"></div>
+          <div>
+            <div class="field-label">Compact game details pane</div>
+            <div class="field-help">Reduce vertical margin around screenshots and tags.</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Banner Blur Intensity</div>
+          <div class="slider-bar">
+            <div class="slider-fill"></div>
+            <div class="slider-thumb"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="radio"><div class="radio-dot"></div></div>
+          <div class="field-label">Smooth animations</div>
+          <div class="radio unselected" style="margin-left: 16px;"><div class="radio-dot"></div></div>
+          <div class="field-label">Reduced motion</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dialog-footer">
+    <button class="btn btn-secondary">Cancel</button>
+    <button class="btn btn-primary">Save Changes</button>
+  </div>
+</div>
+</body>
+</html>
+"@ | Set-Content -Path (Join-Path $repoRoot "$artRel/preview-settings.html") -Encoding utf8
+
 $index.extensions += $newProfile
 Save-ExtensionIndex -Index $index
 
@@ -313,3 +535,5 @@ Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the to
 Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
 Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
 Write-Host "  5. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key -Deploy and restart Playnite."
+Write-Host "  6. Style art/preview-details.html and art/preview-settings.html, then .\scripts\take-screenshots.ps1 -Extension $Key."
+

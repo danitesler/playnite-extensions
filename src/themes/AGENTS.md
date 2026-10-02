@@ -66,7 +66,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; icon view switches between thin "|" rules, selection as a feathered smudge, framed near-black panels |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
 | Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of icon view buttons (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
-| Attache | 208px rail of uppercase words on near black (the current one larger and stepped out), transparent 56px top strip over darkened library art, pewter selection plates |
+| Attache | 44px compact icon rail with pewter selection plates on near black, transparent 56px top strip over darkened library art |
 | Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar with icon view switches (gold when current), panels with 2px black edges |
 | Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
 | Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
@@ -115,7 +115,11 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 ## Previews and screenshots
 
-Two different pictures, never mixed up. **`art/preview-grid.html` + `preview-grid.png`**: an approximate HTML replica of the grid view, made in the cloud on a theme's first build and sent to the user (`node scripts/render-theme-preview.mjs <html>`); labelled as not a capture. **`info/screenshots/*.png`**: real Playnite captures from `scripts/take-screenshots.ps1`, local Windows only, needed for the release and the listing. Playnite is never started on a server.
+All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
+- **`art/preview-details.html` → `info/screenshots/details.png`**: HTML replica of the Game Details view (hero banner, left screenshot carousel + description, right metadata pane, left compact navigation rail).
+- **`art/preview-settings.html` → `info/screenshots/settings.png`**: HTML replica of the Settings view showcasing the theme's core UI controls (checkboxes, radio buttons, sliders, text inputs, combo boxes, buttons).
+Playnite itself is never launched or captured to produce release screenshots.
+
 
 ## Per-theme notes
 

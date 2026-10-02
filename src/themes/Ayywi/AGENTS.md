@@ -1,4 +1,4 @@
-# Ayywi — theme notes
+﻿# Ayywi â€” theme notes
 
 ## What this is
 
@@ -62,4 +62,4 @@ Everything was checked statically (`build-theme.ps1`, `validate-extension.ps1 -M
 
 ## Preview and screenshots
 
-`art/preview-grid.html` is an approximate HTML replica of the grid view (this theme's token values and sizes; fonts stand in), rendered to `art/preview-grid.png` with `node scripts/render-theme-preview.mjs src/themes/Ayywi/art/preview-grid.html`. It is a mockup, not a Playnite capture. Real screenshots (`info/screenshots/grid.png`, `details.png`) come from `.\scripts\take-screenshots.ps1 -Extension ayywi` on a local Windows machine (never in a cloud session) and are still to add before the release and the database PR.
+Screenshots in `info/screenshots/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.

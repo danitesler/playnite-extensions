@@ -1,4 +1,4 @@
-# Libertalia — theme notes
+﻿# Libertalia â€” theme notes
 
 ## What this is
 
@@ -69,4 +69,4 @@ Built and checked statically only (cloud session; Playnite is never started on a
 
 ## Preview and screenshots
 
-`art/preview-grid.html` is an approximate HTML replica of the grid view (this theme's token values and sizes; Bitstream Charter stands in for Constantia, a CSS gradient for the game art), rendered to `art/preview-grid.png` with `node scripts/render-theme-preview.mjs src/themes/Libertalia/art/preview-grid.html`. It is a mockup, not a Playnite capture. Real screenshots (`info/screenshots/`) come from `.\scripts\take-screenshots.ps1 -Extension libertalia` on a local Windows machine and are still to add before the release and the database PR.
+Screenshots in `info/screenshots/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
