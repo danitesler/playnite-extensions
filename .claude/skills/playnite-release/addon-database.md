@@ -27,7 +27,7 @@ The `Type` values differ from `extension.yaml`'s; `validate-extension.ps1` check
 ## Our listing file
 
 - Source of truth: `<dir>/info/danitesler_<key>.yaml` in this repo (`databasePrefix` in `src/extensions.json`). Copy it **byte for byte** to `addons/<folder>/danitesler_<key>.yaml` in the database repo. The filename is only for humans/PRs; the `AddonId` inside is the identity.
-- Required: `AddonId`, `Type`, `Name`, `Author` (`danitesler`), `ShortDescription`, `InstallerManifestUrl`. We also always set `SourceUrl`, `IconUrl`, `Description`, `Tags`, `Links`. Optional upstream: `Screenshots`, `UserAgreement`, `FaqTopics`. Themes list `Screenshots` (Thumbnail + Image URLs under `info/screenshots/`).
+- Required: `AddonId`, `Type`, `Name`, `Author` (`danitesler`), `ShortDescription`, `InstallerManifestUrl`. We also always set `SourceUrl`, `IconUrl`, `Description`, `Tags`, `Links`. Optional upstream: `Screenshots`, `UserAgreement`, `FaqTopics`. Themes list `Screenshots` (Thumbnail + Image URLs under `art/`).
 - All URLs are `raw.githubusercontent.com/danitesler/playnite-extensions/main/...` and must resolve **before** the PR (the files have to be on `main`).
 - `AddonId` equals `Id` in `extension.yaml` / `theme.yaml` and in `InstallerManifest.yaml`.
 - Template: copy an existing `danitesler_*.yaml` (`src/Autogrid/info/danitesler_autogrid.yaml` for plugins, `src/themes/ShadcnUi/info/danitesler_shadcnui.yaml` for themes). `new-extension.ps1` / `new-theme.ps1` scaffold one.
@@ -45,7 +45,7 @@ As of 2026-09-29 only `autogrid` and `gamehoverdetails` are listed (merged in up
 Preconditions (verify, do not assume):
 
 1. Release exists for the version in `InstallerManifest.yaml` and `curl -sI <PackageUrl>` succeeds (see `playnite-release`).
-2. Manifests, `icon.png` and `info/screenshots/*` (`details.png` and `settings.png` rendered from `art/preview-*.html` via `scripts/take-screenshots.ps1`) are on `main` (raw URLs return 200). Check every URL in the listing: `grep -oE 'https://[^ ]+' <file> | xargs -n1 curl -sI -o /dev/null -w '%{http_code} %{url_effective}\n'`.
+2. Manifests, `icon.png` and `art/*` (`details.png` and `settings.png` rendered from `art/preview-*.html` via `scripts/take-screenshots.ps1`) are on `main` (raw URLs return 200). Check every URL in the listing: `grep -oE 'https://[^ ]+' <file> | xargs -n1 curl -sI -o /dev/null -w '%{http_code} %{url_effective}\n'`.
 3. `.\scripts\validate-extension.ps1 -Extension <key> -Mode Package` passes; also `Toolbox.exe verify Addon <danitesler_key.yaml>` and `verify Installer <InstallerManifest.yaml>`.
 
 Then (only when the user asks to push/open the PR):

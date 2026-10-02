@@ -1,4 +1,4 @@
-﻿# Ayywi â€” theme notes
+# Ayywi — theme notes
 
 ## What this is
 
@@ -62,4 +62,4 @@ Everything was checked statically (`build-theme.ps1`, `validate-extension.ps1 -M
 
 ## Preview and screenshots
 
-Screenshots in `info/screenshots/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
+Screenshots in `art/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.

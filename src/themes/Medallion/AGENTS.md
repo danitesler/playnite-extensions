@@ -1,4 +1,4 @@
-﻿# Medallion â€” theme notes
+# Medallion — theme notes
 
 ## What this is
 
@@ -69,4 +69,4 @@ Built and statically checked only (cloud session; Playnite was not started). Not
 
 ## Preview and screenshots
 
-Screenshots in `info/screenshots/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
+Screenshots in `art/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.

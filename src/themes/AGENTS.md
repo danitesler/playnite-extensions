@@ -116,8 +116,8 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 ## Previews and screenshots
 
 All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
-- **`art/preview-details.html` → `info/screenshots/details.png`**: HTML replica of the Game Details view (hero banner, left screenshot carousel + description, right metadata pane, left compact navigation rail).
-- **`art/preview-settings.html` → `info/screenshots/settings.png`**: HTML replica of the Settings view showcasing the theme's core UI controls (checkboxes, radio buttons, sliders, text inputs, combo boxes, buttons).
+- **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view (hero banner, left screenshot carousel + description, right metadata pane, left compact navigation rail).
+- **`art/preview-settings.html` → `art/settings.png`**: HTML replica of the Settings view showcasing the theme's core UI controls (checkboxes, radio buttons, sliders, text inputs, combo boxes, buttons).
 Playnite itself is never launched or captured to produce release screenshots.
 
 

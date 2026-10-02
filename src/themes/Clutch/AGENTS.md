@@ -1,4 +1,4 @@
-﻿# Clutch â€” theme notes
+# Clutch — theme notes
 
 ## What this is
 
@@ -72,4 +72,4 @@ Seen running (Playnite 10.60 under Wine, stand-in fonts): details, grid (with si
 
 ## Preview and screenshots
 
-Screenshots in `info/screenshots/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
+Screenshots in `art/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.

@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Extension,
 
-    # Output directory. Defaults to <add-on dir>\info\screenshots.
+    # Output directory. Defaults to <add-on dir>\art.
     [string]$OutDir = "",
 
     # Keep legacy screenshots (grid.png) instead of cleaning them up.
@@ -35,7 +35,7 @@ if (-not (Test-Path $settingsHtml)) {
 }
 
 if (-not $OutDir) {
-    $OutDir = Join-Path $themeDir "info\screenshots"
+    $OutDir = $artDir
 }
 New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 
@@ -53,6 +53,11 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to render $detailsHtml" }
 if ($LASTEXITCODE -ne 0) { throw "Failed to render $settingsHtml" }
 
 if (-not $KeepLegacy) {
+    $legacyShots = Join-Path $themeDir "info\screenshots"
+    if (Test-Path $legacyShots) {
+        Remove-Item -Path $legacyShots -Recurse -Force
+        Write-Host "Cleaned up legacy screenshots directory: $legacyShots"
+    }
     $legacyGrid = Join-Path $OutDir "grid.png"
     if (Test-Path $legacyGrid) {
         Remove-Item -Path $legacyGrid -Force
@@ -65,7 +70,7 @@ if (-not $KeepLegacy) {
     }
 }
 
-$base = "https://raw.githubusercontent.com/danitesler/playnite-extensions/main/" + (($profile.dir -replace "\\", "/").TrimEnd("/")) + "/info/screenshots"
+$base = "https://raw.githubusercontent.com/danitesler/playnite-extensions/main/" + (($profile.dir -replace "\\", "/").TrimEnd("/")) + "/art"
 Write-Host ""
 Write-Host "Screenshots generated in $OutDir"
 Write-Host "Manifest configuration for info/danitesler_$Extension.yaml:"
