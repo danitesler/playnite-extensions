@@ -39,6 +39,7 @@ Lacro59's ThemeModifier recolors a theme by **replacing Playnite's palette brush
 - Sanctioned exception: `HtmlTextView.HtmlForeground` and `LinkForeground` (game description) are Color-typed with a black default, so they read `TextColor`/`GlyphColor`; the check allows exactly those two attributes, and brush edits do not reach that text.
 - Define palette and shared brushes as plain `SolidColorBrush` entries in the template. A brush pointing at another brush can't follow an edit.
 - `build-theme.ps1` generates `thememodifier.yaml` next to `theme.yaml`: every shared brush the theme defines (plus sized doubles such as `IconSize`), grouped and labelled from `theme-keys.json`. Palette brushes in `playnitePaletteConstants` (window background `WindowBackgourndBrush`) lead their group. Don't hand-edit; change descriptions in `theme-keys.json`.
+- **Banner height ("Banner height (0 = off)")**: Defined as `GameBannerHeight` in `Common.xaml` (ranged `0,600` in `thememodifier.yaml`). ThemeModifier adjusts it dynamically: setting to `0` turns off/collapses the banner, decreasing shifts top elements closer to the top, and increasing shifts them down. The spacer MUST scale proportionally with `HeroArt.ActualHeight` via `{StaticResource MathConverter}` (`ConverterParameter='x * <DefaultSpacer> / <DefaultBanner>'`) and an `ActualHeight == 0` trigger; never bind spacer `Height` directly to `{DynamicResource GameBannerHeight}`.
 
 ## How Playnite loads a theme
 

@@ -25,7 +25,7 @@ All themes restyle the same set; a few add more (Expander, ListView, group style
 
 | File | Role | Shared keys it defines |
 |------|------|------------------------|
-| `Common.xaml` | Spacing and focus: `PopupBorder`, `FocusVisual`, one padding key per control, `IconSize`, `GameBannerHeight` | `ButtonPadding`, `InputPadding`, `MenuPadding`, `MenuItemPadding`, `ComboBoxDropDownPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding`, `GroupBoxPadding`, `TooltipPadding` |
+| `Common.xaml` | Spacing and focus: `PopupBorder`, `FocusVisual`, one padding key per control, `IconSize`, `GameBannerHeight` | `ButtonPadding`, `InputPadding`, `MenuPadding`, `MenuItemPadding`, `ComboBoxDropDownPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding`, `GroupBoxPadding`, `TooltipPadding`, `IconSize`, `GameBannerHeight` |
 | `Media.xaml` | Icons: `Icon<Role>` geometries drawn by `IconTemplate`; Playnite's menu icon keys (`AddGameIcon`, `PlayIcon`, ...) | `IconTemplate`, `IconSearch` ... `IconWindowClose` |
 | `Views/MainWindow.xaml`, `Views/Sidebar.xaml`, `Views/TopPanel.xaml`, `Views/Library.xaml`, `DerivedStyles/MainWindowStyle.xaml`, `CustomControls/SidebarItem.xaml`, `CustomControls/TopPanelItem.xaml` | The shell | `MainMenuButton`, `MainWindowButton`, `TopPanelSearchBox` |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Side panels, respaced | |
