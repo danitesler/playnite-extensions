@@ -307,7 +307,7 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 
 @"
 <!doctype html>
-<!-- $Name: approximate HTML replica of Playnite Game Details view -->
+<!-- ${Name}: approximate HTML replica of Playnite Game Details view -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -415,7 +415,7 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 
 @"
 <!doctype html>
-<!-- $Name: approximate HTML replica of Playnite Settings view -->
+<!-- ${Name}: approximate HTML replica of Playnite Settings view -->
 <html>
 <head>
 <meta charset="utf-8">
