@@ -31,6 +31,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <img src="src/themes/Ancient/info/icon.png" alt="Ancient" width="48" height="48" /> | **Ancient** (`ancient`)<br>After the Dota 2 main menu: a slate rail with a blue glow, a black top strip and a green Play button. |
 | <img src="src/themes/Clutch/info/icon.png" alt="Clutch" width="48" height="48" /> | **Clutch** (`clutch`)<br>After the Counter-Strike 2 main menu: translucent black panels, uppercase view tabs and a green GO button. |
 | <img src="src/themes/Ayywi/info/icon.png" alt="Ayywi" width="48" height="48" /> | **Ayywi** (`ayywi`)<br>A monochrome dark theme with black surfaces, hairline borders and pill buttons. Design system: [ayywi](https://github.com/danitesler/ayywi). |
+| <img src="src/themes/Frontier/info/icon.png" alt="Frontier" width="48" height="48" /> | **Frontier** (`frontier`)<br>A dark Western theme after the Red Dead Redemption 2 menus, with a red painted rail, flat dark rows and a red selection frame. |
 | <img src="src/themes/Hextech/info/icon.png" alt="Hextech" width="48" height="48" /> | **Hextech** (`hextech`)<br>Near-black and gold, after the League of Legends client, with a left rail, gold-edged buttons and a blue Play button. |
 
 ## Installation

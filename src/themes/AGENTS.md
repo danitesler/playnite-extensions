@@ -63,6 +63,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Ancient | 64px slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered uppercase view tabs between thin rules, icon rail, translucent panels over the library art |
 | Ayywi | One black surface; 64px icon rail, 56px top bar with pill toggles and a pill search box, cards and hairlines instead of fills |
+| Frontier | 64px red painted rail with a ragged edge and black glyphs, 56px top bar ending in a tapered rule, flat near-black page |
 
 ## Game page
 
