@@ -8,7 +8,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
-Structure (shell wiring, game page, control templates) was forked from Frontier on `new-oct-themes`, then recolored and restyled; it shares no files with it at runtime.
+Structure (shell wiring, game page, control templates) was built from Playnite's Default files, then recolored and restyled.
 
 ## Sources
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generates the icon parts of Frontier: src/Media.xaml and src/Images/Phosphor/*.png.
+"""Generates the icon parts of Night City: src/Media.xaml and src/Images/Phosphor/*.png.
 
-The Red Dead Redemption 2 menus draw small, solid, slightly rounded white glyphs. Frontier uses Phosphor (MIT) in its
+The Red Dead Redemption 2 menus draw small, solid, slightly rounded white glyphs. Night City uses Phosphor (MIT) in its
 regular weight, the closest open set in feel: filled outlines on a 256 grid with soft ends. This script fetches the
 pinned SVGs, turns each into one WPF path string (IconTemplate fills it in the inherited foreground) and renders the
 menu icons Playnite copies as PNGs (cairosvg).
 
-    python3 art/phosphor.py          (from src/themes/Frontier; needs network and: pip install cairosvg)
+    python3 art/phosphor.py          (from src/themes/NightCity; needs network and: pip install cairosvg)
 
 PNG colors come from src/tokens.css (dim text for menu icons, the menu red for exit and remove, gold for the star).
 Not shipped in the package.

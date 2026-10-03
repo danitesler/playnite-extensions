@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **Red Dead Redemption** (2010; the 2023 console and 2024 PC ports keep the same interface). It is not the RDR2 look: that is **Frontier**. Tumbleweed follows RDR1's rules: pure black pages, one maroon for titles and the pause stack, a grey text ramp where **selection turns grey text white** (no frames, no underlines), flat 2px grey rules, prompt keycaps, and the red-and-black duotone the game lays over the world behind every menu. Square corners, no gradients except the banner fade.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **Red Dead Redemption** (2010; the 2023 console and 2024 PC ports keep the same interface). It is not the RDR2 look. Tumbleweed follows RDR1's rules: pure black pages, one maroon for titles and the pause stack, a grey text ramp where **selection turns grey text white** (no frames, no underlines), flat 2px grey rules, prompt keycaps, and the red-and-black duotone the game lays over the world behind every menu. Square corners, no gradients except the banner fade.
 
 **Unofficial fan theme.** No Rockstar assets: the paint splash, torn bar ends and the tile mark are original paths; icons are Phosphor. The game's title face (Chinese Rocks, Typodermic: free for desktop use, not embeddable) is not shipped; the theme names it first and falls back to Anton (OFL) and Impact. The body face is a light condensed sans the game never names; the theme uses Oswald / Pathway Gothic One (OFL), then Arial Narrow, Bahnschrift and Segoe UI. Rockstar and Red Dead Redemption are trademarks of Rockstar Games.
 
