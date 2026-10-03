@@ -65,6 +65,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Netrunner/art/details.png"><img src="src/themes/Netrunner/art/details.png" alt="Netrunner details" width="49%" /></a> <a href="src/themes/Netrunner/art/settings.png"><img src="src/themes/Netrunner/art/settings.png" alt="Netrunner settings" width="49%" /></a> |
 | <img src="src/themes/NightCity/info/icon.png" alt="Night City" width="48" height="48" /> | **Night City**<br>After the Cyberpunk 2077 interface: an acid-yellow rail, chamfered yellow Play slab, yellow selection frames and cyan focus on near black. |
 | ↳ | <a href="src/themes/NightCity/art/details.png"><img src="src/themes/NightCity/art/details.png" alt="Night City details" width="49%" /></a> <a href="src/themes/NightCity/art/settings.png"><img src="src/themes/NightCity/art/settings.png" alt="Night City settings" width="49%" /></a> |
+| <img src="src/themes/NightCity2/info/icon.png" alt="Night City 2" width="48" height="48" /> | **Night City 2**<br>A second take on the Cyberpunk 2077 yellow menus: black panels, solid yellow selection with black text, cyan focus and cut corners. |
+| ↳ | <a href="src/themes/NightCity2/art/details.png"><img src="src/themes/NightCity2/art/details.png" alt="Night City 2 details" width="49%" /></a> <a href="src/themes/NightCity2/art/settings.png"><img src="src/themes/NightCity2/art/settings.png" alt="Night City 2 settings" width="49%" /></a> |
 
 ## Installation
 

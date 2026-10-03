@@ -1,0 +1,123 @@
+<!doctype html>
+<!-- Night City: approximate HTML replica of Playnite Game Details view. Hexes from src/tokens.css (dark block). -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Night City - Details Preview</title>
+<style>
+  :root {
+    --yellow: #FCEE09; --cyan: #02D7F2; --red: #FF003C; --void: #050A0E; --panel: #0C1414; --raised: #141414;
+    --edge: rgba(252,238,9,0.6); --text: #FAFAFA; --muted: rgba(250,250,250,0.6); --on-yellow: #050A0E;
+    --font: Rajdhani, Bahnschrift, "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1600px; height: 900px; overflow: hidden; background: var(--void); color: var(--text); font-family: var(--font); font-size: 15px; display: flex; }
+  svg { fill: currentColor; }
+  .rail { width: 44px; background: var(--panel); border-right: 1px solid var(--edge); display: flex; flex-direction: column; align-items: center; padding-top: 8px; z-index: 10; flex: none; }
+  .rail-btn { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative; }
+  .rail-btn.active { color: var(--yellow); background: rgba(252,238,9,0.08); }
+  .rail-btn.active::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--yellow); }
+  .rail-btn svg { width: 16px; height: 16px; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: var(--void); }
+  .top { height: 52px; background: var(--void); border-bottom: 1px solid var(--edge); display: flex; align-items: center; padding: 0 16px; gap: 6px; flex: none; position: relative; z-index: 5; }
+  .vs { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text); border: 1px solid transparent; }
+  .vs svg { width: 18px; height: 18px; }
+  .vs.active { background: var(--yellow); color: var(--on-yellow); }
+  .search { margin-left: auto; width: 280px; height: 32px; background: var(--void); border: 1px solid var(--edge); padding: 0 10px; color: var(--muted); font-size: 15px; display: flex; align-items: center; gap: 8px; letter-spacing: .5px; }
+  .search svg { width: 14px; height: 14px; }
+  .hero { height: 330px; position: relative; flex: none; margin-top: -52px; padding-top: 0; overflow: hidden; z-index: 1; }
+  .hero .art { position: absolute; inset: 0; background:
+     linear-gradient(115deg, transparent 0 58%, rgba(2,215,242,.22) 58.2% 58.8%, transparent 59%),
+     linear-gradient(115deg, transparent 0 66%, rgba(252,238,9,.18) 66.2% 66.6%, transparent 66.8%),
+     radial-gradient(ellipse at 72% 38%, #3b3205 0%, #1a1604 35%, #0C1414 70%, #050A0E 100%); }
+  .skyline { position: absolute; right: 0; bottom: 0; width: 900px; height: 230px; opacity: .85; }
+  .hero .fade { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(5,10,14,.55) 0, transparent 25%, transparent 45%, #050A0E 98%); }
+  .hero-content { position: absolute; bottom: 22px; left: 32px; right: 32px; z-index: 5; }
+  .title { font-size: 56px; font-weight: 700; line-height: 1; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+  .actions { display: flex; gap: 10px; align-items: center; }
+  .play { height: 44px; padding: 0 34px 0 26px; background: var(--yellow); color: var(--on-yellow); font-family: var(--font); font-weight: 700; font-size: 20px; letter-spacing: 3px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; border: none; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); }
+  .play svg { width: 16px; height: 16px; }
+  .sub { height: 44px; width: 44px; background: var(--void); border: 1px solid var(--edge); color: var(--yellow); display: flex; align-items: center; justify-content: center; }
+  .sub svg { width: 18px; height: 18px; }
+  .cols { flex: 1; display: flex; gap: 32px; padding: 20px 32px 0; overflow: hidden; }
+  .left { flex: 1; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .shots { display: flex; gap: 10px; align-items: stretch; }
+  .arrow { width: 28px; border: 1px solid var(--edge); color: var(--yellow); display: flex; align-items: center; justify-content: center; font-size: 18px; flex: none; }
+  .shot { flex: 1; height: 150px; border: 1px solid var(--edge); position: relative; overflow: hidden; }
+  .shot.sel { border-color: var(--yellow); box-shadow: inset 0 0 0 1px var(--yellow); }
+  .shot::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: transparent; }
+  .shot.sel::after { background: var(--yellow); }
+  h2 { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--yellow); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--edge); }
+  .desc { color: var(--text); opacity: .82; line-height: 1.5; font-size: 17px; max-width: 900px; }
+  .desc p + p { margin-top: 10px; }
+  .right { width: 360px; flex: none; border: 1px solid var(--edge); background: var(--panel); height: fit-content; position: relative; }
+  .right::before { content: ""; position: absolute; top: -1px; right: -1px; width: 0; height: 0; border-style: solid; border-width: 0 12px 12px 0; border-color: transparent var(--void) transparent transparent; }
+  .group { padding: 12px 16px; border-top: 1px solid var(--edge); }
+  .group:first-child { border-top: none; }
+  .lab { font-size: 13px; text-transform: uppercase; font-weight: 700; letter-spacing: 2px; color: var(--yellow); margin-bottom: 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { background: var(--void); border: 1px solid var(--edge); padding: 2px 10px; font-size: 15px; font-weight: 600; letter-spacing: .5px; }
+  .chip.hot { background: var(--yellow); color: var(--on-yellow); border-color: var(--yellow); }
+  .val { font-size: 17px; font-weight: 600; }
+  .val small { color: var(--muted); font-size: 15px; font-weight: 500; }
+  .score { color: var(--cyan); font-size: 22px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="rail">
+  <div class="rail-btn active"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/></svg></div>
+  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg></div>
+  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M12 2l3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8 5.7 21.5l1.6-7.2L2 9.6 9 9z"/></svg></div>
+  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9 5v-2l-2.3-.5-.6-1.4 1.3-2-1.4-1.4-2 1.3-1.4-.6L14 3h-2l-.5 2.4-1.4.6-2-1.3-1.4 1.4 1.3 2-.6 1.4L3 11v2l2.4.5.6 1.4-1.3 2 1.4 1.4 2-1.3 1.4.6L10 21h2l.5-2.4 1.4-.6 2 1.3 1.4-1.4-1.3-2 .6-1.4z"/></svg></div>
+</div>
+<div class="main">
+  <div class="top">
+    <div class="vs"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg></div>
+    <div class="vs"><svg viewBox="0 0 24 24"><path d="M3 5h18v3H3zm0 5.5h18v3H3zM3 16h18v3H3z"/></svg></div>
+    <div class="vs active"><svg viewBox="0 0 24 24"><path d="M3 4h8v16H3zm10 0h8v7h-8zm0 9h8v7h-8z"/></svg></div>
+    <div class="search"><svg viewBox="0 0 24 24"><path d="M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"/></svg>SEARCH LIBRARY</div>
+  </div>
+  <div class="hero">
+    <div class="art"></div>
+    <svg class="skyline" viewBox="0 0 900 230" preserveAspectRatio="none"><g fill="#0C1414" stroke="#FCEE09" stroke-opacity=".35" stroke-width="1"><path d="M0 230V150h50V90h40v60h30V40h60v110h40V110h70v40h50V70h50V20h40v130h60V100h50v50h60V60h70v170z"/></g><g fill="#FCEE09" fill-opacity=".5"><rect x="170" y="60" width="4" height="4"/><rect x="330" y="124" width="4" height="4"/><rect x="560" y="46" width="4" height="4"/><rect x="760" y="76" width="4" height="4"/></g><g fill="#02D7F2" fill-opacity=".6"><rect x="108" y="120" width="4" height="4"/><rect x="480" y="96" width="4" height="4"/><rect x="650" y="116" width="4" height="4"/></g></svg>
+    <div class="fade"></div>
+    <div class="hero-content">
+      <div class="title">Neon Requiem 2099</div>
+      <div class="actions">
+        <button class="play"><svg viewBox="0 0 24 24"><path d="M6 3l15 9-15 9z"/></svg>Play</button>
+        <div class="sub"><svg viewBox="0 0 24 24"><path d="M12 21l-1.5-1.4C5.4 15.1 2 12 2 8.5 2 5.4 4.4 3 7.5 3c1.7 0 3.400.8 4.5 2.100C13.1 3.8 14.8 3 16.5 3 19.6 3 22 5.4 22 8.500c0 3.500-3.4 6.600-8.5 11.100z"/></svg></div>
+        <div class="sub"><svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z"/></svg></div>
+      </div>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="left">
+      <div class="shots">
+        <div class="arrow">&#8249;</div>
+        <div class="shot sel" style="background:radial-gradient(circle at 60% 40%,#3b3205,#0C1414 70%)"></div>
+        <div class="shot" style="background:radial-gradient(circle at 30% 60%,#053a42,#050A0E 70%)"></div>
+        <div class="shot" style="background:radial-gradient(circle at 70% 70%,#3d0214,#050A0E 70%)"></div>
+        <div class="shot" style="background:radial-gradient(circle at 50% 30%,#2a2603,#141414 70%)"></div>
+        <div class="arrow">&#8250;</div>
+      </div>
+      <div>
+        <h2>Description</h2>
+        <div class="desc">
+          <p>Dive into a sprawling megacity where chrome, neon and debt decide who lives. Hack security grids, rewire your own body and take contracts from fixers who never give their real names.</p>
+          <p>Every choice echoes through the districts. Build a reputation, burn it down, and find out what the city does to people who stop being useful.</p>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="group"><div class="lab">Genres</div><div class="chips"><div class="chip hot">Action RPG</div><div class="chip">Sci-Fi</div><div class="chip">Open World</div></div></div>
+      <div class="group"><div class="lab">Developer</div><div class="val">Vector Shift Studios</div></div>
+      <div class="group"><div class="lab">Release</div><div class="val">2099 <small>&middot; Publisher Arasaka Labs</small></div></div>
+      <div class="group"><div class="lab">Play Time</div><div class="val">48 hours <small>&middot; Last played yesterday</small></div></div>
+      <div class="group"><div class="lab">Tags</div><div class="chips"><div class="chip">Cyberpunk</div><div class="chip">Story Rich</div><div class="chip">Choices Matter</div><div class="chip">First-Person</div></div></div>
+      <div class="group"><div class="lab">Score</div><div class="score">92 <small style="font-size:15px;color:var(--muted)">/ 100</small></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
