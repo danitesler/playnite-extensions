@@ -72,6 +72,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
 | Frontier | 44px compact red painted rail with a ragged edge and black glyphs, 56px top bar ending in a tapered rule, flat near-black page |
 | Netrunner | 44px compact black rail with a 1px red rule, red glyphs, the current item a dark red wash with a red edge bar and a cyan glyph; 56px top bar ending in a tapered dim red rule, blue-black page |
+| Tumbleweed | 44px compact black rail with red pause-stack glyphs (white when current) and a maroon paint splash behind the main menu button; transparent 56px top bar closed by a flat 2px grey rule; library and banner art under a red duotone wash |
 
 ## Game page
 
