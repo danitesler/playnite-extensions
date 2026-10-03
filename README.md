@@ -63,6 +63,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Frontier/art/details.png"><img src="src/themes/Frontier/art/details.png" alt="Frontier details" width="49%" /></a> <a href="src/themes/Frontier/art/settings.png"><img src="src/themes/Frontier/art/settings.png" alt="Frontier settings" width="49%" /></a> |
 | <img src="src/themes/Netrunner/info/icon.png" alt="Netrunner" width="48" height="48" /> | **Netrunner**<br>After the Cyberpunk 2077 menus: red menu ink on blue-black, a dark red selection wash, cyan focus and a cut-corner Play plate. |
 | ↳ | <a href="src/themes/Netrunner/art/details.png"><img src="src/themes/Netrunner/art/details.png" alt="Netrunner details" width="49%" /></a> <a href="src/themes/Netrunner/art/settings.png"><img src="src/themes/Netrunner/art/settings.png" alt="Netrunner settings" width="49%" /></a> |
+| <img src="src/themes/NightCity/info/icon.png" alt="Night City" width="48" height="48" /> | **Night City**<br>After the Cyberpunk 2077 interface: an acid-yellow rail, chamfered yellow Play slab, yellow selection frames and cyan focus on near black. |
+| ↳ | <a href="src/themes/NightCity/art/details.png"><img src="src/themes/NightCity/art/details.png" alt="Night City details" width="49%" /></a> <a href="src/themes/NightCity/art/settings.png"><img src="src/themes/NightCity/art/settings.png" alt="Night City settings" width="49%" /></a> |
 
 ## Installation
 
