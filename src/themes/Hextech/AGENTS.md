@@ -21,32 +21,13 @@ Riot publishes no design system, so there is no pinned spec. The Riot sites (tec
 
 ## Tokens
 
-| Token | Value | Key | Used for |
-|-------|-------|-----|----------|
-| `hx-void` | `#010a13` | `ShellBackgroundBrush`, `PopupBackgroundBrush`, `TooltipBackgroundBrush`, `InputBackgroundBrush`, `TextColorDark`, `CheckBoxCheckMarkBkBrush` | window frame, rail, popups, input wells |
-| `hx-page` | `#050d15` | `WindowBackgourndBrush`, `ContentBackgroundBrush`, `TopPanelBackgroundBrush` | library, game page, toolbar |
-| `hx-card` / `-hover` / `-active` | `#0a141d` / `#14202a` / `#1e282d` | `MainColorDark`, `ExpanderBackgroundBrush` / `HoverBrush`, `ListItemHoverBrush` / `MenuItemHoverBrush`, `TopPanelItemHoverBackgroundBrush`, `SliderTrackBrush` | game list, cards, hover, rails |
-| `hx-button` / `-hover` / `-pressed` | `#1e2328` / `#2b3238` / `#0a0f14` | `ButtonBackgroundBrush` (`MainColor`) / `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` | flat buttons |
-| `hx-gold-6` / `-5` / `-3` | `#463714` / `#785a28` / `#c8aa6e` | `NormalBorderBrush`, `InputBorderBrush`, `PopupBorderBrush`, `ButtonBorderBrush`, `ScrollBarThumbBrush` / `InputHoverBorderBrush`, `CheckBoxBorderBrush`, `ScrollBarThumbHoverBrush`, `GridViewItemHoverBorderBrush` / `GlyphBrush`, `MainMenuButtonForegroundBrush`, `TabItemIndicatorBrush`, `SliderThumbBackgroundBrush` | edges at rest, hovered edges, accent |
-| `hx-gold-7` | `#32281e` | `WindowPanelSeparatorBrush`, `MenuSeparatorBrush`, `SelectedBrush`, `ListItemSelectedBrush`, `TopPanelItemCheckedBackgroundBrush`, `ToggleButtonCheckedBackgroundBrush` | dividers, selected and toggled-on fills |
-| `hx-gold-2` / `-1` | `#cdbe91` / `#f0e6d2` | `ButtonForegroundBrush`, `PropertyItemForegroundBrush` / `TextBrush`, `TooltipForegroundBrush`, `SelectedForegroundBrush` | interactive text, headings and hovered text |
-| `hx-text-muted` | `#a09b8c` | `TextBrushDarker` | secondary text, resting rail and toolbar icons |
-| `hx-blue-4` / `-3` / `-5` / `-1` / `-hi` | `#0a323c` / `#005a82` / `#091428` / `#0ac8b9` / `#cdfafa` | `PrimaryButtonBackgroundBrush` / `…HoverBackgroundBrush` / `…PressedBackgroundBrush` / `PrimaryButtonBorderBrush` (new shared key), `FocusBrush`, `ProgressBarForegroundBrush` / `PrimaryButtonForegroundBrush` | Play button, keyboard focus, progress |
-| `hx-red`, `hx-red-deep`, `hx-amber`, `hx-green` | `#e84057`, `#a72939`, `#c89b3c`, `#0ace83` | `WarningBrush`, `NegativeRatingBrush` / `DangerBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | status |
-
 Radii: 0 (`ControlCornerRadius`, `CornerRadiusSmall`), 2 (`CornerRadiusLarge`), pill for the notification badge. Fonts: Segoe UI body at 12 / 14 / 15 / 20 / 30; **Palatino Linotype** (`HeadingFontFamily`) for the game title and Play, the closest serif Windows ships to the client's Beaufort. Neither client font is bundled.
+
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Notes |
-|-----|-------|-------|
-| `ButtonPadding` | 18,7 | 34px buttons |
-| `InputPadding` | 10,7 | 34px inputs; the search box is 32px |
-| `MenuPadding`, `ComboBoxDropDownPadding` | 2 | popup surface |
-| `MenuItemPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding` | 14,7 / 12,7 / 12,7 | |
-| `GroupBoxPadding` | 16 | |
-| `TooltipPadding` | 10,6 | |
-| `IconSize` | 20 | toolbar icons |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -62,17 +43,9 @@ Radii: 0 (`ControlCornerRadius`, `CornerRadiusSmall`), 2 (`CornerRadiusLarge`), 
 
 ## Components
 
-| Playnite file | Client component |
-|---------------|------------------|
-| `DefaultControls/Button.xaml`, `ToggleButton.xaml` | Flat button: grey fill, dark-gold edge, gold-tan text; hover gold edge and cream text; pressed near-black; toggled on = gold edge and text on a dark-gold wash |
-| `DerivedStyles/PlayButton.xaml` | Hextech Magic button: deep teal fill, 1px `#0ac8b9` edge, fainter inner line, serif bold label |
-| `DefaultControls/TextBox.xaml` | Near-black well, dark-gold edge, gold on hover and focus (`BareTextBox` for hosts that draw their own frame) |
-| `DefaultControls/Menu.xaml`, `ContextMenu.xaml` | Near-black panel, dark-gold edge, gold-tan text turning cream on the hovered (cool grey) row, gold check |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 2px cool-grey rail, gold fill, gold diamond thumb |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | 6px dark-gold thumb, gold when hovered or dragged, no arrows |
-| `DefaultControls/ToolTip.xaml` | Near-black tooltip with a dark-gold edge and cream text |
-
 Everything else (combo boxes, check boxes, tabs, group boxes, list, game page) is Playnite's Default look with this theme's palette.
+
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from the client
 
@@ -87,4 +60,4 @@ Built and statically checked on Linux (`build-theme.ps1` under PowerShell 7). **
 
 ## Preview and screenshots
 
-`art/preview-grid.html` is an approximate HTML replica of the grid view (this theme's token values and sizes; fonts stand in), rendered to `art/preview-grid.png` with `node scripts/render-theme-preview.mjs src/themes/Hextech/art/preview-grid.html`. It is a mockup, not a Playnite capture. Real screenshots (`info/screenshots/grid.png`, `details.png`) come from `.\scripts\take-screenshots.ps1 -Extension hextech` on a local Windows machine (never in a cloud session) and are still to add before the release and the database PR.
+Screenshots in `art/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.

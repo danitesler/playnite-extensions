@@ -70,17 +70,3 @@ User-visible strings live in `src/<Plugin>/Localization/*.xaml`. `en_US.xaml` is
 5. UI touched off the UI thread? Route through `UIDispatcher`.
 6. Persistence wrong? Check `GetSettings`, `BeginEdit`/`EndEdit`, `SavePluginSettings`.
 7. Read Playnite's log (`%AppData%\Playnite\playnite.log`, portable: next to `Playnite.exe`) for your Info/Warn/Error lines. A rate-limited `Logger.Info` behind a setting confirms the plugin runs without flooding.
-
-## Reply footer (required after any build attempt)
-
-```text
-✅ success - built
-Extension: <key>
-Output: artifacts/builds/<key>/
-```
-or
-```text
-❌ error - not build
-Reason: <first error, exit code, or lock message>
-```
-Several keys: list them under `Extension:` or repeat the block.

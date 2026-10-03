@@ -14,33 +14,9 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | Components | same package: AppBar, Toolbar, Drawer, ListItemButton, IconButton, Badge, Button, ToggleButton, FilledInput, Select, Menu, MenuItem, Divider, Card, CardHeader, Checkbox, Radio, Slider, LinearProgress, Tooltip, Tab / Tabs |
 | Icons | Material Icons, filled (`@material-design-icons/svg` 0.14.15, Apache-2.0, `info/LICENSE-material-icons.txt`), the set `@mui/icons-material` wraps |
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | MUI's CSS variables under the names MUI emits with `cssVariables` (`--mui-palette-background-paper`, `--mui-palette-FilledInput-bg`, `--mui-overlays-8`, `--mui-shape-borderRadius`), plus the few dark-mode values MUI's components hard-code. |
-| `src/Common.xaml` | `PopupBorder`, `FocusVisual` (focus state layer), component spacing. |
-| `src/Media.xaml` | Material Icons (Playnite's roles plus arrow_drop_down, chevron_right, check). |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the MUI variable behind each one (paper at elevation N is `mui-overlays-N` over the paper; `alpha(primary.main, selectedOpacity)` is `mui-palette-primary-main/16`).
-
-| Token | Dark value | Key | Used for |
-|-------|------------|-----|----------|
-| `background.default` | `#121212` | `WindowBackgourndBrush` | window, drawer |
-| Paper elevation 1 / 4 / 8 | white 5.1% / 9.2% / 11.9% on `#121212` | `ExpanderBackgroundBrush`, `ButtonBackgroundBrush` / `TopPanelBackgroundBrush` / `PopupBackgroundBrush` | Card / AppBar / Menu, Popover |
-| `text.primary` / `.secondary` | white / white 70% | `TextBrush`, `InputHoverBorderBrush`, `ScrollBarThumbBrush` / `TextBrushDarker`, `CheckBoxBorderBrush`, `GridViewItemHoverBorderBrush` | text, icons, hover underline, scrollbar / secondary text, checkbox outline, cover hover |
-| `primary.main` / `.dark` / `.contrastText` | blue[200] `#90CAF9` / blue[400] `#42A5F5` / black 87% on primary | `GlyphBrush` / `PrimaryButtonHoverBackgroundBrush` / `TextBrushDark` | text buttons, contained buttons, selection, focus lines |
-| `alpha(primary.main, 8% / 16% / 24% / 50%)` | | `ButtonHoverBackgroundBrush`, `CheckBoxCheckedHoverBackgroundBrush` / `SelectedBrush`, `ButtonPressedBackgroundBrush`, `FocusHaloBrush` / `SelectedHoverBrush` / `ButtonBorderBrush` | button hover / selected, pressed, slider halo / selected hover / outlined edge |
-| `action.hover` / `.focus` | white 8% / 12% | `HoverBrush` / `FocusBrush` | hover and focus state layers |
-| `divider` | white 12% | `WindowPanelSeparatorBrush` | separators, toggle and popup edges |
-| `FilledInput.bg` / `.hoverBg`, underline | white 9% / 13%, white 70% | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush` / `InputHoverBackgroundBrush` / `InputBorderBrush` | text fields, selects |
-| `Tooltip.bg`, `common.white` | `grey[700]` at 92%, white | `TooltipBackgroundBrush`, `TooltipForegroundBrush` | tooltips |
-| `LinearProgress.primaryBg` | `darken(primary.main, 0.5)` | `ProgressBarTrackBrush` | progress rail |
-| `error.main` / `.contrastText` | red[500] / white | `DangerBrush`, `WarningBrush` / `DangerForegroundBrush` | close button, notification badge, errors |
-| `warning.main` / `success.main` | orange[400] / green[400] | `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | data-changed, ratings |
-| `action.selected` / `common.white` at 24% | 16% / 24% white | `PropertyItemBackgroundBrush` / `PropertyItemHoverBackgroundBrush` | Chips in the game overview (text `PropertyItemForegroundBrush` = `text.primary`) |
 
 `TextBrushDarker` is `text.secondary` with its alpha (white 70%), as the controls draw it, so Playnite's own views get the same secondary text on every surface.
 
@@ -48,19 +24,13 @@ Action and text colors keep their alpha, as in MUI; popup surfaces and edges are
 
 Sibling theme: swap `--mui-palette-primary-main` / `-dark` / `-contrastText` and `--mui-palette-LinearProgress-primaryBg` for another MUI color (dark-mode primaries are the `[200]` shade).
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | MUI |
-|-----|-------|-----|
-| `ButtonPadding` | 16,9,16,8 | Button medium, 6px 16px |
-| `InputPadding`, `InputBorderThickness`, `InputCornerRadius` | 12,10 / 0,0,0,1 / 4,4,0,0 | FilledInput small, hiddenLabel: underline only, rounded top |
-| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding`, `ComboBoxItemPadding` | 0,8 / 16,9,16,8 | MenuList 8px 0, MenuItem 6px 16px |
-| `ListBoxItemPadding` | 16,8 | ListItemButton 8px 16px |
-| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 16, 0,0,0,16 | CardHeader / CardContent |
-| `TooltipPadding` | 8,4 | Tooltip 4px 8px |
-| `IconSize` | 24 | SvgIcon medium |
-
 `FocusVisual` fills a keyboard-focused control with `action.focus`: Material shows focus as a state layer, not a ring.
+
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -80,29 +50,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 
 ## Components
 
-| Playnite file | MUI component |
-|---------------|---------------|
-| `DefaultControls/Button.xaml` | Button: `text` for regular buttons (primary label, min-width 64, primary 8% on hover), `contained` for `IsDefault`; uppercase medium labels |
-| `DerivedStyles/PlayButton.xaml` | Button `contained` |
-| `DerivedStyles/PropertyItemButton.xaml` | ListItemText value (primary Link on hover); tagged `Chip`, a small filled Chip (`action.selected`, hover one step lighter) |
-| `DefaultControls/ToggleButton.xaml` | ToggleButton: divider edge, `text.secondary`; selected = primary @ 16% with primary text |
-| `DefaultControls/RepeatButton.xaml` | Button `outlined` (primary edge at 50%) |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | FilledInput: 2px primary underline growing from the center on focus (+ `BareTextBox`) |
-| `DefaultControls/ComboBox.xaml` | Select `filled`: ArrowDropDown that turns over while open; Menu paper; selected MenuItem in primary @ 16% (no check) |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | Checkbox, Radio: 18px outline icons, primary when checked, round hover state layer |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | Slider: 4px rail at 38% primary, primary track to the thumb center (`SliderRangeButton`), 20px thumb, 8px / 14px primary halo |
-| `DefaultControls/ProgressBar.xaml` | LinearProgress: square ends, `primaryBg` rail |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | Material dark scrollbar: 8px thumb, `text.primary` at 26% / 50% / 70% |
-| `DefaultControls/ToolTip.xaml` | Tooltip: `Tooltip.bg`, white text, 4px 8px |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | Menu (elevation 8 paper, MenuList 8px 0) and MenuItem (square, action.hover, ListItemIcon column, check icon, body2 shortcut in `text.secondary`, chevron_right for nested menus, dividers with 8px margins) |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | Menu paper, one-line styles `BasedOn` the ContextMenu |
-| `DefaultControls/TabControl.xaml` | Tabs: 48px uppercase tabs, primary text and 2px indicator when selected |
-| `DefaultControls/GroupBox.xaml` | Card: elevation 1, radius 4, padding 16, h6 title |
-| `DefaultControls/ListBox.xaml` | ListItemButton states |
-| `DerivedStyles/DetailsViewItemStyle.xaml` | ListItemButton rows: full width, square, primary @ 16% when selected |
-| `DerivedStyles/GridViewItemStyle.xaml` | 2px cover outline: `text.secondary` on hover, primary when selected |
-| `DerivedStyles/WindowBarButton.xaml` | Dialog title bar buttons: small circular IconButtons, `error.main` close |
-| `DerivedStyles/HighlightBorder.xaml` | FilledInput chrome for Default templates the theme does not replace |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Uppercase labels
 
@@ -119,7 +67,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 
 ## Not verified yet
 
-Built and statically checked on Linux; **not yet loaded in Playnite**. First run: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs. Also: uppercase labels on dialog buttons (icon-only buttons must still show their icon), access-key underscores in button text, checkbox/radio hover halos near panel edges, slider halos, the Select arrow turning over while open, and the menu icon column alignment.
+Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. Also: uppercase labels on dialog buttons (icon-only buttons must still show their icon), access-key underscores in button text, checkbox/radio hover halos near panel edges, slider halos, the Select arrow turning over while open, and the menu icon column alignment.
 
 Layout checks: the app bar color continuing through the drawer's header band, the search widening on focus, Badges on the filter and notification buttons, full-width drawer rows, the FilledInput underline animation in the game edit dialog.
 

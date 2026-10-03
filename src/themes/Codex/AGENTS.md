@@ -18,54 +18,19 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 
 What "copying the menus" means here: the layout, hierarchy, states and motifs are reproduced; the games' logos, art, fonts and icon drawings are not, and would not be shipped. `info/NOTICE-codex.txt` says so in the package.
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | The palette (`.dark`) and the type, size and stroke tokens (`:root`). |
-| `src/Common.xaml` | `FocusVisual`, `HeadingTextBlock`, `CornerMarksTemplate`, `DividerTemplate`, component spacing. |
-| `src/Media.xaml` | `Icon<Role>` geometries (strokes), `IconTemplate` / `IconSmallTemplate`, and the menu icon paths. |
-| `src/Images/Icons/` | The menu icons as 48px PNGs (24 files). |
-| `icons/`, `icons.json` | The SVG sources and the render jobs for `.\scripts\render-icons.ps1 -Extension codex`. Outside `src/`, so not packaged. |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the token behind each one. Translucent tokens keep their alpha; the popup edge is flattened onto the popup surface.
-
-| Token | Value | Key | Used for |
-|-------|-------|-----|----------|
-| `void` | `#090a0c` | `WindowBackgourndBrush`, `ShellBackgroundBrush`, `CheckBoxCheckMarkBkBrush`; at 60% / 85%: `InputBackgroundBrush` / `TopPanelSearchBox*` | window, icon rail, slots inside checkboxes, input fill |
-| `night` | `#0f1114` | `ContentBackgroundBrush`, `NormalBrushDark`, `SliderThumbBackgroundBrush` | the library layer, slider thumb |
-| `slate` | `#15181c` | `NormalBrush`, `ExpanderBackgroundBrush`, `TopPanelBackgroundBrush`; at 70%: the cover slot | top bar, side panels, group boxes |
-| `slate-popup` | `#22272e` | `PopupBackgroundBrush`, `TooltipBackgroundBrush` | menus, dropdowns, tooltips |
-| `ivory` | `#eee9dc` | `TextBrush`, `DangerForegroundBrush`, `SelectedForegroundBrush` | text |
-| `ivory-soft` | `#ada898` | `TextBrushDarker`, `MainMenuButtonForegroundBrush`, `CheckBoxBorderBrush`, `TabItemHoverIndicatorBrush` | secondary text, resting icons |
-| `rule` (ivory 14%) | | `PanelSeparatorBrush`, `WindowPanelSeparatorBrush`, `ProgressBarTrackBrush`, `MenuSeparatorBrush` | hairlines |
-| `rule-strong` (ivory 30%) | | `NormalBorderBrush`, `PopupBorderBrush` (flattened), `SliderTrackBrush`, `ScrollBarThumbBrush`, `ThumbBrush` | control edges |
-| `veil` / `veil-strong` (ivory 6% / 11%) | | `ButtonBackgroundBrush`, `ListItemHoverBrush`, `ScrollBarTrackBrush` / `HoverBrush`, `ButtonHoverBackgroundBrush`, `MenuItemHoverBrush`, `TopPanelItemHoverBackgroundBrush` | glass, hover fills |
-| `gold` | `#c9a24d` | `GlyphBrush`, `FocusBrush`, `PrimaryButtonBackgroundBrush`, `TabItemIndicatorBrush`, `ScrollBarThumbHoverBrush`, `ThumbHoverBrush`, `CheckBoxHoverBorderBrush` | accent: selection, checked, focus, links, tab underline, Play |
-| `gold-bright` | `#e6c877` | `PrimaryButtonHoverBackgroundBrush`, `GridViewItemHoverBorderBrush`, `SliderHoverForegroundBrush`, `SliderThumbHoverBorderBrush` | accent under the pointer |
-| `gold-deep` | `#8a6c2e` | `InputHoverBorderBrush` | input edge on hover |
-| `gold-wash` / `gold-haze` (gold 16% / 32%) | | `SelectedBrush`, `ListItemSelectedBrush`, `ButtonPressedBackgroundBrush`, `ToggleButtonCheckedBackgroundBrush`, `TopPanelItemCheckedBackgroundBrush` / `HighlightGlyphBrush`, `SelectedHoverBrush` | selected and toggled fills |
-| `on-gold` | `#17130a` | `TextBrushDark`, `PrimaryButtonForegroundBrush` | ink on gold |
-| `crimson` / `crimson-bright` | `#b8323a` / `#e0505a` | `DangerBrush` / `WarningBrush`, `NegativeRatingBrush` | close hover / errors, update icon |
-| `verdant`, `amber` | `#8db070`, `#e0a93f` | `PositiveRatingBrush` / `MixedRatingBrush`, `DataChangeNotifBrush` | ratings, unsaved marker |
 
 Type: `FontFamily` is `Segoe UI Semilight, Segoe UI`; the shared key `HeadingFontFamily` is `Palatino Linotype, Book Antiqua, Georgia`. Sizes follow 12 / 14 / 16 / 22 / 30 (`FontSizeSmall` ... `FontSizeLargest`). WPF has no letter-spacing, so the games' tracked capitals are approximated with `Typography.Capitals` small caps in the heading serif (fonts without small caps show the text as typed) and, for tab titles, real capitals through Playnite's `StringToUpperCaseConverter`.
 
 New shared keys this theme added to `scripts/data/theme-keys.json`: `HeadingFontFamily`, `HeadingTextBlock` (caption above a block), `CornerMarksTemplate` (four brackets in the host's Foreground) and `DividerTemplate` (diamond plus fading hairline). Both templates are ControlTemplates for a plain `Control`: `<Control Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource GlyphBrush}" IsHitTestVisible="False" />`.
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Notes |
-|-----|-------|-------|
-| `ButtonPadding` | 18,8 | 36px buttons |
-| `InputPadding` | 10,7 | 34px fields |
-| `MenuPadding`, `ComboBoxDropDownPadding` / `MenuItemPadding` | 4 / 14,8 | 34px items |
-| `ComboBoxItemPadding`, `ListBoxItemPadding` | 12,7 | |
-| `GroupBoxPadding`, `GroupBoxHeaderMargin` | 16, 0,0,0,12 | |
-| `TooltipPadding` | 12,7,12,8 | |
-| `IconSize` | 20 | top bar icons; the rail icons are 18 |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -103,28 +68,7 @@ The Edit button shows only while the pointer is over the header, as in Playnite'
 
 ## Components
 
-| Playnite file | Design |
-|---------------|--------|
-| `DefaultControls/Button.xaml` | Glass plate with a hairline edge; gold edge on hover, gold wash pressed, gold corner brackets on keyboard focus; `IsDefault` = solid gold plate |
-| `DerivedStyles/PlayButton.xaml` | Solid gold plate, dark ink; brightens on hover and closes in four ivory corner brackets |
-| `DefaultControls/ToggleButton.xaml`, `RepeatButton.xaml` | The Button plate; toggled = gold wash and gold edge |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | Inset field (dark fill, hairline edge, square); edge dull gold on hover, gold with keyboard focus; gold selection (+ `BareTextBox`) |
-| `DefaultControls/ComboBox.xaml` | The inset field with a hairline chevron; popup surface with 1px edge; hover veil, a gold diamond before the selected item |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | 16px square slot with a gold diamond when checked (a bar when mixed); the radio is a diamond outline with a gold diamond inside |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | 2px hairline rail, gold range, 14px diamond thumb; hover brightens; keyboard focus draws a larger diamond |
-| `DefaultControls/ProgressBar.xaml` | Faint rail, gold bar, square ends, 33% sliding segment when indeterminate |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | Hairline rail with a 3px thumb that widens to 5px and turns gold on hover or drag (`ScrollBarThumb`); flat thumbs gold on hover |
-| `DefaultControls/ToolTip.xaml` | Popup surface, 1px edge, a 2px gold rule along the top edge |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | Popup surface; items 34px with a veil and a 2px gold bar on the left edge while highlighted, gold check, hairline chevron for submenus, 1px separators |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | One-line styles `BasedOn` the ContextMenu |
-| `DefaultControls/TabControl.xaml` | Tabs like the strip: 1px line on hover, 2px gold line and main ink when selected, on a hairline (strip placement keeps Playnite's template) |
-| `DefaultControls/GroupBox.xaml` | Card on `slate` with a hairline edge; header in small caps over a gold divider |
-| `DefaultControls/ListBox.xaml`, `DerivedStyles/DetailsViewItemStyle.xaml` | Rows: veil on hover, gold wash plus a gold bar for the current item; the details list has a hairline under every row |
-| `DerivedStyles/GridViewItemStyle.xaml` | Cover slot: bright gold hairline and four brackets on hover; 2px gold frame and brackets when current |
-| `DefaultControls/Expander.xaml`, `DerivedStyles/*GroupStyle.xaml` | Hairline gold chevrons; group headers in small caps with the count and a hairline out to the edge |
-| `DerivedStyles/PropertyItemButton.xaml` | Values that filter: ink at rest, gold and underlined on hover; in a list tagged `Chip` (platforms, genres, categories, features, tags) a small square plate: glass fill, hairline edge, gold edge and text on hover |
-| `DerivedStyles/WindowBarButton.xaml` | Dialog caption buttons in the same hairline icons |
-| `DerivedStyles/HighlightBorder.xaml` | Input edge for Default templates the theme does not replace |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations and limits
 
@@ -138,6 +82,6 @@ The Edit button shows only while the pointer is over the header, as in Playnite'
 
 ## Not verified yet
 
-Built and statically checked (`build-theme.ps1`); screenshots are still to add (`info/screenshots/` and the `Screenshots:` block of `danitesler_codex.yaml`) before a database PR. First run: the left icon rail and the top bar's view controls (also with the sidebar on the right, top, or bottom), library (grid, details, list), game context menu, top-bar dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus.
+Built and statically checked (`build-theme.ps1`); screenshots are still to add (`art/` and the `Screenshots:` block of `danitesler_codex.yaml`) before a database PR. First run: the left icon rail and the top bar's view controls (also with the sidebar on the right, top, or bottom), library (grid, details, list), game context menu, top-bar dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus.
 
 Things most likely to need a fix: the caption buttons clearing the top bar; the main menu button on the rail versus the one on the top bar when the sidebar is hidden; the gold bar and diamond on the current rail item (and that the diamond is not clipped); the cover frame in the details header (hidden when there is no cover) and the property pane at narrow widths (two-line captions like "Community Score" in the 120px column, tag plates wrapping, groups collapsing with their rule); the corner brackets around covers (drawn 4px outside, in the grid gutter, so clipped if `ItemSpacingMargin` is 0); small caps and the diamond dividers with the fonts actually installed; the gold selected row in the List view; the description text color (Color keys); the diamond slider thumb sitting on top of the range; how the 34px menu items read in the game context menu; and every value in `tokens.css` and `Common.xaml` against the games themselves.

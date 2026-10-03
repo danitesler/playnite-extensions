@@ -1,0 +1,174 @@
+<!doctype html>
+<!-- Dropzone: approximate HTML replica of Playnite Settings view -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dropzone - Settings Preview</title>
+<style>
+  :root {
+    --screen-bg: #0e162b; --screen-deep: #080712; --rail: #0e1834; --panel: #0c2162;
+    --menu-item: #0840a7; --text: #ffffff; --muted: #9ba3aa; --on-light: #0f0d1c;
+    --cyan: #33daff; --icon-blue: #33aaff; --play: #f7ff1a;
+    --blue-button: #0055fe; --blue-button-edge: #007fff;
+    --slider-track: #000033; --slider-fill: #0055fe; --slider-thumb: #33daff;
+    --border: rgba(255, 255, 255, 0.12); --radius: 8px; --radius-large: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1600px; height: 900px; overflow: hidden; background: #060a14; color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .head {
+    font-family: "Bahnschrift", "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 800; font-stretch: condensed; text-transform: uppercase; letter-spacing: 0.02em;
+  }
+  .dialog {
+    width: 1220px; height: 760px; background: var(--screen-bg); border: 1px solid var(--border);
+    border-radius: var(--radius-large); display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.8); overflow: hidden;
+  }
+  .title-bar {
+    height: 48px; background: var(--screen-deep); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 20px; font-size: 16px;
+  }
+  .win-controls { margin-left: auto; display: flex; gap: 8px; }
+  .win-btn { width: 14px; height: 14px; border-radius: 50%; background: var(--border); }
+  .dialog-body { flex: 1; display: flex; overflow: hidden; }
+  .sidebar {
+    width: 250px; background: var(--rail); border-right: 1px solid var(--border);
+    padding: 16px 10px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .nav-item {
+    padding: 10px 16px; border-radius: var(--radius); color: var(--muted);
+    font-size: 15px; cursor: pointer;
+  }
+  .nav-item.active { background: var(--menu-item); color: #ffffff; }
+  .content { flex: 1; padding: 32px 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
+  .section-title { font-size: 24px; margin-bottom: 4px; color: var(--text); }
+  .section-desc { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-large);
+    padding: 24px; display: flex; flex-direction: column; gap: 20px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 14px; color: var(--cyan); letter-spacing: 0.03em; }
+  .field-help { font-size: 12px; color: var(--muted); }
+  .input-text {
+    height: 38px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255,255,255,0.16);
+    border-radius: var(--radius); padding: 0 14px; color: var(--text); font-size: 13px;
+    outline: none; width: 360px; font-family: "Segoe UI", sans-serif;
+  }
+  .input-text:focus { border-color: var(--cyan); }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .checkbox {
+    width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--cyan);
+    background: var(--blue-button); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #ffffff; font-size: 12px; font-weight: bold;
+  }
+  .checkbox.unchecked { background: rgba(0, 0, 0, 0.3); border-color: rgba(255,255,255,0.2); }
+  .radio {
+    width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--cyan);
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); }
+  .radio.unselected { border-color: rgba(255,255,255,0.2); }
+  .radio.unselected .radio-dot { display: none; }
+  .slider-bar {
+    width: 320px; height: 6px; background: var(--slider-track); border-radius: 3px;
+    position: relative; display: flex; align-items: center;
+  }
+  .slider-fill { width: 65%; height: 100%; background: var(--slider-fill); border-radius: 3px; }
+  .slider-thumb {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--slider-thumb);
+    border: 2px solid #ffffff; position: absolute; left: 65%; transform: translateX(-50%);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  }
+  .select-box {
+    width: 360px; height: 38px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255,255,255,0.16);
+    border-radius: var(--radius); padding: 0 14px; color: var(--text); font-size: 13px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dialog-footer {
+    height: 64px; background: var(--screen-deep); border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end; padding: 0 28px; gap: 12px;
+  }
+  .btn {
+    height: 40px; padding: 0 24px; border-radius: var(--radius); font-size: 15px;
+    cursor: pointer; border: none; display: flex; align-items: center;
+  }
+  .btn-primary {
+    background: var(--blue-button); border: 1px solid var(--blue-button-edge);
+    color: #ffffff; box-shadow: 0 2px 10px rgba(0, 85, 254, 0.4);
+  }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+</style>
+</head>
+<body>
+<div class="dialog">
+  <div class="title-bar">
+    <span class="head">Dropzone Settings</span>
+    <div class="win-controls"><div class="win-btn"></div></div>
+  </div>
+  <div class="dialog-body">
+    <div class="sidebar">
+      <div class="nav-item head">General</div>
+      <div class="nav-item head active">Appearance</div>
+      <div class="nav-item head">Layout</div>
+      <div class="nav-item head">Audio / Input</div>
+      <div class="nav-item head">Account</div>
+    </div>
+    <div class="content">
+      <div>
+        <div class="section-title head">Appearance & Theme Options</div>
+        <div class="section-desc">Adjust theme controls, elevation, accents, and visual hierarchy.</div>
+      </div>
+      <div class="card">
+        <div class="field">
+          <div class="field-label head">Header Display Name</div>
+          <input class="input-text" type="text" placeholder="Enter collection title..." value="Main Game Collection" />
+        </div>
+        <div class="field">
+          <div class="field-label head">Theme Mode</div>
+          <div class="select-box">
+            <span>Dark Theme (Default)</span>
+            <span style="font-size: 10px; color: var(--muted);">&#9660;</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="checkbox">&#10003;</div>
+          <div>
+            <div class="field-label head" style="color: var(--text); font-size: 13px;">Show glowing selection borders</div>
+            <div class="field-help">Highlights active and focused library items with the theme accent.</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="checkbox unchecked"></div>
+          <div>
+            <div class="field-label head" style="color: var(--text); font-size: 13px;">Compact game details pane</div>
+            <div class="field-help">Minimize extra margins around metadata chips and screenshots.</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label head">Banner Scrim Opacity (65%)</div>
+          <div class="slider-bar">
+            <div class="slider-fill"></div>
+            <div class="slider-thumb"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="radio"><div class="radio-dot"></div></div>
+          <div class="field-label head" style="color: var(--text); font-size: 13px;">Standard animations</div>
+          <div class="radio unselected" style="margin-left: 20px;"><div class="radio-dot"></div></div>
+          <div class="field-label head" style="color: var(--text); font-size: 13px;">Reduced motion</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="dialog-footer">
+    <button class="btn btn-secondary head">Cancel</button>
+    <button class="btn btn-primary head">Save Settings</button>
+  </div>
+</div>
+</body>
+</html>

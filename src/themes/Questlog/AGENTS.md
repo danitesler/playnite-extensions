@@ -22,61 +22,17 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | Paper | `art/parchment.py`: a seamless procedural tile (`src/Images/parchment.png`) |
 | Playnite mechanics | Playnite 10.60 Default theme (`scripts/data/playnite-theme-api.json`); `DescriptionView.html` and `ThemeFile` behavior read from `source/Playnite.DesktopApp/Controls/Views/GameOverview.cs` and `source/Playnite/Controls/HtmlTextView.cs` |
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | The client's constants under their own names (`NORMAL_FONT_COLOR`, `TOOLTIP_DEFAULT_BACKGROUND_COLOR`, `EPIC_PURPLE_COLOR`, ...) and the approximated art colors. |
-| `src/Common.xaml` | `PopupBorder`, `FocusVisual`, `CheckBoxFocusVisual`, component spacing, `IconSize`. |
-| `src/Media.xaml` | Glyph geometries (generated block, `python3 art/glyphs.py media`), `IconTemplate`, the search icons, the menu icon paths (`Images/Menu/*.png`), `DefaultGameIcon` and `DefaultGameCover` (the question mark). |
-| `src/DescriptionView.html` | The template Playnite renders the game description with: dark ink on paper. Carries its colors as literals (see Deviations). |
-| `src/Images/` | `Menu/*.png` (48px), `questionmark.png`, `cover.png`, `parchment.png`. |
-| `src/Views/DetailsViewGameOverview.xaml`, `GridViewGameOverview.xaml` | The quest log page (details view and grid view side panel). |
-| `art/` | Sources of the artwork (`glyphs.py`, `menu_icons.py`, `parchment.py`, `mark.svg` for the tile). Not shipped. |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the token behind each one. Gradient keys (buttons, frame, bars, page, row highlights) are `LinearGradientBrush`; ThemeModifier's solid-color editor does not recolor those stops.
 
-| Token | Value | Key | Used for |
-|-------|-------|-----|----------|
-| `HIGHLIGHT_FONT_COLOR` | `#ffffff` | `TextBrush`, `SelectedForegroundBrush` | values, body text, list rows |
-| `NORMAL_FONT_COLOR` | `#ffd100` | `GlyphBrush`, `ButtonForegroundBrush`, `FocusBrush`, `MixedRatingBrush` | labels, headings, button text, checked marks, accent, focus |
-| `NORMAL_FONT_COLOR` at 28 / 60 / 45 % | | `HoverBrush` / `HighlightGlyphBrush` / `SelectedBrush` | mouse highlight, selected band |
-| `NORMAL_FONT_COLOR` gradient at 30 to 6 % / 52 to 14 % / 42 to 12 % | | `ListItemHoverBrush` / `ListItemSelectedBrush` / `MenuItemHoverBrush` | quest log row highlight, menu highlight (UI-Common-MouseHilight) |
-| `POOR_GRAY_COLOR` | `#9d9d9d` | `TextBrushDarker` | secondary text, uninstalled games |
-| `QUEST_FONT_COLOR` | `#000000` | `TextBrushDark`, `ParchmentTitleBrush` | ink on gold, outlines, headings on paper |
-| `ITEM_TEXT_FONT_COLOR`, `QUEST_SMALL_FONT_COLOR`, `PARCHMENT_LINK` | `#2e1f0f`, `#4d2e00`, `#7a1a0a` | `ParchmentTextBrush`, `ParchmentLabelBrush`, `DescriptionView.html` | body, labels and links on paper |
-| `PARCHMENT_HIGHLIGHT` / `PARCHMENT` / `PARCHMENT_SHADE` / `PARCHMENT_EDGE` | | `ParchmentBrush` (gradient), `ParchmentEdgeBrush` | the page and its shaded rim |
-| `TOOLTIP_DEFAULT_BACKGROUND_COLOR` | `#171730` | `PopupBackgroundBrush`, `TooltipBackgroundBrush` | tooltips, menus, dropdown lists, the property list |
-| `TEXTURE_TOOLTIP_BORDER` | `#c9c9c9` | `PopupBorderBrush` | the light 2px popup edge |
-| `PANEL_FILL`, `DIALOG_BG_DARK` | `#2a241c`, `#0d0b08` | `NormalBrush`, `NormalBrushDark` | control surface, darker surface |
-| `DIALOG_BG_TOP` to `DIALOG_BG_BOTTOM` | `#211c16` to `#14110c` | `WindowBackgourndBrush`, `ContentBackgroundBrush` (to `DIALOG_BG_DARK`) | window and dialog background, the library layer |
-| `STONE_LIGHT` to `STONE_DARK` | `#362f26` to `#1c1813` | `ShellBackgroundBrush` (horizontal) | sidebar |
-| `FRAME_HIGHLIGHT` / `FRAME_GOLD` / `FRAME_BRONZE` | `#f4dc8e` / `#c99a3e` / `#7c5820` | `FrameBrush` (diagonal gradient), `PanelSeparatorBrush`, `WindowPanelSeparatorBrush`, `MenuSeparatorBrush`, `CheckBoxBorderBrush`, `GridViewItemHoverBorderBrush` | frame ring, dividers, hover edges |
-| `FRAME_SHADOW` | `#3d2810` | `FrameInnerBrush` | line just inside the frame |
-| `SLOT_FILL_BOTTOM`, `SLOT_EDGE_LIGHT` / `SLOT_EDGE` / `SLOT_EDGE_DARK` | | `GridItemBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `SlotBorderBrush` | the dark bed behind covers and icon slots, the bevel |
-| `FIELD_BACKGROUND`, `FIELD_BORDER`, `FIELD_BORDER_HOVER` | `#050403`, `#8b7548`, `#b39a63` | `InputBackgroundBrush`, `NormalBorderBrush`, `InputBorderBrush`, `InputHoverBorderBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush`, `ScrollBarTrackBrush` | edit boxes, grooves and troughs |
-| `BUTTON_RED_HIGHLIGHT` / `BUTTON_RED` / `BUTTON_RED_SHADOW` | `#8e3320` / `#5d170d` / `#3a0c07` | `ButtonBackgroundBrush` (gradient) | button face |
-| `BUTTON_HOVER_*`, `BUTTON_RED_PRESSED`, `BUTTON_EDGE` | | `ButtonHoverBackgroundBrush`, `ButtonPressedBackgroundBrush`, `ButtonBorderBrush`, `PrimaryButton*Brush`, `ToggleButtonCheckedBackgroundBrush`, `DangerBrush` | hover, pressed, edge, Play, close button hover |
-| `KNOB_LIGHT` / `KNOB` / `KNOB_DARK` | `#efdcae` / `#c2a468` / `#8d7440` | `ScrollBarThumbBrush`, `ThumbBrush`, `SliderThumbBackgroundBrush` | scroll knob, slider plate |
-| `CASTING_BAR_COLOR` (+ `_HIGHLIGHT`, `_SHADOW`) | `#ffb200` | `ProgressBarForegroundBrush` | progress bars |
-| `UNCOMMON_GREEN_COLOR`, `RED_FONT_COLOR`, `LEGENDARY_ORANGE_COLOR` | `#1eff00`, `#ff1a1a`, `#ff8000` | `PositiveRatingBrush`, `NegativeRatingBrush` / `WarningBrush`, `DataChangeNotifBrush` | scores, warnings, unsaved marker |
-
 Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`. Sizes 12 / 14 / 16 / 20 / 28 (the client sets its UI at 13 and its large headings at 16 and 20).
+
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
 ## Component spacing (`src/Common.xaml`)
 
-| Key | Value | Client |
-|-----|-------|--------|
-| `ButtonPadding` | 14,4,14,5 | `UIPanelButtonTemplate`, 21px face, text 14px in from the caps |
-| `InputPadding` | 8,3,8,3 | `InputBoxTemplate`, 20px field |
-| `MenuPadding`, `ComboBoxDropDownPadding` | 5 | tooltip and dropdown backdrops inset their content by 5px |
-| `MenuItemPadding`, `ComboBoxItemPadding`, `ListBoxItemPadding` | 10,4 / 8,4 / 8,4 | dropdown and quest log rows |
-| `GroupBoxPadding`, `GroupBoxHeaderPadding`, `GroupBoxHeaderFontSize` | 12 / 12,6 / 16 | options frame, `GameFontNormalLarge` |
-| `TooltipPadding` | 10,8 | 5px backdrop inset plus air |
-| `IconSize` | 20 | micro menu glyphs |
-| `FrameThickness` | 3 | dialog border ring |
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -101,22 +57,7 @@ Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia,
 
 ## Components
 
-| Playnite file | Client component | Notes |
-|---------------|------------------|-------|
-| `DefaultControls/Button.xaml`, `RepeatButton.xaml`, `ToggleButton.xaml`, `DerivedStyles/PlayButton.xaml` | `UIPanelButtonTemplate` | plain red face, one gold edge, gold text with a 1px shadow (`DropShadowEffect`, blur 0), hover lightens the face and the edge, pressed goes dark and nudges the text; disabled goes gray (Opacity restored to 1). Play is one step brighter with white 16px text |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml`, `CustomControls/SearchBox.xaml` | `InputBoxTemplate` | near-black field, a single tan edge that turns gold on `IsKeyboardFocusWithin` |
-| `DefaultControls/ComboBox.xaml` | `UIDropDownMenuTemplate` | the same field with a borderless gold triangle; the list is a tooltip-style popup with one edge |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | `UI-CheckBox`, `UI-RadioButton` | 20px dark box / disc, one gold edge, gold tick / dot |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | `OptionsSliderTemplate` | dark groove, red leather fill (`SliderRangeButton`), beige plate (`SliderThumb`) |
-| `DefaultControls/ProgressBar.xaml` | casting bar | gold fill under a lit line; Playnite's indeterminate animation; host `BorderThickness 0` removes the edge |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | `UIPanelScrollBarTemplate` | 16px groove, arrow buttons at both ends (`ScrollBarArrowButton`), beige knob with three grip lines (`ScrollBarThumb`) |
-| `DefaultControls/TabControl.xaml` | `CharacterFrameTabButtonTemplate` | plain text tabs, no strip line; the current tab is gold text on a faint gold wash |
-| `DefaultControls/ToolTip.xaml`, `ContextMenu.xaml`, `Menu.xaml`, `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | `GameTooltip`, `UIDropDownMenuButtonTemplate` | navy, a single 1px light edge, gold mouse highlight rows, gold check and submenu glyphs; menu separators are a faint line |
-| `DefaultControls/GroupBox.xaml` | options frame | gold 16px title, no frame and no rule under it |
-| `DerivedStyles/PropertyItemButton.xaml` | tooltip lines, item slots | values that filter: white, gold under the pointer; in a list tagged `Chip` a plain dark bed, gold text on hover |
-| `DefaultControls/ListBox.xaml`, `ListView.xaml`, `DerivedStyles/DetailsViewItemStyle.xaml`, `GridViewItemStyle.xaml` | quest log rows, action button slots | gold wash on hover and when selected, no row rules; covers get a 1px gold line on hover and when selected |
-| `DefaultControls/Expander.xaml`, `DerivedStyles/*GroupStyle.xaml` | quest log zone headers | a 14px plus / minus box, the group name in gold, the count in gray |
-| `DerivedStyles/NotificationMessage.xaml`, `Views/SearchView.xaml` | tracker messages, search results | dark glass, gold hover; the search list uses the quest log highlights instead of Playnite's blue |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from the client
 
@@ -144,6 +85,6 @@ python3 scripts/render-addon-icon.py --svg src/themes/Questlog/art/mark.svg --ex
 
 ## Not verified yet
 
-Built and statically checked on Linux (the repo's `build-theme.ps1` and `validate-extension.ps1` under PowerShell 7, plus a lint of every XAML file against the .NET Framework 4.6.2 WPF reference assemblies: element, property, attached property, `TemplateBinding` and `TargetName` names, checked on Playnite's own Default theme first); **never loaded in Playnite**, so no screenshot exists yet (`info/danitesler_questlog.yaml` has no `Screenshots`; add `info/screenshots/*.png` and the entries once it runs).
+Built and statically checked on Linux (the repo's `build-theme.ps1` and `validate-extension.ps1` under PowerShell 7, plus a lint of every XAML file against the .NET Framework 4.6.2 WPF reference assemblies: element, property, attached property, `TemplateBinding` and `TargetName` names, checked on Playnite's own Default theme first); **never loaded in Playnite**, so no screenshot exists yet (`info/danitesler_questlog.yaml` has no `Screenshots`; add `art/*.png` and the entries once it runs).
 
-First run: library (grid, details, list), the quest log page with a game that has a description, notes and scores, the game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Also: how the `DropShadowEffect` on buttons looks with ClearType, the `OpacityMask` vignette and the tiled paper in the overview (`BitmapCache`), the plaque title at different dialog widths, `ImageBrush` with `{ThemeFile}` inside a control template, the scroll bar arrows on horizontal bars, whether Constantia is picked when Friz Quadrata is missing, and how the 16px scroll bar sits in `DetailsScrollViewer`'s 17px margin, and the tooltip pane with every field on and with few (spacing between groups, item slots wrapping, two-line captions such as "Completion Status" in the 108px column).
+First run checklist: follow standard list in `../AGENTS.md`. Also: how the `DropShadowEffect` on buttons looks with ClearType, the `OpacityMask` vignette and the tiled paper in the overview (`BitmapCache`), the plaque title at different dialog widths, `ImageBrush` with `{ThemeFile}` inside a control template, the scroll bar arrows on horizontal bars, whether Constantia is picked when Friz Quadrata is missing, and how the 16px scroll bar sits in `DetailsScrollViewer`'s 17px margin, and the tooltip pane with every field on and with few (spacing between groups, item slots wrapping, two-line captions such as "Completion Status" in the 108px column).

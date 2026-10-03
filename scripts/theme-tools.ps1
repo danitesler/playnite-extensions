@@ -727,8 +727,10 @@ function Test-ThemeBuild {
 
 function Get-PlayniteThemesRoot {
     # Installed Playnite keeps user themes under %AppData%\Playnite\Themes; portable installs keep them next to Playnite.exe.
-    if ($env:APPDATA) {
-        $candidate = Join-Path $env:APPDATA "Playnite/Themes"
+    param([string]$DataPath = "")
+    $dp = if ($DataPath) { $DataPath } else { Get-PlayniteDataPath }
+    if ($dp) {
+        $candidate = Join-Path $dp "Themes"
         if (Test-Path $candidate) {
             return (Resolve-Path $candidate).Path
         }
@@ -736,3 +738,208 @@ function Get-PlayniteThemesRoot {
 
     return $null
 }
+
+function Get-PlayniteDataPath {
+    param(
+        [string]$DataPath = "",
+        [string]$DeployPath = ""
+    )
+
+    if ($DataPath -and (Test-Path $DataPath)) {
+        return (Resolve-Path $DataPath).Path
+    }
+    if ($DeployPath) {
+        $parent = Split-Path $DeployPath -Parent
+        if (Test-Path (Join-Path $parent "config.json")) {
+            return (Resolve-Path $parent).Path
+        }
+    }
+    if ($env:APPDATA) {
+        $candidate = Join-Path $env:APPDATA "Playnite"
+        if (Test-Path $candidate) {
+            return (Resolve-Path $candidate).Path
+        }
+    }
+
+    return $null
+}
+
+function Get-PlayniteExePath {
+    param(
+        [string]$PlayniteExe = "",
+        [ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop",
+        [string]$DataPath = ""
+    )
+
+    if ($PlayniteExe -and (Test-Path $PlayniteExe)) {
+        return (Resolve-Path $PlayniteExe).Path
+    }
+
+    $exeName = if ($Mode -eq "Fullscreen") { "Playnite.FullscreenApp.exe" } else { "Playnite.DesktopApp.exe" }
+    $candidates = @()
+    if ($env:LOCALAPPDATA) {
+        $candidates += (Join-Path $env:LOCALAPPDATA "Playnite\$exeName")
+    }
+    if ($DataPath) {
+        $candidates += (Join-Path $DataPath $exeName)
+    }
+    if ($env:ProgramFiles) {
+        $candidates += (Join-Path $env:ProgramFiles "Playnite\$exeName")
+    }
+    if (${env:ProgramFiles(x86)}) {
+        $candidates += (Join-Path ${env:ProgramFiles(x86)} "Playnite\$exeName")
+    }
+
+    foreach ($c in $candidates) {
+        if ($c -and (Test-Path $c)) {
+            return (Resolve-Path $c).Path
+        }
+    }
+
+    return $null
+}
+
+function Get-PlayniteProcess {
+    param(
+        [ValidateSet("Desktop", "Fullscreen", "Any")] [string]$Mode = "Any"
+    )
+
+    $names = switch ($Mode) {
+        "Desktop"    { @("Playnite.DesktopApp", "Playnite.BrowserProcess") }
+        "Fullscreen" { @("Playnite.FullscreenApp", "Playnite.BrowserProcess") }
+        default      { @("Playnite.DesktopApp", "Playnite.FullscreenApp", "Playnite.BrowserProcess") }
+    }
+
+    return @(Get-Process -Name $names -ErrorAction SilentlyContinue)
+}
+
+function Stop-PlayniteApp {
+    param(
+        [string]$PlayniteExe = "",
+        [int]$TimeoutSeconds = 15
+    )
+
+    $running = @(Get-PlayniteProcess)
+    if ($running.Count -eq 0) { return }
+
+    Write-Host "Playnite is currently open. Closing gracefully..."
+    if ($PlayniteExe -and (Test-Path $PlayniteExe)) {
+        Start-Process -FilePath $PlayniteExe -ArgumentList "--shutdown" -ErrorAction SilentlyContinue | Out-Null
+    } else {
+        $running | ForEach-Object { $_.CloseMainWindow() | Out-Null }
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        $stillRunning = @(Get-PlayniteProcess)
+        if ($stillRunning.Count -eq 0) { break }
+        Start-Sleep -Milliseconds 300
+    }
+
+    $stillRunning = @(Get-PlayniteProcess)
+    if ($stillRunning.Count -gt 0) {
+        Write-Host "Playnite did not close within $TimeoutSeconds seconds; stopping forcefully..."
+        $stillRunning | Stop-Process -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Milliseconds 800
+
+    $dp = Get-PlayniteDataPath
+    if ($dp) {
+        $flag = Join-Path $dp "safestart.flag"
+        if (Test-Path $flag) { Remove-Item $flag -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+function Set-PlayniteActiveTheme {
+    param(
+        [Parameter(Mandatory = $true)] [string]$ThemeId,
+        [ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop",
+        [string]$DataPath = ""
+    )
+
+    $resolvedDataPath = if ($DataPath) { $DataPath } else { Get-PlayniteDataPath }
+    if (-not $resolvedDataPath) {
+        Write-Warning "Could not find Playnite data folder to set active theme."
+        return $false
+    }
+
+    $configPath = Join-Path $resolvedDataPath "config.json"
+    if (-not (Test-Path $configPath)) {
+        Write-Warning "config.json not found at $configPath."
+        return $false
+    }
+
+    $running = @(Get-PlayniteProcess)
+    if ($running.Count -gt 0) {
+        Write-Warning "Playnite is currently running. Changes to config.json would be overwritten on shutdown. Stop Playnite first or use -Restart."
+        return $false
+    }
+
+    try {
+        $cfg = Get-Content $configPath -Raw | ConvertFrom-Json
+        $propName = if ($Mode -eq "Fullscreen") { "FullscreenTheme" } else { "Theme" }
+        $cfg.$propName = $ThemeId
+        $json = $cfg | ConvertTo-Json -Depth 32
+        [System.IO.File]::WriteAllText($configPath, $json, [System.Text.UTF8Encoding]::new($false))
+        return $true
+    }
+    catch {
+        Write-Warning "Failed to update active theme in $($configPath): $_"
+        return $false
+    }
+}
+
+function Start-PlayniteApp {
+    param(
+        [string]$PlayniteExe = "",
+        [ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop",
+        [string]$DataPath = ""
+    )
+
+    $resolvedExe = if ($PlayniteExe) { $PlayniteExe } else { Get-PlayniteExePath -PlayniteExe $PlayniteExe -Mode $Mode -DataPath $DataPath }
+    if (-not $resolvedExe -or -not (Test-Path $resolvedExe)) {
+        Write-Warning "Playnite executable not found. Pass -PlayniteExe <path>."
+        return $false
+    }
+
+    # Ensure any lingering process has completely exited so mutex is released
+    $timeout = (Get-Date).AddSeconds(5)
+    while ((Get-Date) -lt $timeout) {
+        $lingering = @(Get-PlayniteProcess -Mode $Mode)
+        if ($lingering.Count -eq 0) { break }
+        Start-Sleep -Milliseconds 300
+    }
+
+    # Remove safestart.flag if left behind so Playnite launches normally without a crash prompt
+    $dp = if ($DataPath) { $DataPath } else { Get-PlayniteDataPath }
+    if ($dp) {
+        $flag = Join-Path $dp "safestart.flag"
+        if (Test-Path $flag) { Remove-Item $flag -Force -ErrorAction SilentlyContinue }
+    }
+
+    $workDir = Split-Path $resolvedExe -Parent
+    Write-Host "Launching Playnite ($resolvedExe)..."
+
+    # Launch detached via WMI so Playnite survives after the calling PowerShell/agent process terminates
+    $launched = $false
+    try {
+        $cmdLine = "`"$resolvedExe`""
+        $result = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+            CommandLine      = $cmdLine
+            CurrentDirectory = $workDir
+        } -ErrorAction Stop
+        if ($result.ReturnValue -eq 0) {
+            $launched = $true
+        }
+    }
+    catch {
+        # Fall back to Start-Process if WMI is unavailable
+    }
+
+    if (-not $launched) {
+        Start-Process -FilePath $resolvedExe -WorkingDirectory $workDir
+    }
+
+    return $true
+}
+

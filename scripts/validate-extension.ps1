@@ -192,7 +192,7 @@ if (Test-Path $databasePath) {
                 $relative = $match.Groups[1].Value
                 if ($relative -eq $profile.installerManifest -or -not $linked.Add($relative)) { continue }
                 if (-not (Test-Path (Join-RepoPath $relative))) {
-                    $errors.Add("Database manifest links $relative, which does not exist. Add the file (screenshots: capture them in Playnite) before submitting.")
+                    $errors.Add("Database manifest links $relative, which does not exist. Add the file (screenshots: render them with .\scripts\take-screenshots.ps1) before submitting.")
                 }
             }
         }

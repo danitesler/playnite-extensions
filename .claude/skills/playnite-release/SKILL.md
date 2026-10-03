@@ -37,12 +37,13 @@ Full database procedure: [addon-database.md](addon-database.md).
 .\scripts\validate-extension.ps1 -Extension <key> -Mode Package   # metadata + expected PackageUrl
 ```
 
-   Output: `artifacts/releases/<key>/` (themes: `artifacts/releases/themes/<key>/`) with a zip and the Toolbox package. Packaging does not compile: it expects the build output (`bin/Release/net462/` for plugins, `artifacts/builds/themes/<key>/` for themes). `-VerifyInstaller` tolerates a `PackageUrl` that is not live yet; add `-StrictInstallerVerification` after the release exists. Theme `-Mode Package` fails until the `Screenshots` listed in the database manifest exist under `info/screenshots/`.
-5. **Screenshots (themes always, other add-ons with UI on first listing or a visual change):** on the user's Windows machine run `.\scripts\take-screenshots.ps1 -Extension <key> -CloseRunning`. It builds and deploys the theme, opens Playnite by itself, switches it to the theme, saves `info/screenshots/grid.png` and `details.png`, closes Playnite and restores the user's config. Look at the images (layout, no private games or notifications), commit them to `main` with the version commit, list them in the `Screenshots:` block of `danitesler_<key>.yaml`, and add them to the release notes. **Never run it in a cloud/Linux session** (repo rule: no Playnite on servers); there, say the screenshots are pending and stop, do not substitute the HTML mockup for a release.
+   Output: `artifacts/releases/<key>/` (themes: `artifacts/releases/themes/<key>/`) with a zip and the Toolbox package. Packaging does not compile: it expects the build output (`bin/Release/net462/` for plugins, `artifacts/builds/themes/<key>/` for themes). `-VerifyInstaller` tolerates a `PackageUrl` that is not live yet; add `-StrictInstallerVerification` after the release exists. Theme `-Mode Package` fails until the `Screenshots` listed in the database manifest exist under `art/`.
+5. **Screenshots (themes always, other add-ons with UI on first listing or a visual change):** run `.\scripts\take-screenshots.ps1 -Extension <key>`. It renders the theme's HTML preview templates (`art/preview-details.html` and `art/preview-settings.html`) using Chromium / Playwright, saving `art/details.png` and `settings.png` (and automatically cleaning up any legacy `grid.png`). Check the images, commit them to `main` with the version commit, list them in the `Screenshots:` block of `danitesler_<key>.yaml`, and add them to the release notes. Playnite itself is never launched or captured directly.
 6. When the user says to publish, in this order (the raw manifest URL points at `main` and the package URL at the release, so both must exist or auto-update breaks):
    1. `gh release create <tag> <package> [zip] --title "<Name> <version>" --notes "<changelog>"` (this add-on only).
-   2. Merge/push the version commit to `main`.
-   3. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
+   2. Update its title link in root `README.md` to point to the new release (`https://github.com/danitesler/playnite-extensions/releases/tag/<tag>`).
+   3. Merge/push the version commit to `main`.
+   4. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
 7. Verify: `curl -sI <PackageUrl>` returns 200 (after redirects); `curl -s <InstallerManifestUrl>` shows the new top entry.
 
 `Toolbox.exe` is found automatically (`%LOCALAPPDATA%\Playnite`, Program Files, PATH, `%TEMP%`; override `-ToolboxExe` or `$env:TOOLBOX_EXE`). Manual: `Toolbox.exe verify Installer <InstallerManifest.yaml>`, `Toolbox.exe pack <build dir> <out dir>`.
@@ -50,12 +51,3 @@ Full database procedure: [addon-database.md](addon-database.md).
 ## Installer manifest shape
 
 `src/<AddOn>/info/InstallerManifest.yaml` is minimal: `AddonId` + `Packages`. Name, description, URLs and icon live in `extension.yaml`/`theme.yaml` and `danitesler_<key>.yaml`. Validation reads the **first** package: its version must equal the manifest's and its `PackageUrl` must match the tag and package name. `AddonId` never changes (a new id is a new add-on and breaks auto-update).
-
-## Reply footer (required after packaging)
-
-```text
-✅ success - release packaged
-Extension: <key>
-Output: artifacts/releases/<key>/
-```
-or `❌ error - not release` with `Reason: <first error, exit code, Toolbox path, or validation message>`. Several keys: list them under `Extension:`.

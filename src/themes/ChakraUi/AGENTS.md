@@ -14,63 +14,21 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | Components | same package, `recipes/`: button, input, select, checkbox + checkmark, radio-group + radiomark, slider, progress, tabs, tooltip, menu, card, listbox, table, segment-group, scroll-area, badge; `preset-base.ts` (`focusVisibleRing`) |
 | Icons | lucide 1.48.0 (ISC, `info/LICENSE-lucide.txt`); Chakra's docs use lucide through `react-icons/lu` |
 
-## Files
-
-| Path | Role |
-|------|------|
-| `src/tokens.css` | Chakra's CSS variables under the names Chakra emits (`--chakra-colors-bg-panel`, `--chakra-radii-l2`, the virtual `--chakra-colors-color-palette-*`). |
-| `src/Common.xaml` | `PopupBorder`, `FocusVisual`, recipe spacing. |
-| `src/Media.xaml` | lucide icons (Playnite's roles plus chevron-down, chevron-right, check). |
-
 ## Tokens
 
 Keys are the shared vocabulary; the template names the Chakra token behind each one (`colors.bg.panel` is `chakra-colors-bg-panel`, opacity modifiers keep Chakra's `/NN`).
-
-| Group | Tokens (dark) |
-|-------|---------------|
-| bg | `bg` (black #09090B), `bg.muted` (gray.900), `bg.emphasized` (gray.800), `bg.inverted` (white), `bg.panel` (gray.950) |
-| fg | `fg` (gray.50), `fg.muted` (gray.400), `fg.inverted` (black), `fg.error` (red.400), `fg.warning` (orange.300), `fg.success` (green.300) |
-| border | `border` (gray.800), `border.emphasized` (gray.700) |
-| gray palette | `gray.fg`, `gray.subtle`, `gray.muted`, `gray.solid` (white) — Button subtle, IconButton ghost, scrollbar |
-| red palette | `red.solid`, `red.contrast` — close button hover, notification Badge |
-| colorPalette (teal) | `contrast` (white), `fg` (teal.300), `subtle` (teal.900), `muted` (teal.800), `solid` (teal.600), `focusRing` (teal.500) |
-| radii | `l1` = xs (2px), `l2` = sm (4px), `l3` = md (6px), `full` |
-| opacity | `colorPalette.solid/90` (solid hover), `colorPalette.focusRing/50` (slider thumb ring), `bg.emphasized/60` (highlighted items), `bg.emphasized/72` (slider track) |
-
-| Token | Key | Used for |
-|-------|-----|----------|
-| `bg` / `bg.panel` / `bg.muted` | `WindowBackgourndBrush`, `SliderThumbBackgroundBrush` / `ExpanderBackgroundBrush`, `PopupBackgroundBrush` / `InputBackgroundBrush`, `ListItemSelectedBrush`, `ProgressBarTrackBrush`, `MenuSeparatorBrush` | window, slider thumb / cards, menus / inputs, selected listbox item, progress track, menu separators |
-| `bg.emphasized` / `/60` / `/72` | `TopPanelItemCheckedBackgroundBrush` / `MenuItemHoverBrush`, `ListItemHoverBrush`, `TopPanelItemHoverBackgroundBrush` / `SliderTrackBrush` | SegmentGroup indicator / highlighted items / slider track |
-| `bg.inverted` / `fg.inverted` | `TooltipBackgroundBrush` / `TooltipForegroundBrush` | tooltips |
-| `fg` / `fg.muted` | `TextBrush` / `TextBrushDarker` | text, secondary text |
-| `border` / `border.emphasized` | `PopupBorderBrush`, `WindowPanelSeparatorBrush` / `NormalBorderBrush`, `GridViewItemHoverBorderBrush` | popup edge / checkbox, radio, slider edges, cover hover |
-| `colorPalette.solid` / `/90` / `contrast` | `GlyphBrush` / `PrimaryButtonHoverBackgroundBrush` / `TextBrushDark` | solid buttons, checked, tab indicator / solid hover / text on solid |
-| `colorPalette.subtle` / `fg` | `SelectedBrush` / `SelectedForegroundBrush` | current nav item, toggled buttons, selected rows |
-| `colorPalette.focusRing` / `/50` | `FocusBrush` / `FocusHaloBrush` | focus rings / slider thumb ring |
-| `gray.subtle` / `gray.muted` / `gray.fg` | `ButtonBackgroundBrush`, `HoverBrush` / `ButtonHoverBackgroundBrush`, `ButtonPressedBackgroundBrush`, `ButtonBorderBrush` / `ButtonForegroundBrush` | Button subtle, IconButton ghost hover / outline edge / button text |
-| `gray.solid` | `ScrollBarThumbBrush`, `ScrollBarTrackBrush`, `ThumbBrush` | scrollbar (drawn at 10–50%) |
-| `red.solid` / `red.contrast` | `DangerBrush` / `DangerForegroundBrush` | close button hover, notification Badge |
-| `fg.error` / `fg.warning` / `fg.success` | `WarningBrush`, `NegativeRatingBrush` / `DataChangeNotifBrush`, `MixedRatingBrush` / `PositiveRatingBrush` | errors, data-changed, ratings |
-| `colorPalette.subtle` / `.fg` / `.muted` (teal) | `PropertyItemBackgroundBrush` / `PropertyItemForegroundBrush` / `PropertyItemHoverBackgroundBrush` | Badges in the game overview |
 
 `ButtonBackgroundBrush` and `HoverBrush` hold Chakra's gray subtle (`gray.subtle`), so Playnite's notification toasts and its own list views share the button and ghost-hover colors. Font: `fonts.body` is Inter with a system fallback; Inter is not bundled, so Segoe UI.
 
 A sibling palette (blue, purple, ...): swap the six `--chakra-colors-color-palette-*` values in `tokens.css` for that palette's semantic tokens.
 
+*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
+
 ## Recipe spacing (`src/Common.xaml`)
 
-| Key | Value | Chakra |
-|-----|-------|--------|
-| `ButtonPadding` | 16,10 | button md: h-10, px-4 |
-| `InputPadding` | 12,9 | input / select trigger md: h-10, px-3 |
-| `MenuPadding` / `MenuItemPadding` | 6 / 8,6 | menu md: content p-1.5, item px-2 py-1.5 |
-| `ComboBoxDropDownPadding` / `ComboBoxItemPadding` | 4 / 8,6 | select md: content p-1, item px-2 py-1.5 |
-| `ListBoxItemPadding` | 8,6 | listbox item |
-| `GroupBoxPadding`, `GroupBoxHeaderMargin`, `GroupBoxHeaderFontSize` | 24, 0,0,0,24, 18 | card md: card-padding 6, title textStyle lg |
-| `TooltipPadding` | 10,4 | tooltip px-2.5 py-1 |
-| `IconSize` | 20 | button md `_icon` size 5 |
-
 `FocusVisual` is `focusVisibleRing="outside"` (2px `colorPalette.focusRing`, 2px offset); inputs, the select and the search box draw `focusVisibleRing="inside"` in their templates (a 2px focus-ring edge).
+
+*(Control padding and dimensions: see `src/Common.xaml`)*
 
 ## Shell
 
@@ -89,30 +47,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 
 ## Components
 
-| Playnite file | Chakra recipe |
-|---------------|---------------|
-| `DefaultControls/Button.xaml` | button md: gray `subtle` for regular buttons, brand `solid` for `IsDefault`; fontWeight medium |
-| `DerivedStyles/PlayButton.xaml` | button md, brand `solid` |
-| `DerivedStyles/PropertyItemButton.xaml` | Link `plain` (gray.fg, underline on hover); tagged `Chip`, a Badge `subtle` in the brand palette (teal subtle / fg, muted on hover) |
-| `DefaultControls/ToggleButton.xaml` | button: gray `subtle` off, brand `subtle` on |
-| `DefaultControls/RepeatButton.xaml` | button, gray `outline` |
-| `DefaultControls/TextBox.xaml`, `PasswordBox.xaml` | input `subtle` md (+ `BareTextBox` for hosts with their own chrome) |
-| `DefaultControls/ComboBox.xaml` | select `subtle` md: chevron-down indicator, content p-1, items with the check indicator at the end |
-| `DefaultControls/CheckBox.xaml`, `RadioButton.xaml` | checkmark / radiomark `solid` md: 20px, `border.emphasized` edge, `colorPalette.solid` when checked, label gap 2.5, medium |
-| `DefaultControls/Slider.xaml`, `CustomControls/SliderEx.xaml` | slider `outline` md: 8px `bg.emphasized/72` track, solid range, 20px `bg` thumb with a 2px solid edge, 3px `focusRing/50` ring on keyboard focus |
-| `DefaultControls/ProgressBar.xaml` | progress `outline`, shape rounded: `bg.muted` track (l1), solid range; Chakra's fading indeterminate range |
-| `DefaultControls/ScrollViewer.xaml`, `Thumb.xaml` | scroll-area md: 8px rail in `gray.solid/10`, thumb `gray.solid/25` (50 on hover and drag) |
-| `DefaultControls/ToolTip.xaml` | tooltip: `bg.inverted` / `fg.inverted`, px-2.5 py-1, radius l2, xs, medium |
-| `DefaultControls/ContextMenu.xaml`, `Menu.xaml` | menu `subtle` md: `bg.panel` content (l2, p-1.5), l1 items, `bg.emphasized/60` highlight, `bg.muted` separators, command text at 60% |
-| `CustomControls/GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | menu content, one-line styles `BasedOn` the ContextMenu |
-| `DefaultControls/TabControl.xaml` | tabs `line` without the list's edge line: `fg.muted` triggers, 2px `colorPalette.solid` indicator |
-| `DefaultControls/GroupBox.xaml` | card md, `elevated` without its shadow: `bg.panel`, l3, padding 24, semibold lg title |
-| `DefaultControls/ListBox.xaml` | listbox `subtle` items: `bg.emphasized/60` hover, `bg.muted` selected |
-| `CustomControls/SearchBox.xaml` | InputGroup with a start element (search icon) + input `subtle` md |
-| `DerivedStyles/DetailsViewItemStyle.xaml` | table rows, interactive: `gray.subtle` hover, `colorPalette.subtle` selected |
-| `DerivedStyles/GridViewItemStyle.xaml` | cover outline in the focus ring's shape: `border.emphasized` on hover, `colorPalette.focusRing` when selected |
-| `DerivedStyles/WindowBarButton.xaml` | dialog title bar buttons: ghost IconButtons, red solid close |
-| `DerivedStyles/HighlightBorder.xaml` | input `subtle` chrome for Default templates the theme does not replace |
+*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
 ## Deviations from Chakra
 
@@ -124,7 +59,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 
 ## Not verified yet
 
-Built and statically checked on Linux; **not yet loaded in Playnite**. First run: library (grid, details, list), game context menu, top panel dropdowns, settings tabs, game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus on buttons and inputs.
+Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`.
 
 Layout checks: the SegmentGroup with many or few top bar items, the teal logo and selection in the sidebar, the subtle search input and selects (fill visible, no edge), window buttons centered on the 64px bar, the slider's outlined thumb, the 20px checkboxes and radios in settings, the select's check indicator, and the red notification badge.
 

@@ -30,7 +30,7 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 | `rdr-panel` 0d0d0d, `rdr-edge` 2d2d2d | popup keys | Inkroller side panel (black at 90% flattened) |
 | `rdr-gold` | `DataChangeNotifBrush` | The star on special items |
 
-Radii are all 0. `FrameThickness` is 3 (4px at 1080p scaled by 2/3).
+Radii are all 0, so the repo rule against `CornerRadiusFull` on non-square controls holds by construction (no pill, no oval tracks); `CornerRadiusFull` stays defined as 0 for plugins that read it. `FrameThickness` is 3 (4px at 1080p scaled by 2/3).
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -40,7 +40,7 @@ Rows 50px with a 4px gap at 1080p scale to 34 and 3 here (`ButtonPadding` 16,7.5
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 64px red panel on the left with an original ragged brush edge (10px path); black glyphs, white for the current item with a 2px underline |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact red panel on the left (44 x 40 items, 16px glyphs) with an original ragged brush edge (10px overlay path, no layout width); black glyphs, white for the current item with a 2px underline |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px bar on the page color ending in a 2px rule that fades at both ends; search row, dim glyph hints with a red underline on the active one |
 | `DerivedStyles/MainWindowStyle.xaml` | 44 x 32 square window buttons, close hovers red |
 | `Views/Library.xaml` | Library art darkened and vignetted like the pause menu background |
@@ -48,7 +48,7 @@ Rows 50px with a 4px gap at 1080p scale to 34 and 3 here (`ButtonPadding` 16,7.5
 
 ## Game page
 
-Skeleton and metadata pane as in `../AGENTS.md`. Differences: sections are titles over a short red underline with no box; the metadata pane is the game's image-box grey (`ExpanderBackgroundBrush`), square, 20px inside; the title carries the red underline; Play is the red slab.
+Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left column above the description, banner spacer scaled with `HeroArt` through `MathConverter` (100/340 details, 72/340 grid). Differences: sections are titles over a short red underline with no box; the metadata pane is the game's image-box grey (`ExpanderBackgroundBrush`), square, 20px inside; the title carries the red underline; Play is the red slab.
 
 ## Components
 
@@ -70,7 +70,11 @@ Skeleton and metadata pane as in `../AGENTS.md`. Differences: sections are title
 - The game shows selection by frame only; the sidebar also underlines the current item for contrast.
 - Fonts are fallbacks unless the game's fonts are installed.
 
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` are approximate HTML replicas (same tokens, sizes and shell), rendered to `art/details.png` and `art/settings.png` by `.\scripts\take-screenshots.ps1 -Extension frontier`. They are not Playnite captures.
+
 ## Not verified yet
 
-- Everything in a real Playnite: the build and static checks pass, but no capture exists yet. Run `.\scripts\take-screenshots.ps1 -Extension frontier` locally before any release.
+- Everything in a real Playnite: the build and static checks pass, but it has not been run in the app.
 - Rail ragged edge scaling at very tall windows; sidebar at Top, Bottom and Right.
