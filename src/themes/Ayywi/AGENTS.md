@@ -16,7 +16,7 @@ Shared anatomy: **`../AGENTS.md`**. Loading rules and build checks: **`.claude/s
 
 ## Tokens
 
-Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius-lg (8), `CornerRadiusLarge` = radius-card (16), `CornerRadiusXLarge` = 24, `CornerRadiusFull` = pill (buttons, chips, tabs). Fonts: `Sora, Segoe UI` and `Unbounded, Sora, Segoe UI` for `HeadingFontFamily`.
+Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius-lg (8), `CornerRadiusLarge` = radius-card (16), `CornerRadiusXLarge` = 24, `CornerRadiusFull` = pill (buttons, chips, tabs). Fonts: `Sora, Segoe UI` for body and `./Typography/#Unbounded` for `HeadingFontFamily` (bundled in `src/Typography/`, fallback to installed Unbounded, Sora, Segoe UI). Game titles: 24px · 700 · 1.3 (`LineHeight="31.2"`). Play button: 18px · 700 · 1.3 (`LineHeight="23.4"`).
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -44,7 +44,7 @@ Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`Expander
 ## Deviations
 
 - No hover lift, glow, heading tracking or shimmer: WPF templates here cannot animate `translateY` or run CSS effects.
-- A theme cannot ship fonts: Sora and Unbounded apply only where installed.
+- Unbounded font is bundled in `src/Typography/`; Sora applies where installed (falling back to Segoe UI).
 - Main window caption band is the whole 56px top bar (Default: 25px).
 - `Expander` and `ExpanderEx` are not restyled (palette recolor only), so the game edit dialog sections are not cards.
 - Progress bar indeterminate keeps Playnite's hider animation; it does not slide ayywi's 40% bar.
