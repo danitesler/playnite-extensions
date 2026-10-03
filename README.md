@@ -61,6 +61,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Overworld/art/details.png"><img src="src/themes/Overworld/art/details.png" alt="Overworld details" width="49%" /></a> <a href="src/themes/Overworld/art/settings.png"><img src="src/themes/Overworld/art/settings.png" alt="Overworld settings" width="49%" /></a> |
 | <img src="src/themes/Frontier/info/icon.png" alt="Frontier" width="48" height="48" /> | **Frontier**<br>After the Red Dead Redemption 2 menus: a red painted rail, flat dark rows and a red selection frame on near black. |
 | ↳ | <a href="src/themes/Frontier/art/details.png"><img src="src/themes/Frontier/art/details.png" alt="Frontier details" width="49%" /></a> <a href="src/themes/Frontier/art/settings.png"><img src="src/themes/Frontier/art/settings.png" alt="Frontier settings" width="49%" /></a> |
+| <img src="src/themes/NightCity/info/icon.png" alt="Night City" width="48" height="48" /> | **Night City**<br>After the Cyberpunk 2077 interface: an acid-yellow rail, chamfered yellow Play slab, yellow selection frames and cyan focus on near black. |
+| ↳ | <a href="src/themes/NightCity/art/details.png"><img src="src/themes/NightCity/art/details.png" alt="Night City details" width="49%" /></a> <a href="src/themes/NightCity/art/settings.png"><img src="src/themes/NightCity/art/settings.png" alt="Night City settings" width="49%" /></a> |
 
 ## Installation
 
