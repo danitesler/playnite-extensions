@@ -7,7 +7,7 @@
 import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 function findBrowser() {
   if (process.env.CHROMIUM && fs.existsSync(process.env.CHROMIUM)) return process.env.CHROMIUM;
@@ -29,6 +29,46 @@ export async function launchBrowser() {
   const { chromium } = createRequire(import.meta.url)('playwright');
   const executablePath = findBrowser();
   return chromium.launch(executablePath ? { executablePath } : { channel: 'chrome' });
+}
+
+// @font-face rules for the bundled open fonts (scripts/data/fonts.json, files in scripts/fonts/): the real families under
+// their own names, plus the Windows / commercial names (Segoe UI, Bahnschrift, Georgia, ...) drawn with their stand-in, so a
+// preview renders the same on any machine. Set PREVIEW_SYSTEM_FONTS=1 to skip the aliases and use the installed fonts.
+export function fontFaceCss() {
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const reg = JSON.parse(fs.readFileSync(path.join(here, 'data', 'fonts.json'), 'utf8'));
+  const sections = process.env.PREVIEW_SYSTEM_FONTS ? [reg.families] : [reg.families, reg.aliases];
+  const rules = [];
+  for (const section of sections) {
+    for (const [name, def] of Object.entries(section)) {
+      for (const face of def.faces) {
+        const url = pathToFileURL(path.join(here, 'fonts', face.file)).href;
+        rules.push(`@font-face{font-family:"${name}";src:url("${url}");font-weight:${face.weight};font-style:${face.style};font-display:block}`);
+      }
+    }
+  }
+  // Icon glyphs (arrows, shapes, dingbats): a symbol face next to each real face, with the SAME weight and style, so the
+  // browser composites them as one face. (A symbol face with its own weight range would win the weight match for the whole
+  // family and push every letter to an installed font.)
+  const sym = reg.symbolFallback;
+  if (sym) {
+    const url = pathToFileURL(path.join(here, 'fonts', sym.file)).href;
+    const seen = new Set();
+    for (const section of sections) {
+      for (const [name, def] of Object.entries(section)) {
+        for (const face of def.faces) {
+          const key = `${name}|${face.weight}|${face.style}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          rules.push(`@font-face{font-family:"${name}";src:url("${url}");font-weight:${face.weight};font-style:${face.style};unicode-range:${sym.unicodeRange};font-display:block}`);
+        }
+      }
+    }
+  }
+  // Form controls do not inherit font-family by default and would draw in the system UI font. :where() keeps this at zero
+  // specificity, so a preview that styles its own buttons still wins.
+  rules.push(':where(button,input,select,textarea){font-family:inherit}');
+  return rules.join('');
 }
 
 export function readTokens(themeDir) {
@@ -160,6 +200,20 @@ async function main() {
     const total = [...seen.values()].reduce((a, b) => a + b, 0);
     console.log(`${rel}: ${linked} var(--token) uses, ${total} hex literals (${seen.size - stray.length}/${seen.size} distinct are tokens)`);
     if (stray.length) console.log(`  not in tokens.css: ${stray.slice(0, 8).map(([h, c]) => `#${h}${c > 1 ? `×${c}` : ''}`).join(' ')}${stray.length > 8 ? ' …' : ''}`);
+    // Fonts: every name in a font-family stack should be bundled (scripts/data/fonts.json), or the render depends on the machine.
+    const reg = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'data', 'fonts.json'), 'utf8'));
+    const bundled = new Set([...Object.keys(reg.families), ...Object.keys(reg.aliases)].map((n) => n.toLowerCase()));
+    const generic = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy', 'inherit', 'initial']);
+    const unknown = new Set();
+    for (const m of html.replace(/&quot;/g, "'").matchAll(/font-family\s*:\s*((?:"[^"]*"|'[^']*'|[^;}"'])+)/g)) {
+      if (/var\(/.test(m[1])) continue;
+      for (const n of m[1].split(',')) {
+        const name = n.trim().replace(/^["']|["']$/g, '');
+        if (name && !generic.has(name.toLowerCase()) && !bundled.has(name.toLowerCase())) unknown.add(name);
+      }
+    }
+    if (unknown.size) console.log(`  fonts not bundled (rendered with an installed font): ${[...unknown].join(', ')}`);
+    if (/system-ui|-apple-system/.test(html)) console.log('  system-ui in a font stack: renders with whatever the machine has; use the theme\'s font tokens');
     if (seen.has('6366f1') && !byHex.has('6366f1')) console.log('  scaffold default accent #6366f1 is still in this preview');
   }
 }

@@ -27,6 +27,30 @@
 - Selection, hover, focus, checked and disabled looks are copied from the control templates (edge bars, fills, outlines), not guessed. The settings preview must show a checked box, a radio, a slider, a text box, a combo box and a primary and plain button in the theme's real states.
 - Corner radii follow the AGENTS.md mandate: never `CornerRadiusFull` on non-square elements; capsule shapes are not used unless the source UI has them and the XAML draws them.
 
+## Fonts: bundled, so a render is the same on any machine
+
+Previews render with the open fonts in `scripts/fonts/` (registry: `scripts/data/fonts.json`), never with whatever the machine has. `render-theme-preview.mjs` injects the `@font-face` rules: the real open families under their own names (Rajdhani, Oswald, Anton, Sora, Orbitron, Barlow, Gelasio, Libre Franklin, Cinzel, Cascadia Mono, ...), and the Windows or commercial names a theme asks for drawn with their stand-in, so a preview keeps naming the font the theme really uses:
+
+| Theme names | Drawn with | Note |
+|-------------|------------|------|
+| Segoe UI (+ Semilight, Semibold, Black, Variable), Arial, Helvetica | Selawik | Microsoft's open, Segoe UI-compatible face (OFL) |
+| Consolas | Cascadia Mono | Microsoft's open monospace (OFL) |
+| Bahnschrift, SemiBold, SemiCondensed | Barlow, Barlow Semi Condensed | DIN-style; weight and width follow the name |
+| Georgia, Constantia, Palatino Linotype, Book Antiqua, Friz Quadrata, Belwe, Reaver | Gelasio | Georgia-metric-compatible serif |
+| Franklin Gothic Medium / Book | Libre Franklin | |
+| Impact, Chinese Rocks | Anton | |
+| Arial Narrow | Barlow Condensed | |
+| Eurostile, Microgramma | Orbitron | |
+| Config, BigNoodleToo(Oblique) | Barlow, Barlow Condensed | Payload's existing stand-ins |
+| Monocraft, Minecraftia | Pixelify Sans | |
+
+Rules:
+- Write the font stack the theme really uses (its `FontFamily` / `HeadingFontFamily` keys, or `var(--font-body)` from `tokens.css`). Do not name fonts the theme does not use (Inter, Roboto, Geist, `system-ui`, `-apple-system`): they render with an installed font and differ per machine.
+- A new Windows or commercial name needs an `aliases` entry in `fonts.json` (pick the nearest open font, add its files and license under `scripts/fonts/`). Only OFL or similarly redistributable fonts; keep each family's license file.
+- Icon glyphs written as text (arrows, shapes, dingbats such as check marks) are covered by a bundled DejaVu Sans symbol fallback, so they do not depend on the machine either.
+- The renderer warns `system font used: ...` when any text still falls back to an installed font. That means a stack is missing a bundled name; fix it, the output is only portable at zero warnings. `PREVIEW_SYSTEM_FONTS=1` skips the stand-ins and uses the installed fonts (for example on Windows, to see real Segoe UI).
+- `node scripts/normalize-preview-fonts.mjs [ThemeDir]` strips the machine-dependent names from preview stacks. `validate-extension.ps1` lists fonts in a preview that are not bundled.
+
 ## Layout: copy the real structure
 
 The previews replicate two real Playnite screens. Tag the regions below with `data-part` so `scripts/preview-layout.mjs` (run by `validate-extension.ps1`, advisory) can check them in Chromium.
@@ -80,4 +104,5 @@ Every tagged region stays inside 1280x720. A footer or panel that runs past the 
 - [ ] 1280x720, nothing clipped, both PNGs looked at
 - [ ] `data-part` tags in place and `validate-extension.ps1` shows `layout ok` for both previews (top bar order from `TopPanel.xaml`, icon-only view switches, game list, settings window)
 - [ ] Real sizes, fonts, icons and control states, not scaffold defaults
+- [ ] Font stacks use only bundled names; the render prints no `system font used` warning
 - [ ] Re-rendered after the last token or XAML change

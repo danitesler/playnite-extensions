@@ -9,7 +9,7 @@
 // DockPanel.Dock), then compared with where Chromium actually draws the tagged parts.
 import path from 'path';
 import fs from 'fs';
-import { launchBrowser } from './preview-tokens.mjs';
+import { launchBrowser, tokenStyle, fontFaceCss } from './preview-tokens.mjs';
 
 const VIEWPORT = { width: 1280, height: 720 };
 const TOP_PARTS = ['PART_ElemMainMenu', 'PART_TextMainSearch', 'PART_PanelMainItems', 'PART_ToggleFilter', 'PART_ToggleNotifications', 'PART_PanelMainPluginItems'];
@@ -52,8 +52,15 @@ export function expectedTopOrder(themeDir) {
   return [...lefts, ...rights.reverse()];
 }
 
-async function measure(page, file) {
+async function measure(page, file, themeDir) {
   await page.goto('file://' + path.resolve(file));
+  // Same page state as render-theme-preview.mjs (theme tokens + bundled fonts), so the measured widths are the rendered ones.
+  const tokens = tokenStyle(themeDir);
+  if (tokens) await page.addStyleTag({ content: tokens });
+  await page.addStyleTag({ content: fontFaceCss() });
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.evaluate(() => document.fonts.ready);
   return page.evaluate(() => {
     const parts = {};
     for (const el of document.querySelectorAll('[data-part]')) {
@@ -118,7 +125,7 @@ async function main() {
     const page = await browser.newPage({ viewport: VIEWPORT });
     for (const file of files) {
       const notes = [];
-      const parts = await measure(page, file);
+      const parts = await measure(page, file, themeDir);
       if (Object.keys(parts).length === 0) notes.push('no data-part tags, layout cannot be checked (add them, see previews.md)');
       else {
         if (file.endsWith('preview-details.html')) checkDetails(parts, themeDir, notes);
