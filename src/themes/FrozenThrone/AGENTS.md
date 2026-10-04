@@ -55,12 +55,13 @@ Every control is a stone plate: Button, ToggleButton, RepeatButton, TextBox, Com
 ## Deviations
 
 - **No textures:** the game's stone, ice and Arthas/Frozen Throne scene are BLP art; the theme draws flat plates with a one-pixel bevel and shows each game's own art under a cold wash.
-- **No text shadow:** the game shadows labels with black at 90%; WPF text has no cheap equivalent here.
+- **Text shadow on the game title only:** the game shadows every label with black at 90%; the theme draws it only on the game page title (a 2px `DropShadowEffect`), nowhere else.
 - **Not the game's font** unless Friz Quadrata TT is installed.
 - **Hover:** the game alpha-blends a highlight texture; the theme swaps fills.
 
 ## Not verified yet
 
 - Stone, ice and void hexes are estimates; compare with a capture of the Frozen Throne menu.
-- Nothing has been built or loaded in Playnite: this was authored on a Linux server, where Playnite is never run.
+- Builds and passes `validate-extension.ps1`, but nothing has been loaded in Playnite: it was authored on a Linux server, where Playnite is never run. Run `build-theme.ps1 -Deploy -Restart` on Windows and check `playnite.log` for XAML errors.
+- The Steam screenshots skeleton binds `Game.PluginId` to the Steam library GUID; confirm it shows.
 - Friz Quadrata fallbacks and sizes at 1080p.
