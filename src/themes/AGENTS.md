@@ -72,6 +72,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Netrunner | 44px compact black rail with a 1px red rule, red glyphs, the current item a dark red wash with a red edge bar and a cyan glyph; 56px top bar ending in a tapered dim red rule, blue-black page |
 | Tumbleweed | 44px compact black rail with red pause-stack glyphs (white when current) and a maroon paint splash behind the main menu button; transparent 56px top bar closed by a flat 2px grey rule; library and banner art under a red duotone wash |
 | Payload | 44px compact tab-bar navy rail with an orange slanted main menu button and cyan slanted plates (black glyph) for the current item; 56px translucent navy top bar with a 1px rule, slanted cyan plates on toggled view buttons; medium blue panels on the neutral dark blue page |
+| CS 1.6 | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
 
 ## Game page
 

@@ -46,6 +46,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <a href="src/themes/Netrunner/art/details.png"><img src="src/themes/Netrunner/art/details.png?v=3" alt="Netrunner details" width="640" /></a> | **Netrunner**<br>After the Cyberpunk 2077 menus: red menu ink on blue-black, a dark red selection wash, cyan focus and a cut-corner Play plate. |
 | <a href="src/themes/NightCity/art/details.png"><img src="src/themes/NightCity/art/details.png?v=3" alt="Night City details" width="640" /></a> | **Night City**<br>After the Cyberpunk 2077 interface: an acid-yellow rail, chamfered yellow Play slab, yellow selection frames and cyan focus on near black. |
 | <a href="src/themes/NightCity2/art/details.png"><img src="src/themes/NightCity2/art/details.png?v=3" alt="Night City 2 details" width="640" /></a> | **Night City 2**<br>A second take on the Cyberpunk 2077 yellow menus: black panels, solid yellow selection with black text, cyan focus and cut corners. |
+| <a href="src/themes/Cs16/art/details.png"><img src="src/themes/Cs16/art/details.png?v=1" alt="CS 1.6 details" width="640" /></a> | **CS 1.6**<br>After the Counter-Strike 1.6 menus: olive Steam-era chrome with bevelled buttons around black panels, amber Verdana text, a pale buy-menu selection bar and a dotted focus rectangle. |
 
 ## Installation
 
