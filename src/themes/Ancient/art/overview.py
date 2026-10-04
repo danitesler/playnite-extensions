@@ -350,8 +350,12 @@ def details():
                 <Button Name="PART_ButtonPlayAction" Width="220" Height="48" Style="{{DynamicResource PlayButton}}" />
                 <Button Name="PART_ButtonContextAction" Width="220" Height="48" />
             </Grid>
-            <Button Name="PART_ButtonMoreActions" Content="{{DynamicResource LOCMoreAction}}"
-                    MinWidth="150" Height="48" Margin="12,0,0,0" />
+            <Button Name="PART_ButtonMoreActions" Width="48" Height="48" Padding="0" Margin="12,0,0,0"
+                    ToolTip="{{DynamicResource LOCMoreAction}}" Focusable="False">
+                <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
+                                Content="{{DynamicResource IconOptions}}"
+                                ContentTemplate="{{DynamicResource IconTemplate}}" />
+            </Button>
 {indent(edit_button("12,0,0,0", 48), 12)}
         </StackPanel>
     </StackPanel>
@@ -401,12 +405,17 @@ def grid_panel():
 <Grid Margin="0,12,0,24" Background="Transparent">
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" MaxWidth="200" />
-        <ColumnDefinition Width="*" MaxWidth="150" />
+        <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
     <Button Name="PART_ButtonPlayAction" Grid.Column="0" Height="44" Style="{{DynamicResource PlayButton}}" />
     <Button Name="PART_ButtonContextAction" Grid.Column="0" Height="44" />
-    <Button Name="PART_ButtonMoreActions" Content="{{DynamicResource LOCMoreAction}}" Grid.Column="1" Height="44" Margin="10,0,0,0" />
+    <Button Name="PART_ButtonMoreActions" Grid.Column="1" Width="44" Height="44" Padding="0" Margin="10,0,0,0"
+            ToolTip="{{DynamicResource LOCMoreAction}}" Focusable="False">
+        <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
+                        Content="{{DynamicResource IconOptions}}"
+                        ContentTemplate="{{DynamicResource IconTemplate}}" />
+    </Button>
 {indent(edit_button("10,0,0,0", 44, column=2), 4)}
 </Grid>
 <Grid VerticalAlignment="Top">
