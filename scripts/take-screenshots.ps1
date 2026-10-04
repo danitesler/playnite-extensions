@@ -12,7 +12,7 @@ param(
 
 # Generates release screenshots (details.png and settings.png) for a theme from its
 # HTML preview templates in art/ (preview-details.html and preview-settings.html)
-# using Chromium / Playwright. Does not start Playnite.
+# using Chromium. Does not start Playnite.
 
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")

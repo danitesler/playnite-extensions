@@ -121,7 +121,7 @@ How to build them (tokens as `var(--token)`, real sizes and states, signature mo
 
 Fonts: previews render with bundled open fonts (`scripts/fonts/`, registry `scripts/data/fonts.json`), the same on any machine. A Windows or commercial font a theme asks for (Segoe UI, Consolas, Bahnschrift, Georgia, Impact, ...) is drawn with its open stand-in; see previews.md -> Fonts.
 
-All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
+All release screenshots and listing previews are generated from HTML replicas using Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
 - **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view: left compact rail, top panel in the order this theme's `Views/TopPanel.xaml` draws it (search, icon-only view switches / group / sort, filter, notifications), the game list on the left of the game page, then the game page (hero banner, screenshots + description left, metadata pane right).
 - **`art/preview-settings.html` → `art/settings.png`**: HTML replica of Playnite's Settings window (`SettingsWindow.xaml`, 800x620 minimum): title bar, section tree on the left, the section page on the right, bottom bar with the restart note and Save, Cancel. Not a full-screen page and not a tab strip. Layout rules and `data-part` tags: `.claude/skills/playnite-theme-dev/previews.md` -> Layout.
 ## Control corner radii and shapes
@@ -140,7 +140,7 @@ All release screenshots and listing previews are generated from HTML replicas us
 A theme's `AGENTS.md` keeps only what is its own, in this order:
 
 1. **What this is**: design system, version, dark variant; for fan themes, the unofficial / no-assets statement.
-2. **Sources**: token package, component specs, icon set, each with version and license.
+2. **Sources**: reference notes in `RESEARCH.md` (token package, component specs, icon set, captures, each with version and license); `AGENTS.md` links to it.
 3. **Tokens**: which token plays each key (Playnite palette first, then shared keys), plus radii and fonts.
 4. **Component spacing**: the `Common.xaml` values and the spec each comes from.
 5. **Shell**: the layout, per shell file.

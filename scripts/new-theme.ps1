@@ -268,11 +268,7 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 
 ## Sources
 
-| What | Where (package, version, file) |
-|------|--------------------------------|
-| Tokens | TODO |
-| Components | TODO |
-| Icons | TODO (license file in ``info/``) |
+Reference notes, measurements, and asset sources are documented in [``RESEARCH.md``](RESEARCH.md).
 
 ## Tokens
 
@@ -309,6 +305,18 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 ## Not verified yet
 "@ | Set-Content -Path (Join-Path $themeRoot "AGENTS.md") -Encoding utf8
 
+@"
+# $Name — research & sources
+
+## Sources
+
+| What | Where (package, version, file) |
+|------|--------------------------------|
+| Tokens | TODO |
+| Components | TODO |
+| Icons | TODO (license file in ``info/``) |
+"@ | Set-Content -Path (Join-Path $themeRoot "RESEARCH.md") -Encoding utf8
+
 # Previews start from scripts/templates (generic placeholders: rewrite per playnite-theme-dev/previews.md).
 foreach ($previewName in @("details", "settings")) {
     $previewHtml = (Get-Content -Raw -Path (Join-Path $PSScriptRoot "templates/preview-$previewName.html")).Replace("{{NAME}}", $Name)
@@ -320,7 +328,7 @@ Save-ExtensionIndex -Index $index
 
 Write-Host "Created theme '$Name' at $themeRoot"
 Write-Host "Next steps (details: .claude/skills/playnite-theme-dev/SKILL.md):"
-Write-Host "  1. Fill AGENTS.md > Sources: $DesignSystem's token package, component specs and icon set."
+Write-Host "  1. Fill RESEARCH.md: $DesignSystem's token package, component specs and icon set."
 Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own names."
 Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
 Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."

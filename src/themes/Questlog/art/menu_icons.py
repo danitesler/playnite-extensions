@@ -5,7 +5,7 @@ Each icon is a 64x64 SVG in one shared style (dark brown outline, warm gradients
 interface draws item icons. The subjects are generic props: a cog, a chest, a quill, an hourglass.
 
   python3 art/menu_icons.py svg      write art/svg/*.svg
-  python3 art/menu_icons.py png      render src/Images/Menu/*.png (needs Node with Playwright's Chromium and Pillow)
+  python3 art/menu_icons.py png      render src/Images/Menu/*.png (needs Node with Chromium and Pillow)
   python3 art/menu_icons.py sheet    write art/menu-sheet.html to look at them all
 """
 import math

@@ -16,6 +16,7 @@ function findBrowser() {
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium-browser',
     '/usr/bin/chromium',
@@ -24,7 +25,7 @@ function findBrowser() {
   return candidates.find((c) => fs.existsSync(c));
 }
 
-// Shared by the renderer and the token checks. Set CHROMIUM to a browser executable if Playwright cannot find one.
+// Shared by the renderer and the token checks. Set CHROMIUM to a browser executable if a browser cannot be found.
 export async function launchBrowser() {
   const { chromium } = createRequire(import.meta.url)('playwright');
   const executablePath = findBrowser();
@@ -105,36 +106,40 @@ function normalizeHex(h) {
 }
 
 // token name -> opaque "rrggbb", for every token Chromium resolves to a color.
-async function resolveColors(themeDir) {
+async function resolveColors(themeDir, existingBrowser = null) {
   const style = tokenStyle(themeDir);
   const out = new Map();
   if (!style) return out;
-  const browser = await launchBrowser();
+  const browser = existingBrowser || (await launchBrowser());
   try {
     const page = await browser.newPage();
-    await page.setContent(`<style>${style}</style><div id=p style="color:rgb(1,2,3)"><i id=e></i></div>`);
-    const names = [...readTokens(themeDir).keys()];
-    // getComputedStyle keeps oklch()/color() as written, so paint each one to a canvas pixel and read back sRGB.
-    const resolved = await page.evaluate((list) => {
-      const e = document.getElementById('e');
-      const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-      return list.map((n) => {
-        e.style.color = `var(--${n})`;
-        const computed = getComputedStyle(e).color;
-        if (computed === 'rgb(1, 2, 3)') return [n, null];
-        ctx.clearRect(0, 0, 1, 1);
-        ctx.fillStyle = '#010203';
-        ctx.fillStyle = computed;
-        ctx.fillRect(0, 0, 1, 1);
-        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
-        return [n, a === 255 ? [r, g, b] : null];
-      });
-    }, names);
-    for (const [n, rgb] of resolved) {
-      if (rgb) out.set(n, rgb.map((x) => x.toString(16).padStart(2, '0')).join(''));
+    try {
+      await page.setContent(`<style>${style}</style><div id=p style="color:rgb(1,2,3)"><i id=e></i></div>`);
+      const names = [...readTokens(themeDir).keys()];
+      // getComputedStyle keeps oklch()/color() as written, so paint each one to a canvas pixel and read back sRGB.
+      const resolved = await page.evaluate((list) => {
+        const e = document.getElementById('e');
+        const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+        return list.map((n) => {
+          e.style.color = `var(--${n})`;
+          const computed = getComputedStyle(e).color;
+          if (computed === 'rgb(1, 2, 3)') return [n, null];
+          ctx.clearRect(0, 0, 1, 1);
+          ctx.fillStyle = '#010203';
+          ctx.fillStyle = computed;
+          ctx.fillRect(0, 0, 1, 1);
+          const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+          return [n, a === 255 ? [r, g, b] : null];
+        });
+      }, names);
+      for (const [n, rgb] of resolved) {
+        if (rgb) out.set(n, rgb.map((x) => x.toString(16).padStart(2, '0')).join(''));
+      }
+    } finally {
+      await page.close();
     }
   } finally {
-    await browser.close();
+    if (!existingBrowser) await browser.close();
   }
   return out;
 }
@@ -154,17 +159,31 @@ function* colorLiterals(html) {
   }
 }
 
-async function main() {
-  const [cmd, themeArg] = process.argv.slice(2);
-  if (!['check', 'link'].includes(cmd) || !themeArg) {
-    console.error('usage: preview-tokens.mjs <check|link> <ThemeDir>');
-    process.exit(1);
+export function getThemeDirs(themeArg) {
+  if (themeArg && themeArg !== '--all') {
+    return [path.resolve(themeArg)];
   }
-  const themeDir = path.resolve(themeArg);
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const repoRoot = path.resolve(here, '..');
+  const themesDir = path.join(repoRoot, 'src', 'themes');
+  if (!fs.existsSync(themesDir)) return [];
+  return fs.readdirSync(themesDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(themesDir, d.name, 'info', 'theme.yaml')))
+    .map((d) => path.join(themesDir, d.name))
+    .sort();
+}
+
+async function processTheme(cmd, themeDir, browser, isMulti) {
   const files = previewFiles(themeDir);
-  if (files.length === 0) { console.log('no previews'); return; }
-  const colors = await resolveColors(themeDir);
-  if (colors.size === 0) { console.log('no resolvable color tokens in src/tokens.css'); return; }
+  if (files.length === 0) {
+    if (!isMulti) console.log('no previews');
+    return;
+  }
+  const colors = await resolveColors(themeDir, browser);
+  if (colors.size === 0) {
+    if (!isMulti) console.log('no resolvable color tokens in src/tokens.css');
+    return;
+  }
 
   // hex -> first token (declaration order) that resolves to it.
   const byHex = new Map();
@@ -172,6 +191,7 @@ async function main() {
 
   for (const file of files) {
     const rel = path.basename(file);
+    const label = isMulti ? `${path.basename(themeDir)}/${rel}` : rel;
     const html = fs.readFileSync(file, 'utf8');
     if (cmd === 'link') {
       let n = 0;
@@ -186,7 +206,7 @@ async function main() {
         return `var(--${name})`;
       });
       if (next !== html) fs.writeFileSync(file, next);
-      console.log(`${rel}: linked ${n} colors`);
+      console.log(`${label}: linked ${n} colors`);
       continue;
     }
     const seen = new Map();
@@ -198,7 +218,7 @@ async function main() {
     const stray = [...seen].filter(([hex]) => !byHex.has(hex)).sort((a, b) => b[1] - a[1]);
     const linked = (html.match(/var\(--[A-Za-z0-9_-]+/g) || []).length;
     const total = [...seen.values()].reduce((a, b) => a + b, 0);
-    console.log(`${rel}: ${linked} var(--token) uses, ${total} hex literals (${seen.size - stray.length}/${seen.size} distinct are tokens)`);
+    console.log(`${label}: ${linked} var(--token) uses, ${total} hex literals (${seen.size - stray.length}/${seen.size} distinct are tokens)`);
     if (stray.length) console.log(`  not in tokens.css: ${stray.slice(0, 8).map(([h, c]) => `#${h}${c > 1 ? `×${c}` : ''}`).join(' ')}${stray.length > 8 ? ' …' : ''}`);
     // Fonts: every name in a font-family stack should be bundled (scripts/data/fonts.json), or the render depends on the machine.
     const reg = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'data', 'fonts.json'), 'utf8'));
@@ -215,6 +235,30 @@ async function main() {
     if (unknown.size) console.log(`  fonts not bundled (rendered with an installed font): ${[...unknown].join(', ')}`);
     if (/system-ui|-apple-system/.test(html)) console.log('  system-ui in a font stack: renders with whatever the machine has; use the theme\'s font tokens');
     if (seen.has('6366f1') && !byHex.has('6366f1')) console.log('  scaffold default accent #6366f1 is still in this preview');
+  }
+}
+
+async function main() {
+  let [cmd, themeArg] = process.argv.slice(2);
+  if (cmd && !['check', 'link'].includes(cmd)) {
+    themeArg = cmd;
+    cmd = 'check';
+  }
+  if (!cmd) cmd = 'check';
+
+  const themeDirs = getThemeDirs(themeArg);
+  if (themeDirs.length === 0) {
+    console.error('No themes found.');
+    process.exit(1);
+  }
+  const isMulti = themeDirs.length > 1;
+  const browser = await launchBrowser();
+  try {
+    for (const themeDir of themeDirs) {
+      await processTheme(cmd, themeDir, browser, isMulti);
+    }
+  } finally {
+    await browser.close();
   }
 }
 

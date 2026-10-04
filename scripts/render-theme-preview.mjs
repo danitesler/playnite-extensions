@@ -1,6 +1,6 @@
-// Renders a theme's HTML mockup to PNG with Chromium (Playwright).
+// Renders a theme's HTML mockup to PNG with Chromium.
 //   node scripts/render-theme-preview.mjs src/themes/<Name>/art/preview-details.html [out.png]
-// The PNG defaults to the HTML's path with .png. Set CHROMIUM to a browser executable if Playwright cannot find one.
+// The PNG defaults to the HTML's path with .png. Set CHROMIUM to a browser executable if a browser cannot be found.
 import path from 'path';
 import fs from 'fs';
 import { launchBrowser, tokenStyle, fontFaceCss } from './preview-tokens.mjs';

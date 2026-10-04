@@ -5,7 +5,7 @@ using System.Linq;
 namespace AutoStatus
 {
     /// <summary>Rule decisions only; no Playnite types so the logic can be tested off Windows.</summary>
-    internal static class StatusRules
+    public static class StatusRules
     {
         public const int MinDays = 1;
         public const int MaxDays = 365;

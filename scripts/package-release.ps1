@@ -83,6 +83,9 @@ try {
     $packageKind = if ($isTheme) { ".pthm" } else { ".pext" }
     Write-Host "Packing $packageKind with Playnite Toolbox..."
     & $ToolboxExe pack $buildOutput $releaseDrop
+    if ($LASTEXITCODE -ne 0) {
+        throw "Playnite Toolbox failed to pack $packageKind ($LASTEXITCODE)."
+    }
 
     $packageUrl = Get-ExpectedPackageUrl -Profile $profile -AddonId $manifest.Id -Version $version
 

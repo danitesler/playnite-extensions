@@ -9,6 +9,7 @@
 // DockPanel.Dock), then compared with where Chromium actually draws the tagged parts.
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { launchBrowser, tokenStyle, fontFaceCss } from './preview-tokens.mjs';
 
 const VIEWPORT = { width: 1280, height: 720 };
@@ -112,28 +113,51 @@ function checkInside(parts, notes) {
 
 const short = (p) => p.replace('PART_', '');
 
+export function getThemeDirs(themeArg) {
+  if (themeArg && themeArg !== '--all') {
+    return [path.resolve(themeArg)];
+  }
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const repoRoot = path.resolve(here, '..');
+  const themesDir = path.join(repoRoot, 'src', 'themes');
+  if (!fs.existsSync(themesDir)) return [];
+  return fs.readdirSync(themesDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(themesDir, d.name, 'info', 'theme.yaml')))
+    .map((d) => path.join(themesDir, d.name))
+    .sort();
+}
+
 async function main() {
   const themeArg = process.argv[2];
-  if (!themeArg) { console.error('usage: preview-layout.mjs <ThemeDir>'); process.exit(1); }
-  const themeDir = path.resolve(themeArg);
-  const art = path.join(themeDir, 'art');
-  const files = ['preview-details.html', 'preview-settings.html'].map((f) => path.join(art, f)).filter((f) => fs.existsSync(f));
-  if (files.length === 0) { console.log('no previews'); return; }
-
+  const themeDirs = getThemeDirs(themeArg);
+  if (themeDirs.length === 0) {
+    console.error('No themes found.');
+    process.exit(1);
+  }
+  const isMulti = themeDirs.length > 1;
   const browser = await launchBrowser();
   try {
     const page = await browser.newPage({ viewport: VIEWPORT });
-    for (const file of files) {
-      const notes = [];
-      const parts = await measure(page, file, themeDir);
-      if (Object.keys(parts).length === 0) notes.push('no data-part tags, layout cannot be checked (add them, see previews.md)');
-      else {
-        if (file.endsWith('preview-details.html')) checkDetails(parts, themeDir, notes);
-        else checkSettings(parts, notes);
-        checkInside(parts, notes);
+    for (const themeDir of themeDirs) {
+      const art = path.join(themeDir, 'art');
+      const files = ['preview-details.html', 'preview-settings.html'].map((f) => path.join(art, f)).filter((f) => fs.existsSync(f));
+      if (files.length === 0) {
+        if (!isMulti) console.log('no previews');
+        continue;
       }
-      console.log(`${path.basename(file)}: ${notes.length ? '' : 'layout ok'}`);
-      for (const n of notes) console.log(`  ${n}`);
+      for (const file of files) {
+        const notes = [];
+        const parts = await measure(page, file, themeDir);
+        if (Object.keys(parts).length === 0) notes.push('no data-part tags, layout cannot be checked (add them, see previews.md)');
+        else {
+          if (file.endsWith('preview-details.html')) checkDetails(parts, themeDir, notes);
+          else checkSettings(parts, notes);
+          checkInside(parts, notes);
+        }
+        const label = isMulti ? `${path.basename(themeDir)}/${path.basename(file)}` : path.basename(file);
+        console.log(`${label}: ${notes.length ? '' : 'layout ok'}`);
+        for (const n of notes) console.log(`  ${n}`);
+      }
     }
   } finally {
     await browser.close();

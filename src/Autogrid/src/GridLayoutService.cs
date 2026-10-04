@@ -24,7 +24,7 @@ namespace Autogrid
         public double CoverHeight;
     }
 
-    internal static class GridLayoutService
+    public static class GridLayoutService
     {
         private struct ScrollViewerDepth
         {

@@ -1,6 +1,6 @@
 // Renders the menu icons (icons/<name>.svg) to 48px PNGs in src/Images/Icons with Chromium, the same jobs as
 // icons.json (which scripts/render-icons.ps1 runs on Windows). Colors are tokens from src/tokens.css.
-//   NODE_PATH=$(npm root -g) node art/render-png.mjs   (Playwright from the global modules)
+//   NODE_PATH=$(npm root -g) node art/render-png.mjs
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';

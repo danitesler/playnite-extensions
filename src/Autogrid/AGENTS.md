@@ -25,6 +25,8 @@
 | Viewport, scroll/panel measure, width math | `src/Autogrid/src/GridLayoutService.cs` |
 | Settings model | `src/Autogrid/src/AutogridSettings.cs` |
 | Settings UI | `src/Autogrid/src/AutogridSettingsView.xaml` |
+| Loc helper | `src/Autogrid/src/AutogridLoc.cs` |
+| Localization | `src/Autogrid/Localization/*.xaml` (Playnite Crowdin set; English fallback) |
 | Extension manifest | `src/Autogrid/info/extension.yaml` |
 | Project file | `src/Autogrid/Autogrid.csproj` |
 

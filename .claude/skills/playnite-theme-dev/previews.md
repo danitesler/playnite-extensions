@@ -4,7 +4,7 @@
 
 ## Build order
 
-1. Finish the reference research first (`src/<theme>/AGENTS.md` -> Sources: colors, type, chrome and selection styles, icons). The preview is written from those notes, not from the scaffold.
+1. Finish the reference research first (`src/<theme>/RESEARCH.md`: colors, type, chrome and selection styles, icons). The preview is written from those notes, not from the scaffold.
 2. Put the colors in `src/tokens.css` (they drive the XAML too), then write the preview against them.
 3. Style the shell the way the theme's XAML does, then add what makes the source recognisable.
 4. `.\scripts\take-screenshots.ps1 -Extension <key>`, look at both PNGs, fix, repeat.
@@ -99,7 +99,7 @@ Every tagged region stays inside 1280x720. A footer or panel that runs past the 
 
 ## Checklist before finishing
 
-- [ ] Written after the Sources research, motifs listed in AGENTS.md -> Previews
+- [ ] Written after the `RESEARCH.md` research, motifs listed in AGENTS.md -> Previews
 - [ ] Colors are `var(--token)`; `validate-extension.ps1` shows no unexplained drift
 - [ ] 1280x720, nothing clipped, both PNGs looked at
 - [ ] `data-part` tags in place and `validate-extension.ps1` shows `layout ok` for both previews (top bar order from `TopPanel.xaml`, icon-only view switches, game list, settings window)
