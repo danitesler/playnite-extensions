@@ -1,222 +1,134 @@
 <!doctype html>
-<!-- Ancient: approximate HTML replica of Playnite Game Details view (Dota 2 Panorama style) -->
+<!-- Ancient: HTML replica of Playnite's Game Details view (Dota 2 dashboard look). Layout follows Views/TopPanel.xaml: items + filter left, notifications + search right. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Ancient - Details Preview</title>
 <style>
-  :root {
-    --void: #07090b;
-    --topbar: #121619;
-    --deck: #0d1114;
-    --chat: #161e24;
-    --popup: #131617;
-    --menu: #3d4448;
-    --bevel: #4d5860;
-    --bevel-hover: #6c7d88;
-    --bevel-light: rgba(85, 85, 85, 0.6);
-    --bevel-shadow: #000000;
-    --dark-fill: #292e2e;
-    --frame: rgba(94, 104, 105, 0.4);
-    --frame-hover: #5e6869;
-    --input: #1a1a1a;
-    --text: #a5ada2;
-    --text-soft: #7f8b8d;
-    --text-tab: #777f88;
-    --text-hover: #d2d6d1;
-    --text-title: #afb4b4;
-    --white: #ffffff;
-    --nav-glow: #3382ff;
-    --tick: #a0d6d7;
-    --slider-thumb: #91a5b9;
-    --play: #5aa15e;
-    --play-dark: #3a753d;
-    --play-light: rgba(255, 255, 255, 0.35);
-    --gold: #ffcc33;
-    --win: #88ff88;
-    --font-body: Radiance, "Segoe UI", sans-serif;
-    --font-heading: Reaver, "Trajan Pro", Cinzel, Georgia, serif;
-  }
+  :root { --font-body: Radiance, "Segoe UI", sans-serif; --font-heading: Reaver, "Trajan Pro", Cinzel, Georgia, serif; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    width: 1280px; height: 720px; overflow: hidden; background: var(--deck); color: var(--text);
-    font-family: var(--font-body); font-size: 14px; display: flex;
-  }
-  .rail {
-    width: 44px; background: var(--topbar); border-right: 1px solid var(--line);
-    display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 6px; z-index: 10;
-  }
-  .rail-mark {
-    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-    color: var(--text-tab); margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 6px;
-  }
-  .rail-btn {
-    width: 40px; height: 38px; display: flex; align-items: center; justify-content: center;
-    color: var(--text-tab); cursor: pointer; position: relative;
-  }
-  .rail-btn.active {
-    color: var(--white);
-    background: radial-gradient(circle at center, rgba(51, 130, 255, 0.4) 0%, transparent 75%);
-  }
-  .rail-btn svg, .rail-mark svg { width: 18px; height: 18px; fill: currentColor; }
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; background: var(--deck); }
-  .top-bar {
-    height: 52px; background: rgba(0, 0, 0, 0.7); border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex; align-items: center; padding: 0 20px; gap: 14px;
-  }
-  .nav-tabs { display: flex; gap: 4px; }
-  .tab {
-    padding: 8px 16px; color: var(--text-tab); font-size: 14px; font-weight: 600;
-    font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
-  }
-  .tab.active {
-    color: var(--white);
-    text-shadow: 0 0 10px rgba(51, 130, 255, 0.8), 0 0 20px rgba(51, 130, 255, 0.4);
-  }
-  .search {
-    margin-left: auto; width: 340px; height: 34px; background: var(--input);
-    border: 2px solid rgba(85, 102, 99, 0.25); padding: 0 12px; color: var(--placeholder);
-    font-size: 13px; display: flex; align-items: center; gap: 8px;
-  }
-  .win-controls { display: flex; gap: 2px; margin-left: 14px; color: var(--gear); }
-  .win-btn { width: 40px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .hero-banner {
-    height: 320px; position: relative;
-    background: radial-gradient(ellipse at 70% 30%, #21382b 0%, #13221b 50%, var(--void) 95%);
-    overflow: hidden; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  }
-  .hero-wash {
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(7, 9, 11, 0) 10%, rgba(13, 17, 20, 0.95) 98%);
-  }
-  .hero-content { position: absolute; bottom: 24px; left: 36px; right: 36px; z-index: 5; }
-  .game-title {
-    font-size: 42px; font-weight: 700; line-height: 1.1; margin-bottom: 18px;
-    font-family: var(--font-heading); color: var(--white); text-transform: uppercase; letter-spacing: 2px;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
-  }
-  .action-row { display: flex; gap: 14px; align-items: center; }
-  .play-btn {
-    height: 48px; padding: 0 44px;
-    background: linear-gradient(to bottom, var(--play), var(--play-dark));
-    border-top: 1px solid var(--play-light); border-left: 1px solid rgba(255, 255, 255, 0.2);
-    border-right: 2px solid var(--bevel-shadow); border-bottom: 2px solid var(--bevel-shadow);
-    color: var(--white); font-family: var(--font-heading); font-weight: 700; font-size: 18px;
-    text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  }
-  .sub-btn {
-    height: 48px; padding: 0 24px; background: var(--bevel);
-    border-top: 1px solid var(--bevel-light); border-left: 1px solid rgba(85, 85, 85, 0.4);
-    border-right: 2px solid var(--bevel-shadow); border-bottom: 2px solid var(--bevel-shadow);
-    color: var(--off-white); font-family: var(--font-heading); font-weight: 600; font-size: 14px;
-    text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center;
-  }
-  .sub-btn svg { width: 18px; height: 18px; fill: currentColor; }
-  .content-columns { flex: 1; display: flex; gap: 36px; padding: 24px 36px; overflow: hidden; }
-  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-  .screenshots-row { display: flex; gap: 14px; }
-  .screen-thumb {
-    flex: 1; height: 146px; border: 1px solid rgba(255, 255, 255, 0.08); background: var(--chat);
-    position: relative; overflow: hidden;
-  }
-  .desc-heading {
-    font-size: 14px; font-weight: 700; color: var(--white);
-    font-family: var(--font-heading); text-transform: uppercase; letter-spacing: 1.5px;
-    margin-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 6px;
-  }
-  .desc-text { color: var(--text); line-height: 1.7; font-size: 14px; }
-  .right-col {
-    width: 360px; background: var(--chat); border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 22px; height: fit-content; display: flex; flex-direction: column; gap: 18px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
-  }
-  .meta-group { display: flex; flex-direction: column; gap: 6px; }
-  .meta-label {
-    font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-soft);
-    font-family: var(--font-heading); letter-spacing: 1.2px;
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    background: var(--dark-fill); border: 1px solid var(--frame);
-    padding: 4px 10px; font-size: 12px; color: var(--white); font-weight: 500;
-  }
-  .meta-value { font-size: 13px; color: var(--white); }
-  .meta-score { font-weight: 700; color: var(--win); font-size: 15px; }
+  svg { fill: currentColor; display: block; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--deck); color: var(--text); font-family: var(--font-body); font-size: 14px; position: relative; }
+
+  .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; background: linear-gradient(90deg, var(--void), var(--topbar) 60%); border-right: 1px solid var(--separator); box-shadow: 1px 0 0 var(--separator-light); z-index: 10; }
+  .rail-item { width: 43px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--text-tab); }
+  .rail-item svg { width: 16px; height: 16px; }
+  .rail-item.cur { color: var(--white); background: radial-gradient(circle at center, var(--nav-glow-wash) 0%, transparent 80%); }
+  .rail-sep { height: 2px; margin: 4px 8px; border-top: 1px solid var(--separator); border-bottom: 1px solid var(--separator-light); }
+
+  .main { position: absolute; left: 44px; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; }
+  .top-bar { height: 52px; flex: none; background: linear-gradient(90deg, var(--strip), rgba(0,0,0,.4)); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 146px 0 12px; position: relative; z-index: 6; }
+  .items { display: flex; align-items: center; }
+  .tool { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--text-subtab); position: relative; }
+  .tool svg { width: 20px; height: 20px; }
+  .tool.on { color: var(--white); background: radial-gradient(circle at center, var(--subtab-glow) 0%, transparent 85%); }
+  .gap { flex: 1; }
+  .search { width: 350px; height: 34px; background: var(--input); border: 2px solid var(--search-border); color: var(--placeholder); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-size: 14px; margin-left: 8px; }
+  .search svg { width: 16px; height: 16px; color: var(--search-ink); }
+  .caps { position: absolute; right: 0; top: 6px; display: flex; color: var(--gear); }
+  .caps b { width: 46px; height: 40px; font-weight: 400; text-align: center; line-height: 38px; font-size: 14px; }
+
+  .view { flex: 1; min-height: 0; display: flex; }
+  .game-list { width: 300px; flex: none; background: var(--chat); border-right: 1px solid var(--separator); overflow: hidden; }
+  .row { height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 6px; font-size: 16px; color: var(--text-soft); border-bottom: 1px solid var(--line); }
+  .row i { width: 20px; height: 20px; background: var(--dark-fill); border: 1px solid var(--frame); flex: none; }
+  .row.inst { color: var(--text); }
+  .row.sel { background: var(--nav-glow-wash); color: var(--white); }
+
+  .game-page { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  .art { position: absolute; left: 0; right: 0; top: 0; height: 330px; background: radial-gradient(ellipse at 70% 25%, #21382b 0%, #13221b 50%, var(--void) 95%); }
+  .art:after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 10%, var(--deck) 98%); }
+  .body { position: absolute; left: 32px; right: 32px; top: 150px; }
+  .title { font-family: var(--font-heading); font-size: 38px; font-variant: small-caps; color: var(--white); line-height: 1.1; text-shadow: 0 3px 12px rgba(0,0,0,.8); margin-bottom: 14px; }
+  .actions { display: flex; gap: 10px; align-items: center; }
+  .play { width: 220px; height: 48px; display: flex; align-items: center; justify-content: center; background: linear-gradient(to bottom, var(--play-hover), var(--play)); border-top: 1px solid var(--play-light); border-left: 1px solid var(--play-light); border-right: 2px solid var(--bevel-shadow); border-bottom: 2px solid var(--bevel-shadow); color: var(--white); font-family: var(--font-heading); font-weight: 700; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; }
+  .bev { height: 48px; padding: 0 22px; display: flex; align-items: center; background: var(--bevel); border-top: 1px solid var(--bevel-light); border-left: 1px solid var(--bevel-light); border-right: 2px solid var(--bevel-shadow); border-bottom: 2px solid var(--bevel-shadow); color: var(--off-white); font-family: var(--font-heading); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .cols { display: flex; gap: 28px; margin-top: 22px; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; margin-bottom: 16px; }
+  .shot { flex: 1; height: 120px; border: 1px solid var(--line); background: var(--chat); }
+  .cap { font-family: var(--font-heading); font-variant: small-caps; font-size: 16px; color: var(--white); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 8px; }
+  .desc { color: var(--text); line-height: 1.6; font-size: 14px; }
+  .meta { width: 320px; flex: none; }
+  .grp { padding: 9px 0; border-top: 1px solid var(--line); }
+  .grp:first-child { border-top: 0; padding-top: 0; }
+  .m { display: flex; gap: 8px; padding: 2px 0; font-size: 13px; color: var(--off-white); }
+  .m em { font-style: normal; width: 112px; flex: none; color: var(--text-soft); font-family: var(--font-heading); font-variant: small-caps; font-size: 13px; }
+  .chip { display: inline-block; background: var(--dark-fill); border: 1px solid var(--frame); padding: 1px 8px; margin: 0 4px 3px 0; font-size: 12px; color: var(--white); }
 </style>
 </head>
 <body>
-<div class="rail">
-  <div class="rail-mark">
-    <svg viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z"/></svg>
-  </div>
-  <div class="rail-btn active"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></div>
+<div class="rail" data-part="sidebar">
+  <div class="rail-item" data-part="PART_ElemMainMenu"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>
+  <div class="rail-sep"></div>
+  <div class="rail-item cur"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+  <div class="rail-item"><svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></div>
+  <div class="rail-item"><svg viewBox="0 0 24 24"><path d="M3 3v18h18V3H3zm6 14H7v-5h2v5zm4 0h-2V7h2v10zm4 0h-2v-7h2v7z"/></svg></div>
 </div>
 <div class="main">
-  <div class="top-bar">
-    <div class="nav-tabs">
-      <div class="tab">Heroes</div>
-      <div class="tab active">Armory</div>
-      <div class="tab">Watch</div>
-      <div class="tab">Learn</div>
-      <div class="tab">Arcade</div>
+  <div class="top-bar" data-part="top-panel">
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool on" title="Details view"><svg viewBox="0 0 24 24"><path d="M20 13H3c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h17c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zm0-10H3c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h17c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1z"/></svg></div>
+      <div class="tool" title="Grid view"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg></div>
+      <div class="tool" title="List view"><svg viewBox="0 0 24 24"><path d="M3 14h4v-4H3v4zm0 5h4v-4H3v4zM3 9h4V5H3v4zm5 5h13v-4H8v4zm0 5h13v-4H8v4zM8 5v4h13V5H8z"/></svg></div>
+      <div class="tool" title="Group"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg></div>
+      <div class="tool" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></div>
     </div>
-    <div class="search">
-      <span>&#128269;</span>
-      <span>SEARCH HEROES &amp; ITEMS...</span>
-    </div>
-    <div class="win-controls">
-      <div class="win-btn">&#8212;</div>
-      <div class="win-btn">&#9633;</div>
-      <div class="win-btn">&#10005;</div>
-    </div>
+    <div class="tool" data-part="PART_ToggleFilter" title="Filter"><svg viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39c.51-.66.04-1.61-.79-1.61H5.04c-.83 0-1.3.95-.79 1.61z"/></svg></div>
+    <div class="gap"></div>
+    <div class="tool" data-part="PART_ToggleNotifications" title="Notifications"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>
+    <div class="search" data-part="PART_TextMainSearch"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>Search</div>
+    <div class="caps"><b>&#8212;</b><b>&#9633;</b><b>&#10005;</b></div>
   </div>
-  <div class="hero-banner">
-    <div class="hero-wash"></div>
-    <div class="hero-content">
-      <div class="game-title">Rune of the Ancients</div>
-      <div class="action-row">
-        <button class="play-btn">Play Dota</button>
-        <button class="sub-btn">Custom Lobby</button>
-        <div class="sub-btn" style="padding:0;width:48px;"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
-      </div>
+  <div class="view">
+    <div class="game-list" data-part="game-list">
+      <div class="row inst"><i></i>Aegis Siege</div>
+      <div class="row"><i></i>Bounty Hunters</div>
+      <div class="row inst"><i></i>Crystal Maiden's Folly</div>
+      <div class="row inst"><i></i>Dire Tide</div>
+      <div class="row sel"><i></i>Rune of the Ancients</div>
+      <div class="row inst"><i></i>Roshan's Lair</div>
+      <div class="row"><i></i>Shadow Fiend Saga</div>
+      <div class="row inst"><i></i>Tower Defense Arcade</div>
+      <div class="row"><i></i>Treant Grove</div>
+      <div class="row inst"><i></i>Underlords Chess</div>
+      <div class="row"><i></i>Void Spirit</div>
+      <div class="row inst"><i></i>Warlock's Tome</div>
+      <div class="row"><i></i>Wraith Night</div>
+      <div class="row inst"><i></i>Zeus Arena</div>
+      <div class="row"><i></i>Ancient Apparition</div>
+      <div class="row inst"><i></i>Battle Pass Legends</div>
+      <div class="row"><i></i>Chaos Knight</div>
+      <div class="row inst"><i></i>Dragon's Blood</div>
     </div>
-  </div>
-  <div class="content-columns">
-    <div class="left-col">
-      <div class="screenshots-row">
-        <div class="screen-thumb" style="background: radial-gradient(circle at 60% 40%, rgba(90, 161, 94, 0.2), #0d161a 70%);"></div>
-        <div class="screen-thumb" style="background: radial-gradient(circle at 40% 60%, rgba(51, 130, 255, 0.15), #0a1114 75%);"></div>
-        <div class="screen-thumb" style="background: radial-gradient(circle at 50% 50%, rgba(160, 214, 215, 0.15), #0e171b 70%);"></div>
-      </div>
-      <div>
-        <div class="desc-heading">Battlefield Chronicles</div>
-        <p class="desc-text">Every match presents an evolving theater of strategic clashes, spell mastery, and team coordination. Choose from over a hundred distinct champions, control runes, master the lanes, and shatter the enemy Ancient.</p>
-      </div>
-    </div>
-    <div class="right-col">
-      <div class="meta-group">
-        <div class="meta-label">Match Archetypes</div>
-        <div class="chips"><div class="chip">MOBA</div><div class="chip">Competitive</div><div class="chip">Strategy</div></div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Faction Developer</div>
-        <div class="meta-value">Valve Software</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Ranked Records</div>
-        <div class="meta-value">1,420 hours logged &bull; Last match earlier today</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Community Rating</div>
-        <div class="meta-score">Very Positive (91%)</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Deployment Architecture</div>
-        <div class="meta-value">Source 2 Engine / Windows</div>
+    <div class="game-page" data-part="game-page">
+      <div class="art"></div>
+      <div class="body">
+        <div class="title">Rune of the Ancients</div>
+        <div class="actions">
+          <div class="play">Play</div>
+          <div class="bev">More</div>
+          <div class="bev">Edit</div>
+        </div>
+        <div class="cols">
+          <div class="left">
+            <div class="shots">
+              <div class="shot" style="background: radial-gradient(circle at 60% 40%, rgba(90,161,94,.25), var(--chat) 70%);"></div>
+              <div class="shot" style="background: radial-gradient(circle at 40% 60%, var(--nav-glow-soft), var(--chat) 75%);"></div>
+              <div class="shot" style="background: radial-gradient(circle at 50% 50%, rgba(160,214,215,.18), var(--chat) 70%);"></div>
+            </div>
+            <div class="cap">Description</div>
+            <p class="desc">Every match presents an evolving theater of strategic clashes, spell mastery and team coordination. Choose from over a hundred champions, control runes, master the lanes and shatter the enemy Ancient before they shatter yours.</p>
+          </div>
+          <div class="meta" data-part="metadata">
+            <div class="grp"><div class="m"><em>Completion</em>Playing</div><div class="m"><em>Play time</em>1,420 hours</div><div class="m"><em>Last played</em>Today</div></div>
+            <div class="grp"><div class="m"><em>Community</em><b style="color:var(--win)">91</b></div><div class="m"><em>Critic</em><b style="color:var(--gold)">88</b></div></div>
+            <div class="grp"><div class="m"><em>Developers</em>Valve Software</div><div class="m"><em>Release date</em>2013</div></div>
+            <div class="grp"><div class="m"><em>Genres</em><span><span class="chip">MOBA</span><span class="chip">Strategy</span></span></div><div class="m"><em>Features</em><span><span class="chip">Multiplayer</span></span></div></div>
+            <div class="grp"><div class="m"><em>Library</em>Steam</div><div class="m"><em>Install size</em>38 GB</div></div>
+            <div class="grp"><div class="m"><em>Links</em><span style="color:var(--text-hover)">Website, Wiki</span></div></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
