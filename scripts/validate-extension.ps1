@@ -223,13 +223,18 @@ if ($RequireBuildOutput) {
     }
 }
 
-# Preview drift: colors the HTML previews hard-code that are not in src/tokens.css. Advisory only; the screenshots are
-# rendered from these files, so a stale color here ships as a stale screenshot.
+# Preview drift: colors the HTML previews hard-code that are not in src/tokens.css, and layout that departs from the
+# theme's own top panel, details view and Playnite's settings window. Advisory only; the screenshots are rendered from
+# these files, so a stale color or layout here ships as a stale screenshot.
 if ($isTheme -and (Get-Command node -ErrorAction SilentlyContinue)) {
     $themeRoot = Join-RepoPath $profile.dir
     if (Test-Path (Join-Path $themeRoot "art/preview-details.html")) {
         try {
             foreach ($line in @(& node (Join-Path $PSScriptRoot "preview-tokens.mjs") check $themeRoot 2>&1)) {
+                $previewNotes.Add("$line")
+            }
+            # Layout: top bar order from src/Views/TopPanel.xaml, icon-only view switches, game list, settings window.
+            foreach ($line in @(& node (Join-Path $PSScriptRoot "preview-layout.mjs") $themeRoot 2>&1)) {
                 $previewNotes.Add("$line")
             }
         }
@@ -256,6 +261,6 @@ else {
     Write-Host "  Module: $($manifest.Module)"
 }
 if ($previewNotes.Count -gt 0) {
-    Write-Host "  Preview colors vs src/tokens.css (advisory; see playnite-theme-dev, HTML previews):"
+    Write-Host "  Preview colors and layout (advisory; see playnite-theme-dev previews.md):"
     foreach ($note in $previewNotes) { Write-Host "    $note" }
 }
