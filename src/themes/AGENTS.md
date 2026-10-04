@@ -117,8 +117,56 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 ## Previews and screenshots
 
-All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
-- **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view (left compact navigation rail, the game list as a secondary panel beside the game page with the current game selected, hero banner, screenshot carousel + description on the left of the page, metadata pane on the right).
+All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>` (never a capture of live Playnite). Two files per theme, both rendered at **1600 x 900**: `art/preview-details.html` -> `art/details.png`, `art/preview-settings.html` -> `art/settings.png`. A survey of the first 20 themes found the generic layout below in most of them; this section turns it into the rule. **The theme supplies colors, shapes, fonts, icons and its own labels; the geometry and the sample data below stay fixed**, so a row of screenshots from different themes compares like with like.
+
+### Both previews
+
+- Full-bleed 1600 x 900 `body`, `box-sizing: border-box`, `overflow: hidden`; fonts are the theme's with a system fallback (`DejaVu Sans` renders in the container). A top comment names the theme and says "approximate HTML replica".
+- Colors are CSS variables named after the theme's `tokens.css` entries, never new colors. Icons are the theme's own `Icon<Role>` geometries (inline `svg`), not emoji or Unicode symbols, except the pencil of the Edit button.
+- Nothing is drawn that the theme's XAML does not draw: no disclaimers, watermarks, captions or invented chrome in the image (the fan-theme notice lives in `info/NOTICE-*.txt`). Window buttons are drawn wherever the shell reserves them.
+- Shapes follow the theme's radius rules (no `CornerRadiusFull` on non-square elements). No `box-shadow` on anything except the settings dialog against its backdrop.
+
+### Details preview (`preview-details.html`)
+
+Layout, left to right, top to bottom:
+
+1. **Rail**: compact navigation rail at the left edge, 44px (the theme's own width if it differs), 1px divider on its inner edge. Main menu button on top, then Library (current) and Statistics.
+2. **Top bar**: spans the width right of the rail, 48-56px (the theme's height). Left to right: search box about 280px with the placeholder "Search library", then the icon buttons in the order view settings, filter, sort, details view (current), grid view, list view; window buttons at the far right. View switches are icons only.
+3. **Game list (secondary panel)**: required. A column between the rail and the game page, 250-350px wide (Playnite's `DetailsListWitdh`), full height under the top bar, 1px divider on the page side. At least 15 rows visible, one line each: a 24-32px square icon, then the name at the theme's list size. Exactly one row is selected (the theme's selected-row treatment), at most one other row shows the hover treatment, and a few uninstalled games use the muted text color. The selected game is the sample game. Sample names, in this order and cut at the panel height: Aegis Outpost, Barnstorm, Cargo Cult, Dockside Brawl, Engine Room, Foundry Run, Gravel Pit, Eldritch Void, Ironworks, Junction 9, Killzone Courtyard, Lumber Mill, Mercenary Park, Night Watch, Oilfield, Powerhouse, Quarry Siege, Rail Yard, Sawmill, Trainyard.
+4. **Game page** (right of the list): hero banner of the theme's default `GameBannerHeight`, gradient only (no art, no cover), fading into the page. Title bottom-left at the page's left padding, 28-44px as the theme draws it, with the sample game's icon square when the theme shows one. Under it the button row, 40-44px high, in the order **Play** (130-150px wide), **More**, **Edit** (pencil, icon-only), each drawn as the theme's XAML draws it.
+5. **Two columns** under the banner, top-aligned: left, a **Steam screenshots** row of 3 equal gradient thumbs (about 16:6.5, 8-14px gap, no arrows), then the headings **Description** and **Notes** (Playnite's own labels, `LOCGameDescriptionTitle`, `LOCNotesLabel`) over short paragraphs; right, the **metadata pane** at the theme's width (340-360px), top-aligned with the thumbs.
+6. **Metadata pane** uses the six collapsing groups of the game page skeleton, in order, each field a label (Playnite's label text) and a value:
+
+| Group | Rows shown |
+|-------|------------|
+| Progress | Completion status: Playing; Time played: 36.5 hours; Last played: Yesterday |
+| Scores | Critic score: 94, in the positive-rating color |
+| About | Developer: Ironclad Interactive; Release date: 4/18/2023 |
+| Tags | Platform: PC (Windows) as one chip; Genres: RPG, Action, Atmospheric as three chips |
+| Library | Library: Steam; Install size: 18.4 GB |
+| Links | Links: Store, Wiki, one per line |
+
+- **Sample game**: **Eldritch Void**. Use a differently named fictional game only when the theme is modeled on a specific game, and then keep the structure, order and data above.
+- **Sample text**: Description "Descend into an ancient subterranean citadel lost between cosmic dimensions. Uncover forbidden relics, survive tactical encounters with spectral custodians, and reshape the destiny of a forgotten world." Notes "Finished the first act. The citadel's lower levels are the best part; still need the lantern relic."
+
+### Settings preview (`preview-settings.html`)
+
+1. Near-black backdrop (about `#0a0a0c`, or the theme's darkest tone), with the dialog centered: **1220 x 760**, 1px border in the theme's popup edge color, the one allowed `box-shadow: 0 20px 50px rgba(0,0,0,.6)`.
+2. **Title bar**: the theme's caption height, text "<Theme name> Settings" on the left, the theme's close button at the right.
+3. **Left navigation**: 240-250px wide, five items **General, Appearance, Layout, Input, Advanced**, the second (Appearance) in the theme's selected-row treatment, one other showing hover. Themes modeled on a game may rename the items; the count and the active position stay.
+4. **Content**: heading "Appearance & Theme Options", subtitle "Adjust theme controls, elevation, accents, and visual hierarchy.", then one card (the theme's GroupBox look) holding, in this order:
+   1. Text input "Header Display Name" = "Main Game Collection", drawn focused
+   2. Combo box "Theme Mode" = "Dark Theme (Default)"
+   3. Checked checkbox "Show glowing selection borders", help "Highlights active and focused library items with the theme accent."
+   4. Unchecked checkbox "Compact game details pane", help "Minimize extra margins around metadata chips and screenshots."
+   5. Slider "Banner Scrim Opacity (65%)", thumb at 65%
+   6. Radio pair "Standard animations" (selected) and "Reduced motion"; radios stay round
+5. **Footer**: 56-65px bar with a top rule, two right-aligned buttons, **Cancel** then **Save Settings**, drawn with the theme's Button style (no extra primary color: Playnite has no primary button but Play).
+
+### Checking a preview
+
+Open the PNG before committing: the game list is there and its selected row matches the sample game; the metadata pane shows all six groups; the settings card shows all six controls in order; nothing is clipped at the canvas edge; colors come only from tokens.
+
 ## Control corner radii and shapes
 
 - **Why `CornerRadiusFull` distorts in WPF**: Unlike CSS (which scales corner radii uniformly), WPF's `Border` clamps horizontal and vertical radii independently: `radiusX = min(radiusX, width/2)` and `radiusY = min(radiusY, height/2)`. When a single huge radius (e.g. 9999 or 10000) is set on an element where `width != height`, WPF draws an ellipse/oval across the entire element rather than flat edges with circular caps.
