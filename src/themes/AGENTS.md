@@ -118,7 +118,7 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 ## Previews and screenshots
 
 All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
-- **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view (hero banner, left screenshot carousel + description, right metadata pane, left compact navigation rail).
+- **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view (left compact navigation rail, the game list as a secondary panel beside the game page with the current game selected, hero banner, screenshot carousel + description on the left of the page, metadata pane on the right).
 ## Control corner radii and shapes
 
 - **Why `CornerRadiusFull` distorts in WPF**: Unlike CSS (which scales corner radii uniformly), WPF's `Border` clamps horizontal and vertical radii independently: `radiusX = min(radiusX, width/2)` and `radiusY = min(radiusY, height/2)`. When a single huge radius (e.g. 9999 or 10000) is set on an element where `width != height`, WPF draws an ellipse/oval across the entire element rather than flat edges with circular caps.
