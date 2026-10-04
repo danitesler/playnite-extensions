@@ -117,6 +117,8 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 ## Previews and screenshots
 
+How to build them (tokens as `var(--token)`, real sizes and states, signature motifs, 1280x720, checklist): `.claude/skills/playnite-theme-dev/previews.md`. The renderer injects `src/tokens.css`; `validate-extension.ps1` lists preview colors that drifted from it; `node scripts/preview-tokens.mjs link src/themes/<Name>` converts matching hex to `var(--token)`.
+
 All release screenshots and listing previews are generated from HTML replicas using Playwright / Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
 - **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view (hero banner, left screenshot carousel + description, right metadata pane, left compact navigation rail).
 ## Control corner radii and shapes

@@ -300,6 +300,10 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 |---------------|-------------------------|
 | TODO | |
 
+## Previews
+
+``art/preview-details.html`` and ``art/preview-settings.html`` are scaffold placeholders until rewritten (see ``.claude/skills/playnite-theme-dev/previews.md``). Signature motifs drawn: TODO. Stand-in fonts: TODO.
+
 ## Deviations
 
 ## Not verified yet
@@ -308,6 +312,9 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 @"
 <!doctype html>
 <!-- ${Name}: approximate HTML replica of Playnite Game Details view -->
+<!-- SCAFFOLD PLACEHOLDER. Rewrite after the theme's reference research (see playnite-theme-dev, HTML previews):
+     colors as var(--token) from src/tokens.css (render-theme-preview.mjs injects it), the theme's real fonts, shell,
+     radii, selection and chrome styles, and its signature motifs. The :root values below are generic defaults. -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -416,6 +423,7 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 @"
 <!doctype html>
 <!-- ${Name}: approximate HTML replica of Playnite Settings view -->
+<!-- SCAFFOLD PLACEHOLDER. Rewrite from the theme's tokens and reference, as in preview-details.html. -->
 <html>
 <head>
 <meta charset="utf-8">
@@ -428,7 +436,7 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { width: 1280px; height: 720px; overflow: hidden; background: #0a0a0c; color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-  .dialog { width: 1200px; height: 750px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; }
+  .dialog { width: 1120px; height: 660px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; }
   .title-bar { height: 42px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; font-weight: 600; font-size: 14px; }
   .win-controls { margin-left: auto; display: flex; gap: 8px; }
   .win-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); }
@@ -535,5 +543,6 @@ Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the to
 Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
 Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
 Write-Host "  5. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key -Deploy and restart Playnite."
-Write-Host "  6. Style art/preview-details.html and art/preview-settings.html, then .\scripts\take-screenshots.ps1 -Extension $Key."
+Write-Host "  6. Rewrite art/preview-details.html and art/preview-settings.html from the research, with var(--token) colors from src/tokens.css"
+Write-Host "     (they are generic placeholders), then .\scripts\take-screenshots.ps1 -Extension $Key. After token changes: .\scripts\validate-extension.ps1 lists preview colors that drifted."
 

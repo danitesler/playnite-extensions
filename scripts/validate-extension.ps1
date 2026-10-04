@@ -35,6 +35,7 @@ $isTheme = (Get-ExtensionKind $profile) -eq "theme"
 $manifest = Get-ExtensionManifestInfo -Profile $profile
 $manifestName = Split-Path -Leaf $manifest.Path
 $errors = [System.Collections.Generic.List[string]]::new()
+$previewNotes = [System.Collections.Generic.List[string]]::new()
 
 $installerPath = Join-RepoPath $profile.installerManifest
 if (-not (Test-Path $installerPath)) {
@@ -222,6 +223,20 @@ if ($RequireBuildOutput) {
     }
 }
 
+# Preview drift: colors the HTML previews hard-code that are not in src/tokens.css. Advisory only; the screenshots are
+# rendered from these files, so a stale color here ships as a stale screenshot.
+if ($isTheme -and (Get-Command node -ErrorAction SilentlyContinue)) {
+    $themeRoot = Join-RepoPath $profile.dir
+    if (Test-Path (Join-Path $themeRoot "art/preview-details.html")) {
+        try {
+            foreach ($line in @(& node (Join-Path $PSScriptRoot "preview-tokens.mjs") check $themeRoot 2>&1)) {
+                $previewNotes.Add("$line")
+            }
+        }
+        catch { $previewNotes.Add("preview token check could not run: $($_.Exception.Message)") }
+    }
+}
+
 if ($errors.Count -gt 0) {
     Write-Host "Extension validation failed for '$Extension':"
     foreach ($validationError in $errors) {
@@ -239,4 +254,8 @@ if ($isTheme) {
 }
 else {
     Write-Host "  Module: $($manifest.Module)"
+}
+if ($previewNotes.Count -gt 0) {
+    Write-Host "  Preview colors vs src/tokens.css (advisory; see playnite-theme-dev, HTML previews):"
+    foreach ($note in $previewNotes) { Write-Host "    $note" }
 }
