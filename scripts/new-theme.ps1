@@ -319,7 +319,7 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
     --accent-text: #ffffff; --radius: 8px; --chip-bg: #282830;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 1600px; height: 900px; overflow: hidden; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; }
   .rail { width: 44px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; z-index: 10; }
   .rail-btn { width: 36px; height: 36px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; }
   .rail-btn.active { background: var(--accent); color: var(--accent-text); }
@@ -427,7 +427,7 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
     --accent-text: #ffffff; --radius: 8px; --input-bg: #16161a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 1600px; height: 900px; overflow: hidden; background: #0a0a0c; color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: #0a0a0c; color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex; align-items: center; justify-content: center; }
   .dialog { width: 1200px; height: 750px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); overflow: hidden; }
   .title-bar { height: 42px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; font-weight: 600; font-size: 14px; }
   .win-controls { margin-left: auto; display: flex; gap: 8px; }

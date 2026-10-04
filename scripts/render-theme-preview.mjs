@@ -28,7 +28,7 @@ function findBrowser() {
 const { chromium } = createRequire(import.meta.url)('playwright');
 const executablePath = findBrowser();
 const browser = await chromium.launch(executablePath ? { executablePath } : { channel: 'chrome' });
-const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
 await page.goto('file://' + path.resolve(html));
 const target = out || html.replace(/\.html$/, '.png');
 fs.mkdirSync(path.dirname(path.resolve(target)), { recursive: true });
