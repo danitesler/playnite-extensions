@@ -1,320 +1,226 @@
 <!doctype html>
-<!-- Overworld: approximate HTML replica of Playnite Game Details view -->
+<!-- Overworld: HTML replica of Playnite's Game Details view. Layout follows src/Views/TopPanel.xaml (menu, view switches, filter, notifications, search at the right) and DerivedStyles/DetailsViewItemStyle.xaml. Colors come from src/tokens.css. Monocraft stands in for the game's font where installed. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Overworld - Details Preview</title>
-<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --void: #101010;
-    --rail: #0b0b0b;
-    --deck: #141414;
-    --panel: #1a1a1a;
-    --button: #6f6f6f;
-    --button-hover: #757575;
-    --light: rgba(255, 255, 255, 0.41);
-    --shade: rgba(0, 0, 0, 0.227);
-    --text: var(--field-text);
-    --soft: var(--field-edge);
-    --white: var(--button-outline-hover);
-    --shadow: var(--text-shadow);
-    --field: var(--popup-edge);
-    --edge: var(--field-edge);
-    --hint: var(--field-hint);
-    --sep-l: rgba(255, 255, 255, 0.2);
-    --sep-d: rgba(0, 0, 0, 0.75);
-    --tab: rgba(0, 0, 0, 0.86);
-    --splash: #ffff55;
-    --play: #3c8527;
-    --play-hover: #52a535;
-    --xp: #80ff20;
-    --px: "Pixelify Sans", Monocraft, Consolas, monospace;
-  }
+  :root { --px: Monocraft, Minecraftia, Minecraft, Consolas, monospace; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    width: 1280px; height: 720px; overflow: hidden; background: var(--void); color: var(--text);
-    font-family: "Segoe UI", sans-serif; font-size: 14px; display: flex; border: 1px solid var(--popup-edge);
-  }
-  .px { font-family: var(--px); }
-  .sh { text-shadow: 2px 2px 0 var(--shadow); }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--void); color: var(--text); font-family: "Segoe UI", sans-serif; font-size: 14px; display: flex; position: relative; }
+  .ic { fill: currentColor; display: block; shape-rendering: crispEdges; }
 
-  /* Stone button */
-  .btn {
-    position: relative; background: var(--button); border: 2px solid var(--popup-edge); color: var(--button-outline-hover);
-    font-family: var(--px); font-size: 16px; display: flex; align-items: center; justify-content: center;
-    text-shadow: 2px 2px 0 var(--shadow); cursor: pointer;
-  }
-  .btn::before {
-    content: ""; position: absolute; inset: 0;
-    border-top: 2px solid var(--light); border-left: 2px solid var(--light);
-    border-bottom: 4px solid var(--shade); border-right: 2px solid var(--shade);
-    pointer-events: none;
-  }
+  /* Stone button: flat fill, translucent light edge top/left, dark edge bottom/right, black outline */
+  .btn { position: relative; background: var(--button); border: 2px solid var(--button-outline); color: var(--white); font-family: var(--px); font-size: 15px; display: flex; align-items: center; justify-content: center; text-shadow: 2px 2px 0 var(--text-shadow); }
+  .btn:before { content: ""; position: absolute; inset: 0; border-top: 2px solid var(--bevel-light); border-left: 2px solid var(--bevel-light); border-bottom: 4px solid var(--bevel-shadow); border-right: 2px solid var(--bevel-shadow); pointer-events: none; }
   .btn.hl { background: var(--button-hover); border-color: var(--button-outline-hover); }
-  .btn.green { background: var(--play); font-size: 20px; }
+  .btn.green { background: var(--play); font-size: 18px; }
+  .btn .ic { filter: drop-shadow(2px 2px 0 var(--text-shadow)); }
 
-  /* 44px Rail */
-  .rail {
-    width: 44px; background: var(--rail); border-right: 1px solid var(--sep-d);
-    box-shadow: inset -1px 0 0 var(--sep-l); display: flex; flex-direction: column;
-    align-items: center; padding-top: 6px; flex: none; position: relative; z-index: 10;
-  }
-  .rail .btn-menu { width: 34px; height: 34px; }
-  .rail-sep {
-    width: 32px; height: 2px; margin: 8px 0 4px;
-    border-top: 1px solid var(--sep-l); border-bottom: 1px solid var(--sep-d);
-  }
-  .rail-item {
-    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
-    position: relative; margin-bottom: 4px; cursor: pointer;
-  }
-  .rail-mark {
-    position: absolute; left: 0; top: 10px; width: 2px; height: 24px; background: var(--button-outline-hover);
-  }
-  .rail-item .btn { width: 34px; height: 34px; }
+  /* Sidebar: 44px rail on the darkest surface, closed by a light/dark separator pair; 32px stone icon buttons in 44x40 cells */
+  .rail { width: 44px; flex: none; background: var(--rail); border-right: 1px solid var(--separator-dark); box-shadow: inset -1px 0 0 var(--separator-light); display: flex; flex-direction: column; z-index: 10; }
+  .cell { width: 44px; height: 40px; display: grid; place-items: center; position: relative; }
+  .cell .btn { width: 32px; height: 32px; }
+  .cell .btn .ic { width: 16px; height: 16px; }
+  .cell.cur:before { content: ""; position: absolute; left: 0; top: 8px; width: 2px; height: 24px; background: var(--white); }
+  .rsep { width: 28px; height: 2px; margin: 4px 8px; border-top: 1px solid var(--separator-light); border-bottom: 1px solid var(--separator-dark); }
 
-  /* Main area */
-  .main { flex: 1; position: relative; display: flex; flex-direction: column; background: var(--deck); overflow: hidden; }
+  .main { flex: 1; min-width: 0; position: relative; display: flex; flex-direction: column; background: var(--deck); overflow: hidden; }
+  /* Blurred panorama behind everything, dimmed by the menu veil and a vignette */
+  .pano { position: absolute; inset: -40px; filter: blur(14px);
+    background: radial-gradient(ellipse 30% 18% at 30% 22%, rgba(255,255,255,.7), transparent 70%),
+      linear-gradient(180deg, #7fb3ff 0%, #a9d1ff 38%, #5f8f3f 46%, #4a7a32 58%, #6b5136 66%, #3a2c20 100%); }
+  .veil { position: absolute; inset: 0; background: var(--menu-veil); }
+  .vign { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 90% at 50% 35%, rgba(20,20,20,.45) 40%, rgba(20,20,20,.9) 100%), linear-gradient(180deg, transparent 40%, var(--deck) 100%); }
+  .wrap { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
-  /* Blurred panorama */
-  .pano {
-    position: absolute; inset: -40px; filter: blur(14px); z-index: 1;
-    background:
-      radial-gradient(ellipse 30% 18% at 30% 22%, rgba(255, 255, 255, 0.7), transparent 70%),
-      linear-gradient(180deg, #7fb3ff 0%, #a9d1ff 38%, #5f8f3f 46%, #4a7a32 58%, #6b5136 66%, #3a2c20 100%);
-  }
-  .veil { position: absolute; inset: 0; background: rgba(20, 20, 20, 0.45); z-index: 2; }
-  .vign {
-    position: absolute; inset: 0; z-index: 3;
-    background:
-      radial-gradient(ellipse 80% 90% at 50% 35%, transparent 45%, rgba(20, 20, 20, 0.88) 100%),
-      linear-gradient(180deg, transparent 40%, var(--deck) 100%);
-  }
+  /* Top panel: the tab strip, 52px, black at 86%, separator pair underneath */
+  .top { height: 52px; flex: none; background: var(--tab-body); display: flex; align-items: center; padding: 0 146px 0 12px; position: relative; border-bottom: 1px solid var(--separator-dark); box-shadow: inset 0 -2px 0 var(--separator-light); }
+  .items { display: flex; align-items: center; }
+  .tab { width: 36px; height: 40px; display: grid; place-items: center; color: var(--text-soft); position: relative; }
+  .tab .ic { width: 16px; height: 16px; }
+  .tab.on { color: var(--white); }
+  .tab.on:after { content: ""; position: absolute; left: 6px; right: 6px; bottom: 2px; height: 2px; background: var(--white); }
+  .sp { width: 12px; }
+  .badge { position: absolute; right: 2px; top: 6px; min-width: 14px; height: 14px; padding: 0 3px; background: var(--danger); color: var(--white); font-family: var(--px); font-size: 10px; line-height: 14px; text-align: center; }
+  .right { margin-left: auto; display: flex; align-items: center; gap: 0; }
+  .search { width: 300px; height: 34px; background: var(--field); border: 2px solid var(--field-edge); color: var(--field-hint); display: flex; align-items: center; gap: 8px; padding: 0 8px; margin-left: 0; }
+  .search .ic { width: 14px; height: 14px; }
+  .win { position: absolute; right: 0; top: 0; height: 52px; display: flex; }
+  .win b { width: 46px; height: 40px; display: grid; place-items: center; color: var(--text-soft); }
+  .win b .ic { width: 14px; height: 14px; }
 
-  .content-wrapper { position: relative; z-index: 5; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .body { flex: 1; min-height: 0; display: flex; }
 
-  /* Top tab bar */
-  .top-bar {
-    position: relative; height: 52px; background: var(--tab); display: flex;
-    align-items: center; padding: 0 146px 0 12px; border-bottom: 1px solid var(--sep-d);
-    box-shadow: 0 -1px 0 var(--sep-l) inset;
-  }
-  .tab-icon {
-    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-    color: var(--soft); position: relative; margin-left: 2px; cursor: pointer;
-  }
-  .tab-icon.on { color: var(--button-outline-hover); }
-  .tab-icon.on::after {
-    content: ""; position: absolute; left: 8px; right: 8px; bottom: 4px; height: 2px; background: var(--button-outline-hover);
-  }
-  .search {
-    margin-left: auto; width: 280px; height: 32px; background: var(--popup-edge); border: 2px solid var(--edge);
-    display: flex; align-items: center; justify-content: space-between; padding: 0 8px; color: var(--hint);
-  }
-  .caps { position: absolute; right: 4px; top: 6px; display: flex; }
-  .caps div { width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--soft); }
+  /* Game list: world-list rows, 1px dark line under each, selection = black fill with a 1px white outline */
+  .list { width: 300px; flex: none; background: var(--list-veil); border-right: 1px solid var(--separator-dark); box-shadow: inset -1px 0 0 var(--separator-light); overflow: hidden; }
+  .gr { height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 4px 0 6px; font-size: 16px; color: var(--text-soft); border-bottom: 1px solid var(--popup-edge); position: relative; }
+  .gr.in { color: var(--text); }
+  .gr .pl { width: 20px; height: 20px; flex: none; background: var(--track); border: 1px solid var(--button-outline); }
+  .gr.sel { background: var(--row-fill); outline: 1px solid var(--row-focus); outline-offset: -1px; color: var(--white); }
 
-  /* 320px Hero Banner */
-  .hero-banner {
-    height: 320px; position: relative; overflow: hidden;
-    background: linear-gradient(160deg, rgba(232, 244, 255, 0.15) 0%, rgba(90, 126, 160, 0.4) 55%, rgba(42, 58, 80, 0.85) 100%);
-    border-bottom: 1px solid var(--sep-d); box-shadow: 0 1px 0 var(--sep-l);
-  }
-  .hero-wash {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(20, 20, 20, 0.2) 0%, rgba(20, 20, 20, 0.5) 60%, var(--deck) 100%);
-  }
-  .hero-content { position: absolute; bottom: 24px; left: 32px; right: 32px; z-index: 5; }
-  .title-row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-  .game-title {
-    font-family: var(--px); font-size: 38px; color: var(--button-outline-hover); text-shadow: 3px 3px 0 var(--shadow);
-  }
-  .splash-text {
-    font-family: var(--px); font-size: 15px; color: var(--splash);
-    text-shadow: 2px 2px 0 #3f3f00; transform: rotate(-20deg); transform-origin: left center;
-  }
-  .action-row { display: flex; gap: 12px; align-items: center; }
+  /* Game page */
+  .page { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .hero { height: 200px; flex: none; position: relative; }
+  .hero-in { position: absolute; left: 28px; right: 28px; bottom: 12px; }
+  .titlerow { display: flex; align-items: flex-end; gap: 0; margin-bottom: 12px; position: relative; }
+  .title { font-family: var(--px); font-size: 36px; color: var(--white); text-shadow: 3px 3px 0 var(--text-shadow); line-height: 1; }
+  .splash { font-family: var(--px); font-size: 15px; color: var(--splash); text-shadow: 2px 2px 0 #3f3f00; transform: rotate(-20deg); transform-origin: left center; margin: 0 0 14px 22px; }
+  .acts { display: flex; gap: 8px; align-items: center; }
+  .acts .btn { height: 40px; }
+  .acts .play { min-width: 160px; padding: 0 18px; gap: 10px; }
+  .acts .play .ic { width: 16px; height: 16px; }
+  .acts .sq { width: 40px; }
+  .acts .sq .ic { width: 16px; height: 16px; }
 
-  /* Content columns */
-  .content-columns { flex: 1; display: flex; gap: 28px; padding: 24px 32px; overflow: hidden; }
-  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-  .screenshots-row { display: flex; gap: 14px; }
-  .screen-thumb {
-    flex: 1; height: 148px; outline: 1px solid var(--popup-edge); background: var(--panel);
-    position: relative; overflow: hidden;
-  }
-  .thumb-art {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .section-heading {
-    font-family: var(--px); font-size: 18px; color: var(--soft); text-shadow: 1px 1px 0 var(--shadow);
-  }
-  .div-line {
-    height: 2px; border-top: 1px solid var(--sep-l); border-bottom: 1px solid var(--sep-d);
-    margin: 8px 0 12px;
-  }
-  .desc-text { color: var(--text); line-height: 1.6; font-size: 14px; }
+  .cols { flex: 1; min-height: 0; display: flex; gap: 24px; padding: 14px 24px 0 28px; overflow: hidden; background: var(--list-veil); }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 8px; margin-bottom: 12px; }
+  .shot { flex: 1; height: 108px; border: 2px solid var(--popup-edge); background: var(--track); position: relative; overflow: hidden; }
+  .shot b { position: absolute; inset: 0; }
+  .shot.sel { border-color: var(--row-focus); }
+  h2 { font-family: var(--px); font-size: 16px; font-weight: 400; color: var(--white); text-shadow: 2px 2px 0 var(--text-shadow); padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid var(--separator-dark); box-shadow: 0 1px 0 var(--separator-light); }
+  .desc { color: var(--text); line-height: 1.5; font-size: 15px; }
 
-  /* Right metadata pane */
-  .right-col {
-    width: 340px; background: var(--panel); border: 1px solid var(--popup-edge);
-    padding: 16px 20px; height: fit-content;
-  }
-  .meta-group { border-top: 1px solid var(--sep-l); padding: 8px 0; }
-  .meta-group:first-child { border-top: none; padding-top: 0; }
-  .meta-label {
-    font-family: var(--px); font-size: 13px; color: var(--soft); text-shadow: 1px 1px 0 var(--shadow);
-    margin-bottom: 4px;
-  }
-  .meta-value { font-size: 14px; color: var(--button-outline-hover); }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .chip {
-    background: var(--button-disabled); border: 1px solid var(--popup-edge); padding: 3px 9px; font-size: 12px; color: var(--text);
-  }
-  .xp-bar {
-    height: 6px; background: var(--popup-edge); width: 140px; margin-top: 6px; border: 1px solid #222;
-  }
-  .xp-fill { display: block; height: 100%; width: 68%; background: var(--xp); }
+  /* Metadata: one popup-style pane, groups on the separator pair */
+  .meta { width: 318px; flex: none; align-self: flex-start; background: var(--popup); border: 2px solid var(--popup-edge); padding: 4px 12px; }
+  .grp { padding: 5px 0; border-top: 1px solid var(--separator-dark); box-shadow: inset 0 1px 0 var(--separator-light); }
+  .grp:first-child { border-top: 0; box-shadow: none; }
+  .m { display: flex; align-items: center; min-height: 22px; font-size: 14px; }
+  .m em { font-style: normal; width: 100px; flex: none; color: var(--text-soft); font-size: 12px; }
+  .m span { color: var(--text); }
+  .chip { display: inline-block; background: var(--track); border: 1px solid var(--popup-edge); padding: 0 7px; font-size: 12px; margin-right: 4px; color: var(--text); }
 </style>
 </head>
 <body>
-<div class="rail">
-  <div class="btn btn-menu">
-    <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-      <path fill="currentColor" d="M2,3h12v1h-12zM2,4h12v1h-12zM2,7h12v1h-12zM2,8h12v1h-12zM2,11h12v1h-12zM2,12h12v1h-12z"/>
-    </svg>
-  </div>
-  <div class="rail-sep"></div>
-  <div class="rail-item">
-    <div class="rail-mark"></div>
-    <div class="btn hl">
-      <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-        <path fill="currentColor" d="M2,2h3v1h-3zM6,2h3v1h-3zM2,3h3v1h-3zM6,3h3v1h-3zM2,4h1v1h-1zM4,4h1v1h-1zM6,4h1v1h-1zM8,4h1v1h-1zM12,4h2v1h-2zM2,5h1v1h-1zM4,5h1v1h-1zM6,5h1v1h-1zM8,5h1v1h-1zM11,5h3v1h-3zM2,6h1v1h-1zM4,6h1v1h-1zM6,6h1v1h-1zM8,6h1v1h-1zM11,6h1v1h-1zM13,6h2v1h-2zM2,7h1v1h-1zM4,7h1v1h-1zM6,7h1v1h-1zM8,7h1v1h-1zM10,7h2v1h-2zM13,7h1v1h-1zM2,8h1v1h-1zM4,8h1v1h-1zM6,8h1v1h-1zM8,8h1v1h-1zM10,8h1v1h-1zM12,8h2v1h-2zM2,9h1v1h-1zM4,9h1v1h-1zM6,9h1v1h-1zM8,9h1v1h-1zM10,9h1v1h-1zM12,9h1v1h-1zM2,10h1v1h-1zM4,10h1v1h-1zM6,10h1v1h-1zM8,10h1v1h-1zM10,10h3v1h-3zM2,11h3v1h-3zM6,11h3v1h-3zM10,11h2v1h-2zM2,12h3v1h-3zM6,12h3v1h-3z"/>
-      </svg>
-    </div>
-  </div>
-  <div class="rail-item">
-    <div class="btn">
-      <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-        <path fill="currentColor" d="M12,2h2v1h-2zM12,3h2v1h-2zM8,4h2v1h-2zM12,4h2v1h-2zM8,5h2v1h-2zM12,5h2v1h-2zM8,6h2v1h-2zM12,6h2v1h-2zM4,7h2v1h-2zM8,7h2v1h-2zM12,7h2v1h-2zM4,8h2v1h-2zM8,8h2v1h-2zM12,8h2v1h-2zM4,9h2v1h-2zM8,9h2v1h-2zM12,9h2v1h-2zM4,10h2v1h-2zM8,10h2v1h-2zM12,10h2v1h-2zM2,12h12v1h-12z"/>
-      </svg>
-    </div>
-  </div>
-  <div class="rail-item">
-    <div class="btn">
-      <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-        <path fill="currentColor" d="M2,2h5v1h-5zM2,3h1v1h-1zM6,3h2v1h-2zM2,4h1v1h-1zM7,4h7v1h-7zM2,5h1v1h-1zM13,5h1v1h-1zM2,6h12v1h-12zM2,7h1v1h-1zM13,7h1v1h-1zM2,8h1v1h-1zM13,8h1v1h-1zM2,9h1v1h-1zM13,9h1v1h-1zM2,10h1v1h-1zM13,10h1v1h-1zM2,11h12v1h-12z"/>
-      </svg>
-    </div>
-  </div>
+<svg width="0" height="0" style="position:absolute"><defs>
+<!--ICONS-START-->
+<symbol id="i-search" viewBox="0 0 16 16"><path d="M3,2h5v1h-5zM2,3h2v1h-2zM7,3h2v1h-2zM1,4h2v1h-2zM8,4h2v1h-2zM1,5h1v1h-1zM9,5h1v1h-1zM1,6h1v1h-1zM9,6h1v1h-1zM1,7h1v1h-1zM9,7h1v1h-1zM1,8h2v1h-2zM8,8h2v1h-2zM2,9h2v1h-2zM7,9h3v1h-3zM3,10h7v1h-7zM9,11h3v1h-3zM10,12h3v1h-3zM11,13h3v1h-3zM12,14h2v1h-2z"/></symbol>
+<symbol id="i-clear" viewBox="0 0 16 16"><path d="M3,3h2v1h-2zM11,3h2v1h-2zM3,4h3v1h-3zM10,4h3v1h-3zM4,5h3v1h-3zM9,5h3v1h-3zM5,6h6v1h-6zM6,7h4v1h-4zM6,8h4v1h-4zM5,9h6v1h-6zM4,10h3v1h-3zM9,10h3v1h-3zM3,11h3v1h-3zM10,11h3v1h-3zM3,12h2v1h-2zM11,12h2v1h-2z"/></symbol>
+<symbol id="i-viewsettings" viewBox="0 0 16 16"><path d="M5,2h2v1h-2zM2,3h13v1h-13zM2,4h13v1h-13zM5,5h2v1h-2zM10,8h2v1h-2zM2,9h13v1h-13zM2,10h13v1h-13zM10,11h2v1h-2z"/></symbol>
+<symbol id="i-filterpresets" viewBox="0 0 16 16"><path d="M3,2h10v1h-10zM3,3h10v1h-10zM3,4h2v1h-2zM11,4h2v1h-2zM3,5h2v1h-2zM11,5h2v1h-2zM3,6h2v1h-2zM11,6h2v1h-2zM3,7h2v1h-2zM11,7h2v1h-2zM3,8h2v1h-2zM11,8h2v1h-2zM3,9h2v1h-2zM11,9h2v1h-2zM3,10h2v1h-2zM7,10h2v1h-2zM11,10h2v1h-2zM3,11h2v1h-2zM6,11h4v1h-4zM11,11h2v1h-2zM3,12h9v1h-9zM3,13h3v1h-3zM10,13h3v1h-3zM3,14h2v1h-2zM11,14h2v1h-2z"/></symbol>
+<symbol id="i-group" viewBox="0 0 16 16"><path d="M2,2h12v1h-12zM2,3h12v1h-12zM2,4h12v1h-12zM2,6h2v1h-2zM6,6h8v1h-8zM2,7h2v1h-2zM6,7h8v1h-8zM2,9h2v1h-2zM6,9h8v1h-8zM2,10h2v1h-2zM6,10h8v1h-8zM2,12h2v1h-2zM6,12h6v1h-6zM2,13h2v1h-2zM6,13h6v1h-6z"/></symbol>
+<symbol id="i-sort" viewBox="0 0 16 16"><path d="M4,2h2v1h-2zM3,3h4v1h-4zM2,4h6v1h-6zM12,4h2v1h-2zM4,5h2v1h-2zM12,5h2v1h-2zM4,6h2v1h-2zM12,6h2v1h-2zM4,7h2v1h-2zM12,7h2v1h-2zM4,8h2v1h-2zM12,8h2v1h-2zM4,9h2v1h-2zM12,9h2v1h-2zM4,10h2v1h-2zM10,10h6v1h-6zM4,11h2v1h-2zM11,11h4v1h-4zM4,12h2v1h-2zM12,12h2v1h-2z"/></symbol>
+<symbol id="i-detailsview" viewBox="0 0 16 16"><path d="M1,2h14v1h-14zM1,3h2v1h-2zM7,3h1v1h-1zM15,3h1v1h-1zM1,4h2v1h-2zM7,4h1v1h-1zM15,4h1v1h-1zM1,5h2v1h-2zM7,5h1v1h-1zM9,5h5v1h-5zM15,5h1v1h-1zM1,6h2v1h-2zM7,6h1v1h-1zM15,6h1v1h-1zM1,7h2v1h-2zM7,7h1v1h-1zM9,7h5v1h-5zM15,7h1v1h-1zM1,8h2v1h-2zM7,8h1v1h-1zM15,8h1v1h-1zM1,9h2v1h-2zM7,9h1v1h-1zM9,9h3v1h-3zM15,9h1v1h-1zM1,10h2v1h-2zM7,10h1v1h-1zM15,10h1v1h-1zM1,11h14v1h-14z"/></symbol>
+<symbol id="i-gridview" viewBox="0 0 16 16"><path d="M2,2h5v1h-5zM9,2h5v1h-5zM2,3h5v1h-5zM9,3h5v1h-5zM2,4h5v1h-5zM9,4h5v1h-5zM2,5h5v1h-5zM9,5h5v1h-5zM2,6h5v1h-5zM9,6h5v1h-5zM2,9h5v1h-5zM9,9h5v1h-5zM2,10h5v1h-5zM9,10h5v1h-5zM2,11h5v1h-5zM9,11h5v1h-5zM2,12h5v1h-5zM9,12h5v1h-5zM2,13h5v1h-5zM9,13h5v1h-5z"/></symbol>
+<symbol id="i-listview" viewBox="0 0 16 16"><path d="M2,2h2v1h-2zM6,2h8v1h-8zM2,3h2v1h-2zM6,3h8v1h-8zM2,6h2v1h-2zM6,6h8v1h-8zM2,7h2v1h-2zM6,7h8v1h-8zM2,10h2v1h-2zM6,10h8v1h-8zM2,11h2v1h-2zM6,11h8v1h-8z"/></symbol>
+<symbol id="i-update" viewBox="0 0 16 16"><path d="M7,1h2v1h-2zM7,2h2v1h-2zM7,3h2v1h-2zM7,4h2v1h-2zM7,5h2v1h-2zM4,6h8v1h-8zM5,7h6v1h-6zM6,8h4v1h-4zM7,9h2v1h-2zM2,11h2v1h-2zM12,11h2v1h-2zM2,12h2v1h-2zM12,12h2v1h-2zM2,13h12v1h-12zM2,14h12v1h-12z"/></symbol>
+<symbol id="i-explorer" viewBox="0 0 16 16"><path d="M2,2h5v1h-5zM2,3h1v1h-1zM6,3h2v1h-2zM2,4h1v1h-1zM7,4h7v1h-7zM2,5h1v1h-1zM13,5h1v1h-1zM2,6h12v1h-12zM2,7h1v1h-1zM13,7h1v1h-1zM2,8h1v1h-1zM13,8h1v1h-1zM2,9h1v1h-1zM13,9h1v1h-1zM2,10h1v1h-1zM13,10h1v1h-1zM2,11h12v1h-12z"/></symbol>
+<symbol id="i-random" viewBox="0 0 16 16"><path d="M2,2h12v1h-12zM2,3h1v1h-1zM13,3h1v1h-1zM2,4h1v1h-1zM4,4h2v1h-2zM10,4h2v1h-2zM13,4h1v1h-1zM2,5h1v1h-1zM4,5h2v1h-2zM10,5h2v1h-2zM13,5h1v1h-1zM2,6h1v1h-1zM13,6h1v1h-1zM2,7h1v1h-1zM7,7h2v1h-2zM13,7h1v1h-1zM2,8h1v1h-1zM7,8h2v1h-2zM13,8h1v1h-1zM2,9h1v1h-1zM13,9h1v1h-1zM2,10h1v1h-1zM4,10h2v1h-2zM10,10h2v1h-2zM13,10h1v1h-1zM2,11h1v1h-1zM4,11h2v1h-2zM10,11h2v1h-2zM13,11h1v1h-1zM2,12h1v1h-1zM13,12h1v1h-1zM2,13h12v1h-12z"/></symbol>
+<symbol id="i-viewrandom" viewBox="0 0 16 16"><path d="M11,2h1v1h-1zM2,3h4v1h-4zM11,3h2v1h-2zM5,4h2v1h-2zM9,4h6v1h-6zM6,5h4v1h-4zM11,5h2v1h-2zM7,6h2v1h-2zM11,6h1v1h-1zM6,7h2v1h-2zM5,8h2v1h-2zM11,8h1v1h-1zM2,9h4v1h-4zM11,9h2v1h-2zM11,10h5v1h-5zM11,11h2v1h-2zM11,12h1v1h-1z"/></symbol>
+<symbol id="i-filter" viewBox="0 0 16 16"><path d="M2,2h12v1h-12zM2,3h12v1h-12zM3,4h10v1h-10zM4,5h8v1h-8zM5,6h6v1h-6zM6,7h4v1h-4zM6,8h4v1h-4zM6,9h4v1h-4zM6,10h4v1h-4zM6,11h4v1h-4zM7,12h3v1h-3zM8,13h2v1h-2z"/></symbol>
+<symbol id="i-notifications" viewBox="0 0 16 16"><path d="M7,1h2v1h-2zM5,2h6v1h-6zM4,3h2v1h-2zM10,3h2v1h-2zM4,4h1v1h-1zM11,4h1v1h-1zM3,5h2v1h-2zM11,5h2v1h-2zM3,6h1v1h-1zM12,6h1v1h-1zM3,7h1v1h-1zM12,7h1v1h-1zM3,8h1v1h-1zM12,8h1v1h-1zM2,9h2v1h-2zM12,9h2v1h-2zM2,10h12v1h-12zM6,12h4v1h-4zM7,13h2v1h-2z"/></symbol>
+<symbol id="i-mainmenu" viewBox="0 0 16 16"><path d="M2,3h12v1h-12zM2,4h12v1h-12zM2,7h12v1h-12zM2,8h12v1h-12zM2,11h12v1h-12zM2,12h12v1h-12z"/></symbol>
+<symbol id="i-library" viewBox="0 0 16 16"><path d="M2,2h3v1h-3zM6,2h3v1h-3zM2,3h3v1h-3zM6,3h3v1h-3zM2,4h1v1h-1zM4,4h1v1h-1zM6,4h1v1h-1zM8,4h1v1h-1zM12,4h2v1h-2zM2,5h1v1h-1zM4,5h1v1h-1zM6,5h1v1h-1zM8,5h1v1h-1zM11,5h3v1h-3zM2,6h1v1h-1zM4,6h1v1h-1zM6,6h1v1h-1zM8,6h1v1h-1zM11,6h1v1h-1zM13,6h2v1h-2zM2,7h1v1h-1zM4,7h1v1h-1zM6,7h1v1h-1zM8,7h1v1h-1zM10,7h2v1h-2zM13,7h1v1h-1zM2,8h1v1h-1zM4,8h1v1h-1zM6,8h1v1h-1zM8,8h1v1h-1zM10,8h1v1h-1zM12,8h2v1h-2zM2,9h1v1h-1zM4,9h1v1h-1zM6,9h1v1h-1zM8,9h1v1h-1zM10,9h1v1h-1zM12,9h1v1h-1zM2,10h1v1h-1zM4,10h1v1h-1zM6,10h1v1h-1zM8,10h1v1h-1zM10,10h3v1h-3zM2,11h3v1h-3zM6,11h3v1h-3zM10,11h2v1h-2zM2,12h3v1h-3zM6,12h3v1h-3z"/></symbol>
+<symbol id="i-statistics" viewBox="0 0 16 16"><path d="M12,2h2v1h-2zM12,3h2v1h-2zM8,4h2v1h-2zM12,4h2v1h-2zM8,5h2v1h-2zM12,5h2v1h-2zM8,6h2v1h-2zM12,6h2v1h-2zM4,7h2v1h-2zM8,7h2v1h-2zM12,7h2v1h-2zM4,8h2v1h-2zM8,8h2v1h-2zM12,8h2v1h-2zM4,9h2v1h-2zM8,9h2v1h-2zM12,9h2v1h-2zM4,10h2v1h-2zM8,10h2v1h-2zM12,10h2v1h-2zM2,12h12v1h-12z"/></symbol>
+<symbol id="i-windowminimize" viewBox="0 0 16 16"><path d="M4,7h8v1h-8zM4,8h8v1h-8z"/></symbol>
+<symbol id="i-windowmaximize" viewBox="0 0 16 16"><path d="M4,3h8v1h-8zM4,4h8v1h-8zM4,5h1v1h-1zM11,5h1v1h-1zM4,6h1v1h-1zM11,6h1v1h-1zM4,7h1v1h-1zM11,7h1v1h-1zM4,8h1v1h-1zM11,8h1v1h-1zM4,9h1v1h-1zM11,9h1v1h-1zM4,10h8v1h-8z"/></symbol>
+<symbol id="i-windowrestore" viewBox="0 0 16 16"><path d="M6,3h6v1h-6zM6,4h6v1h-6zM6,5h1v1h-1zM11,5h1v1h-1zM4,6h6v1h-6zM11,6h1v1h-1zM4,7h6v1h-6zM11,7h1v1h-1zM4,8h1v1h-1zM9,8h3v1h-3zM4,9h1v1h-1zM9,9h1v1h-1zM4,10h1v1h-1zM9,10h1v1h-1zM4,11h6v1h-6z"/></symbol>
+<symbol id="i-windowclose" viewBox="0 0 16 16"><path d="M4,3h2v1h-2zM10,3h2v1h-2zM5,4h2v1h-2zM9,4h2v1h-2zM6,5h4v1h-4zM7,6h2v1h-2zM6,7h4v1h-4zM5,8h2v1h-2zM9,8h2v1h-2zM4,9h2v1h-2zM10,9h2v1h-2z"/></symbol>
+<symbol id="i-dropdown" viewBox="0 0 16 16"><path d="M4,5h8v1h-8zM5,6h6v1h-6zM6,7h4v1h-4zM7,8h2v1h-2z"/></symbol>
+<symbol id="i-submenu" viewBox="0 0 16 16"><path d="M6,4h1v1h-1zM6,5h2v1h-2zM6,6h3v1h-3zM6,7h4v1h-4zM6,8h4v1h-4zM6,9h3v1h-3zM6,10h2v1h-2zM6,11h1v1h-1z"/></symbol>
+<symbol id="i-check" viewBox="0 0 16 16"><path d="M12,4h2v1h-2zM11,5h2v1h-2zM10,6h2v1h-2zM2,7h2v1h-2zM9,7h2v1h-2zM3,8h2v1h-2zM8,8h2v1h-2zM4,9h2v1h-2zM7,9h2v1h-2zM5,10h3v1h-3zM6,11h1v1h-1z"/></symbol>
+<symbol id="i-add" viewBox="0 0 16 16"><path d="M7,3h2v1h-2zM7,4h2v1h-2zM7,5h2v1h-2zM7,6h2v1h-2zM2,7h12v1h-12zM2,8h12v1h-12zM7,9h2v1h-2zM7,10h2v1h-2zM7,11h2v1h-2zM7,12h2v1h-2z"/></symbol>
+<symbol id="i-edit" viewBox="0 0 16 16"><path d="M11,2h2v1h-2zM10,3h4v1h-4zM9,4h4v1h-4zM8,5h4v1h-4zM7,6h4v1h-4zM6,7h4v1h-4zM5,8h4v1h-4zM4,9h4v1h-4zM3,10h4v1h-4zM3,11h3v1h-3zM3,12h2v1h-2z"/></symbol>
+<symbol id="i-remove" viewBox="0 0 16 16"><path d="M6,2h4v1h-4zM2,3h12v1h-12zM3,5h10v1h-10zM3,6h1v1h-1zM6,6h1v1h-1zM9,6h1v1h-1zM12,6h1v1h-1zM3,7h1v1h-1zM6,7h1v1h-1zM9,7h1v1h-1zM12,7h1v1h-1zM3,8h1v1h-1zM6,8h1v1h-1zM9,8h1v1h-1zM12,8h1v1h-1zM3,9h1v1h-1zM6,9h1v1h-1zM9,9h1v1h-1zM12,9h1v1h-1zM3,10h1v1h-1zM6,10h1v1h-1zM9,10h1v1h-1zM12,10h1v1h-1zM3,11h10v1h-10z"/></symbol>
+<symbol id="i-options" viewBox="0 0 16 16"><path d="M7,1h2v2h-2zM7,13h2v2h-2zM1,7h2v2h-2zM13,7h2v2h-2zM2,2h2v2h-2zM12,2h2v2h-2zM2,12h2v2h-2zM12,12h2v2h-2zM6,3h4v1h-4zM5,4h6v1h-6zM4,5h8v1h-8zM4,6h2v4h-2zM10,6h2v4h-2zM4,10h8v1h-8zM5,11h6v1h-6zM6,12h4v1h-4z"/></symbol>
+<symbol id="i-play" viewBox="0 0 16 16"><path d="M4,2h2v1h-2zM4,3h4v1h-4zM4,4h6v1h-6zM4,5h8v1h-8zM4,6h10v1h-10zM4,7h10v1h-10zM4,8h8v1h-8zM4,9h6v1h-6zM4,10h4v1h-4zM4,11h2v1h-2z"/></symbol>
+<symbol id="i-info" viewBox="0 0 16 16"><path d="M7,2h2v1h-2zM7,3h2v1h-2zM6,5h3v1h-3zM7,6h2v1h-2zM7,7h2v1h-2zM7,8h2v1h-2zM7,9h2v1h-2zM7,10h2v1h-2zM5,11h6v1h-6z"/></symbol>
+<!--ICONS-END-->
+</defs></svg>
+
+<div class="rail" data-part="sidebar">
+  <div class="cell" data-part="PART_ElemMainMenu"><div class="btn"><svg class="ic" viewBox="0 0 16 16"><use href="#i-mainmenu"/></svg></div></div>
+  <div class="rsep"></div>
+  <div class="cell cur"><div class="btn hl"><svg class="ic" viewBox="0 0 16 16"><use href="#i-library"/></svg></div></div>
+  <div class="cell"><div class="btn"><svg class="ic" viewBox="0 0 16 16"><use href="#i-statistics"/></svg></div></div>
+  <div class="cell"><div class="btn"><svg class="ic" viewBox="0 0 16 16"><use href="#i-options"/></svg></div></div>
 </div>
 
 <div class="main">
-  <div class="pano"></div>
-  <div class="veil"></div>
-  <div class="vign"></div>
-
-  <div class="content-wrapper">
-    <div class="top-bar">
-      <div class="tab-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-          <path fill="currentColor" d="M1,2h14v1h-14zM1,3h2v1h-2zM7,3h1v1h-1zM15,3h1v1h-1zM1,4h2v1h-2zM7,4h1v1h-1zM15,4h1v1h-1zM1,5h2v1h-2zM7,5h1v1h-1zM9,5h5v1h-5zM15,5h1v1h-1zM1,6h2v1h-2zM7,6h1v1h-1zM15,6h1v1h-1zM1,7h2v1h-2zM7,7h1v1h-1zM9,7h5v1h-5zM15,7h1v1h-1zM1,8h2v1h-2zM7,8h1v1h-1zM15,8h1v1h-1zM1,9h2v1h-2zM7,9h1v1h-1zM9,9h3v1h-3zM15,9h1v1h-1zM1,10h2v1h-2zM7,10h1v1h-1zM15,10h1v1h-1zM1,11h14v1h-14z"/>
-        </svg>
+  <div class="pano"></div><div class="veil"></div><div class="vign"></div>
+  <div class="wrap">
+    <div class="top" data-part="top-panel">
+      <div class="items" data-part="PART_PanelMainItems">
+        <div class="tab on"><svg class="ic" viewBox="0 0 16 16"><use href="#i-detailsview"/></svg></div>
+        <div class="tab"><svg class="ic" viewBox="0 0 16 16"><use href="#i-gridview"/></svg></div>
+        <div class="tab"><svg class="ic" viewBox="0 0 16 16"><use href="#i-listview"/></svg></div>
+        <div class="sp"></div>
+        <div class="tab"><svg class="ic" viewBox="0 0 16 16"><use href="#i-group"/></svg></div>
+        <div class="tab"><svg class="ic" viewBox="0 0 16 16"><use href="#i-sort"/></svg></div>
       </div>
-      <div class="tab-icon on">
-        <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-          <path fill="currentColor" d="M2,2h5v1h-5zM9,2h5v1h-5zM2,3h5v1h-5zM9,3h5v1h-5zM2,4h5v1h-5zM9,4h5v1h-5zM2,5h5v1h-5zM9,5h5v1h-5zM2,6h5v1h-5zM9,6h5v1h-5zM2,9h5v1h-5zM9,9h5v1h-5zM2,10h5v1h-5zM9,10h5v1h-5zM2,11h5v1h-5zM9,11h5v1h-5zM2,12h5v1h-5zM9,12h5v1h-5zM2,13h5v1h-5zM9,13h5v1h-5z"/>
-        </svg>
+      <div class="tab" data-part="PART_ToggleFilter" style="margin-left:4px"><svg class="ic" viewBox="0 0 16 16"><use href="#i-filter"/></svg></div>
+      <div class="right">
+        <div class="tab" data-part="PART_ToggleNotifications" style="margin-right:16px"><svg class="ic" viewBox="0 0 16 16"><use href="#i-notifications"/></svg><span class="badge">2</span></div>
+        <div class="search" data-part="PART_TextMainSearch"><svg class="ic" viewBox="0 0 16 16"><use href="#i-search"/></svg><span>Search</span></div>
       </div>
-      <div class="tab-icon">
-        <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-          <path fill="currentColor" d="M2,2h2v1h-2zM6,2h8v1h-8zM2,3h2v1h-2zM6,3h8v1h-8zM2,6h2v1h-2zM6,6h8v1h-8zM2,7h2v1h-2zM6,7h8v1h-8zM2,10h2v1h-2zM6,10h8v1h-8zM2,11h2v1h-2zM6,11h8v1h-8z"/>
-        </svg>
-      </div>
-
-      <div class="search">
-        <span class="px">Search</span>
-        <svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
-          <path fill="currentColor" d="M3,2h5v1h-5zM2,3h2v1h-2zM7,3h2v1h-2zM1,4h2v1h-2zM8,4h2v1h-2zM1,5h1v1h-1zM9,5h1v1h-1zM1,6h1v1h-1zM9,6h1v1h-1zM1,7h1v1h-1zM9,7h1v1h-1zM1,8h2v1h-2zM8,8h2v1h-2zM2,9h2v1h-2zM7,9h3v1h-3zM3,10h7v1h-7zM9,11h3v1h-3zM10,12h3v1h-3zM11,13h3v1h-3zM12,14h2v1h-2z"/>
-        </svg>
-      </div>
-
-      <div class="caps">
-        <div><svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="currentColor" d="M4,7h8v1h-8zM4,8h8v1h-8z"/></svg></div>
-        <div><svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="currentColor" d="M4,3h8v1h-8zM4,4h8v1h-8zM4,5h1v1h-1zM11,5h1v1h-1zM4,6h1v1h-1zM11,6h1v1h-1zM4,7h1v1h-1zM11,7h1v1h-1zM4,8h1v1h-1zM11,8h1v1h-1zM4,9h1v1h-1zM11,9h1v1h-1zM4,10h8v1h-8z"/></svg></div>
-        <div><svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges"><path fill="currentColor" d="M4,3h2v1h-2zM10,3h2v1h-2zM5,4h2v1h-2zM9,4h2v1h-2zM6,5h4v1h-4zM7,6h2v1h-2zM6,7h4v1h-4zM5,8h2v1h-2zM9,8h2v1h-2zM4,9h2v1h-2zM10,9h2v1h-2z"/></svg></div>
-      </div>
+      <div class="win"><b><svg class="ic" viewBox="0 0 16 16"><use href="#i-windowminimize"/></svg></b><b><svg class="ic" viewBox="0 0 16 16"><use href="#i-windowmaximize"/></svg></b><b><svg class="ic" viewBox="0 0 16 16"><use href="#i-windowclose"/></svg></b></div>
     </div>
 
-    <div class="hero-banner">
-      <div class="hero-wash"></div>
-      <div class="hero-content">
-        <div class="title-row">
-          <div class="game-title">Iron Legion</div>
-          <div class="splash-text">Playing!</div>
-        </div>
-        <div class="action-row">
-          <div class="btn green" style="width: 200px; height: 46px;">Play</div>
-          <div class="btn" style="width: 46px; height: 46px; padding: 0;">⚙</div>
-          <div class="btn" style="width: 46px; height: 46px; padding: 0;">✎</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="content-columns">
-      <div class="left-col">
-        <div class="screenshots-row">
-          <div class="screen-thumb">
-            <div class="thumb-art" style="background: linear-gradient(135deg, #3a3f44 0%, #1f2226 100%);">
-              <div style="width: 50px; height: 50px; background: #5a7ea0; opacity: 0.4; border: 1px solid var(--popup-edge);"></div>
-            </div>
-          </div>
-          <div class="screen-thumb">
-            <div class="thumb-art" style="background: linear-gradient(135deg, #4a3a2a 0%, #201a14 100%);">
-              <div style="width: 50px; height: 50px; background: #8a6a3a; opacity: 0.4; border: 1px solid var(--popup-edge);"></div>
-            </div>
-          </div>
-          <div class="screen-thumb">
-            <div class="thumb-art" style="background: linear-gradient(135deg, #24442a 0%, #102014 100%);">
-              <div style="width: 50px; height: 50px; background: var(--green); opacity: 0.3; border: 1px solid var(--popup-edge);"></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <div class="section-heading">Description</div>
-          <div class="div-line"></div>
-          <p class="desc-text">
-            Lead a squad of iron golems through a crumbling overworld. Gather rare ore, forge reinforced modular plates between missions, and hold the perimeter when darkness falls. Twelve handcrafted maps, an expansive creative sandbox, and full survival campaign support.
-          </p>
-        </div>
+    <div class="body">
+      <div class="list" data-part="game-list">
+        <div class="gr in"><span class="pl"></span>Amber Quarry</div>
+        <div class="gr"><span class="pl"></span>Blockhaven</div>
+        <div class="gr in"><span class="pl"></span>Creeper Ridge</div>
+        <div class="gr in"><span class="pl"></span>Deepslate Delve</div>
+        <div class="gr"><span class="pl"></span>Elytra Run</div>
+        <div class="gr in sel"><span class="pl"></span>Ember Reach</div>
+        <div class="gr in"><span class="pl"></span>Frostbite Peaks</div>
+        <div class="gr"><span class="pl"></span>Golem Garden</div>
+        <div class="gr in"><span class="pl"></span>Hollow Mesa</div>
+        <div class="gr in"><span class="pl"></span>Iron Hamlet</div>
+        <div class="gr"><span class="pl"></span>Jungle Temple</div>
+        <div class="gr in"><span class="pl"></span>Kelp Forest</div>
+        <div class="gr"><span class="pl"></span>Lantern Marsh</div>
+        <div class="gr in"><span class="pl"></span>Mineshaft Blues</div>
+        <div class="gr in"><span class="pl"></span>Nether Gate</div>
+        <div class="gr"><span class="pl"></span>Obsidian Keep</div>
+        <div class="gr in"><span class="pl"></span>Piglin Bazaar</div>
+        <div class="gr"><span class="pl"></span>Quartz Coast</div>
+        <div class="gr in"><span class="pl"></span>Redstone Rush</div>
       </div>
 
-      <div class="right-col">
-        <div class="meta-group">
-          <div class="meta-label">Completion Status</div>
-          <div class="meta-value">Playing</div>
+      <div class="page" data-part="game-page">
+        <div class="hero">
+          <div class="hero-in">
+            <div class="titlerow"><div class="title">Ember Reach</div><div class="splash">Playing!</div></div>
+            <div class="acts">
+              <div class="btn green play"><svg class="ic" viewBox="0 0 16 16"><use href="#i-play"/></svg>Play</div>
+              <div class="btn sq"><svg class="ic" viewBox="0 0 16 16"><use href="#i-options"/></svg></div>
+              <div class="btn sq"><svg class="ic" viewBox="0 0 16 16"><use href="#i-edit"/></svg></div>
+            </div>
+          </div>
         </div>
-        <div class="meta-group">
-          <div class="meta-label">Time Played</div>
-          <div class="meta-value">42h 17m</div>
-          <div class="xp-bar"><i class="xp-fill"></i></div>
-        </div>
-        <div class="meta-group">
-          <div class="meta-label">Developers</div>
-          <div class="meta-value">Blockwright Studio</div>
-        </div>
-        <div class="meta-group">
-          <div class="meta-label">Release Date</div>
-          <div class="meta-value">2024</div>
-        </div>
-        <div class="meta-group">
-          <div class="meta-label">Genres</div>
-          <div class="chips">
-            <div class="chip">Strategy</div>
-            <div class="chip">Sandbox</div>
-            <div class="chip">Co-op</div>
+        <div class="cols">
+          <div class="left">
+            <div class="shots">
+              <div class="shot sel"><b style="background:linear-gradient(180deg,#7fb3ff,#5f8f3f 60%,#3a2c20)"></b></div>
+              <div class="shot"><b style="background:linear-gradient(180deg,#3a2c20,var(--panel))"></b></div>
+              <div class="shot"><b style="background:linear-gradient(180deg,#a9d1ff,#4a7a32 70%)"></b></div>
+            </div>
+            <h2>Description</h2>
+            <p class="desc">Hold the last lighthouse on a coast of burning islands. Build stone walls by day, keep the sacred fire alive through treacherous storms by night, and push back the monstrous tides before thick black fog consumes the harbor.</p>
+          </div>
+          <div class="meta" data-part="metadata">
+            <div class="grp">
+              <div class="m"><em>Status</em><span>Playing</span></div>
+              <div class="m"><em>Play time</em><span>42 hours</span></div>
+              <div class="m"><em>Last played</em><span>Yesterday</span></div>
+            </div>
+            <div class="grp"><div class="m"><em>Critic score</em><span style="color:var(--xp)">88</span></div></div>
+            <div class="grp">
+              <div class="m"><em>Developers</em><span>Harbor Lamp Works</span></div>
+              <div class="m"><em>Release date</em><span>2024</span></div>
+            </div>
+            <div class="grp">
+              <div class="m"><em>Platform</em><span>PC (Windows)</span></div>
+              <div class="m"><em>Genres</em><span><i class="chip">Strategy</i><i class="chip">Survival</i></span></div>
+            </div>
+            <div class="grp">
+              <div class="m"><em>Source</em><span>Steam</span></div>
+              <div class="m"><em>Install size</em><span>12.4 GB</span></div>
+            </div>
+            <div class="grp"><div class="m"><em>Links</em><span style="color:var(--splash)">Website, Wiki</span></div></div>
           </div>
         </div>
       </div>

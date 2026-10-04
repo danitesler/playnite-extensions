@@ -1,166 +1,195 @@
 <!doctype html>
-<!-- Dropzone: approximate HTML replica of Playnite Game Details view -->
+<!-- Dropzone: HTML replica of Playnite's Game Details view (1280x720). Layout follows Views/TopPanel.xaml:
+     the navbar strip (PART_PanelMainItems) at the left, then search, filter, notifications docked right,
+     150px kept clear for the caption buttons. Colors are var(--token) from src/tokens.css (injected at render). -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Dropzone - Details Preview</title>
 <style>
-  :root {
-    --screen-bg: #0e162b; --screen-deep: #080712; --rail: #0e1834; --panel: #0c2162;
-    --menu-item: #0840a7; --navbar: rgba(1, 11, 30, 0.62); --text: #ffffff;
-    --muted: var(--text-muted); --on-light: var(--text-on-light); --cyan: var(--label-cyan); --icon-blue: #33aaff;
-    --pill-sel: var(--tab-selected); --dot: var(--tab-dot); --play: var(--tab-dot); --pill: rgba(255, 255, 255, 0.22);
-    --chip: #0a3fc7; --chip-edge: var(--blue-button); --chip-text: #80d4ff; --border: rgba(255, 255, 255, 0.12);
-    --radius: 8px; --radius-large: 12px;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 1280px; height: 720px; overflow: hidden; background: var(--screen-bg); color: var(--text);
-    font-family: "Segoe UI", system-ui, sans-serif; font-size: 14px; display: flex;
+    width: 1280px; height: 720px; overflow: hidden; position: relative; color: var(--text);
+    font-family: var(--font-body), "Segoe UI", system-ui, sans-serif; font-size: 14px;
+    background:
+      linear-gradient(180deg, rgba(8,7,18,.9) 0, rgba(8,7,18,.6) 40%, rgba(8,7,18,.95) 100%),
+      radial-gradient(ellipse at 72% 18%, #2a7fd0 0%, #123a86 35%, var(--screen-bg) 75%);
   }
-  .head {
-    font-family: "Bahnschrift", "Barlow Condensed", "Arial Narrow", sans-serif;
-    font-weight: 800; font-stretch: condensed; text-transform: uppercase; letter-spacing: 0.02em;
-  }
-  .rail {
-    width: 44px; background: var(--rail); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 8px; z-index: 10;
-  }
-  .rail-btn {
-    width: 38px; height: 38px; border-radius: var(--radius); display: flex; align-items: center;
-    justify-content: center; color: var(--icon-blue); cursor: pointer; position: relative;
-  }
-  .rail-btn.active {
-    background: var(--menu-item); color: var(--text);
-  }
-  .rail-btn svg { width: 20px; height: 20px; fill: currentColor; }
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-  .top-bar {
-    height: 48px; background: var(--navbar); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 16px; gap: 12px;
-  }
-  .nav-tabs { display: flex; gap: 6px; }
-  .tab {
-    padding: 6px 16px; border-radius: var(--radius); color: var(--muted);
-    font-size: 14px; font-weight: 700; cursor: pointer;
-  }
-  .tab.active { background: var(--pill-sel); color: var(--on-light); font-weight: 800; }
-  .search {
-    margin-left: auto; width: 280px; height: 34px; background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--border); border-radius: 999px; padding: 0 16px;
-    color: var(--muted); font-size: 13px; display: flex; align-items: center;
-  }
-  .hero-banner {
-    height: 320px; position: relative;
-    background: radial-gradient(ellipse at 70% 30%, #2a8bd8 0%, #1a4fa0 30%, var(--panel) 70%, var(--screen-bg) 100%);
-    overflow: hidden;
-  }
-  .hero-wash {
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(14, 22, 43, 0) 20%, var(--screen-bg) 98%);
-  }
-  .hero-content { position: absolute; bottom: 24px; left: 32px; right: 32px; z-index: 5; }
-  .game-title {
-    font-size: 46px; font-weight: 800; line-height: 1.05; margin-bottom: 16px;
-    text-shadow: 0 3px 12px rgba(0,0,0,0.8);
-  }
-  .action-row { display: flex; gap: 12px; align-items: center; }
-  .play-btn {
-    height: 46px; padding: 0 40px; background: var(--play); color: var(--on-light); border: none;
-    border-radius: var(--radius-large); font-size: 18px; cursor: pointer;
-    display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 4px 16px rgba(247, 255, 26, 0.35);
-  }
-  .sub-btn {
-    height: 46px; width: 46px; background: var(--pill); border: 1px solid var(--border);
-    border-radius: 999px; color: var(--text); display: flex; align-items: center; justify-content: center;
-  }
-  .sub-btn svg { width: 20px; height: 20px; fill: currentColor; }
-  .content-columns { flex: 1; display: flex; gap: 32px; padding: 24px 32px; overflow: hidden; }
-  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-  .screenshots-row { display: flex; gap: 14px; }
-  .screen-thumb {
-    flex: 1; height: 146px; border-radius: var(--radius-large); border: 1px solid var(--border);
-    background: var(--panel); overflow: hidden; position: relative;
-  }
-  .desc-heading {
-    font-size: 18px; margin-bottom: 8px; color: var(--cyan);
-  }
-  .desc-text { color: #e2e8f0; line-height: 1.65; font-size: 14px; }
-  .right-col {
-    width: 350px; background: var(--rail); border: 1px solid var(--border);
-    border-radius: var(--radius-large); padding: 22px; height: fit-content;
-  }
-  .meta-group { margin-bottom: 16px; }
-  .meta-group:last-child { margin-bottom: 0; }
-  .meta-label {
-    font-size: 12px; color: var(--cyan); margin-bottom: 6px; letter-spacing: 0.05em;
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px 6px; }
-  .chip {
-    transform: skewX(-10deg); background: var(--chip); border: 1px solid var(--chip-edge);
-    border-radius: 4px; padding: 4px 12px; font-size: 12px; color: var(--chip-text);
-  }
-  .meta-value { font-size: 13px; color: var(--text); font-weight: 500; }
+  svg { fill: currentColor; display: block; }
+  .head { font-family: var(--font-heading), "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-stretch: condensed; text-transform: uppercase; letter-spacing: .02em; }
+
+  /* Sidebar rail: 44px, 44x40 items, 16px glyphs, blue glyphs; current item is the slanted blue plate. */
+  .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; background: var(--rail); z-index: 5; }
+  .rail-item { position: relative; width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--icon-blue); }
+  .rail-item svg { width: 16px; height: 16px; position: relative; }
+  .rail-item.menu { color: var(--text); }
+  .rail-item.cur { color: var(--text); }
+  .rail-item.cur::before { content: ""; position: absolute; inset: 0; background: var(--menu-item); clip-path: polygon(0 10%, 100% 0, 100% 90%, 0 100%); }
+  .rail-gap { height: 12px; }
+
+  /* Top panel: 64px, transparent. Strip left; search, filter, notifications docked right; 150px clear at the edge. */
+  .top { position: absolute; left: 44px; right: 0; top: 0; height: 64px; display: flex; align-items: center; padding: 0 150px 0 16px; }
+  .strip { height: 44px; padding: 0 4px; background: var(--navbar); border-radius: var(--radius); display: flex; align-items: center; gap: 2px; }
+  .sw { width: 36px; height: 36px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .sw svg { width: 20px; height: 20px; }
+  .sw.on { background: var(--tab-selected); color: var(--text-on-light); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tab-dot); margin: 0 2px 0 6px; flex: none; }
+  .search { margin-left: auto; width: 260px; height: 36px; border-radius: var(--radius); background: var(--input); border: 1px solid var(--input-edge); padding: 0 12px; display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+  .search svg { width: 18px; height: 18px; }
+  .tog { position: relative; width: 44px; height: 44px; margin-left: 4px; display: flex; align-items: center; justify-content: center; color: var(--text); border-radius: var(--radius); }
+  .tog svg { width: 22px; height: 22px; }
+  .tog.first { margin-left: 12px; }
+  .tog .badge { position: absolute; top: 7px; right: 6px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--warning); color: var(--text-on-light); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+  .caption { position: absolute; right: 12px; top: 0; height: 64px; display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+  .caption span { width: 44px; height: 32px; display: flex; align-items: center; justify-content: center; }
+  .caption svg { width: 14px; height: 14px; }
+
+  /* View: list on the left, game page right. */
+  .view { position: absolute; left: 44px; right: 0; top: 64px; bottom: 0; display: flex; }
+  .game-list { width: 320px; flex: none; padding: 4px 0; overflow: hidden; background: var(--scrim); }
+  .row { position: relative; margin: 1px 4px; height: 36px; padding: 0 10px; border-radius: var(--radius); display: flex; align-items: center; gap: 10px; color: var(--text-faint); font-size: 14px; }
+  .row i { width: 22px; height: 22px; border-radius: 4px; background: var(--rail); flex: none; }
+  .row.inst { color: var(--text); }
+  .row.sel { background: var(--menu-item); color: var(--text); }
+  .row.sel::before { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px; border-radius: 2px; background: var(--text); }
+
+  .page { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 300px; background: radial-gradient(ellipse at 70% 20%, #2a8bd8 0%, #1a4fa0 30%, var(--panel) 70%, var(--screen-bg) 100%); }
+  .banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--screen-bg) 0, rgba(14,22,43,.55) 45%, rgba(14,22,43,0) 100%), linear-gradient(180deg, rgba(14,22,43,0) 30%, var(--screen-bg) 98%); }
+  .inner { position: absolute; left: 28px; right: 28px; top: 40px; }
+  .title { font-size: 40px; line-height: 1.05; margin-bottom: 14px; text-shadow: 0 3px 12px rgba(0,0,0,.8); }
+  .actions { display: flex; align-items: center; gap: 10px; }
+  .play { width: 200px; height: 52px; border-radius: var(--radius); background: var(--play); color: var(--text-on-light); font-size: 22px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .play svg { width: 22px; height: 22px; }
+  .pillbtn { width: 52px; height: 52px; border-radius: 26px; background: var(--pill); color: var(--text); display: flex; align-items: center; justify-content: center; }
+  .pillbtn svg { width: 22px; height: 22px; }
+  .cols { display: flex; gap: 24px; margin-top: 26px; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; margin-bottom: 18px; }
+  .shot { flex: 1; height: 120px; border-radius: var(--radius-large); border: 1px solid var(--hairline); }
+  .h2 { font-size: 18px; color: var(--label-cyan); margin-bottom: 6px; }
+  .desc { color: var(--text); line-height: 1.6; font-size: 14px; opacity: .9; }
+  .meta { width: 310px; flex: none; background: var(--rail); border-radius: var(--radius-large); padding: 16px 18px; }
+  .grp { margin-top: 14px; }
+  .grp:first-child { margin-top: 0; }
+  .m { display: flex; gap: 10px; padding: 3px 0; font-size: 13px; align-items: baseline; }
+  .m b { width: 92px; flex: none; font-size: 12px; color: var(--label-cyan); font-weight: 800; }
+  .m span { min-width: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { transform: skewX(-10deg); background: var(--chip); border: 1px solid var(--chip-edge); border-radius: var(--radius-small); padding: 1px 9px; font-size: 12px; color: var(--chip-text); }
+  .chip em { display: block; transform: skewX(10deg); font-style: normal; }
+  .score { font-size: 16px; color: var(--play); }
 </style>
 </head>
 <body>
-<div class="rail">
-  <div class="rail-btn active"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg></div>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></symbol>
+  <symbol id="i-lib" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></symbol>
+  <symbol id="i-pad" viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></symbol>
+  <symbol id="i-stats" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+  <symbol id="i-details" viewBox="0 0 24 24"><path d="M20 13H3c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h17c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zm0-10H3c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h17c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1z"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M3 14h4v-4H3v4zm0 5h4v-4H3v4zM3 9h4V5H3v4zm5 5h13v-4H8v4zm0 5h13v-4H8v4zM8 5v4h13V5H8z"/></symbol>
+  <symbol id="i-group" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39c.51-.66.04-1.61-.79-1.61H5.04c-.83 0-1.3.95-.79 1.61z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+  <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 19h14v-2H5z"/></symbol>
+  <symbol id="i-max" viewBox="0 0 24 24"><path d="M5 5v14h14V5H5zm12 12H7V7h10v10z"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
+</svg>
+
+<div class="rail" data-part="sidebar">
+  <div class="rail-item menu" data-part="PART_ElemMainMenu"><svg><use href="#i-menu"/></svg></div>
+  <div class="rail-gap"></div>
+  <div class="rail-item cur"><svg><use href="#i-lib"/></svg></div>
+  <div class="rail-item"><svg><use href="#i-stats"/></svg></div>
+  <div class="rail-item"><svg><use href="#i-pad"/></svg></div>
 </div>
-<div class="main">
-  <div class="top-bar">
-    <div class="nav-tabs">
-      <div class="tab head">Grid</div>
-      <div class="tab head active">Details</div>
-    </div>
-    <div class="search">Search library...</div>
+
+<div class="top" data-part="top-panel">
+  <div class="strip" data-part="PART_PanelMainItems">
+    <div class="sw on" title="Details"><svg><use href="#i-details"/></svg></div>
+    <div class="sw" title="Grid"><svg><use href="#i-grid"/></svg></div>
+    <div class="sw" title="List"><svg><use href="#i-list"/></svg></div>
+    <div class="dot"></div>
+    <div class="sw" title="Group"><svg><use href="#i-group"/></svg></div>
+    <div class="sw" title="Sort"><svg><use href="#i-sort"/></svg></div>
   </div>
-  <div class="hero-banner">
-    <div class="hero-wash"></div>
-    <div class="hero-content">
-      <div class="game-title head">Eldritch Void</div>
-      <div class="action-row">
-        <button class="play-btn head">&#9658; PLAY</button>
-        <div class="sub-btn"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
-        <div class="sub-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
-      </div>
-    </div>
+  <div class="search" data-part="PART_TextMainSearch"><svg><use href="#i-search"/></svg>Search</div>
+  <div class="tog first" data-part="PART_ToggleFilter"><svg><use href="#i-filter"/></svg></div>
+  <div class="tog" data-part="PART_ToggleNotifications"><svg><use href="#i-bell"/></svg><span class="badge">2</span></div>
+  <div class="caption"><span><svg><use href="#i-min"/></svg></span><span><svg><use href="#i-max"/></svg></span><span><svg><use href="#i-close"/></svg></span></div>
+</div>
+
+<div class="view">
+  <div class="game-list" data-part="game-list">
+    <div class="row inst"><i style="background:#1d4fa8"></i>Aether Drift</div>
+    <div class="row"><i style="background:#2a3d6e"></i>Brass Harbor</div>
+    <div class="row inst"><i style="background:#0a6aa0"></i>Cinder Vale</div>
+    <div class="row sel"><i style="background:#2a8bd8"></i>Drop Zone Alpha</div>
+    <div class="row inst"><i style="background:#3b2a8a"></i>Dust Meridian</div>
+    <div class="row"><i style="background:#14506a"></i>Ember Keep</div>
+    <div class="row"><i style="background:#1d3a8a"></i>Hollow Signal</div>
+    <div class="row inst"><i style="background:#5a2a6e"></i>Iron Lantern</div>
+    <div class="row"><i style="background:#0a4a7a"></i>Lost Orbit</div>
+    <div class="row inst"><i style="background:#1a5a5a"></i>Moss Circuit</div>
+    <div class="row"><i style="background:#2a2a6a"></i>Nova Foundry</div>
+    <div class="row"><i style="background:#0a3a8a"></i>Quiet Static</div>
+    <div class="row inst"><i style="background:#4a3a1a"></i>Rust Atlas</div>
+    <div class="row"><i style="background:#1a4a8a"></i>Salt Frontier</div>
+    <div class="row inst"><i style="background:#3a2a5a"></i>Tidal Ruin</div>
+    <div class="row"><i style="background:#0a5a6a"></i>Vector Reef</div>
+    <div class="row"><i style="background:#2a4a9a"></i>Wild Cipher</div>
   </div>
-  <div class="content-columns">
-    <div class="left-col">
-      <div class="screenshots-row">
-        <div class="screen-thumb" style="background: radial-gradient(circle at 60% 40%, #1a4fa0, #08102b);"></div>
-        <div class="screen-thumb" style="background: radial-gradient(circle at 40% 60%, var(--panel), #060b1c);"></div>
-        <div class="screen-thumb" style="background: radial-gradient(circle at 50% 50%, #2a8bd8, var(--panel));"></div>
+  <div class="page" data-part="game-page">
+    <div class="banner"></div>
+    <div class="inner">
+      <div class="title head">Drop Zone Alpha</div>
+      <div class="actions">
+        <div class="play head"><svg><use href="#i-play"/></svg>Play</div>
+        <div class="pillbtn"><svg><use href="#i-more"/></svg></div>
+        <div class="pillbtn"><svg><use href="#i-edit"/></svg></div>
       </div>
-      <div>
-        <div class="desc-heading head">Overview</div>
-        <p class="desc-text">Descend into an ancient subterranean citadel lost between cosmic dimensions. Uncover forbidden relics, survive tactical encounters with spectral custodians, and reshape the destiny of a forgotten world.</p>
-      </div>
-    </div>
-    <div class="right-col">
-      <div class="meta-group">
-        <div class="meta-label head">Genres</div>
-        <div class="chips"><div class="chip head">RPG</div><div class="chip head">Action</div><div class="chip head">Atmospheric</div></div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label head">Developer</div>
-        <div class="meta-value">Ironclad Interactive</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label head">Play Time</div>
-        <div class="meta-value">36.5 hours &bull; Last played yesterday</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label head">Critic Rating</div>
-        <div class="meta-value head" style="font-size: 16px; color: var(--play);">94 / 100</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label head">Platform</div>
-        <div class="meta-value">PC (Windows)</div>
+      <div class="cols">
+        <div class="left">
+          <div class="shots">
+            <div class="shot" style="background: radial-gradient(circle at 60% 40%, #1a4fa0, #08102b)"></div>
+            <div class="shot" style="background: radial-gradient(circle at 40% 60%, var(--panel), #060b1c)"></div>
+            <div class="shot" style="background: radial-gradient(circle at 50% 50%, #2a8bd8, var(--panel))"></div>
+          </div>
+          <div class="h2 head">Description</div>
+          <p class="desc">Hundred-player battle royale on a floating archipelago. Glide in under canopy, grab what you can and hold the shrinking circle. Squads, solos and a creative playground between matches.</p>
+        </div>
+        <div class="meta" data-part="metadata">
+          <div class="grp">
+            <div class="m"><b class="head">Completion</b><span>Playing</span></div>
+            <div class="m"><b class="head">Play time</b><span>48 hours</span></div>
+            <div class="m"><b class="head">Last played</b><span>Yesterday</span></div>
+          </div>
+          <div class="grp">
+            <div class="m"><b class="head">Community</b><span class="score head">88</span></div>
+            <div class="m"><b class="head">Critic</b><span class="score head">91</span></div>
+          </div>
+          <div class="grp">
+            <div class="m"><b class="head">Developer</b><span>Lobby Works</span></div>
+            <div class="m"><b class="head">Publisher</b><span>Skyline Games</span></div>
+            <div class="m"><b class="head">Release</b><span>2026</span></div>
+          </div>
+          <div class="grp">
+            <div class="m"><b class="head">Platform</b><span class="chips"><span class="chip"><em>PC</em></span></span></div>
+            <div class="m"><b class="head">Genres</b><span class="chips"><span class="chip"><em>Shooter</em></span><span class="chip"><em>Arena</em></span></span></div>
+            <div class="m"><b class="head">Features</b><span class="chips"><span class="chip"><em>Co-op</em></span><span class="chip"><em>Online</em></span></span></div>
+          </div>
+          <div class="grp">
+            <div class="m"><b class="head">Source</b><span>Epic</span></div>
+            <div class="m"><b class="head">Install size</b><span>38.2 GB</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

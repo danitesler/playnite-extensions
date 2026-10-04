@@ -1,42 +1,17 @@
 <!doctype html>
-<!-- Medallion: approximate HTML replica of Playnite Settings view -->
+<!-- Medallion: HTML replica of Playnite's Settings window. Colors come from src/tokens.css. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Medallion - Settings Preview</title>
 <style>
-  :root {
-    --black: var(--scene-black);
-    --band: var(--menu-band);
-    --panel: #070707;
-    --plate: var(--prompt-plate);
-    --row: var(--settings-row);
-    --label: var(--text-label);
-    --menu: var(--menu-item);
-    --sub: var(--text-subtitle);
-    --body: var(--text-body);
-    --brown: var(--frame-brown);
-    --faint: var(--frame-faint);
-    --focus: var(--frame-focus);
-    --hover: var(--frame-hover);
-    --taupe: var(--category-closed);
-    --cream: var(--category-light);
-    --gold: var(--quest-frame);
-    --qfill: var(--quest-fill);
-    --amber: var(--amber-wash);
-    --orange: var(--accent-bar);
-    --slider-thumb: #a9a5a4;
-    --slider-track: var(--prompt-plate);
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 1280px; height: 720px; overflow: hidden; background: var(--scene-black); color: var(--label);
+    width: 1280px; height: 720px; overflow: hidden; background: var(--scene-black); color: var(--text-label);
     font-family: Bahnschrift, "Barlow Semi Condensed", "Roboto Condensed", "DejaVu Sans Condensed", sans-serif;
-    font-size: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; position: relative;
   }
   .ic { fill: currentColor; display: block; }
-
-  /* Double frame utility */
   .frame { position: absolute; inset: 0; border: 1px solid var(--c); pointer-events: none; }
   .frame:before {
     content: ""; position: absolute; inset: 2px;
@@ -54,204 +29,107 @@
       linear-gradient(var(--c),var(--c)) calc(100% - 4px) 100%/1px 5px no-repeat,
       linear-gradient(var(--c),var(--c)) 100% calc(100% - 4px)/5px 1px no-repeat;
   }
-  .f-focus { --c: var(--focus); }
-  .f-hover { --c: var(--hover); }
-  .f-brown { --c: var(--brown); }
-  .f-gold { --c: var(--gold); }
+  .f-focus { --c: var(--frame-focus); }
+  .f-brown { --c: var(--frame-brown); }
+  .f-gold { --c: var(--quest-frame); }
 
-  .dialog {
-    width: 1220px; height: 760px; background: var(--panel); border: 1px solid var(--brown);
-    display: flex; flex-direction: column; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.9);
-    overflow: hidden; position: relative;
+  .win {
+    position: absolute; left: 180px; top: 20px; width: 920px; height: 672px; background: var(--scene-black);
+    border: 1px solid var(--frame-brown); display: flex; flex-direction: column; box-shadow: 0 24px 70px rgba(0,0,0,.9);
   }
-  .title-bar {
-    height: 44px; background: var(--row); border-bottom: 1px solid var(--brown);
-    display: flex; align-items: center; padding: 0 18px; font-size: 14px; letter-spacing: 0.8px;
-    text-transform: uppercase; color: var(--cream);
-  }
-  .win-controls { margin-left: auto; display: flex; gap: 8px; }
-  .win-box { width: 28px; height: 28px; display: grid; place-items: center; position: relative; color: var(--menu); }
+  .tb { height: 40px; flex: none; display: flex; align-items: center; padding: 0 8px 0 16px; border-bottom: 1px solid var(--frame-faint); color: var(--text-label); letter-spacing: .6px; }
+  .tb .x { margin-left: auto; width: 28px; height: 28px; position: relative; display: grid; place-items: center; color: var(--menu-item); }
+  .tb .x .ic { width: 14px; height: 14px; }
 
-  .dialog-body { flex: 1; display: flex; overflow: hidden; }
-  .sidebar {
-    width: 250px; background: #030303; border-right: 1px solid var(--faint);
-    padding: 16px 10px; display: flex; flex-direction: column; gap: 4px;
-  }
-  .nav-item {
-    padding: 10px 14px; color: var(--menu); font-size: 13px; letter-spacing: 0.6px;
-    text-transform: uppercase; cursor: pointer; position: relative;
-  }
-  .nav-item.active {
-    background: var(--row); color: var(--text-active); font-weight: 600;
-  }
-  .nav-item.active:before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--orange);
-  }
-  .nav-item:hover:not(.active) { color: var(--cream); }
+  .bd { flex: 1; min-height: 0; display: flex; }
+  /* Section tree */
+  .tree { width: 210px; flex: none; background: var(--menu-band); border-right: 1px solid var(--frame-faint); padding: 6px 0; overflow: hidden; }
+  .n { height: 25px; line-height: 25px; padding: 0 12px; color: var(--menu-item); font-size: 14px; position: relative; }
+  .n.c { padding-left: 32px; }
+  .n.o:before { content: ""; display: inline-block; width: 0; height: 0; margin-right: 8px; border: 4px solid transparent; border-top: 5px solid var(--text-subtitle); border-bottom: 0; vertical-align: 2px; }
+  .n.sel { color: var(--text-active); background: linear-gradient(90deg, var(--amber-wash), transparent); }
+  .n.sel:after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent-bar); }
 
-  .content {
-    flex: 1; padding: 32px 40px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px;
-    background: #050505;
-  }
-  .section-title {
-    font-size: 20px; font-weight: 600; margin-bottom: 4px; color: var(--cream);
-    text-transform: uppercase; letter-spacing: 0.8px;
-  }
-  .section-desc { font-size: 13px; color: var(--sub); margin-bottom: 16px; }
-  .card {
-    background: var(--row); border: 1px solid var(--faint); padding: 22px;
-    display: flex; flex-direction: column; gap: 18px; position: relative;
-  }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field-label { font-size: 13px; font-weight: 600; color: var(--label); text-transform: uppercase; letter-spacing: 0.5px; }
-  .field-help { font-size: 12px; color: var(--sub); }
-  .input-text {
-    height: 38px; background: var(--plate); border: 1px solid var(--brown);
-    padding: 0 14px; color: var(--cream); font-size: 13px; outline: none; width: 380px;
-    font-family: inherit; letter-spacing: 0.3px;
-  }
-  .input-text:focus { border-color: var(--focus); }
-  .row { display: flex; align-items: center; gap: 12px; }
+  /* Page */
+  .pg { flex: 1; min-width: 0; padding: 20px 28px; overflow: hidden; background: var(--scene-black); }
+  .h { font-size: 16px; color: var(--category-closed); text-transform: uppercase; letter-spacing: .6px; padding-bottom: 6px; border-bottom: 1px solid var(--rule-brown); margin-bottom: 14px; }
+  .row { height: 38px; margin-bottom: 2px; background: var(--settings-row); position: relative; display: flex; align-items: center; padding: 0 14px 0 18px; gap: 12px; }
+  .row:before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--row-strip); }
+  .row.cur { background: var(--settings-row); color: var(--text-active); }
+  .row.cur:before { background: var(--accent-bar); width: 3px; }
+  .row .l { color: var(--text-label); width: 190px; flex: none; }
+  .row.cur .l { color: var(--text-active); }
+  .row .v { color: var(--text-active); display: flex; align-items: center; gap: 12px; }
 
-  /* Checkbox with double frame style */
-  .checkbox {
-    width: 20px; height: 20px; background: var(--plate); border: 1px solid var(--brown);
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    color: var(--orange); font-size: 13px; font-weight: bold; position: relative;
-  }
-  .checkbox.checked { background: var(--qfill); border-color: var(--gold); }
-  .checkbox.unchecked { background: var(--plate); }
+  .cb { width: 18px; height: 18px; flex: none; background: var(--prompt-plate); border: 1px solid var(--frame-brown); display: grid; place-items: center; color: var(--accent-bar); font-size: 13px; line-height: 1; }
+  .cb.on { background: var(--quest-fill); border-color: var(--quest-frame); }
+  .rd { width: 18px; height: 18px; flex: none; border-radius: 50%; border: 1px solid var(--frame-brown); background: var(--prompt-plate); display: grid; place-items: center; }
+  .rd.on { border-color: var(--quest-frame); }
+  .rd.on:after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-bar); }
+  .opt { display: flex; align-items: center; gap: 7px; color: var(--text-label); }
+  .sl { width: 280px; height: 6px; background: var(--slider-track); border: 1px solid var(--slider-track-edge); border-radius: 2px; position: relative; }
+  .sl u { position: absolute; left: 0; top: 0; bottom: 0; width: 62%; background: var(--amber-wash); border-radius: 2px; }
+  .sl b { position: absolute; left: 62%; top: -6px; width: 14px; height: 16px; margin-left: -7px; background: var(--slider-thumb); border-radius: 2px; }
+  .tx { width: 280px; height: 28px; background: var(--prompt-plate); border: 1px solid var(--frame-brown); padding: 0 10px; line-height: 26px; color: var(--text-active); font-size: 13px; }
+  .cmb { width: 280px; height: 28px; background: var(--prompt-plate); border: 1px solid var(--frame-brown); padding: 0 10px; line-height: 26px; color: var(--text-active); font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+  .cmb i { width: 0; height: 0; border: 4px solid transparent; border-top: 5px solid var(--menu-item); border-bottom: 0; }
+  .btn { position: relative; height: 32px; min-width: 92px; padding: 0 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; background: var(--prompt-plate); color: var(--text-label); }
+  .btn.p { background: var(--quest-fill); color: var(--category-light); }
+  .btn.p i { position: absolute; left: 5px; top: 5px; bottom: 5px; width: 3px; background: var(--accent-bar); }
 
-  /* Radio button */
-  .radio {
-    width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--brown);
-    background: var(--plate); display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-  }
-  .radio-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
-  .radio.unselected .radio-dot { display: none; }
-
-  /* Slider */
-  .slider-bar {
-    width: 340px; height: 6px; background: var(--slider-track); border: 1px solid var(--slider-track-edge);
-    border-radius: 2px; position: relative; display: flex; align-items: center;
-  }
-  .slider-fill { width: 65%; height: 100%; background: var(--amber); border-radius: 2px; }
-  .slider-thumb {
-    width: 16px; height: 16px; border-radius: 2px; background: var(--slider-thumb);
-    border: 1px solid var(--focus); position: absolute; left: 65%; transform: translateX(-50%);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6); cursor: pointer;
-  }
-
-  .select-box {
-    width: 380px; height: 38px; background: var(--plate); border: 1px solid var(--brown);
-    padding: 0 14px; color: var(--cream); font-size: 13px; display: flex;
-    align-items: center; justify-content: space-between; cursor: pointer;
-  }
-
-  .dialog-footer {
-    height: 64px; background: var(--row); border-top: 1px solid var(--brown);
-    display: flex; align-items: center; justify-content: flex-end; padding: 0 28px; gap: 14px;
-  }
-  .btn {
-    position: relative; height: 40px; padding: 0 24px; font-size: 13px; font-weight: 600;
-    cursor: pointer; font-family: inherit; letter-spacing: 0.6px; text-transform: uppercase;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .btn-primary {
-    background: var(--qfill); color: var(--cream); border: none;
-  }
-  .btn-primary i {
-    position: absolute; left: 6px; top: 6px; bottom: 6px; width: 3px; background: var(--orange);
-  }
-  .btn-secondary {
-    background: var(--plate); color: var(--label); border: none;
-  }
+  .bar { height: 52px; flex: none; border-top: 1px solid var(--frame-brown); display: flex; align-items: center; padding: 0 14px; gap: 10px; background: var(--panel); }
+  .bar .btn { text-transform: none; }
+  .bar .nt { margin-right: auto; color: var(--text-subtitle); font-size: 13px; }
 </style>
 </head>
 <body>
-<div class="dialog">
-  <div class="title-bar">
-    <span>Medallion Settings</span>
-    <div class="win-controls">
-      <div class="win-box">
-        <div class="frame f-brown"></div>
-        <svg class="ic" style="width:14px;height:14px" viewBox="0 0 256 256"><path d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z"/></svg>
-      </div>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-x" viewBox="0 0 256 256"><path d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z"/></symbol>
+</defs></svg>
+
+<div class="win" data-part="settings-window">
+  <div class="tb"><span>Settings</span><div class="x"><div class="frame f-brown"></div><svg class="ic"><use href="#i-x"/></svg></div></div>
+  <div class="bd">
+    <div class="tree" data-part="settings-nav">
+      <div class="n">General</div>
+      <div class="n o">Appearance</div>
+      <div class="n c sel">General</div>
+      <div class="n c">Advanced</div>
+      <div class="n c">Details View</div>
+      <div class="n c">Grid View</div>
+      <div class="n c">List View</div>
+      <div class="n c">Layout</div>
+      <div class="n c">Top panel</div>
+      <div class="n">Search</div>
+      <div class="n">Updating</div>
+      <div class="n">Metadata</div>
+      <div class="n">Sorting</div>
+      <div class="n">Scripts</div>
+      <div class="n">Auto Close Clients</div>
+      <div class="n">Import Exclusion List</div>
+      <div class="n">Backup</div>
+      <div class="n">For developers</div>
+      <div class="n">Input</div>
+      <div class="n o">Advanced</div>
+      <div class="n c">Performance</div>
+    </div>
+    <div class="pg" data-part="settings-content">
+      <div class="h">Appearance</div>
+      <div class="row"><span class="l">Show notifications</span><span class="v"><i class="cb on">&#10003;</i></span></div>
+      <div class="row"><span class="l">Show game names</span><span class="v"><i class="cb"></i></span></div>
+      <div class="row cur"><span class="l">Sidebar position</span><span class="v">
+        <span class="opt"><i class="rd on"></i>Left</span><span class="opt"><i class="rd"></i>Top</span></span></div>
+      <div class="row"><span class="l">Font size</span><span class="v"><span class="sl"><u></u><b></b></span></span></div>
+      <div class="row"><span class="l">Library folder</span><span class="v"><span class="tx">D:\Games</span></span></div>
+      <div class="row"><span class="l">Desktop theme</span><span class="v"><span class="cmb">Medallion<i></i></span></span></div>
+      <div class="row" style="height:56px"><span class="l">Actions</span><span class="v">
+        <span class="btn p"><i></i>Apply</span><span class="btn">Browse...</span></span></div>
     </div>
   </div>
-
-  <div class="dialog-body">
-    <div class="sidebar">
-      <div class="nav-item">Gameplay</div>
-      <div class="nav-item active">Display & Graphics</div>
-      <div class="nav-item">Interface</div>
-      <div class="nav-item">Controls</div>
-      <div class="nav-item">Sound</div>
-    </div>
-    <div class="content">
-      <div>
-        <div class="section-title">Display & Graphics Options</div>
-        <div class="section-desc">Sampled from Witcher 3 video configuration and journal layouts.</div>
-      </div>
-      <div class="card">
-        <div class="field">
-          <div class="field-label">Primary Library Display</div>
-          <input class="input-text" type="text" placeholder="Enter collection title..." value="Witcher Bestiary & Quests" />
-        </div>
-        <div class="field">
-          <div class="field-label">Interface Color Grading</div>
-          <div class="select-box">
-            <span>Dark Amber & Wolf Tone (Default)</span>
-            <span style="font-size: 10px; color: var(--sub);">&#9660;</span>
-          </div>
-        </div>
-        <div class="row">
-          <div class="checkbox checked">
-            <div class="frame f-gold"></div>
-            &#10003;
-          </div>
-          <div>
-            <div class="field-label">Double frame on focused elements</div>
-            <div class="field-help">Notched inner border around active game cards and menu options.</div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="checkbox unchecked">
-            <div class="frame f-brown"></div>
-          </div>
-          <div>
-            <div class="field-label">Rough brush edge on sidebar rail</div>
-            <div class="field-help">Draws a jagged border texture along the main navigation band.</div>
-          </div>
-        </div>
-        <div class="field">
-          <div class="field-label">Vignette & Backlight Intensity (65%)</div>
-          <div class="slider-bar">
-            <div class="slider-fill"></div>
-            <div class="slider-thumb"></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="radio"><div class="radio-dot"></div></div>
-          <div class="field-label">Standard animations</div>
-          <div class="radio unselected" style="margin-left: 20px;"><div class="radio-dot"></div></div>
-          <div class="field-label">Reduced motion</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="dialog-footer">
-    <button class="btn btn-secondary">
-      <div class="frame f-brown"></div>
-      Cancel
-    </button>
-    <button class="btn btn-primary">
-      <div class="frame f-gold"></div>
-      <i></i>
-      Save Settings
-    </button>
+  <div class="bar" data-part="settings-buttons">
+    <span class="nt">* Requires restart to apply</span>
+    <span class="btn p"><span class="frame f-gold"></span><i></i>Save</span>
+    <span class="btn"><span class="frame f-brown"></span>Cancel</span>
   </div>
 </div>
 </body>

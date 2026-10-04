@@ -58,7 +58,7 @@ async function measure(page, file) {
     const parts = {};
     for (const el of document.querySelectorAll('[data-part]')) {
       const r = el.getBoundingClientRect();
-      parts[el.dataset.part] = { l: r.left, t: r.top, r: r.right, b: r.bottom, text: (el.innerText || '').trim() };
+      parts[el.dataset.part] = { l: r.left, t: r.top, r: r.right, b: r.bottom, text: (el.innerText || '').trim(), raw: (el.textContent || '').trim() };
     }
     return parts;
   });
@@ -90,8 +90,10 @@ function checkSettings(parts, notes) {
   const { 'settings-nav': nav, 'settings-content': content, 'settings-buttons': bar } = parts;
   if (nav.r > content.l + 2) notes.push('settings-nav (section tree) must sit to the left of settings-content');
   if (bar.t < nav.b - 2 || bar.t < content.b - 2) notes.push('settings-buttons must be a bar below the tree and the page');
-  const save = bar.text.indexOf('Save');
-  const cancel = bar.text.indexOf('Cancel');
+  // textContent, case-insensitive: themes upper-case or small-cap their button labels with CSS.
+  const label = bar.raw.toLowerCase();
+  const save = label.indexOf('save');
+  const cancel = label.indexOf('cancel');
   if (save < 0 || cancel < 0) notes.push('settings-buttons needs Save and Cancel');
   else if (save > cancel) notes.push('Cancel must be the right-most button, after Save');
 }

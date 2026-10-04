@@ -1,153 +1,169 @@
 <!doctype html>
-<!-- Material UI: approximate HTML replica of Playnite Game Details view -->
+<!-- Material UI: HTML replica of Playnite's Game Details view (1280x720): MUI mini drawer (64px) + 64px app bar.
+     Top panel order follows Views/TopPanel.xaml: search on the left, then the item IconButtons, filter, notifications
+     (docked right, notifications at the edge), 140px kept clear for the window buttons.
+     Colors are var(--mui-*) tokens from src/tokens.css (injected at render). -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Material UI - Details Preview</title>
 <style>
   :root {
-    --bg: var(--mui-palette-background-default); --surface: #1e1e1e; --card: #242424; --border: rgba(255, 255, 255, 0.12);
-    --text: var(--mui-palette-common-white); --muted: rgba(255, 255, 255, 0.7); --accent: var(--mui-palette-primary-main); --accent-text: #000000;
-    --accent-hover: var(--mui-palette-primary-dark); --chip-bg: #2c2c2c; --radius: 4px;
+    --appbar: linear-gradient(var(--mui-overlays-4), var(--mui-overlays-4)), var(--mui-palette-background-paper);
+    --card: linear-gradient(var(--mui-overlays-1), var(--mui-overlays-1)), var(--mui-palette-background-paper);
+    --primary-16: color-mix(in srgb, var(--mui-palette-primary-main) 16%, transparent);
+    --primary-24: color-mix(in srgb, var(--mui-palette-primary-main) 24%, transparent);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    width: 1280px; height: 720px; overflow: hidden; background: var(--bg); color: var(--text);
-    font-family: "Roboto", "Segoe UI", sans-serif; font-size: 14px; display: flex;
-  }
-  .head-font { font-family: "Roboto", "Segoe UI", sans-serif; }
-  .rail {
-    width: 44px; background: var(--surface); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 8px; z-index: 10;
-  }
-  .rail-btn {
-    width: 36px; height: 36px; border-radius: var(--radius); display: flex; align-items: center;
-    justify-content: center; color: var(--muted); cursor: pointer;
-  }
-  .rail-btn.active { background: var(--accent); color: var(--accent-text); }
-  .rail-btn svg { width: 18px; height: 18px; fill: currentColor; }
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-  .top-bar {
-    height: 48px; background: var(--surface); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 16px; gap: 12px;
-  }
-  .nav-tabs { display: flex; gap: 6px; }
-  .tab { padding: 6px 14px; border-radius: var(--radius); color: var(--muted); font-size: 13px; font-weight: 500; }
-  .tab.active { background: var(--card); color: var(--text); font-weight: 600; border: 1px solid var(--border); }
-  .search {
-    margin-left: auto; width: 280px; height: 32px; background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 0 12px; color: var(--muted); font-size: 13px; display: flex; align-items: center;
-  }
-  .hero-banner {
-    height: 320px; position: relative; background: radial-gradient(ellipse at 70% 30%, #1e3a5f 0%, #132238 60%, var(--mui-palette-background-default) 100%); overflow: hidden;
-  }
-  .hero-wash {
-    position: absolute; inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 20%, var(--bg) 98%);
-  }
-  .hero-content { position: absolute; bottom: 24px; left: 32px; right: 32px; z-index: 5; }
-  .game-title {
-    font-size: 44px; font-weight: 800; line-height: 1.1; margin-bottom: 16px;
-    font-family: "Roboto", "Segoe UI", sans-serif; text-shadow: 0 3px 12px rgba(0,0,0,0.6);
-  }
-  .action-row { display: flex; gap: 12px; align-items: center; }
-  .play-btn {
-    height: 44px; padding: 0 36px; background: var(--accent); color: var(--accent-text); border: none;
-    border-radius: var(--radius); font-weight: 700; font-size: 15px; cursor: pointer;
-    display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-  }
-  .sub-btn {
-    height: 44px; width: 44px; background: var(--card); border: 1px solid var(--border);
-    border-radius: var(--radius); color: var(--text); display: flex; align-items: center; justify-content: center;
-  }
-  .sub-btn svg { width: 18px; height: 18px; fill: currentColor; }
-  .content-columns { flex: 1; display: flex; gap: 32px; padding: 24px 32px; overflow: hidden; }
-  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-  .screenshots-row { display: flex; gap: 14px; }
-  .screen-thumb {
-    flex: 1; height: 146px; border-radius: var(--radius); border: 1px solid var(--border);
-    background: var(--card); overflow: hidden; position: relative;
-  }
-  .desc-heading {
-    font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text); font-family: "Roboto", "Segoe UI", sans-serif;
-  }
-  .desc-text { color: var(--muted); line-height: 1.65; font-size: 14px; }
-  .right-col {
-    width: 350px; background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 20px; height: fit-content;
-  }
-  .meta-group { margin-bottom: 16px; }
-  .meta-group:last-child { margin-bottom: 0; }
-  .meta-label {
-    font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--muted);
-    margin-bottom: 6px; letter-spacing: 0.6px;
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    background: var(--chip-bg); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 4px 10px; font-size: 12px; color: var(--text); font-weight: 500;
-  }
-  .meta-value { font-size: 13px; color: var(--text); }
+  body { width: 1280px; height: 720px; overflow: hidden; position: relative; background: var(--mui-palette-background-default); color: var(--mui-palette-text-primary); font-family: Roboto, "Segoe UI", system-ui, sans-serif; font-size: 14px; }
+  svg { fill: currentColor; display: block; }
+
+  /* Mini drawer: 64px, header band in the app bar color, 64x48 rows with 24px icons */
+  .drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 64px; background: var(--mui-palette-background-default); z-index: 5; }
+  .band { height: 64px; background: var(--appbar); display: flex; align-items: center; justify-content: center; }
+  .ib { position: relative; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--mui-palette-action-active); }
+  .ib svg { width: 24px; height: 24px; }
+  .ib.on { color: var(--mui-palette-primary-main); }
+  .di { width: 64px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--mui-palette-text-secondary); }
+  .di svg { width: 24px; height: 24px; }
+  .di.cur { background: var(--primary-16); color: var(--mui-palette-primary-main); }
+
+  /* App bar: 64px Toolbar, 16px gutters */
+  .bar { position: absolute; left: 64px; right: 0; top: 0; height: 64px; background: var(--appbar); display: flex; align-items: center; padding: 0 140px 0 16px; z-index: 4; }
+  .search { width: 240px; height: 40px; border-radius: var(--mui-shape-borderRadius); background: var(--mui-AppBar-search-bg); display: flex; align-items: center; gap: 12px; padding: 0 12px; color: var(--mui-palette-text-secondary); }
+  .search svg { width: 24px; height: 24px; }
+  .items { display: flex; gap: 0; margin-left: auto; }
+  .badge { position: absolute; top: 4px; right: 4px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--mui-palette-error-main); color: var(--mui-palette-error-contrastText); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+  .dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 4px; background: var(--mui-palette-primary-main); }
+  .wins { position: absolute; right: 8px; top: 12px; display: flex; color: var(--mui-palette-action-active); }
+  .wins .ib svg { width: 20px; height: 20px; }
+
+  .view { position: absolute; left: 64px; right: 0; top: 64px; bottom: 0; display: flex; }
+  .list { width: 280px; flex: none; overflow: hidden; padding: 0; }
+  .row { height: 40px; padding: 0 16px; display: flex; align-items: center; gap: 12px; color: var(--mui-palette-text-secondary); font-size: 14px; }
+  .row i { width: 24px; height: 24px; border-radius: 4px; flex: none; opacity: .6; }
+  .row.inst { color: var(--mui-palette-text-primary); }
+  .row.inst i { opacity: 1; }
+  .row.hov { background: var(--mui-palette-action-hover); }
+  .row.sel { background: var(--primary-16); color: var(--mui-palette-text-primary); }
+  .row.sel i { opacity: 1; }
+
+  .page { position: relative; flex: 1; min-width: 0; overflow: hidden; }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 360px; background: radial-gradient(ellipse at 70% 20%, #1e5fa0 0%, #123a63 45%, var(--mui-palette-background-default) 100%); }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,18,18,.2) 0, rgba(18,18,18,.6) 55%, var(--mui-palette-background-default) 100%); }
+  .inner { position: absolute; left: 24px; right: 24px; top: 28px; }
+  .head { display: flex; gap: 20px; align-items: flex-end; height: 150px; }
+  .cover { width: 112px; height: 150px; flex: none; border-radius: 0; background: linear-gradient(160deg, #1e6fc2, #0b1e36); }
+  .ht { padding-bottom: 2px; }
+  h1 { font-size: 34px; font-weight: 400; line-height: 1.2; margin-bottom: 10px; }
+  .acts { display: flex; align-items: center; gap: 8px; }
+  .btn { height: 36px; min-width: 64px; padding: 6px 16px; border-radius: var(--mui-shape-borderRadius); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: .03em; }
+  .btn svg { width: 20px; height: 20px; }
+  .btn.c { background: var(--mui-palette-primary-main); color: var(--mui-palette-primary-contrastText); }
+  .btn.t { color: var(--mui-palette-primary-main); }
+  .cols { display: flex; gap: 20px; margin-top: 18px; align-items: flex-start; }
+  .left { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .card { background: var(--card); border-radius: var(--mui-shape-borderRadius); padding: 14px 16px; }
+  .shots { display: flex; gap: 8px; }
+  .shot { flex: 1; height: 92px; border-radius: var(--mui-shape-borderRadius); background: radial-gradient(circle at 60% 40%, #1c4f86, #0b1220); }
+  h6 { font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+  .desc { color: var(--mui-palette-text-secondary); line-height: 1.5; }
+  .meta { width: 380px; flex: none; padding: 8px 16px; }
+  .grp { border-top: 1px solid var(--mui-palette-divider); padding: 4px 0; }
+  .grp:first-child { border-top: 0; }
+  .f { display: flex; align-items: center; min-height: 28px; }
+  .f b { width: 120px; flex: none; font-weight: 400; font-size: 13px; color: var(--mui-palette-text-secondary); }
+  .f span { font-size: 14px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { height: 24px; padding: 0 10px; border-radius: 12px; background: var(--mui-palette-action-selected); font-size: 13px; display: flex; align-items: center; }
+  .score { color: var(--mui-palette-success-main); font-weight: 500; }
 </style>
 </head>
 <body>
-<div class="rail">
-  <div class="rail-btn active"><svg viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-7v2h16V6H4z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
-  <div class="rail-btn"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg></div>
+<div class="drawer" data-part="sidebar">
+  <div class="band"><div class="ib" data-part="PART_ElemMainMenu"><svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg></div></div>
+  <div class="di cur"><svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+  <div class="di"><svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg></div>
+  <div class="di"><svg viewBox="0 0 24 24"><path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
 </div>
-<div class="main">
-  <div class="top-bar">
-    <div class="nav-tabs">
-      <div class="tab">Grid</div>
-      <div class="tab active">Details</div>
+
+<div class="bar" data-part="top-panel">
+  <div class="search" data-part="PART_TextMainSearch"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>Search</div>
+  <div class="items">
+    <div class="ib on" data-part="PART_PanelMainItems" style="width:auto;border-radius:0;gap:0">
+      <div class="ib on" title="Details"><svg viewBox="0 0 24 24"><path d="M20 13H3c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h17c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1zm0-10H3c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h17c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1z"/></svg></div>
+      <div class="ib" title="Grid"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg></div>
+      <div class="ib" title="List"><svg viewBox="0 0 24 24"><path d="M3 14h4v-4H3v4zm0 5h4v-4H3v4zM3 9h4V5H3v4zm5 5h13v-4H8v4zm0 5h13v-4H8v4zM8 5v4h13V5H8z"/></svg></div>
+      <div class="ib" title="Group"><svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg></div>
+      <div class="ib" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/></svg></div>
     </div>
-    <div class="search">Search library...</div>
+    <div class="ib" data-part="PART_ToggleFilter"><svg viewBox="0 0 24 24"><path d="M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39c.51-.66.04-1.61-.79-1.61H5.04c-.83 0-1.3.95-.79 1.61z"/></svg><span class="dot"></span></div>
+    <div class="ib" data-part="PART_ToggleNotifications"><svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg><span class="badge">2</span></div>
   </div>
-  <div class="hero-banner">
-    <div class="hero-wash"></div>
-    <div class="hero-content">
-      <div class="game-title">Eldritch Void</div>
-      <div class="action-row">
-        <button class="play-btn">&#9658; PLAY</button>
-        <div class="sub-btn"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
-        <div class="sub-btn"><svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg></div>
-      </div>
-    </div>
+  <div class="wins"><div class="ib"><svg viewBox="0 0 24 24"><path d="M5 19h14v-2H5z"/></svg></div><div class="ib"><svg viewBox="0 0 24 24"><path d="M5 5v14h14V5H5zm12 12H7V7h10v10z"/></svg></div><div class="ib"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div></div>
+</div>
+
+<div class="view">
+  <div class="list" data-part="game-list">
+    <div class="row inst"><i style="background:var(--mui-palette-primary-dark)"></i>Aurora Courier</div>
+    <div class="row"><i style="background:#ab47bc"></i>Bramble &amp; Brook</div>
+    <div class="row inst"><i style="background:var(--mui-palette-warning-main)"></i>Cobalt Drift</div>
+    <div class="row inst sel"><i style="background:#26a69a"></i>Daybreak Odyssey</div>
+    <div class="row inst hov"><i style="background:#ef5350"></i>Ember Canvas</div>
+    <div class="row"><i style="background:var(--mui-palette-success-main)"></i>Fern Hollow</div>
+    <div class="row inst"><i style="background:#5c6bc0"></i>Glass Meridian</div>
+    <div class="row"><i style="background:#8d6e63"></i>Harbor Light</div>
+    <div class="row inst"><i style="background:#ffca28"></i>Indigo Trails</div>
+    <div class="row"><i style="background:#29b6f6"></i>Juniper Quest</div>
+    <div class="row inst"><i style="background:#ec407a"></i>Kite Season</div>
+    <div class="row"><i style="background:#9ccc65"></i>Lumen Garden</div>
+    <div class="row inst"><i style="background:#7e57c2"></i>Mosaic Tide</div>
+    <div class="row"><i style="background:#26c6da"></i>Nimbus Run</div>
+    <div class="row inst"><i style="background:#ff7043"></i>Orbit Orchard</div>
+    <div class="row"><i style="background:#78909c"></i>Paper Lantern</div>
+    <div class="row inst"><i style="background:#d4e157"></i>Quill &amp; Ember</div>
   </div>
-  <div class="content-columns">
-    <div class="left-col">
-      <div class="screenshots-row">
-        <div class="screen-thumb" style="background: radial-gradient(circle at 60% 40%, rgba(255,255,255,0.06), rgba(0,0,0,0.5));"></div>
-        <div class="screen-thumb" style="background: radial-gradient(circle at 40% 60%, rgba(255,255,255,0.04), rgba(0,0,0,0.7));"></div>
-        <div class="screen-thumb" style="background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), rgba(0,0,0,0.6));"></div>
+  <div class="page" data-part="game-page">
+    <div class="hero"></div>
+    <div class="inner">
+      <div class="head">
+        <div class="cover"></div>
+        <div class="ht">
+          <h1>Daybreak Odyssey</h1>
+          <div class="acts">
+            <div class="btn c"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Play</div>
+            <div class="btn t">More</div>
+            <div class="ib"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="desc-heading">Overview</div>
-        <p class="desc-text">Descend into an ancient subterranean citadel lost between cosmic dimensions. Uncover forbidden relics, survive tactical encounters with spectral custodians, and reshape the destiny of a forgotten world.</p>
-      </div>
-    </div>
-    <div class="right-col">
-      <div class="meta-group">
-        <div class="meta-label">Genres</div>
-        <div class="chips"><div class="chip">RPG</div><div class="chip">Action</div><div class="chip">Atmospheric</div></div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Developer</div>
-        <div class="meta-value">Ironclad Interactive</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Play Time</div>
-        <div class="meta-value">36.5 hours &bull; Last played yesterday</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Critic Rating</div>
-        <div class="meta-value" style="font-weight: 700; color: #4ade80;">94 / 100</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Platform</div>
-        <div class="meta-value">PC (Windows)</div>
+      <div class="cols">
+        <div class="left">
+          <div class="card"><div class="shots"><div class="shot"></div><div class="shot" style="background:radial-gradient(circle at 40% 60%,#2a6bb0,#0b1220)"></div><div class="shot" style="background:radial-gradient(circle at 50% 50%,#17487a,#0b1220)"></div></div></div>
+          <div class="card"><h6>Description</h6><p class="desc">A gentle open-world journey chasing the sunrise across a chain of floating islands. Glide, gather and restore the lighthouses that keep the morning on schedule.</p></div>
+        </div>
+        <div class="card meta" data-part="metadata">
+          <div class="grp">
+            <div class="f"><b>Play time</b><span>48 hours</span></div>
+            <div class="f"><b>Last played</b><span>Yesterday</span></div>
+          </div>
+          <div class="grp">
+            <div class="f"><b>Critic score</b><span class="score">91</span></div>
+            <div class="f"><b>Community score</b><span class="score">86</span></div>
+          </div>
+          <div class="grp">
+            <div class="f"><b>Developer</b><span>Paper Sky Studio</span></div>
+            <div class="f"><b>Release date</b><span>2025</span></div>
+          </div>
+          <div class="grp">
+            <div class="f"><b>Platform</b><span class="chips"><span class="chip">PC</span></span></div>
+            <div class="f"><b>Genres</b><span class="chips"><span class="chip">Adventure</span><span class="chip">Exploration</span></span></div>
+          </div>
+          <div class="grp">
+            <div class="f"><b>Source</b><span>Steam</span></div>
+            <div class="f"><b>Install size</b><span>6.8 GB</span></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

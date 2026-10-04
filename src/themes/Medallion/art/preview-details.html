@@ -1,41 +1,19 @@
 <!doctype html>
-<!-- Medallion: approximate HTML replica of Playnite Game Details view -->
+<!-- Medallion: HTML replica of Playnite's Game Details view. Layout follows src/Views/TopPanel.xaml and DerivedStyles/DetailsViewItemStyle.xaml. Colors come from src/tokens.css. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Medallion - Details Preview</title>
 <style>
-  :root {
-    --black: var(--scene-black);
-    --band: var(--menu-band);
-    --panel: #070707;
-    --plate: var(--prompt-plate);
-    --row: var(--settings-row);
-    --label: var(--text-label);
-    --menu: var(--menu-item);
-    --sub: var(--text-subtitle);
-    --body: var(--text-body);
-    --brown: var(--frame-brown);
-    --faint: var(--frame-faint);
-    --focus: var(--frame-focus);
-    --hover: var(--frame-hover);
-    --taupe: var(--category-closed);
-    --cream: var(--category-light);
-    --gold: var(--quest-frame);
-    --qfill: var(--quest-fill);
-    --amber: var(--amber-wash);
-    --orange: var(--accent-bar);
-    --dot: var(--page-dot);
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 1280px; height: 720px; overflow: hidden; background: var(--scene-black); color: var(--label);
+    width: 1280px; height: 720px; overflow: hidden; background: var(--scene-black); color: var(--text-label);
     font-family: Bahnschrift, "Barlow Semi Condensed", "Roboto Condensed", "DejaVu Sans Condensed", sans-serif;
-    font-size: 14px; display: flex;
+    font-size: 14px; display: flex; position: relative;
   }
   .ic { fill: currentColor; display: block; }
 
-  /* Double frame utility */
+  /* Double frame (DoubleFrameTemplate): outer rectangle, inner one stepped in at the corners */
   .frame { position: absolute; inset: 0; border: 1px solid var(--c); pointer-events: none; }
   .frame:before {
     content: ""; position: absolute; inset: 2px;
@@ -53,238 +31,214 @@
       linear-gradient(var(--c),var(--c)) calc(100% - 4px) 100%/1px 5px no-repeat,
       linear-gradient(var(--c),var(--c)) 100% calc(100% - 4px)/5px 1px no-repeat;
   }
-  .f-focus { --c: var(--focus); }
-  .f-hover { --c: var(--hover); }
-  .f-brown { --c: var(--brown); }
-  .f-gold { --c: var(--gold); }
+  .f-focus { --c: var(--frame-focus); }
+  .f-hover { --c: var(--frame-hover); }
+  .f-brown { --c: var(--frame-brown); }
+  .f-gold { --c: var(--quest-frame); }
 
-  /* 44px compact rail with jagged edge */
+  /* Sidebar: the main menu band as a 44px icon rail */
   .band {
-    width: 44px; background: var(--band); position: relative; z-index: 10;
-    display: flex; flex-direction: column; align-items: center; border-right: 1px solid var(--faint);
+    width: 44px; flex: none; background: var(--menu-band); position: relative; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; border-right: 1px solid var(--frame-faint);
   }
-  .mark { width: 28px; height: 28px; margin-top: 10px; color: var(--label); }
-  .rail-rule { width: 24px; height: 1px; background: var(--brown); margin: 10px 0 8px; }
-  .rail-btn {
-    width: 36px; height: 36px; display: grid; place-items: center; color: var(--menu);
-    position: relative; margin-bottom: 6px; cursor: pointer;
-  }
-  .rail-btn.active { color: var(--text-active); }
+  .mark { width: 24px; height: 24px; margin-top: 8px; color: var(--text-label); }
+  .rail-rule { width: 24px; height: 1px; background: var(--frame-brown); margin: 8px 0 8px; }
+  .rail-btn { width: 44px; height: 40px; display: grid; place-items: center; color: var(--menu-item); position: relative; }
+  .rail-btn .ic { width: 16px; height: 16px; }
+  .rail-btn.cur { color: var(--text-active); }
+  .rail-btn.cur .frame, .rail-btn.hov .frame { inset: 2px 4px; }
+  .rail-btn.hov { color: var(--text-active); }
 
-  /* Main area */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
 
-  /* Top bar */
-  .top-bar {
-    height: 48px; display: flex; align-items: center; padding: 0 16px 0 24px;
-    border-bottom: 1px solid var(--faint); background: rgba(0,0,0,0.7); position: relative; z-index: 2;
-  }
+  /* Top panel: 64px on the bare page, search left, view switches centered, filter and notifications right, 150px clear for caption buttons */
+  .top-panel { height: 64px; flex: none; display: flex; align-items: center; padding: 0 150px 0 36px; position: relative; z-index: 3; }
   .search {
-    width: 250px; height: 32px; background: var(--plate); border: 1px solid var(--brown);
-    display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--sub); font-size: 13px;
+    width: 260px; height: 34px; flex: none; background: var(--prompt-plate); border: 1px solid var(--frame-brown);
+    display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--text-subtitle); font-size: 13px; margin-right: 16px;
   }
-  .nav-tabs {
-    position: absolute; left: 50%; transform: translateX(-50%);
-    display: flex; align-items: center; gap: 6px; color: var(--menu);
-  }
-  .arrow {
-    width: 6px; height: 8px; background: var(--brown);
-    clip-path: polygon(0 0, 15% 0, 100% 50%, 15% 100%, 0 100%); margin: 0 8px;
-  }
-  .tab { font-size: 14px; padding: 0 10px; position: relative; height: 36px; display: grid; place-items: center; letter-spacing: 0.5px; }
-  .tab.active { color: var(--text-active); font-weight: 600; }
-  .tab.active:after {
-    content: ""; position: absolute; bottom: 2px; left: 50%; width: 4px; height: 4px;
-    margin-left: -2px; border-radius: 50%; background: var(--dot);
-  }
-  .window-controls { margin-left: auto; display: flex; gap: 6px; }
-  .win-box { width: 30px; height: 30px; display: grid; place-items: center; position: relative; color: var(--menu); }
+  .search .ic { width: 16px; height: 16px; }
+  .items { flex: 1; display: flex; justify-content: center; align-items: center; color: var(--menu-item); }
+  .ti { width: 36px; height: 36px; display: grid; place-items: center; }
+  .ti .ic { width: 20px; height: 20px; }
+  .ti.on { color: var(--text-active); }
+  .sep { width: 22px; height: 12px; margin: 0 6px; display: grid; place-items: center; }
+  .sep i { display: block; width: 7px; height: 10px; background: var(--frame-brown); clip-path: polygon(0 0, 14% 0, 100% 50%, 14% 100%, 0 100%); }
+  .tog { width: 36px; height: 36px; margin-left: 4px; display: grid; place-items: center; color: var(--menu-item); position: relative; }
+  .tog .ic { width: 20px; height: 20px; }
+  .badge { position: absolute; right: 2px; top: 3px; width: 14px; height: 14px; background: var(--logo-red); color: var(--text-active); font-size: 10px; line-height: 14px; text-align: center; }
+  .caption { position: absolute; right: 0; top: 0; height: 64px; width: 150px; display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding-right: 14px; color: var(--menu-item); }
+  .win-box { width: 30px; height: 30px; display: grid; place-items: center; position: relative; }
+  .win-box .ic { width: 14px; height: 14px; }
 
-  /* 320px Hero Banner */
-  .hero-banner {
-    height: 320px; position: relative; overflow: hidden;
+  .body { flex: 1; min-height: 0; display: flex; }
+
+  /* Game list: DetailsViewItemStyle rows */
+  .list { width: 300px; flex: none; padding: 0 10px 0 12px; overflow: hidden; }
+  .g { height: 32px; margin-bottom: 2px; background: var(--settings-row); position: relative; display: flex; align-items: center; padding-left: 14px; gap: 9px; color: var(--text-subtitle); font-size: 14px; }
+  .g:before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--row-strip); }
+  .g.in { color: var(--text-label); }
+  .g .pl { width: 16px; height: 16px; flex: none; background: var(--keycap); border: 1px solid var(--frame-brown); }
+  .g.sel { color: var(--text-active); background: linear-gradient(90deg, var(--amber-wash), transparent); }
+  .g.sel:before { width: 3px; background: var(--accent-bar); }
+  .g.sel .pl { border-color: var(--quest-frame); }
+
+  /* Game page */
+  .page { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--scene-black); border-left: 1px solid var(--frame-faint); }
+  .hero { height: 214px; flex: none; position: relative; overflow: hidden;
     background:
-      radial-gradient(ellipse 55% 65% at 75% 30%, #7d4212 0%, #3b1f0a 45%, transparent 75%),
-      radial-gradient(ellipse 45% 55% at 25% 45%, #1d4a52 0%, transparent 70%),
-      #07090a;
-  }
-  .hero-wash {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 60%, var(--scene-black) 100%);
-  }
-  .hero-content { position: absolute; bottom: 24px; left: 32px; right: 32px; z-index: 5; }
-  .game-title {
-    font-size: 40px; font-weight: 600; color: var(--text-active); letter-spacing: 0.8px;
-    text-transform: uppercase; margin-bottom: 16px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-  }
-  .action-row { display: flex; gap: 10px; align-items: center; }
-  .play-btn {
-    position: relative; height: 46px; min-width: 180px; background: var(--qfill);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    color: var(--cream); font-size: 18px; letter-spacing: 0.8px; font-weight: 600;
-    cursor: pointer; padding: 0 24px; text-transform: uppercase;
-  }
-  .play-btn i {
-    position: absolute; left: 7px; top: 7px; bottom: 7px; width: 3px; background: var(--orange);
-  }
-  .sub-btn {
-    position: relative; width: 46px; height: 46px; background: var(--plate);
-    display: grid; place-items: center; color: var(--label); cursor: pointer;
-  }
+      radial-gradient(ellipse 55% 75% at 75% 25%, #7d4212 0%, #3b1f0a 45%, transparent 75%),
+      radial-gradient(ellipse 45% 65% at 25% 40%, #1d4a52 0%, transparent 70%), #07090a; }
+  .hero:after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.1) 0%, rgba(0,0,0,.55) 65%, var(--scene-black) 100%); }
+  .hero-in { position: absolute; left: 28px; right: 28px; bottom: 14px; z-index: 2; }
+  .title { font-size: 34px; font-weight: 400; color: var(--text-label); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+  .acts { display: flex; gap: 8px; align-items: center; }
+  .play { position: relative; height: 40px; min-width: 150px; padding: 0 22px 0 26px; background: var(--quest-fill); color: var(--category-light); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; letter-spacing: .8px; text-transform: uppercase; }
+  .play i { position: absolute; left: 6px; top: 6px; bottom: 6px; width: 3px; background: var(--accent-bar); }
+  .play .ic { width: 14px; height: 14px; }
+  .sub { position: relative; width: 40px; height: 40px; background: var(--prompt-plate); display: grid; place-items: center; color: var(--text-label); }
+  .sub .ic { width: 18px; height: 18px; }
 
-  /* Two columns content layout */
-  .content-columns { flex: 1; display: flex; gap: 28px; padding: 24px 32px; overflow: hidden; background: var(--scene-black); }
-  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-  .screenshots-row { display: flex; gap: 14px; }
-  .screen-thumb {
-    flex: 1; height: 148px; border: 1px solid var(--brown); background: var(--settings-row);
-    position: relative; overflow: hidden;
-  }
-  .thumb-art {
-    position: absolute; inset: 0;
-    background: radial-gradient(circle at 50% 40%, rgba(208, 114, 1, 0.15), rgba(7, 7, 7, 0.95));
-    display: flex; align-items: center; justify-content: center;
-  }
-  .section-heading {
-    font-size: 15px; color: var(--taupe); text-transform: uppercase;
-    padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid var(--brown);
-    letter-spacing: 0.6px; font-weight: 600;
-  }
-  .desc-text { color: var(--body); line-height: 1.6; font-size: 14px; }
+  .cols { flex: 1; min-height: 0; display: flex; gap: 24px; padding: 14px 24px 0 28px; overflow: hidden; }
+  .left { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .shots { display: flex; gap: 10px; }
+  .shot { flex: 1; height: 116px; border: 1px solid var(--frame-brown); background: var(--settings-row); position: relative; overflow: hidden; }
+  .shot b { position: absolute; inset: 0; }
+  .h { font-size: 14px; color: var(--category-closed); text-transform: uppercase; padding-bottom: 5px; margin-bottom: 8px; border-bottom: 1px solid var(--rule-brown); letter-spacing: .6px; }
+  .desc { color: var(--text-body); line-height: 1.55; font-size: 14px; }
 
-  /* Right metadata pane */
-  .right-col {
-    width: 340px; background: var(--panel); border: 1px solid var(--faint);
-    padding: 18px; height: fit-content;
-  }
-  .meta-group { border-top: 1px solid var(--brown); padding: 8px 0; }
-  .meta-group:first-child { border-top: none; padding-top: 0; }
-  .meta-label {
-    font-size: 11px; text-transform: uppercase; color: var(--sub); letter-spacing: 0.5px;
-    margin-bottom: 4px;
-  }
-  .meta-value { font-size: 14px; color: var(--label); }
-  .meta-value.accent { color: var(--orange); font-weight: 600; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-  .chip {
-    border: 1px solid var(--brown); background: var(--row); font-size: 12px;
-    padding: 3px 9px; color: var(--label); text-transform: uppercase; letter-spacing: 0.3px;
-  }
+  /* Metadata: one journal panel, six groups, caption column beside the value */
+  .meta { width: 312px; flex: none; align-self: flex-start; background: var(--panel); border: 1px solid var(--frame-faint); border-top-color: var(--frame-brown); padding: 8px 14px; }
+  .grp { border-top: 1px solid var(--rule-brown); padding: 5px 0; }
+  .grp:first-child { border-top: 0; }
+  .m { display: flex; min-height: 22px; align-items: center; font-size: 13px; }
+  .m em { font-style: normal; width: 94px; flex: none; color: var(--text-subtitle); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+  .m span { color: var(--text-label); }
+  .m .gold { color: var(--gold-numeral); }
+  .m .lk { color: var(--header-taupe-light); }
+  .chip { display: inline-block; border: 1px solid var(--frame-brown); background: var(--settings-row); font-size: 11px; padding: 1px 7px; margin-right: 4px; color: var(--text-label); text-transform: uppercase; letter-spacing: .3px; }
 </style>
 </head>
 <body>
-<div class="band">
-  <svg class="mark" viewBox="0 0 256 256"><path fill="currentColor" fill-rule="evenodd" d="M128,8 C194.27,8.00 248.00,61.73 248,128 C248.00,194.27 194.27,248.00 128,248 C61.73,248.00 8.00,194.27 8,128 C8.00,61.73 61.73,8.00 128,8 Z M128,22 C69.46,22.00 22.00,69.46 22,128 C22.00,186.54 69.46,234.00 128,234 C186.54,234.00 234.00,186.54 234,128 C234.00,69.46 186.54,22.00 128,22 Z M128,32 C181.02,32.00 224.00,74.98 224,128 C224.00,181.02 181.02,224.00 128,224 C74.98,224.00 32.00,181.02 32,128 C32.00,74.98 74.98,32.00 128,32 Z M128,40 C79.40,40.00 40.00,79.40 40,128 C40.00,176.60 79.40,216.00 128,216 C176.60,216.00 216.00,176.60 216,128 C216.00,79.40 176.60,40.00 128,40 Z M78,62 L106,94 L150,94 L178,62 L176,112 L160,140 L146,192 L128,212 L110,192 L96,140 L80,112 Z M100,118 L120,128 L104,134 Z M156,118 L136,128 L152,134 Z"/></svg>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-mark" viewBox="0 0 256 256"><path fill-rule="evenodd" d="M128,8 C194.27,8.00 248.00,61.73 248,128 C248.00,194.27 194.27,248.00 128,248 C61.73,248.00 8.00,194.27 8,128 C8.00,61.73 61.73,8.00 128,8 Z M128,22 C69.46,22.00 22.00,69.46 22,128 C22.00,186.54 69.46,234.00 128,234 C186.54,234.00 234.00,186.54 234,128 C234.00,69.46 186.54,22.00 128,22 Z M128,32 C181.02,32.00 224.00,74.98 224,128 C224.00,181.02 181.02,224.00 128,224 C74.98,224.00 32.00,181.02 32,128 C32.00,74.98 74.98,32.00 128,32 Z M128,40 C79.40,40.00 40.00,79.40 40,128 C40.00,176.60 79.40,216.00 128,216 C176.60,216.00 216.00,176.60 216,128 C216.00,79.40 176.60,40.00 128,40 Z M78,62 L106,94 L150,94 L178,62 L176,112 L160,140 L146,192 L128,212 L110,192 L96,140 L80,112 Z M100,118 L120,128 L104,134 Z M156,118 L136,128 L152,134 Z"/></symbol>
+    <symbol id="i-lib" viewBox="0 0 256 256"><path d="M104,34H56A14,14,0,0,0,42,48V208a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V48A14,14,0,0,0,104,34ZM54,78h52V178H54Zm2-32h48a2,2,0,0,1,2,2V66H54V48A2,2,0,0,1,56,46Zm48,164H56a2,2,0,0,1-2-2V190h52v18A2,2,0,0,1,104,210Zm125.7-15L196.51,37.16a14,14,0,0,0-16.63-10.85L133.07,36.37A14.09,14.09,0,0,0,122.3,53l33.19,157.81a14,14,0,0,0,6.1,8.9,13.85,13.85,0,0,0,7.57,2.26,13.55,13.55,0,0,0,3-.32l46.81-10.05A14.09,14.09,0,0,0,229.7,195Zm-82.81-83.32,50.73-10.9,14.12,67.16L161,178.81Zm-6.63-31.56L191,69.19,195.15,89l-50.73,10.9Zm-4.66-32,46.8-10.05a2.18,2.18,0,0,1,.42,0,1.89,1.89,0,0,1,1.05.32,2,2,0,0,1,.89,1.31l3.75,17.82L137.79,68.34l-3.74-17.78A2.07,2.07,0,0,1,135.6,48.1Zm80.81,151.8L169.6,210a1.92,1.92,0,0,1-1.47-.27,2,2,0,0,1-.89-1.31l-3.75-17.82,50.72-10.9L218,197.43A2.07,2.07,0,0,1,216.41,199.9Z"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 256 256"><path d="M224,202H214V40a6,6,0,0,0-6-6H152a6,6,0,0,0-6,6V82H96a6,6,0,0,0-6,6v42H48a6,6,0,0,0-6,6v66H32a6,6,0,0,0,0,12H224a6,6,0,0,0,0-12ZM158,46h44V202H158ZM102,94h44V202H102ZM54,142H90v60H54Z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 256 256"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162Zm108-54.4a6,6,0,0,0-2.92-4L202.64,86.22l-.42-.71L202.1,51.2A6,6,0,0,0,200,46.64a110.12,110.12,0,0,0-36.07-20.31,6,6,0,0,0-4.84.45L128.46,43.86h-1L96.91,26.76a6,6,0,0,0-4.86-.44A109.92,109.92,0,0,0,56,46.68a6,6,0,0,0-2.12,4.55l-.16,34.34c-.14.23-.28.47-.41.71L22.91,103.57A6,6,0,0,0,20,107.62a104.81,104.81,0,0,0,0,40.78,6,6,0,0,0,2.92,4l30.42,17.33.42.71.12,34.31A6,6,0,0,0,56,209.36a110.12,110.12,0,0,0,36.07,20.31,6,6,0,0,0,4.84-.45l30.61-17.08h1l30.56,17.1A6.09,6.09,0,0,0,162,230a5.83,5.83,0,0,0,1.93-.32,109.92,109.92,0,0,0,36-20.36,6,6,0,0,0,2.12-4.55l.16-34.34c.14-.23.28-.47.41-.71l30.42-17.29a6,6,0,0,0,2.92-4.05A104.81,104.81,0,0,0,236,107.6Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 256 256"><path d="M228.24,219.76l-51.38-51.38a86.15,86.15,0,1,0-8.48,8.48l51.38,51.38a6,6,0,0,0,8.48-8.48ZM38,112a74,74,0,1,1,74,74A74.09,74.09,0,0,1,38,112Z"/></symbol>
+    <symbol id="i-details" viewBox="0 0 256 256"><path d="M208,138H48a14,14,0,0,0-14,14v40a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V152A14,14,0,0,0,208,138Zm2,54a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V152a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2ZM208,50H48A14,14,0,0,0,34,64v40a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V64A14,14,0,0,0,208,50Zm2,54a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V64a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 256 256"><path d="M104,42H56A14,14,0,0,0,42,56v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V56A14,14,0,0,0,104,42Zm2,62a2,2,0,0,1-2,2H56a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Zm94-62H152a14,14,0,0,0-14,14v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V56A14,14,0,0,0,200,42Zm2,62a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Zm-98,34H56a14,14,0,0,0-14,14v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V152A14,14,0,0,0,104,138Zm2,62a2,2,0,0,1-2,2H56a2,2,0,0,1-2-2V152a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Zm94-62H152a14,14,0,0,0-14,14v48a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V152A14,14,0,0,0,200,138Zm2,62a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V152a2,2,0,0,1,2-2h48a2,2,0,0,1,2,2Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 256 256"><path d="M82,64a6,6,0,0,1,6-6H216a6,6,0,0,1,0,12H88A6,6,0,0,1,82,64Zm134,58H88a6,6,0,0,0,0,12H216a6,6,0,0,0,0-12Zm0,64H88a6,6,0,0,0,0,12H216a6,6,0,0,0,0-12ZM44,54A10,10,0,1,0,54,64,10,10,0,0,0,44,54Zm0,128a10,10,0,1,0,10,10A10,10,0,0,0,44,182Zm0-64a10,10,0,1,0,10,10A10,10,0,0,0,44,118Z"/></symbol>
+    <symbol id="i-group" viewBox="0 0 256 256"><path d="M229.18,173a6,6,0,0,1-2.16,8.2l-96,56a6,6,0,0,1-6,0l-96-56a6,6,0,0,1,6-10.36l93,54.23,93-54.23A6,6,0,0,1,229.18,173ZM221,122.82l-93,54.23L35,122.82a6,6,0,0,0-6,10.36l96,56a6,6,0,0,0,6,0l96-56a6,6,0,0,0-6-10.36ZM26,80a6,6,0,0,1,3-5.18l96-56a6,6,0,0,1,6,0l96,56a6,6,0,0,1,0,10.36l-96,56a6,6,0,0,1-6,0l-96-56A6,6,0,0,1,26,80Zm17.91,0L128,129.05,212.09,80,128,31Z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 256 256"><path d="M126,128a6,6,0,0,1-6,6H48a6,6,0,0,1,0-12h72A6,6,0,0,1,126,128ZM48,70H184a6,6,0,0,0,0-12H48a6,6,0,0,0,0,12Zm56,116H48a6,6,0,0,0,0,12h56a6,6,0,0,0,0-12Zm124.24-22.24a6,6,0,0,0-8.48,0L190,193.51V112a6,6,0,0,0-12,0v81.51l-29.76-29.75a6,6,0,0,0-8.48,8.48l40,40a6,6,0,0,0,8.48,0l40-40A6,6,0,0,0,228.24,163.76Z"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 256 256"><path d="M198,136a6,6,0,0,1-6,6H64a6,6,0,0,1,0-12H192A6,6,0,0,1,198,136Zm34-54H24a6,6,0,0,0,0,12H232a6,6,0,0,0,0-12Zm-80,96H104a6,6,0,0,0,0,12h48a6,6,0,0,0,0-12Z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 256 256"><path d="M220.07,176.94C214.41,167.2,206,139.73,206,104a78,78,0,1,0-156,0c0,35.74-8.42,63.2-14.08,72.94A14,14,0,0,0,48,198H90.48a38,38,0,0,0,75,0H208a14,14,0,0,0,12.06-21.06ZM128,218a26,26,0,0,1-25.29-20h50.58A26,26,0,0,1,128,218Zm81.71-33a1.9,1.9,0,0,1-1.7,1H48a1.9,1.9,0,0,1-1.7-1,2,2,0,0,1,0-2C53.87,170,62,139.69,62,104a66,66,0,1,1,132,0c0,35.68,8.14,65.95,15.71,79A2,2,0,0,1,209.71,185Z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 256 256"><path d="M231.36,116.19,87.28,28.06a14,14,0,0,0-14.18-.27A13.69,13.69,0,0,0,66,39.87V216.13a13.69,13.69,0,0,0,7.1,12.08,14,14,0,0,0,14.18-.27l144.08-88.13a13.82,13.82,0,0,0,0-23.62Zm-6.26,13.38L81,217.7a2,2,0,0,1-2.06,0,1.78,1.78,0,0,1-1-1.61V39.87a1.78,1.78,0,0,1,1-1.61A2.06,2.06,0,0,1,80,38a2,2,0,0,1,1,.31L225.1,126.43a1.82,1.82,0,0,1,0,3.14Z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 256 256"><path d="M225.9,74.78,181.21,30.09a14,14,0,0,0-19.8,0L38.1,153.41a13.94,13.94,0,0,0-4.1,9.9V208a14,14,0,0,0,14,14H92.69a13.94,13.94,0,0,0,9.9-4.1L225.9,94.58a14,14,0,0,0,0-19.8ZM94.1,209.41a2,2,0,0,1-1.41.59H48a2,2,0,0,1-2-2V163.31a2,2,0,0,1,.59-1.41L136,72.48,183.51,120ZM217.41,86.1,192,111.51,144.49,64,169.9,38.58a2,2,0,0,1,2.83,0l44.68,44.69a2,2,0,0,1,0,2.83Z"/></symbol>
+    <symbol id="i-min" viewBox="0 0 256 256"><path d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z"/></symbol>
+    <symbol id="i-max" viewBox="0 0 256 256"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34Zm2,174a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 256 256"><path d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="band" data-part="sidebar">
+  <div data-part="PART_ElemMainMenu" style="display:grid;place-items:center;width:44px">
+    <svg class="ic mark"><use href="#i-mark"/></svg>
+  </div>
   <div class="rail-rule"></div>
-  <div class="rail-btn active">
-    <div class="frame f-focus"></div>
-    <span style="color:var(--text-active)"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 256 256"><path d="M104,34H56A14,14,0,0,0,42,48V208a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V48A14,14,0,0,0,104,34ZM54,78h52V178H54Zm2-32h48a2,2,0,0,1,2,2V66H54V48A2,2,0,0,1,56,46Zm48,164H56a2,2,0,0,1-2-2V190h52v18A2,2,0,0,1,104,210Zm125.7-15L196.51,37.16a14,14,0,0,0-16.63-10.85L133.07,36.37A14.09,14.09,0,0,0,122.3,53l33.19,157.81a14,14,0,0,0,6.1,8.9,13.85,13.85,0,0,0,7.57,2.26,13.55,13.55,0,0,0,3-.32l46.81-10.05A14.09,14.09,0,0,0,229.7,195Zm-82.81-83.32,50.73-10.9,14.12,67.16L161,178.81Zm-6.63-31.56L191,69.19,195.15,89l-50.73,10.9Zm-4.66-32,46.8-10.05a2.18,2.18,0,0,1,.42,0,1.89,1.89,0,0,1,1.05.32,2,2,0,0,1,.89,1.31l3.75,17.82L137.79,68.34l-3.74-17.78A2.07,2.07,0,0,1,135.6,48.1Zm80.81,151.8L169.6,210a1.92,1.92,0,0,1-1.47-.27,2,2,0,0,1-.89-1.31l-3.75-17.82,50.72-10.9L218,197.43A2.07,2.07,0,0,1,216.41,199.9Z"/></svg></span>
-  </div>
-  <div class="rail-btn">
-    <div class="frame f-hover"></div>
-    <span style="color:var(--text-active)"><svg class="ic" style="width:20px;height:20px" viewBox="0 0 256 256"><path d="M224,202H214V40a6,6,0,0,0-6-6H152a6,6,0,0,0-6,6V82H96a6,6,0,0,0-6,6v42H48a6,6,0,0,0-6,6v66H32a6,6,0,0,0,0,12H224a6,6,0,0,0,0-12ZM158,46h44V202H158ZM102,94h44V202H102ZM54,142H90v60H54Z"/></svg></span>
-  </div>
-  <div class="rail-btn">
-    <svg class="ic" style="width:20px;height:20px" viewBox="0 0 256 256"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162Zm108-54.4a6,6,0,0,0-2.92-4L202.64,86.22l-.42-.71L202.1,51.2A6,6,0,0,0,200,46.64a110.12,110.12,0,0,0-36.07-20.31,6,6,0,0,0-4.84.45L128.46,43.86h-1L96.91,26.76a6,6,0,0,0-4.86-.44A109.92,109.92,0,0,0,56,46.68a6,6,0,0,0-2.12,4.55l-.16,34.34c-.14.23-.28.47-.41.71L22.91,103.57A6,6,0,0,0,20,107.62a104.81,104.81,0,0,0,0,40.78,6,6,0,0,0,2.92,4l30.42,17.33.42.71.12,34.31A6,6,0,0,0,56,209.36a110.12,110.12,0,0,0,36.07,20.31,6,6,0,0,0,4.84-.45l30.61-17.08h1l30.56,17.1A6.09,6.09,0,0,0,162,230a5.83,5.83,0,0,0,1.93-.32,109.92,109.92,0,0,0,36-20.36,6,6,0,0,0,2.12-4.55l.16-34.34c.14-.23.28-.47.41-.71l30.42-17.29a6,6,0,0,0,2.92-4.05A104.81,104.81,0,0,0,236,107.6Z"/></svg>
-  </div>
+  <div class="rail-btn cur"><div class="frame f-focus"></div><svg class="ic"><use href="#i-lib"/></svg></div>
+  <div class="rail-btn hov"><div class="frame f-hover"></div><svg class="ic"><use href="#i-stats"/></svg></div>
+  <div class="rail-btn"><svg class="ic"><use href="#i-gear"/></svg></div>
 </div>
 
 <div class="main">
-  <div class="top-bar">
-    <div class="search">
-      <svg class="ic" style="width:16px;height:16px" viewBox="0 0 256 256">
-        <path d="M228.24,219.76l-51.38-51.38a86.15,86.15,0,1,0-8.48,8.48l51.38,51.38a6,6,0,0,0,8.48-8.48ZM38,112a74,74,0,1,1,74,74A74.09,74.09,0,0,1,38,112Z"/>
-      </svg>
-      <span>SEARCH</span>
+  <div class="top-panel" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="ic"><use href="#i-search"/></svg><span>SEARCH</span></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="sep"><i></i></div>
+      <div class="ti on"><svg class="ic"><use href="#i-details"/></svg></div>
+      <div class="ti"><svg class="ic"><use href="#i-grid"/></svg></div>
+      <div class="ti"><svg class="ic"><use href="#i-list"/></svg></div>
+      <div class="sep"><i></i></div>
+      <div class="ti"><svg class="ic"><use href="#i-group"/></svg></div>
+      <div class="ti"><svg class="ic"><use href="#i-sort"/></svg></div>
     </div>
-    <div class="nav-tabs">
-      <div class="arrow"></div>
-      <div class="tab active">DETAILS</div>
-      <div class="tab">GRID</div>
-      <div class="tab">LIST</div>
-      <div class="arrow"></div>
-    </div>
-    <div class="window-controls">
-      <div class="win-box"><svg class="ic" style="width:14px;height:14px" viewBox="0 0 256 256"><path d="M222,128a6,6,0,0,1-6,6H40a6,6,0,0,1,0-12H216A6,6,0,0,1,222,128Z"/></svg></div>
-      <div class="win-box"><svg class="ic" style="width:14px;height:14px" viewBox="0 0 256 256"><path d="M208,34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34Zm2,174a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V48a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></svg></div>
-      <div class="win-box">
-        <div class="frame f-brown"></div>
-        <svg class="ic" style="width:16px;height:16px" viewBox="0 0 256 256"><path d="M204.24,195.76a6,6,0,1,1-8.48,8.48L128,136.49,60.24,204.24a6,6,0,0,1-8.48-8.48L119.51,128,51.76,60.24a6,6,0,0,1,8.48-8.48L128,119.51l67.76-67.75a6,6,0,0,1,8.48,8.48L136.49,128Z"/></svg>
-      </div>
+    <div class="tog" data-part="PART_ToggleFilter"><svg class="ic"><use href="#i-filter"/></svg></div>
+    <div class="tog" data-part="PART_ToggleNotifications"><svg class="ic"><use href="#i-bell"/></svg><span class="badge">2</span></div>
+    <div class="caption">
+      <div class="win-box"><svg class="ic"><use href="#i-min"/></svg></div>
+      <div class="win-box"><svg class="ic"><use href="#i-max"/></svg></div>
+      <div class="win-box"><div class="frame f-brown"></div><svg class="ic"><use href="#i-x"/></svg></div>
     </div>
   </div>
 
-  <div class="hero-banner">
-    <div class="hero-wash"></div>
-    <div class="hero-content">
-      <div class="game-title">Ember Reach</div>
-      <div class="action-row">
-        <div class="play-btn">
-          <div class="frame f-gold"></div>
-          <i></i>
-          <span>&#9658; PLAY</span>
-        </div>
-        <div class="sub-btn">
-          <div class="frame f-brown"></div>
-          <svg class="ic" style="width:20px;height:20px" viewBox="0 0 256 256"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162Zm108-54.4a6,6,0,0,0-2.92-4L202.64,86.22l-.42-.71L202.1,51.2A6,6,0,0,0,200,46.64a110.12,110.12,0,0,0-36.07-20.31,6,6,0,0,0-4.84.45L128.46,43.86h-1L96.91,26.76a6,6,0,0,0-4.86-.44A109.92,109.92,0,0,0,56,46.68a6,6,0,0,0-2.12,4.55l-.16,34.34c-.14.23-.28.47-.41.71L22.91,103.57A6,6,0,0,0,20,107.62a104.81,104.81,0,0,0,0,40.78,6,6,0,0,0,2.92,4l30.42,17.33.42.71.12,34.31A6,6,0,0,0,56,209.36a110.12,110.12,0,0,0,36.07,20.31,6,6,0,0,0,4.84-.45l30.61-17.08h1l30.56,17.1A6.09,6.09,0,0,0,162,230a5.83,5.83,0,0,0,1.93-.32,109.92,109.92,0,0,0,36-20.36,6,6,0,0,0,2.12-4.55l.16-34.34c.14-.23.28-.47.41-.71l30.42-17.29a6,6,0,0,0,2.92-4.05A104.81,104.81,0,0,0,236,107.6Z"/></svg>
-        </div>
-        <div class="sub-btn">
-          <div class="frame f-brown"></div>
-          <svg class="ic" style="width:20px;height:20px" viewBox="0 0 256 256"><path d="M225.9,74.78,181.21,30.09a14,14,0,0,0-19.8,0L38.1,153.41a13.94,13.94,0,0,0-4.1,9.9V208a14,14,0,0,0,14,14H92.69a13.94,13.94,0,0,0,9.9-4.1L225.9,94.58a14,14,0,0,0,0-19.8ZM94.1,209.41a2,2,0,0,1-1.41.59H48a2,2,0,0,1-2-2V163.31a2,2,0,0,1,.59-1.41L136,72.48,183.51,120ZM217.41,86.1,192,111.51,144.49,64,169.9,38.58a2,2,0,0,1,2.83,0l44.68,44.69a2,2,0,0,1,0,2.83Z"/></svg>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="content-columns">
-    <div class="left-col">
-      <div class="screenshots-row">
-        <div class="screen-thumb">
-          <div class="thumb-art" style="background: radial-gradient(circle at 60% 40%, rgba(125,66,18,0.3), var(--panel));"></div>
-        </div>
-        <div class="screen-thumb">
-          <div class="thumb-art" style="background: radial-gradient(circle at 40% 60%, rgba(29,74,82,0.3), var(--panel));"></div>
-        </div>
-        <div class="screen-thumb">
-          <div class="thumb-art" style="background: radial-gradient(circle at 50% 50%, rgba(89,58,4,0.3), var(--panel));"></div>
-        </div>
-      </div>
-      <div>
-        <div class="section-heading">Description</div>
-        <p class="desc-text">
-          Hold the last lighthouse on a coast of burning islands. Build stone walls by day, keep the sacred fire alive through treacherous storms by night, and push back the monstrous tides before thick black fog consumes the harbor.
-        </p>
-      </div>
+  <div class="body">
+    <div class="list" data-part="game-list">
+      <div class="g in"><span class="pl"></span>Amber Coast</div>
+      <div class="g"><span class="pl"></span>Bellwether</div>
+      <div class="g in"><span class="pl"></span>Cinder Hollow</div>
+      <div class="g in"><span class="pl"></span>Dusk Harvest</div>
+      <div class="g"><span class="pl"></span>Elder Road</div>
+      <div class="g sel"><span class="pl"></span>Ember Reach</div>
+      <div class="g in"><span class="pl"></span>Fenwick Moor</div>
+      <div class="g"><span class="pl"></span>Greywatch</div>
+      <div class="g in"><span class="pl"></span>Hollow Crown</div>
+      <div class="g in"><span class="pl"></span>Iron Parish</div>
+      <div class="g"><span class="pl"></span>Juniper Deep</div>
+      <div class="g in"><span class="pl"></span>Kestrel Vale</div>
+      <div class="g"><span class="pl"></span>Lantern Wake</div>
+      <div class="g in"><span class="pl"></span>Marrow Fields</div>
+      <div class="g in"><span class="pl"></span>Nightingale</div>
+      <div class="g"><span class="pl"></span>Oakhaven</div>
+      <div class="g in"><span class="pl"></span>Pale Standard</div>
+      <div class="g"><span class="pl"></span>Quillfall</div>
+      <div class="g in"><span class="pl"></span>Ravenmoor</div>
     </div>
 
-    <div class="right-col">
-      <div class="meta-group">
-        <div class="meta-label">Time Played</div>
-        <div class="meta-value">42h 18m</div>
+    <div class="page" data-part="game-page">
+      <div class="hero">
+        <div class="hero-in">
+          <div class="title">Ember Reach</div>
+          <div class="acts">
+            <div class="play"><div class="frame f-gold"></div><i></i><svg class="ic"><use href="#i-play"/></svg><span>Play</span></div>
+            <div class="sub"><div class="frame f-brown"></div><svg class="ic"><use href="#i-gear"/></svg></div>
+            <div class="sub"><div class="frame f-brown"></div><svg class="ic"><use href="#i-edit"/></svg></div>
+          </div>
+        </div>
       </div>
-      <div class="meta-group">
-        <div class="meta-label">Last Played</div>
-        <div class="meta-value">Yesterday</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Critic Score</div>
-        <div class="meta-value accent">88 / 100</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Developers</div>
-        <div class="meta-value">Harbor Lamp Works</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Release Date</div>
-        <div class="meta-value">2024</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Genres</div>
-        <div class="chips">
-          <div class="chip">Strategy</div>
-          <div class="chip">Survival</div>
-          <div class="chip">Dark Fantasy</div>
+      <div class="cols">
+        <div class="left">
+          <div class="shots">
+            <div class="shot"><b style="background:radial-gradient(circle at 60% 40%, rgba(125,66,18,.35), var(--panel))"></b></div>
+            <div class="shot"><b style="background:radial-gradient(circle at 40% 60%, rgba(29,74,82,.35), var(--panel))"></b></div>
+            <div class="shot"><b style="background:radial-gradient(circle at 50% 50%, var(--amber-wash), var(--panel))"></b></div>
+          </div>
+          <div>
+            <div class="h">Description</div>
+            <p class="desc">Hold the last lighthouse on a coast of burning islands. Build stone walls by day, keep the sacred fire alive through treacherous storms by night, and push back the monstrous tides before thick black fog consumes the harbor.</p>
+          </div>
+        </div>
+        <div class="meta" data-part="metadata">
+          <div class="grp">
+            <div class="m"><em>Status</em><span>Playing</span></div>
+            <div class="m"><em>Play time</em><span>42 hours</span></div>
+            <div class="m"><em>Last played</em><span>Yesterday</span></div>
+          </div>
+          <div class="grp"><div class="m"><em>Critic score</em><span class="gold">88</span></div></div>
+          <div class="grp">
+            <div class="m"><em>Developers</em><span>Harbor Lamp Works</span></div>
+            <div class="m"><em>Release date</em><span>2024</span></div>
+          </div>
+          <div class="grp">
+            <div class="m"><em>Platform</em><span>PC (Windows)</span></div>
+            <div class="m"><em>Genres</em><span><i class="chip">Strategy</i><i class="chip">Survival</i></span></div>
+          </div>
+          <div class="grp">
+            <div class="m"><em>Source</em><span>Steam</span></div>
+            <div class="m"><em>Install size</em><span>12.4 GB</span></div>
+          </div>
+          <div class="grp"><div class="m"><em>Links</em><span class="lk">Website, Wiki</span></div></div>
         </div>
       </div>
     </div>

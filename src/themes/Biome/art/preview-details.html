@@ -1,278 +1,196 @@
 <!doctype html>
-<!-- Biome: approximate HTML replica of Playnite Game Details view -->
+<!-- Biome: HTML replica of Playnite's Game Details view (1280x720). Layout follows Views/TopPanel.xaml (menu, search, centered
+     view switches, filter, notifications) and DerivedStyles/DetailsViewItemStyle.xaml (3px gold bar on the selected row).
+     Colors are tokens from src/tokens.css (injected at render time). Icons are the theme's own Pixelarticons geometries. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Biome - Details Preview</title>
 <style>
-  :root {
-    --sky-top: #0b1030;
-    --sky-horizon: #26335e;
-    --panel: rgba(63, 82, 151, 0.7);
-    --panel-hover: rgb(73, 94, 171);
-    --panel-outer: rgba(33, 43, 79, 0.8);
-    --panel-border: #000000;
-    --fancy-gold: rgb(255, 231, 69);
-    --menu-gold: rgb(255, 215, 0);
-    --menu-text: rgba(255, 255, 255, 0.6);
-    --text: #ffffff;
-    --text-muted: rgb(178, 186, 222);
-    --separator: rgba(92, 94, 167, 0.9);
-    --radius: 6px;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    width: 1280px; height: 720px; overflow: hidden;
-    background: linear-gradient(180deg, var(--sky-top) 0%, #151c3d 50%, var(--sky-horizon) 100%);
-    color: var(--text); font-family: "Segoe UI", sans-serif; font-size: 14px; display: flex;
-  }
-  .out {
-    font-weight: 900;
-    text-shadow: -1.5px 0 var(--panel-border), 1.5px 0 var(--panel-border), 0 -1.5px var(--panel-border), 0 1.5px var(--panel-border),
-                 -1px -1px var(--panel-border), 1px 1px var(--panel-border), -1px 1px var(--panel-border), 1px -1px var(--panel-border);
-  }
-  .ic { fill: currentColor; display: block; }
+  body { width: 1280px; height: 720px; overflow: hidden; position: relative; color: var(--text); font-family: "Segoe UI", sans-serif; font-size: 14px;
+         background: linear-gradient(180deg, var(--sky-top) 0%, #151c3d 55%, var(--sky-horizon) 100%); }
+  svg { display: block; fill: currentColor; shape-rendering: crispEdges; }
+  .out { font-weight: 900; font-family: Andy, "Segoe UI Black", "Segoe UI", sans-serif;
+         text-shadow: -2px 0 var(--panel-border), 2px 0 var(--panel-border), 0 -2px var(--panel-border), 0 2px var(--panel-border), -1.5px -1.5px var(--panel-border), 1.5px 1.5px var(--panel-border), -1.5px 1.5px var(--panel-border), 1.5px -1.5px var(--panel-border); }
+  .stars { position: absolute; inset: 0 0 auto 0; height: 300px; background-image:
+      radial-gradient(1.5px 1.5px at 420px 30px, var(--text), transparent), radial-gradient(2px 2px at 640px 60px, #fffae0, transparent),
+      radial-gradient(1px 1px at 760px 22px, var(--text), transparent), radial-gradient(1.5px 1.5px at 980px 80px, var(--text), transparent),
+      radial-gradient(2px 2px at 1180px 40px, #fffae0, transparent), radial-gradient(1.5px 1.5px at 520px 110px, var(--text), transparent); }
 
-  /* Compact 44px sidebar rail */
-  .rail {
-    width: 44px; background: transparent; border-right: 2px solid var(--panel-border);
-    display: flex; flex-direction: column; align-items: center; padding-top: 8px; gap: 6px; z-index: 10;
-  }
-  .rail-mark {
-    width: 36px; height: 36px; display: grid; place-items: center; color: var(--text); margin-bottom: 4px;
-  }
-  .rail-btn {
-    width: 34px; height: 34px; border-radius: var(--radius); border: 2px solid transparent;
-    display: grid; place-items: center; color: var(--text-muted); cursor: pointer;
-  }
-  .rail-btn.active {
-    background: var(--panel-hover); border-color: var(--fancy-gold); color: var(--text);
-  }
-  .rail-btn:hover:not(.active) {
-    background: var(--panel); border-color: var(--panel-border); color: var(--menu-gold);
-  }
+  /* sidebar: 44px compact rail, transparent over the sky, 2px black edge; tree mark in a 44x64 cell, 44x40 items holding 32px hotbar slots */
+  .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; border-right: 2px solid var(--panel-border); z-index: 5; }
+  .mm { width: 42px; height: 64px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .mm svg { width: 24px; height: 24px; }
+  .it { width: 42px; height: 40px; display: flex; align-items: center; justify-content: center; }
+  .slot { width: 32px; height: 32px; border: 2px solid transparent; border-radius: var(--radius-panel); display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+  .slot svg { width: 20px; height: 20px; }
+  .slot.cur { background: var(--panel-hover); border-color: var(--fancy-gold); color: var(--text); }
 
-  /* Main window area */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  /* top panel: 64px, no fill, 12px left padding, 150px clear on the right. Order: menu (sidebar), search, view switches (centered in the middle), filter, notifications */
+  .top { position: absolute; left: 44px; right: 0; top: 0; height: 64px; display: flex; align-items: center; padding: 0 150px 0 16px; z-index: 4; }
+  .search { width: 270px; height: 40px; flex: none; background: var(--panel); border: var(--border-panel) solid var(--panel-border); border-radius: var(--radius-panel); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--text-muted); font-size: 13px; }
+  .search svg { width: 24px; height: 24px; }
+  .mid { flex: 1; display: flex; justify-content: center; }
+  .items { display: flex; align-items: center; }
+  .tool { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--menu-text); position: relative; }
+  .tool svg { width: 24px; height: 24px; }
+  .tool.on { color: var(--menu-selected); }
+  .gap { width: 18px; }
+  .rt { display: flex; }
+  .tool .bd { position: absolute; right: 2px; top: 3px; min-width: 15px; height: 15px; padding: 0 4px; background: var(--hardcore); border: 2px solid var(--panel-border); border-radius: 6px; font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .caps { position: absolute; right: 0; top: 0; display: flex; z-index: 6; }
+  .caps b { width: 44px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .caps svg { width: 24px; height: 24px; }
 
-  /* Top bar */
-  .top-bar {
-    height: 48px; display: flex; align-items: center; padding: 0 16px; gap: 16px; position: relative;
-    border-bottom: 2px solid var(--panel-border); background: rgba(11, 16, 48, 0.4);
-  }
-  .search-box {
-    width: 260px; height: 34px; background: var(--panel); border: 2px solid var(--panel-border);
-    border-radius: var(--radius); display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--text-muted);
-  }
-  .search-box span { font-size: 13px; }
-  .view-tabs { display: flex; gap: 12px; margin-left: 16px; align-items: center; }
-  .view-tab {
-    font-size: 18px; padding: 2px 8px; color: var(--menu-text); cursor: pointer;
-    font-family: "Segoe UI Black", "Segoe UI", sans-serif;
-  }
-  .view-tab.active { color: var(--menu-gold); }
-  .window-controls { margin-left: auto; display: flex; gap: 2px; }
-  .win-btn { width: 38px; height: 30px; display: grid; place-items: center; color: var(--text-muted); }
+  /* game list: rows in muted text (installed: white); selected row on the hover blue with a 3px gold bar and gold text */
+  .list { position: absolute; left: 44px; top: 64px; bottom: 0; width: 290px; background: var(--panel-outer); border-right: var(--border-panel) solid var(--panel-border); border-top: var(--border-panel) solid var(--panel-border); padding: 6px 0; overflow: hidden; z-index: 3; }
+  .g { position: relative; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 16px; color: var(--text-muted); font-size: 14px; }
+  .g.in { color: var(--text); }
+  .g i { width: 22px; height: 22px; flex: none; background: var(--panel); border: 2px solid var(--panel-border); border-radius: 4px; }
+  .g.sel { background: var(--panel-hover); color: var(--menu-selected); }
+  .g.sel:before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--fancy-gold); }
 
-  /* 320px Hero banner */
-  .hero-banner {
-    height: 320px; position: relative; overflow: hidden;
-    background: radial-gradient(circle at 75% 35%, #4292e0 0%, #1e457a 45%, var(--sky-top) 95%);
-  }
-  .hero-stars {
-    position: absolute; inset: 0;
-    background-image:
-      radial-gradient(1.5px 1.5px at 120px 40px, var(--text), transparent),
-      radial-gradient(2px 2px at 350px 80px, #fffae0, transparent),
-      radial-gradient(1px 1px at 600px 30px, var(--text), transparent),
-      radial-gradient(1.5px 1.5px at 900px 90px, var(--text), transparent),
-      radial-gradient(2px 2px at 1250px 50px, #fffae0, transparent),
-      radial-gradient(1.5px 1.5px at 1450px 110px, var(--text), transparent);
-  }
-  .hero-sun {
-    position: absolute; right: 280px; top: 38px; width: 52px; height: 52px;
-    background: #fdf5b8; box-shadow: 0 0 0 8px rgba(253, 245, 184, 0.2), 0 0 24px rgba(253, 245, 184, 0.4);
-  }
-  .hero-wash {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(11, 16, 48, 0.1) 0%, rgba(11, 16, 48, 0.7) 70%, var(--sky-top) 100%);
-  }
-  .hero-content { position: absolute; bottom: 24px; left: 32px; right: 32px; z-index: 5; }
-  .game-title {
-    font-size: 44px; font-weight: 900; line-height: 1.1; margin-bottom: 16px;
-    font-family: "Segoe UI Black", "Segoe UI", sans-serif;
-  }
-  .action-row { display: flex; gap: 10px; align-items: center; }
-  .play-btn {
-    height: 46px; min-width: 190px; background: var(--panel-hover); border: 2px solid var(--fancy-gold);
-    border-radius: var(--radius); font-size: 22px; color: var(--menu-gold); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-    font-family: "Segoe UI Black", "Segoe UI", sans-serif;
-  }
-  .sub-btn {
-    height: 46px; width: 46px; background: var(--panel); border: 2px solid var(--panel-border);
-    border-radius: var(--radius); color: var(--text); display: grid; place-items: center; cursor: pointer;
-  }
-
-  /* Two columns content layout */
-  .content-columns { flex: 1; display: flex; gap: 28px; padding: 24px 32px; overflow: hidden; }
-  .left-col { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-  .screenshots-row { display: flex; gap: 14px; }
-  .screen-thumb {
-    flex: 1; height: 148px; border-radius: var(--radius); border: 2px solid var(--panel-border);
-    background: var(--panel-outer); overflow: hidden; position: relative;
-  }
-  .thumb-art {
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .section-heading {
-    font-size: 16px; font-family: "Segoe UI Black", "Segoe UI", sans-serif;
-    padding-bottom: 6px; margin-bottom: 10px; border-bottom: 2px solid var(--separator);
-  }
-  .desc-text { color: var(--text); line-height: 1.6; font-size: 14px; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
-
-  /* Right metadata pane */
-  .right-col {
-    width: 340px; background: var(--panel); border: 2px solid var(--panel-border);
-    border-radius: var(--radius); padding: 18px; height: fit-content;
-  }
-  .meta-group { padding: 8px 0; border-top: 1px solid var(--separator); }
-  .meta-group:first-child { border-top: none; padding-top: 0; }
-  .meta-label {
-    font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;
-  }
-  .meta-value { font-size: 14px; color: var(--text); }
-  .meta-value.gold { color: var(--menu-gold); font-weight: 700; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
-  .chip {
-    background: var(--panel-outer); border: 2px solid var(--panel-border); border-radius: var(--radius);
-    padding: 3px 10px; font-size: 12px; color: var(--text); font-weight: 600;
-  }
+  .page { position: absolute; left: 336px; right: 0; top: 64px; bottom: 0; overflow: hidden; z-index: 2; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 280px; background: radial-gradient(circle at 75% 35%, #4292e0 0%, #1e457a 45%, var(--sky-top) 95%); opacity: .55; }
+  .banner:after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,16,48,.1) 0%, var(--sky-top) 100%); }
+  .sun { position: absolute; right: 150px; top: 24px; width: 44px; height: 44px; background: #fdf5b8; box-shadow: 0 0 0 8px rgba(253,245,184,.2); }
+  .body { position: absolute; left: 24px; right: 24px; top: 0; }
+  .title { position: absolute; top: 92px; font-size: 32px; line-height: 38px; }
+  .actions { position: absolute; top: 140px; display: flex; gap: 8px; }
+  .play { height: 48px; min-width: 190px; padding: 0 24px; background: var(--title-pill); border: var(--border-panel) solid var(--fancy-gold); border-radius: var(--radius-panel); display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--menu-selected); font-size: 22px; }
+  .play svg { width: 24px; height: 24px; color: var(--menu-selected); filter: drop-shadow(2px 0 var(--panel-border)) drop-shadow(-2px 0 var(--panel-border)); }
+  .sq { width: 48px; height: 48px; background: var(--panel); border: var(--border-panel) solid var(--panel-border); border-radius: var(--radius-panel); display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .sq svg { width: 24px; height: 24px; }
+  .cols { position: absolute; left: 0; right: 0; top: 214px; display: flex; gap: 24px; }
+  .lc { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; margin-bottom: 14px; }
+  .shots div { flex: 1; height: 112px; border: var(--border-panel) solid var(--panel-border); border-radius: var(--radius-panel); }
+  .sh { font-size: 16px; padding-bottom: 4px; margin-bottom: 8px; border-bottom: 2px solid var(--separator); }
+  .desc { line-height: 1.55; font-size: 14px; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  .meta { width: 350px; flex: none; background: var(--panel); border: var(--border-panel) solid var(--panel-border); border-radius: var(--radius-panel); padding: 8px 14px; }
+  .mg { padding: 6px 0; border-top: 1px solid var(--separator); }
+  .mg:first-child { border-top: 0; }
+  .mr { display: flex; gap: 8px; padding: 2px 0; line-height: 18px; font-size: 13px; }
+  .mr em { font-style: normal; width: 128px; flex: none; color: var(--text-muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { background: var(--panel-hover); border: 2px solid var(--panel-border); border-radius: var(--radius-small); padding: 0 6px; font-size: 12px; line-height: 16px; }
 </style>
 </head>
 <body>
-<div class="rail">
-  <div class="rail-mark">
-    <svg class="ic" width="22" height="22" viewBox="0 0 24 24" shape-rendering="crispEdges">
-      <path d="M7.5,1.5h9v1.5h-9z M4.5,3h15v1.5h-15z M3,4.5h18v1.5h-18z M3,6h18v1.5h-18z M1.5,7.5h21v1.5h-21z M1.5,9h21v1.5h-21z M3,10.5h18v1.5h-18z M4.5,12h15v1.5h-15z M7.5,13.5h3v1.5h-3z M13.5,13.5h3v1.5h-3z M9,15h6v1.5h-6z M10.5,16.5h3v1.5h-3z M10.5,18h3v1.5h-3z M10.5,19.5h3v1.5h-3z M3,21h18v1.5h-18z"/>
-    </svg>
-  </div>
-  <div class="rail-btn active">
-    <svg class="ic" width="18" height="18" viewBox="0 0 24 24" shape-rendering="crispEdges">
-      <path d="M4 4h16v2H4zm0 14h16v2H4zM2 6h2v12H2zm18 0h2v12h-2zM8 9h2v6H8z M6 11h6v2H6zm8-2h2v2h-2zm2 4h2v2h-2z"/>
-    </svg>
-  </div>
-  <div class="rail-btn">
-    <svg class="ic" width="18" height="18" viewBox="0 0 24 24" shape-rendering="crispEdges">
-      <path d="M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM7 11h2v6H7zm4-4h2v10h-2zm4 6h2v4h-2z"/>
-    </svg>
-  </div>
-  <div class="rail-btn">
-    <svg class="ic" width="18" height="18" viewBox="0 0 24 24" shape-rendering="crispEdges">
-      <path d="M11 1h2v4h-2zm0 22h2v-4h-2zM9 5h2v4H9zm0 14h2v-4H9zm4-14h2v4h-2zm0 14h2v-4h-2zM5 9h4v2H5zm14 0h-4v2h4zM1 11h4v2H1zm22 0h-4v2h4zM5 13h4v2H5zm14 0h-4v2h4z"/>
-    </svg>
-  </div>
+<svg width="0" height="0" style="position:absolute"><defs>
+<!--SYMBOLS-->
+<symbol id="i-mainmenu" viewBox="0 0 24 24"><path d="M7.5,1.5h9v1.5h-9z M4.5,3h15v1.5h-15z M3,4.5h18v1.5h-18z M3,6h18v1.5h-18z M1.5,7.5h21v1.5h-21z M1.5,9h21v1.5h-21z M3,10.5h18v1.5h-18z M4.5,12h15v1.5h-15z M7.5,13.5h3v1.5h-3z M13.5,13.5h3v1.5h-3z M9,15h6v1.5h-6z M10.5,16.5h3v1.5h-3z M10.5,18h3v1.5h-3z M10.5,19.5h3v1.5h-3z M3,21h18v1.5h-18z"/></symbol>
+<symbol id="i-library" viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 14h16v2H4zM2 6h2v12H2zm18 0h2v12h-2zM8 9h2v6H8z M6 11h6v2H6zm8-2h2v2h-2zm2 4h2v2h-2z"/></symbol>
+<symbol id="i-statistics" viewBox="0 0 24 24"><path d="M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM7 11h2v6H7zm4-4h2v10h-2zm4 6h2v4h-2z"/></symbol>
+<symbol id="i-add" viewBox="0 0 24 24"><path d="M13 11h7v2h-7v7h-2v-7H4v-2h7V4h2v7Z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path d="M22 22h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm-6-2H6v-2h8v2Zm4 0h-2v-2h2v2ZM6 16H4v-2h2v2Zm10 0h-2v-2h2v2ZM4 14H2V6h2v8Zm14 0h-2V6h2v8ZM6 6H4V4h2v2Zm10 0h-2V4h2v2Zm-2-2H6V2h8v2Z"/></symbol>
+<symbol id="i-detailsview" viewBox="0 0 24 24"><path d="M20 20H4v-2h4v-8H4v8H2V6h2v2h16V6h2v12h-2v-8H10v8h10v2Zm0-14H4V4h16v2Z"/></symbol>
+<symbol id="i-gridview" viewBox="0 0 24 24"><path d="M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM4 8h16v2H4zm0 6h16v2H4z M8 4h2v16H8zm6 0h2v16h-2z"/></symbol>
+<symbol id="i-listview" viewBox="0 0 24 24"><path d="M10 5h12v2H10zm0 4h8v2h-8zm0 4h12v2H10zm0 4h8v2h-8zm-4-6H4V9h2v2ZM4 9H2V7h2v2Zm4 0H6V7h2v2ZM6 7H4V5h2v2Zm-2 6h2v2H4zm0 4h2v2H4zm-2 0v-2h2v2zm4 0v-2h2v2z"/></symbol>
+<symbol id="i-group" viewBox="0 0 24 24"><path d="M15 1h6v2h-6zm-2 2h2v6h-2zm2 6h6v2h-6zm6-6h2v6h-2zM3 5h6v2H3zM1 7h2v14H1zm2 14h14v2H3zm14-6h2v6h-2zM3 13h14v2H3z M9 7h2v14H9z"/></symbol>
+<symbol id="i-sort" viewBox="0 0 24 24"><path d="M16 4h2v16h-2zm-2 10h2v4h-2zm-2 0h2v2h-2zm6 0h2v4h-2zm2 0h2v2h-2zM6 20h2V4H6zM4 10h2V6H4zm-2 0h2V8H2zm6 0h2V6H8zm2 0h2V8h-2z"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M11 20H13V22H9V12H11V20ZM15 20H13V12H15V20ZM9 12H7V10H9V12ZM17 12H15V10H17V12ZM7 10H5V8H7V10ZM19 10H17V8H19V10ZM21 8H19V4H5V8H3V2H21V8Z"/></symbol>
+<symbol id="i-notifications" viewBox="0 0 24 24"><path d="M9 2h6v2H9zM7 4h2v2H7zm8 0h2v2h-2zM5 6h2v7H5zm12 0h2v7h-2zM3 13h2v4H3zm16 0h2v4h-2z M3 15h18v2H3zm5 3h2v2H8zm6 0h2v2h-2zm-4 2h4v2h-4z"/></symbol>
+<symbol id="i-windowminimize" viewBox="0 0 24 24"><path d="M4 11h16v2H4z"/></symbol>
+<symbol id="i-windowmaximize" viewBox="0 0 24 24"><path d="M2 4h2v16H2zm2 16h16v2H4zM20 4h2v16h-2zM4 2h16v2H4z"/></symbol>
+<symbol id="i-windowclose" viewBox="0 0 24 24"><path d="M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M15 11h-2V9h2zm0 4h-2v-2h2zm-2 2h-2v-2h2zm0-8h-2V7h2zm-2-2H9V5h2zM9 21H7V3h2zm6-8h2v-2h-2zm-6 4h2v2H9z"/></symbol>
+<symbol id="i-options" viewBox="0 0 24 24"><path d="M3 9h2v2H3zm8 0h2v2h-2zm8 0h2v2h-2zM1 11h2v2H1zm8 0h2v2H9zm8 0h2v2h-2zM3 13h2v2H3zm8 0h2v2h-2zm8 0h2v2h-2zM5 11h2v2H5zm8 0h2v2h-2zm8 0h2v2h-2z"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 16H6V18H8V20H10V22H2V14H4V16ZM12 20H10V18H12V20ZM14 18H12V16H14V18ZM10 16H8V14H10V16ZM16 16H14V14H16V16ZM6 14H4V12H6V14ZM12 14H10V12H12V14ZM18 14H16V12H18V14ZM8 12H6V10H8V12ZM14 12H12V10H14V12ZM20 12H18V10H20V12ZM10 10H8V8H10V10ZM18 10H16V8H18V10ZM22 10H20V8H22V10ZM12 8H10V6H12V8ZM16 8H14V6H16V8ZM20 8H18V6H20V8ZM14 6H12V4H14V6ZM18 6H16V4H18V6ZM16 4H14V2H16V4Z"/></symbol>
+<!--/SYMBOLS-->
+</defs></svg>
+<div class="stars"></div>
+
+<div class="rail" data-part="sidebar">
+  <div class="mm" data-part="PART_ElemMainMenu"><svg><use href="#i-mainmenu"/></svg></div>
+  <div class="it"><div class="slot cur"><svg><use href="#i-library"/></svg></div></div>
+  <div class="it"><div class="slot"><svg><use href="#i-statistics"/></svg></div></div>
+  <div class="it"><div class="slot"><svg><use href="#i-add"/></svg></div></div>
 </div>
 
-<div class="main">
-  <div class="top-bar">
-    <div class="search-box">
-      <svg class="ic" width="16" height="16" viewBox="0 0 24 24" shape-rendering="crispEdges">
-        <path d="M22 22h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm-6-2H6v-2h8v2Zm4 0h-2v-2h2v2ZM6 16H4v-2h2v2Zm10 0h-2v-2h2v2ZM4 14H2V6h2v8Zm14 0h-2V6h2v8ZM6 6H4V4h2v2Zm10 0h-2V4h2v2Zm-2-2H6V2h8v2Z"/>
-      </svg>
-      <span>Search Library...</span>
-    </div>
-    <div class="view-tabs">
-      <span class="view-tab out active">Details</span>
-      <span class="view-tab out">Grid</span>
-      <span class="view-tab out">List</span>
-    </div>
-    <div class="window-controls">
-      <div class="win-btn"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M4 11h16v2H4z"/></svg></div>
-      <div class="win-btn"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M2 4h2v16H2zm2 16h16v2H4zM20 4h2v16h-2zM4 2h16v2H4z"/></svg></div>
-      <div class="win-btn"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"/></svg></div>
-    </div>
+<div class="top" data-part="top-panel">
+  <div class="search" data-part="PART_TextMainSearch"><svg><use href="#i-search"/></svg>Search</div>
+  <div class="mid"><div class="items" data-part="PART_PanelMainItems">
+    <div class="tool on"><svg><use href="#i-detailsview"/></svg></div>
+    <div class="tool"><svg><use href="#i-gridview"/></svg></div>
+    <div class="tool"><svg><use href="#i-listview"/></svg></div>
+    <div class="gap"></div>
+    <div class="tool"><svg><use href="#i-group"/></svg></div>
+    <div class="tool"><svg><use href="#i-sort"/></svg></div>
+  </div></div>
+  <div class="rt">
+    <div class="tool" data-part="PART_ToggleFilter"><svg><use href="#i-filter"/></svg></div>
+    <div class="tool" data-part="PART_ToggleNotifications"><svg><use href="#i-notifications"/></svg><span class="bd">2</span></div>
   </div>
+</div>
+<div class="caps"><b><svg><use href="#i-windowminimize"/></svg></b><b><svg><use href="#i-windowmaximize"/></svg></b><b><svg><use href="#i-windowclose"/></svg></b></div>
 
-  <div class="hero-banner">
-    <div class="hero-stars"></div>
-    <div class="hero-sun"></div>
-    <div class="hero-wash"></div>
-    <div class="hero-content">
-      <div class="game-title out">Starfall Tactics</div>
-      <div class="action-row">
-        <button class="play-btn out">&#9658; Play</button>
-        <div class="sub-btn">
-          <svg class="ic" width="20" height="20" viewBox="0 0 24 24" shape-rendering="crispEdges">
-            <path d="M3 9h2v2H3zm8 0h2v2h-2zm8 0h2v2h-2zM1 11h2v2H1zm8 0h2v2H9zm8 0h2v2h-2zM3 13h2v2H3zm8 0h2v2h-2zm8 0h2v2h-2zM5 11h2v2H5zm8 0h2v2h-2zm8 0h2v2h-2z"/>
-          </svg>
-        </div>
-        <div class="sub-btn">
-          <svg class="ic" width="20" height="20" viewBox="0 0 24 24" shape-rendering="crispEdges">
-            <path d="M4 16H6V18H8V20H10V22H2V14H4V16ZM12 20H10V18H12V20ZM14 18H12V16H14V18ZM10 16H8V14H10V16ZM16 16H14V14H16V16ZM6 14H4V12H6V14ZM12 14H10V12H12V14ZM18 14H16V12H18V14ZM8 12H6V10H8V12ZM14 12H12V10H14V12ZM20 12H18V10H20V12ZM10 10H8V8H10V10ZM18 10H16V8H18V10ZM22 10H20V8H22V10ZM12 8H10V6H12V8ZM16 8H14V6H16V8ZM20 8H18V6H20V8ZM14 6H12V4H14V6ZM18 6H16V4H18V6ZM16 4H14V2H16V4Z"/>
-          </svg>
-        </div>
-      </div>
+<div class="list" data-part="game-list">
+  <div class="g in"><i></i>Acorn Hollow</div>
+  <div class="g"><i></i>Bramble Deep</div>
+  <div class="g in"><i></i>Cavern of Echoes</div>
+  <div class="g in"><i></i>Dryad's Rest</div>
+  <div class="g"><i></i>Ember Peaks</div>
+  <div class="g in"><i></i>Fungal Reach</div>
+  <div class="g sel"><i></i>Glowshroom Depths</div>
+  <div class="g in"><i></i>Hallowed Ridge</div>
+  <div class="g"><i></i>Ivy Citadel</div>
+  <div class="g in"><i></i>Jungle Spire</div>
+  <div class="g"><i></i>Kelp Forest</div>
+  <div class="g in"><i></i>Lantern Marsh</div>
+  <div class="g"><i></i>Moonlit Ford</div>
+  <div class="g in"><i></i>Night Harvest</div>
+  <div class="g"><i></i>Obsidian Isle</div>
+  <div class="g in"><i></i>Pebble Creek</div>
+  <div class="g"><i></i>Quartz Vale</div>
+  <div class="g in"><i></i>Root &amp; Ruin</div>
+</div>
+
+<div class="page" data-part="game-page">
+  <div class="banner"></div><div class="sun"></div>
+  <div class="body">
+    <div class="title out">Glowshroom Depths</div>
+    <div class="actions">
+      <div class="play out"><svg><use href="#i-play"/></svg>Play</div>
+      <div class="sq"><svg><use href="#i-options"/></svg></div>
+      <div class="sq"><svg><use href="#i-edit"/></svg></div>
     </div>
-  </div>
-
-  <div class="content-columns">
-    <div class="left-col">
-      <div class="screenshots-row">
-        <div class="screen-thumb">
-          <div class="thumb-art" style="background: linear-gradient(135deg, #1d3363 0%, #0d1730 100%);">
-            <div style="width: 50px; height: 50px; background: #3f8fd6; opacity: 0.3; border: 2px solid var(--panel-border);"></div>
-          </div>
+    <div class="cols">
+      <div class="lc">
+        <div class="shots">
+          <div style="background: radial-gradient(circle at 60% 40%, #4a6bd0, var(--panel-outer))"></div>
+          <div style="background: radial-gradient(circle at 40% 60%, #2f9a8c, var(--panel-outer))"></div>
+          <div style="background: radial-gradient(circle at 50% 50%, #7d4fc2, var(--panel-outer))"></div>
         </div>
-        <div class="screen-thumb">
-          <div class="thumb-art" style="background: linear-gradient(135deg, #2b1f47 0%, #110c21 100%);">
-            <div style="width: 50px; height: 50px; background: #e0703a; opacity: 0.3; border: 2px solid var(--panel-border);"></div>
-          </div>
+        <div class="sh out">Description</div>
+        <p class="desc">Dig down through dirt, stone and glowing caverns, build a house for every wanderer who finds you, and prepare for the night the sky turns red. A longer paragraph follows to show wrapping across several lines.</p>
+      </div>
+      <div class="meta" data-part="metadata">
+        <div class="mg">
+          <div class="mr"><em>Completion Status</em><span style="color: var(--menu-selected); font-weight: 700">Playing</span></div>
+          <div class="mr"><em>Time Played</em>64 hours</div>
+          <div class="mr"><em>Last Played</em>Yesterday</div>
         </div>
-        <div class="screen-thumb">
-          <div class="thumb-art" style="background: linear-gradient(135deg, #1c3b28 0%, #0c1c13 100%);">
-            <div style="width: 50px; height: 50px; background: #5cc76a; opacity: 0.3; border: 2px solid var(--panel-border);"></div>
-          </div>
+        <div class="mg">
+          <div class="mr"><em>Community Score</em><span style="color: var(--rarity-green)">92</span></div>
+          <div class="mr"><em>User Score</em>88</div>
         </div>
-      </div>
-      <div>
-        <div class="section-heading out">Description</div>
-        <p class="desc-text">
-          Lead a small crew across a broken star map. Dig for parts, build outposts between the asteroids and hold the line when the night waves arrive. Every run draws a new sky with procedurally generated floating biomes, dangerous celestial custodians, and ancient cosmic relics.
-        </p>
-      </div>
-    </div>
-
-    <div class="right-col">
-      <div class="meta-group">
-        <div class="meta-label">Completion Status</div>
-        <div class="meta-value gold">Playing</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Time Played</div>
-        <div class="meta-value">14h 20m &bull; Last played yesterday</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Developer</div>
-        <div class="meta-value gold">Lantern Works</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Release Date</div>
-        <div class="meta-value">2024</div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Genres</div>
-        <div class="chips">
-          <div class="chip">Strategy</div>
-          <div class="chip">Sandbox</div>
-          <div class="chip">Sci-Fi</div>
+        <div class="mg">
+          <div class="mr"><em>Developers</em>Mossback Games</div>
+          <div class="mr"><em>Release Date</em>2011</div>
         </div>
-      </div>
-      <div class="meta-group">
-        <div class="meta-label">Platform</div>
-        <div class="meta-value">PC (Windows)</div>
+        <div class="mg">
+          <div class="mr"><em>Platform</em><span class="chips"><span class="chip">PC (Windows)</span></span></div>
+          <div class="mr"><em>Genres</em><span class="chips"><span class="chip">Sandbox</span><span class="chip">Adventure</span></span></div>
+        </div>
+        <div class="mg">
+          <div class="mr"><em>Source</em>Steam</div>
+          <div class="mr"><em>Install Size</em>412 MB</div>
+        </div>
+        <div class="mg">
+          <div class="mr"><em>Links</em><span style="color: var(--menu-selected)">Website, Wiki</span></div>
+        </div>
       </div>
     </div>
   </div>
