@@ -61,6 +61,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Overworld/art/details.png"><img src="src/themes/Overworld/art/details.png" alt="Overworld details" width="49%" /></a> <a href="src/themes/Overworld/art/settings.png"><img src="src/themes/Overworld/art/settings.png" alt="Overworld settings" width="49%" /></a> |
 | <img src="src/themes/Frontier/info/icon.png" alt="Frontier" width="48" height="48" /> | **Frontier**<br>After the Red Dead Redemption 2 menus: a red painted rail, flat dark rows and a red selection frame on near black. |
 | ↳ | <a href="src/themes/Frontier/art/details.png"><img src="src/themes/Frontier/art/details.png" alt="Frontier details" width="49%" /></a> <a href="src/themes/Frontier/art/settings.png"><img src="src/themes/Frontier/art/settings.png" alt="Frontier settings" width="49%" /></a> |
+| <img src="src/themes/MannCo/info/icon.png" alt="Mann Co" width="48" height="48" /> | **Mann Co**<br>After the Team Fortress 2 menus: tan paper plates on dark brown, rust hover, a RED and BLU rule under the top bar and a red Play button. |
+| ↳ | <a href="src/themes/MannCo/art/details.png"><img src="src/themes/MannCo/art/details.png" alt="Mann Co details" width="49%" /></a> <a href="src/themes/MannCo/art/settings.png"><img src="src/themes/MannCo/art/settings.png" alt="Mann Co settings" width="49%" /></a> |
 
 ## Installation
 

@@ -71,6 +71,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
 | Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
 | Frontier | 44px compact red painted rail with a ragged edge and black glyphs, 56px top bar ending in a tapered rule, flat near-black page |
+| Mann Co | 44px compact brown rail with a tan menu plate and tan paper plates for the current item, 52px top bar ending in a 3px RED and BLU rule, flat dark brown page |
 
 ## Game page
 
