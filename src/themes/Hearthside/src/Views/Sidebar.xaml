@@ -1,0 +1,111 @@
+<!--
+    Overlay on Playnite Default/Views/Sidebar.xaml. The rim of the Hearthstone box as a compact rail: a dark wood column
+    (ShellBackgroundBrush, wood-deep 22150c) 44px wide down the left edge, closed on its inner side by a 1px brass line
+    (TopPanelSeparatorBrush, brass-dark 8a6327) over a 1px dark grain line, the box's carved edge. Items are glyphs
+    (CustomControls/SidebarItem.xaml). The main menu button is the game's emblem: a 30px round medallion in mana blue
+    (MainMenuButtonBackgroundBrush, mana-dark 2e4f89) ringed in 2px brass (FrameBrush), cream glyph; hover lights the
+    ring and glyph gold (FrameHoverBrush, SelectedForegroundBrush). On the left it is 56 tall to line up with the top
+    bar. Right starts 56px down so the window buttons stay clear; the top strip keeps 160px clear for them.
+    PART_ElemMainMenu and PART_PanelSideBarItems are Playnite's parts.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    mc:Ignorable="d">
+
+    <!-- Main menu button: the host of the round emblem (the medallion inside binds this border's BorderBrush, so the
+         ring follows hover). Also used by Views/TopPanel.xaml when the sidebar is hidden. -->
+    <Style x:Key="MainMenuButton" TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource FrameBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="TextElement.Foreground" Value="{DynamicResource MainMenuButtonForegroundBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource FrameHoverBrush}" />
+                <Setter Property="TextElement.Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="{x:Type Sidebar}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Sidebar}">
+                    <Grid x:Name="Root" Width="44" Margin="{TemplateBinding Padding}">
+                        <Border x:Name="BorderContentHolder" Background="{DynamicResource ShellBackgroundBrush}" />
+                        <!-- The carved edge: a brass line on the content side over a dark grain line -->
+                        <Border x:Name="EdgeGrain" Width="2" HorizontalAlignment="Right"
+                                Background="{DynamicResource FrameInnerBrush}" />
+                        <Border x:Name="EdgeBrass" Width="1" HorizontalAlignment="Right"
+                                Background="{DynamicResource TopPanelSeparatorBrush}" />
+                        <DockPanel x:Name="DockContentHolder">
+                            <Border x:Name="PART_ElemMainMenu" Style="{StaticResource MainMenuButton}"
+                                    DockPanel.Dock="Top" Margin="0,0,0,0">
+                                <Border Width="30" Height="30" CornerRadius="{DynamicResource CornerRadiusFull}"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Background="{DynamicResource MainMenuButtonBackgroundBrush}"
+                                        BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=Border}}"
+                                        BorderThickness="2">
+                                    <ContentPresenter Width="14" Height="14"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      Content="{DynamicResource IconMainMenu}"
+                                                      ContentTemplate="{DynamicResource IconTemplate}" />
+                                </Border>
+                            </Border>
+
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden"
+                                          DockPanel.Dock="Top" CanContentScroll="True"
+                                          x:Name="ScrollSidebarItems">
+                                <StackPanel x:Name="PART_PanelSideBarItems" Orientation="Vertical" Margin="0,0,0,10" />
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- Left (the design): the emblem sits in a 56px cell to line up with the top bar. -->
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Left">
+                            <Setter Property="Height" Value="56" TargetName="PART_ElemMainMenu" />
+                        </DataTrigger>
+                        <!-- Main menu hidden (it is in the top bar): items still start below the top bar. -->
+                        <DataTrigger Binding="{Binding Visibility, ElementName=PART_ElemMainMenu}" Value="Collapsed">
+                            <Setter Property="Margin" Value="0,56,0,0" TargetName="ScrollSidebarItems" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Right">
+                            <Setter Property="Padding" Value="0,56,0,0" />
+                            <Setter Property="Margin" Value="0" TargetName="ScrollSidebarItems" />
+                            <Setter Property="HorizontalAlignment" Value="Left" TargetName="EdgeGrain" />
+                            <Setter Property="HorizontalAlignment" Value="Left" TargetName="EdgeBrass" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Top">
+                            <Setter Property="Width" Value="Auto" TargetName="Root" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="EdgeGrain" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="EdgeBrass" />
+                            <Setter Property="DockPanel.Dock" Value="Left" TargetName="PART_ElemMainMenu" />
+                            <Setter Property="DockPanel.Dock" Value="Left" TargetName="ScrollSidebarItems" />
+                            <Setter Property="Margin" Value="0,0,160,0" TargetName="ScrollSidebarItems" />
+                            <Setter Property="Margin" Value="0,4,0,4" TargetName="PART_ElemMainMenu" />
+                            <Setter Property="Margin" Value="4,4,4,4" TargetName="PART_PanelSideBarItems" />
+                            <Setter Property="Orientation" Value="Horizontal" TargetName="PART_PanelSideBarItems" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Settings SidebarPosition}" Value="Bottom">
+                            <Setter Property="Width" Value="Auto" TargetName="Root" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="EdgeGrain" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="EdgeBrass" />
+                            <Setter Property="DockPanel.Dock" Value="Left" TargetName="PART_ElemMainMenu" />
+                            <Setter Property="DockPanel.Dock" Value="Left" TargetName="ScrollSidebarItems" />
+                            <Setter Property="Margin" Value="0,4,0,4" TargetName="PART_ElemMainMenu" />
+                            <Setter Property="Margin" Value="4,4,4,4" TargetName="PART_PanelSideBarItems" />
+                            <Setter Property="Orientation" Value="Horizontal" TargetName="PART_PanelSideBarItems" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
