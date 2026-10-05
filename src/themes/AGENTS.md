@@ -4,6 +4,8 @@ Every theme here is **standalone** (it never reads another theme's files) but th
 
 Rules that make Playnite load a theme (overlays, `DynamicResource`, brushes only, placeholders, build checks) are in **`.claude/skills/playnite-theme-dev/reference.md`**; the step-by-step for a new theme is skill **`playnite-theme-dev`**.
 
+Multi-theme fix (shell, game page, sidebar across all 29 themes): **`docs/theme-patch-workflow.md`**.
+
 ## Folder layout
 
 | Path | What |
