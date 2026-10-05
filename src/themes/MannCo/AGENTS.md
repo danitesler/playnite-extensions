@@ -10,17 +10,18 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 
 ## Sources
 
+Full list, values and gaps: **`RESEARCH.md`**. Summary:
+
 | What | Where |
 |------|-------|
-| Palette, borders, fonts | Default TF2 HUD `resource/clientscheme.res` (Colors, Borders, Fonts, CustomFontFiles), read from the mirror https://raw.githubusercontent.com/Hypnootize/TF2-Default-HUD/master/resource/clientscheme.res; TanLight, TanDark and TanDarker cross-checked against https://raw.githubusercontent.com/Jofre-Problem/OGHUD/f3c1bd1d20ab9c544afe31289acfef907d9b61d5/resource/clientscheme.res |
+| Palette, borders, fonts | Default TF2 HUD `resource/clientscheme.res` (mirror: Hypnootize/TF2-Default-HUD; TanLight, TanDark, TanDarker cross-checked against Jofre-Problem/OGHUD) |
 | Main menu layout | Default `resource/ui/mainmenuoverride.res` (left column of 250 x 26 buttons, 5px gap, tan plate with dark text, hover swaps the plate) |
-| Quality colors | https://wiki.teamfortress.com/wiki/Item_quality (only Unique gold, for mixed scores) |
-| Background browns | CriticalFlaw TF2HUD.Editor `docs/resources/teamfortress.css` (community-measured `#221E1B`, `#2B2724`, `#3C352D`) |
-| RED and BLU | Team Spirit paint values `#B8383B` and `#5885A2` (mannterface `resource/paint_colors.res`). These are the colors everyone calls RED and BLU, not the HUD scheme's own team colors (`#B45C4D`, `#687C9B`), which read muddy next to the browns. |
-| Icons | Original, hand drawn on a 24 grid in `src/Media.xaml` |
-| Add-on tile | `art/mark.svg`, original: a supply crate seen from the front |
+| Quality colors | wiki.teamfortress.com Item quality (only Unique gold, for mixed scores) |
+| Background browns | CriticalFlaw TF2HUD.Editor `docs/resources/teamfortress.css` (community-measured) |
+| RED and BLU | Team Spirit paint values `#B8383B` and `#5885A2` (mannterface `resource/paint_colors.res`), not the HUD scheme's own team colors, which read muddy next to the browns |
+| Icons, add-on tile | Original: `src/Media.xaml` on a 24 grid, `art/mark.svg` (a supply crate seen from the front) |
 
-Not found in any source: exact pixel colors and corner radii of the main menu bitmaps (the .res files only name the bitmaps), the tan-versus-dark fill of the tooltip, and the look of the tabs in the options dialog. Those are design calls here, marked below.
+Not found in any source: exact pixel colors and corner radii of the main menu bitmaps, the tan-versus-dark fill of the tooltip, and the look of the tabs in the options dialog. Those are design calls here.
 
 ## Tokens (`src/tokens.css`)
 
@@ -64,6 +65,7 @@ Radii: `ControlCornerRadius` 2, `CornerRadiusSmall` 1, Large 4, XLarge 6; `Corne
 | `TooltipPadding` | 10,6 | |
 | `IconSize` | 18 | |
 | `GameBannerHeight` | 340 | Spacer 180 of 340 on the details view, 80 of 340 on the grid panel |
+| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 340 / 280 | Metadata pane beside the text (both defined in `Constants.template.xaml`, ThemeModifier edits them) |
 
 ## Shell
 
@@ -76,7 +78,7 @@ Radii: `ControlCornerRadius` 2, `CornerRadiusSmall` 1, Large 4, XLarge 6; `Corne
 
 ## Game page
 
-Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fading into the page, spacer `x * 180 / 340`, header with a 28px bold title, a RED Play button and the cover on the right with a 2px ink frame, then the Steam screenshots / description / notes column and a 340px metadata pane. Grid panel: spacer `x * 80 / 340`, 20px side padding, captions above values, close button over the top right. The pane is a `ExpanderBackgroundBrush` card with a 1px edge, 16px side padding, groups separated by a 1px `WindowPanelSeparatorBrush` rule (the first rule is clipped by a `-1` top margin), captions in bold 11px `HeadingFontFamily` at 120px (details) and tags as 2px-radius chips. A caption is a `TextBlock` with `Tag="Caption"`; a trigger in the pane's resources styles it, so no extra keys are defined.
+Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fading into the page, spacer `x * 180 / 340` (24 when the banner is off), header with a 28px bold title, a RED Play button and the cover on the right with a 2px ink frame, then the left column (Steam screenshots with the 12 s pulsing skeleton, notes, description) and a 340px metadata pane on the right. Grid panel: spacer `x * 80 / 340` (40 when off), 20px side padding, two columns like the details view with a `GridDetailsPaneWidth` (280) pane on the right and a 24px gap, captions above values, close button over the top right. The pane is an `ExpanderBackgroundBrush` card with a 1px edge, 16px side padding, groups separated by a 1px `WindowPanelSeparatorBrush` rule (the first rule is clipped by a `-1` top margin), captions in bold 11px `HeadingFontFamily` at 120px (details) and tags as 2px-radius chips. A caption is a `TextBlock` with `Tag="Caption"`; a trigger in the pane's resources styles it, so no extra keys are defined. The description `HtmlTextView` takes brushes (`TextBrush`, `GlyphBrush`) and reads their `Color` through bindings.
 
 ## Components
 
@@ -94,17 +96,30 @@ Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fad
 
 ## Deviations
 
-- **No Steam Screenshots skeleton.** The host (`SteamScreenshots_SteamScreenshotsViewControl`, shown through `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}`) is in place, but the 12 second pulsing placeholder for Steam games is not drawn yet, so the left column jumps when the plugin control appears.
-- **Sidebar icons keep Playnite's glyphs.** `SidebarLibraryIcon` and `SidebarStatisticsIcon` are font glyphs Playnite copies; `IconLibrary` and `IconStatistics` are defined for the vocabulary and used by the preview mockups, not by the live sidebar.
+- **Sidebar icons keep Playnite's glyphs.** `SidebarLibraryIcon` and `SidebarStatisticsIcon` are font glyphs Playnite copies; `IconLibrary` and `IconStatistics` are defined for the vocabulary and drawn in the preview rail, not by the live sidebar.
 - **Menu icons** (`AddGameIcon`, `PlayIcon`, ...) stay Playnite's glyph font, recolored by `TextBrush`.
-- **Fonts**: Verdana and Trebuchet MS stand in for TF2 Build and TF2 Secondary; the originals have no Windows equivalent and are not redistributable. Uppercase headings are not possible on a plain `TextBlock`, so labels keep their localized case.
+- **Fonts**: Verdana and Trebuchet MS stand in for TF2 Build and TF2 Secondary; the originals have no Windows equivalent and are not redistributable. In previews Verdana is drawn with DejaVu Sans and Trebuchet MS with Selawik. Uppercase headings are not possible on a plain `TextBlock`, so labels keep their localized case.
 - **No bitmap chrome**: TF2 draws its plates from textured bitmaps with torn paper edges. Plates here are flat fills with a 1px edge, as the repo rules forbid bitmap textures and shadow effects on tiles.
+
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` render to 1280x720 (`details.png`, `settings.png`) per `.claude/skills/playnite-theme-dev/previews.md`: the details preview draws the 44px rail, the 52px top bar in the order of `Views/TopPanel.xaml` (search, icon-only view switches / group / sort / view settings / filter presets, filter, notifications), the game list on the left and the game page (340 banner, left column, 340px metadata pane); the settings preview is Playnite's Settings window (section tree, page, bottom bar with Save then Cancel) at 920x680 on a dark backdrop. Colors are `var(--token)` from `src/tokens.css`; art placeholders (banner gradient, screenshot thumbnails) use literal colors.
+
+Signature motifs drawn:
+
+1. Tan paper plates for whatever is current or selected (menu plate, current rail item, current view switch, selected list row, selected tree node) with ink text; rust on hover.
+2. The 3px RED | BLU rule along the foot of the top bar.
+3. Bold Trebuchet captions and headings over Verdana text.
+4. Black-washed entry strips with a tan-dark edge and S1 CheckButton boxes (18px, yellow edge and check), 6px slider track with rust fill.
+5. Two blocky team forts (RED and BLU) on the banner, original shapes.
+
+Fonts: Verdana is drawn with DejaVu Sans, Trebuchet MS with Selawik (alias added in `scripts/data/fonts.json`). Sample game: Team Fortress 2 as the selected library entry (developer, release date and library are real; play time, score, notes, description, the other list rows, banner and thumbnails are invented sample data). Footer note: unofficial fan theme, no Valve assets. The settings preview shows plain and hover (rust) buttons; Mann Co's only red button is `PlayButton`, which the Settings window does not use.
 
 ## Not verified yet
 
-This theme was written in a container without PowerShell or Playnite, so nothing below has run:
+This theme was written in a container without Playnite, so nothing below has run:
 
-- `build-theme.ps1`, `validate-extension.ps1` (a Python approximation of their checks passed: well-formed XML, Playnite file paths, key vocabulary, no `Color` reads outside `Constants`, no cross-file `StaticResource`).
-- Loading in Playnite 10.60: every restyled file, the game page with a game that has many fields and one with few, banner height 0 and 600 in ThemeModifier, the collapsing metadata groups, the sidebar at each position.
+- `build-theme.ps1` and loading in Playnite 10.60: every restyled file, the game page with a game that has many fields and one with few, banner height 0 and 600 in ThemeModifier, the collapsing metadata groups, the Steam Screenshots skeleton, the two-column grid panel at narrow widths, the sidebar at each position and an add-on sidebar item.
+- `validate-extension.ps1` (default and Package) passes under PowerShell on Linux; the HTML previews are checked with `preview-layout.mjs` and rendered with Chromium, not compared with a live Playnite window.
 - Contrast of tan text on the TanDark button plate (about 4:1) and on the rust hover plate.
 - That `HighlightGlyphColor` at 55% reads on tan and rust.

@@ -12,6 +12,37 @@
                     xmlns:pbeh="clr-namespace:Playnite.Behaviors;assembly=Playnite"
                     mc:Ignorable="d">
 
+    <!-- Steam Screenshots skeleton: a 16:9 main frame over five thumbnails, flat 2px-radius plates, pulsing in the host foreground. -->
+    <ControlTemplate x:Key="SteamScreenshotsSkeletonTemplate" TargetType="{x:Type Control}">
+        <Viewbox Stretch="Uniform">
+            <Grid x:Name="Pulse" Width="320" Height="220" Opacity="0.25">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="180" />
+                    <RowDefinition Height="6" />
+                    <RowDefinition Height="34" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{TemplateBinding Foreground}" />
+                <UniformGrid Grid.Row="2" Rows="1" Columns="5">
+                    <Border Margin="0,0,3,0" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{TemplateBinding Foreground}" />
+                    <Border Margin="1.5,0,1.5,0" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{TemplateBinding Foreground}" />
+                    <Border Margin="1.5,0,1.5,0" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{TemplateBinding Foreground}" />
+                    <Border Margin="1.5,0,1.5,0" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{TemplateBinding Foreground}" />
+                    <Border Margin="3,0,0,0" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{TemplateBinding Foreground}" />
+                </UniformGrid>
+            </Grid>
+        </Viewbox>
+        <ControlTemplate.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="Pulse" Storyboard.TargetProperty="Opacity"
+                                         From="0.25" To="0.6" Duration="0:0:0.9" AutoReverse="True" RepeatBehavior="Forever" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type GridViewGameOverview}">
         <Setter Property="Template">
             <Setter.Value>
@@ -143,10 +174,9 @@
                                             </Grid>
                                         </DockPanel>
 
-                                        <StackPanel Grid.Row="2">
-                                            <ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Margin="0,0,0,16" Focusable="False"
-                                                            Visibility="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=PluginUnavailable}" />
-                                            <Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}"
+                                        <!-- Two columns: screenshots, notes and description on the left, the narrower metadata pane on the right -->
+                                        <DockPanel Grid.Row="2">
+                                            <Border DockPanel.Dock="Right" Width="{DynamicResource GridDetailsPaneWidth}" Margin="24,0,0,0" Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}"
                                                     BorderThickness="{DynamicResource ControlBorderThickness}" CornerRadius="{DynamicResource ControlCornerRadius}"
                                                     Padding="16,4,16,4" VerticalAlignment="Top">
                                                 <Border.Resources>
@@ -433,7 +463,57 @@
                                                     </StackPanel>
                                                 </Border>
                                             </Border>
-                                            <StackPanel Margin="0,16,0,0">
+                                            <StackPanel DockPanel.Dock="Left">
+                                                <Grid>
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                                <!-- The plugin hides its control and clears IsControlVisible on every game change, then needs about a second. The skeleton shows for Steam games in that gap, for at most 12s. With the plugin missing or disabled the binding falls back to PluginUnavailable, which matches neither value. -->
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
+                                                                        <Condition Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <MultiDataTrigger.EnterActions>
+                                                                        <BeginStoryboard x:Name="SteamScreenshotsLoading">
+                                                                            <Storyboard>
+                                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Duration="0:0:12">
+                                                                                    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                                                                    <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
+                                                                                </ObjectAnimationUsingKeyFrames>
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </MultiDataTrigger.EnterActions>
+                                                                    <MultiDataTrigger.ExitActions>
+                                                                        <RemoveStoryboard BeginStoryboardName="SteamScreenshotsLoading" />
+                                                                    </MultiDataTrigger.ExitActions>
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
+                                                    <StackPanel Margin="0,0,0,16">
+                                                        <Grid>
+                                                            <ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Focusable="False" />
+                                                            <Control Template="{DynamicResource SteamScreenshotsSkeletonTemplate}" Foreground="{DynamicResource TextBrushDarker}"
+                                                                     Focusable="False" IsTabStop="False" IsHitTestVisible="False">
+                                                                <Control.Style>
+                                                                    <Style TargetType="Control">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Control.Style>
+                                                            </Control>
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Grid>
                                                 <StackPanel Name="PART_ElemNotes" Margin="0,0,0,16">
                                                     <TextBlock Text="{DynamicResource LOCNotesLabel}" Style="{DynamicResource HeadingTextBlock}" />
                                                     <TextBox Name="PART_TextNotes" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
@@ -442,16 +522,18 @@
                                                 <StackPanel Name="PART_ElemDescription">
                                                     <TextBlock Text="{DynamicResource LOCGameDescriptionTitle}" Style="{DynamicResource HeadingTextBlock}" />
                                                     <HtmlTextView Name="PART_HtmlDescription"
+                                                                  TextElement.Foreground="{DynamicResource TextBrush}"
+                                                                  Tag="{DynamicResource GlyphBrush}"
                                                                   HtmlFontSize="{DynamicResource FontSize}"
                                                                   HtmlFontFamily="{DynamicResource FontFamily}"
-                                                                  HtmlForeground="{DynamicResource TextColor}"
-                                                                  LinkForeground="{DynamicResource GlyphColor}"
+                                                                  HtmlForeground="{Binding (TextElement.Foreground).Color, RelativeSource={RelativeSource Self}}"
+                                                                  LinkForeground="{Binding Tag.Color, RelativeSource={RelativeSource Self}}"
                                                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                                                   ScrollViewer.VerticalScrollBarVisibility="Disabled"
                                                                   pbeh:FocusBahaviors.BlockBringIntoViewRequest="True" />
                                                 </StackPanel>
                                             </StackPanel>
-                                        </StackPanel>
+                                        </DockPanel>
                                     </Grid>
                                 </Grid>
                             </ScrollViewer>
