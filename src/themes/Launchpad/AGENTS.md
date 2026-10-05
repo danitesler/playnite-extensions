@@ -50,6 +50,7 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 - **No news tiles.** Playnite has no news feed; the cards under the art are the game's description and details.
 - **Font** is Segoe UI, not the client's typeface.
 - **Colors are approximations** (see Sources).
+- **Notification count badge uses `ControlCornerRadius`, not `CornerRadiusFull`.** The badge is `MinWidth=16` x `Height=16` and grows wider for counts of two digits or more, so a full radius would distort it (AGENTS.md Control Corner Radii); the preview draws the same 3px radius.
 - **The game title keeps a soft drop shadow** on the art so it stays legible over bright artwork (Playnite's own page does the same).
 
 ## Build notes
