@@ -76,6 +76,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Cordon | 44px compact rusted steel rail (rivet, seam, lit plate and amber lamp on the current item), 52px steel caption band over a grainy olive-black panel |
 | Calling Card | 44px compact ink rail with a paper sawtooth edge and a red star block on top; the current item, tab, row and view button sit on a slanted red plate with a blue sliver behind it; 52px transparent top bar on a hard ash rule; red halftone fading into the library corner |
 | Holotape | 44px compact void-black rail closed by a 1px rule, current item boxed in a 1px green outline; transparent 52px top bar ending in a 1px rule with end ticks; warm dark yellow-brown page with faint scanlines behind the art |
+| Blacklist | 44px compact stripe-black rail with an amber main menu block and amber bracket boxes on the current item, 56px header band closed by a 6px hazard stripe, amber-brown panels with L brackets and striped title bands |
 
 ## Game page
 
