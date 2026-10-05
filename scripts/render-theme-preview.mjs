@@ -20,7 +20,7 @@ await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => request
 await page.evaluate(() => document.fonts.ready);
 
 // Text that still falls back to an installed font makes the render machine-dependent: say so.
-const cdp = await page.context().newCDPSession(page);
+const cdp = page.cdp;
 await cdp.send('DOM.enable');
 await cdp.send('CSS.enable');
 const { root } = await cdp.send('DOM.getDocument', { depth: -1, pierce: true });

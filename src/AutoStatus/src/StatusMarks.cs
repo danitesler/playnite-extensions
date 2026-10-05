@@ -18,6 +18,7 @@ namespace AutoStatus
 
         private readonly string path;
         private readonly object sync = new object();
+        private readonly object saveSync = new object();
         private Dictionary<Guid, DateTime> marks = new Dictionary<Guid, DateTime>();
         private bool dirty;
 
@@ -26,50 +27,100 @@ namespace AutoStatus
             this.path = path;
         }
 
+        /// <summary>
+        /// True when the marks file exists but could not be read. The stale pass must not run then (every
+        /// re-marked game would look stale), and Save leaves the file alone so it can still be recovered.
+        /// A missing file (first run) is not a failure.
+        /// </summary>
+        public bool LoadFailed { get; private set; }
+
         public void Load()
         {
             try
             {
                 if (!File.Exists(path))
                 {
+                    LoadFailed = false;
                     return;
                 }
 
                 var loaded = Serialization.FromJsonFile<Dictionary<Guid, DateTime>>(path);
+                if (loaded == null)
+                {
+                    throw new InvalidDataException("The status marks file is empty.");
+                }
+
                 lock (sync)
                 {
-                    marks = loaded ?? new Dictionary<Guid, DateTime>();
+                    marks = loaded;
                     dirty = false;
                 }
+
+                LoadFailed = false;
             }
             catch (Exception ex)
             {
-                Logger.Warn(ex, "AutoStatus could not read its status marks; starting fresh.");
+                LoadFailed = true;
+                Logger.Warn(ex, $"AutoStatus could not read its status marks ({path}); the stale rule is paused until the file is fixed or deleted and Playnite restarts.");
             }
         }
 
         public void Save()
         {
-            Dictionary<Guid, DateTime> snapshot;
-            lock (sync)
+            if (LoadFailed)
             {
-                if (!dirty)
+                return;
+            }
+
+            lock (saveSync)
+            {
+                Dictionary<Guid, DateTime> snapshot;
+                lock (sync)
                 {
-                    return;
+                    if (!dirty)
+                    {
+                        return;
+                    }
+
+                    snapshot = new Dictionary<Guid, DateTime>(marks);
+                    dirty = false;
                 }
 
-                snapshot = new Dictionary<Guid, DateTime>(marks);
-                dirty = false;
-            }
+                // Write a temp file and swap it in, so a crash mid-write never leaves a truncated marks file.
+                var tempPath = path + ".tmp";
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    File.WriteAllText(tempPath, Serialization.ToJson(snapshot));
+                    if (File.Exists(path))
+                    {
+                        File.Replace(tempPath, path, null);
+                    }
+                    else
+                    {
+                        File.Move(tempPath, path);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warn(ex, "AutoStatus could not save its status marks.");
+                    lock (sync)
+                    {
+                        dirty = true;
+                    }
 
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                File.WriteAllText(path, Serialization.ToJson(snapshot));
-            }
-            catch (Exception ex)
-            {
-                Logger.Warn(ex, "AutoStatus could not save its status marks.");
+                    try
+                    {
+                        if (File.Exists(tempPath))
+                        {
+                            File.Delete(tempPath);
+                        }
+                    }
+                    catch
+                    {
+                        // Best effort: the next save overwrites a leftover temp file anyway.
+                    }
+                }
             }
         }
 

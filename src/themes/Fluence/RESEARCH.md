@@ -1,4 +1,4 @@
-# Fluence (Fluent2) — research & sources
+# Fluence — research & sources
 
 Unofficial theme inspired by Microsoft's Fluent 2 design system; not affiliated with or endorsed by Microsoft. Fluent 2 is cited below only as the source of the measured look.
 

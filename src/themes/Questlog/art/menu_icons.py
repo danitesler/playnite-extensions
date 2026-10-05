@@ -262,12 +262,12 @@ def render_png(size_by_name=None):
     out_dir = HERE.parent / "src" / "Images" / "Menu"
     out_dir.mkdir(parents=True, exist_ok=True)
     svg_dir = write_svgs()
-    node_root = subprocess.check_output(["npm", "root", "-g"], text=True).strip()
+    chrome_lib = (HERE.parent.parent.parent.parent / "scripts" / "lib" / "chrome.mjs").as_uri()
     script = f"""
-const {{ chromium }} = require('{node_root}/playwright');
-const fs = require('fs');
+import fs from 'fs';
+import {{ launchBrowser }} from '{chrome_lib}';
 (async () => {{
-  const browser = await chromium.launch();
+  const browser = await launchBrowser();
   const jobs = JSON.parse(process.argv[2]);
   for (const j of jobs) {{
     const page = await browser.newPage({{ viewport: {{ width: j.w, height: j.h }}, deviceScaleFactor: 1 }});
@@ -289,7 +289,7 @@ const fs = require('fs');
         dest_dir = out_dir.parent if name in PLACEHOLDERS else out_dir
         finals.append((raw, target, dest_dir / (f"{name}.png")))
     import json
-    js = tmp / "render.js"
+    js = tmp / "render.mjs"
     js.write_text(script, encoding="utf-8")
     subprocess.check_call(["node", str(js), json.dumps(jobs)])
     for raw, target, dest in finals:

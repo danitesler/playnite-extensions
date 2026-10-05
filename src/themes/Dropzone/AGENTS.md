@@ -32,7 +32,7 @@ Type: 12 / 14 / 16 / 22 / 40.
 
 | File | What it draws |
 |------|---------------|
-| `Views/TopPanel.xaml` | 64px row, transparent. At the left a 44px rounded navy strip (the lobby navbar) with Playnite's icon items and the icon view switches (`TopPanelSwitch*ViewTemplate`); the current view is the light grey pill with near-black text; Playnite's two `Canvas` separators become 7px yellow dots. At the right: pill search box, filter, notifications (yellow badge), progress, 150px kept clear for the caption buttons. |
+| `Views/TopPanel.xaml` | 64px row, transparent. At the left the lobby navbar items, bare on the bar (the game's 44px rounded navy strip is not drawn: repo rule, no container around `PART_PanelMainItems`): Playnite's icon items and the icon view switches (`TopPanelSwitch*ViewTemplate`); the current view is the light grey pill with near-black text; Playnite's two `Canvas` separators become 7px yellow dots. At the right: pill search box, filter, notifications (yellow badge), progress, 150px kept clear for the caption buttons. |
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact rail in the sidebar navy, menu bars on top, 44x40 items with blue glyphs; the current item is a full-width blue plate with slanted ends (a `Path`, `M0,4 L44,0 L44,36 L0,40 Z`) and a white glyph. Top/bottom: capital tabs, current = light pill. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, muted glyphs, red close hover, 64px caption height. |
 | `Views/Library.xaml` | Background art behind everything under a navy wash (`ScrimBrush`: 90% under the navbar, 60% mid, 95% at the bottom). Library layer transparent. |

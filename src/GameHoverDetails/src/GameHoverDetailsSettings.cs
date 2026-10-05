@@ -591,7 +591,15 @@ namespace GameHoverDetails
             : this()
         {
             this.plugin = plugin ?? throw new System.ArgumentNullException(nameof(plugin));
-            var saved = plugin.LoadPluginSettings<GameHoverDetailsPersistedState>();
+            LoadPersistedState(plugin.LoadPluginSettings<GameHoverDetailsPersistedState>());
+        }
+
+        /// <summary>
+        /// Applies saved JSON (including legacy shapes with missing / null fields) to the backing fields.
+        /// Null keeps the factory defaults. Split from the constructor so it can be tested without a plugin.
+        /// </summary>
+        internal void LoadPersistedState(GameHoverDetailsPersistedState saved)
+        {
             if (saved != null)
             {
                 hoverWidth = ClampWidth(saved.HoverWidth);
@@ -869,72 +877,118 @@ namespace GameHoverDetails
             errors = new List<string>();
             if (HoverWidth < MinWidth || HoverWidth > MaxWidth)
             {
-                errors.Add($"Hover width must be between {MinWidth} and {MaxWidth} pixels.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_Width",
+                    "Hover width must be between {0} and {1} pixels.",
+                    MinWidth,
+                    MaxWidth));
             }
 
             if (HoverFieldBlockSpacingDip < MinFieldBlockSpacingDip || HoverFieldBlockSpacingDip > MaxFieldBlockSpacingDip)
             {
-                errors.Add($"Field spacing must be between {MinFieldBlockSpacingDip} and {MaxFieldBlockSpacingDip} pixels.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_FieldSpacing",
+                    "Field spacing must be between {0} and {1} pixels.",
+                    MinFieldBlockSpacingDip,
+                    MaxFieldBlockSpacingDip));
             }
 
             if (HoverFieldColumnCount < MinFieldColumnCount || HoverFieldColumnCount > MaxFieldColumnCount)
             {
-                errors.Add($"Field columns must be between {MinFieldColumnCount} and {MaxFieldColumnCount}.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_FieldColumns",
+                    "Field columns must be between {0} and {1}.",
+                    MinFieldColumnCount,
+                    MaxFieldColumnCount));
             }
 
             if (HoverContentPaddingDip < MinContentPaddingDip || HoverContentPaddingDip > MaxContentPaddingDip)
             {
-                errors.Add($"List padding must be between {MinContentPaddingDip} and {MaxContentPaddingDip} pixels.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_ListPadding",
+                    "List padding must be between {0} and {1} pixels.",
+                    MinContentPaddingDip,
+                    MaxContentPaddingDip));
             }
 
             if (HoverChromeBackgroundOpacity < MinChromeOpacity || HoverChromeBackgroundOpacity > MaxChromeOpacity)
             {
-                errors.Add($"Background opacity must be between {MinChromeOpacity} and {MaxChromeOpacity} percent.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_BackgroundOpacity",
+                    "Background opacity must be between {0} and {1} percent.",
+                    MinChromeOpacity,
+                    MaxChromeOpacity));
             }
 
             if (HoverBodyFontSize < MinBodyFontSize || HoverBodyFontSize > MaxBodyFontSize)
             {
-                errors.Add($"Regular text size must be between {MinBodyFontSize} and {MaxBodyFontSize}.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_BodyTextSize",
+                    "Regular text size must be between {0} and {1}.",
+                    MinBodyFontSize,
+                    MaxBodyFontSize));
             }
 
             if (HoverTitleFontSize < MinTitleFontSize || HoverTitleFontSize > MaxTitleFontSize)
             {
-                errors.Add($"Title text size must be between {MinTitleFontSize} and {MaxTitleFontSize}.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_TitleTextSize",
+                    "Title text size must be between {0} and {1}.",
+                    MinTitleFontSize,
+                    MaxTitleFontSize));
             }
 
             if (HoverIconChipSizeDip < MinIconChipSizeDip || HoverIconChipSizeDip > MaxIconChipSizeDip)
             {
-                errors.Add($"Icon size must be between {MinIconChipSizeDip} and {MaxIconChipSizeDip} pixels.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_IconSize",
+                    "Icon size must be between {0} and {1} pixels.",
+                    MinIconChipSizeDip,
+                    MaxIconChipSizeDip));
             }
 
             if (HoverIconChipPaddingDip < MinIconChipPaddingDip || HoverIconChipPaddingDip > MaxIconChipPaddingDip)
             {
-                errors.Add($"Icon padding must be between {MinIconChipPaddingDip} and {MaxIconChipPaddingDip} pixels.");
+                errors.Add(HoverLoc.Format(
+                    "LOCGameHoverDetails_Verify_IconPadding",
+                    "Icon padding must be between {0} and {1} pixels.",
+                    MinIconChipPaddingDip,
+                    MaxIconChipPaddingDip));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeBackgroundHex, out _))
             {
-                errors.Add("Hover background color is not a valid hex color.");
+                errors.Add(HoverLoc.Get(
+                    "LOCGameHoverDetails_Verify_BackgroundColor",
+                    "Hover background color is not a valid hex color."));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeBorderHex, out _))
             {
-                errors.Add("Hover border color is not a valid hex color.");
+                errors.Add(HoverLoc.Get(
+                    "LOCGameHoverDetails_Verify_BorderColor",
+                    "Hover border color is not a valid hex color."));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeDividerHex, out _))
             {
-                errors.Add("Hover divider color is not a valid hex color.");
+                errors.Add(HoverLoc.Get(
+                    "LOCGameHoverDetails_Verify_DividerColor",
+                    "Hover divider color is not a valid hex color."));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeIconBackgroundHex, out _))
             {
-                errors.Add("Hover icon background color is not a valid hex color.");
+                errors.Add(HoverLoc.Get(
+                    "LOCGameHoverDetails_Verify_IconBackgroundColor",
+                    "Hover icon background color is not a valid hex color."));
             }
 
             if (SelectedFieldKeys.Count == 0)
             {
-                errors.Add("Select at least one field.");
+                errors.Add(HoverLoc.Get(
+                    "LOCGameHoverDetails_Verify_NoFields",
+                    "Select at least one field."));
             }
 
             return errors.Count == 0;

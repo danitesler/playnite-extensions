@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Dota 2 main menu** (the dashboard of the Panorama UI, Reborn and later): a near-black slate top bar with uppercase tabs, a black secondary strip under it, bevelled grey buttons, black tick boxes that fill pale teal, and the big green PLAY DOTA button, all over the game's background art. Dark only. Minimal on purpose: no hero renders, no textures, no animated scenes; the marks that make the dashboard recognisable are kept, the rest is flat. Unofficial and standalone: every file it ships lives in this folder, no Valve asset is in it (`info/NOTICE-ancient.txt`). Resource keys are the shared vocabulary; the game's own names stay in `tokens.css`.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Dota 2 main menu** (the dashboard of the Panorama UI, Reborn and later): a near-black slate top bar with uppercase tabs, a black secondary strip under it, bevelled grey buttons, black tick boxes that fill pale teal, and the big green PLAY DOTA button, all over the game's background art. Dark only. Minimal on purpose: no hero renders, no textures, no animated scenes; the marks that make the dashboard recognisable are kept, the rest is flat. Unofficial and standalone: every file it ships lives in this folder, no Valve asset is in it (`info/NOTICE-Ancient.txt`). Resource keys are the shared vocabulary; the game's own names stay in `tokens.css`.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 

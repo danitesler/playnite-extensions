@@ -1,8 +1,8 @@
-# CS 1.6 — theme notes
+# Ace — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.60 Default files) in the style of **Counter-Strike 1.6's VGUI menus** and the Steam / GoldSrc olive skin of the same era. One dark variant. Unofficial fan theme: no Valve assets, original pixel icons and mark (`info/NOTICE-Cs16.txt`).
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.60 Default files) in the style of **Counter-Strike 1.6's VGUI menus** and the Steam / GoldSrc olive skin of the same era. One dark variant. Unofficial fan theme: no Valve assets, original pixel icons and mark (`info/NOTICE-Ace.txt`).
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -62,7 +62,7 @@ Skeleton as in `../AGENTS.md`. Black page, amber bold title, gold captions over 
 
 ## Components
 
-| Playnite file | CS 1.6 component |
+| Playnite file | Ace component |
 |---------------|------------------|
 | `Button`, `RepeatButton`, `ToggleButton` | olive bevelled button, pressed = sunken, checked toggle = sunken |
 | `TextBox`, `PasswordBox`, `ComboBox`, `HighlightBorder` | sunken black field, edge turns `FocusBrush` on keyboard focus |

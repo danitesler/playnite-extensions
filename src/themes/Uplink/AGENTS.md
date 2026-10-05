@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) taking inspiration from the **StarCraft II** menus as they have looked since patch 3.0 (the "glue" screens: a navigation bar across the top with a sub navigation strip under it). Dark only: deep space navy, pale blue text, one lit blue accent, plates with cut corners, blue glows and a bright line under whatever is current. Unofficial and standalone: every file it ships lives in this folder, and no Blizzard asset is in it (`info/NOTICE-uplink.txt`). Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`); the theme's own token names stay in `tokens.css`.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) taking inspiration from the **StarCraft II** menus as they have looked since patch 3.0 (the "glue" screens: a navigation bar across the top with a sub navigation strip under it). Dark only: deep space navy, pale blue text, one lit blue accent, plates with cut corners, blue glows and a bright line under whatever is current. Unofficial and standalone: every file it ships lives in this folder, and no Blizzard asset is in it (`info/NOTICE-Uplink.txt`). Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`); the theme's own token names stay in `tokens.css`.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 

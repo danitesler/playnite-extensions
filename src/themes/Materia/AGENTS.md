@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by **Material Design** as implemented in the **MUI Material UI** library (v9.4, Material Design 2), in MUI's default dark variant (`createTheme({ palette: { mode: 'dark' } })`). Unofficial: it is not affiliated with, endorsed by or sponsored by Google or MUI, and includes none of their logos, fonts or artwork (the tile icon is a neutral glyph, `art/mark.svg`); the menu icons are open-licensed Material Icons (Apache-2.0, `info/LICENSE-material-icons.txt`). Notices: `info/NOTICE-MaterialUi.txt`. The display name is "Materia"; the id, key and folder keep their original names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by **Material Design** as implemented in the **MUI Material UI** library (v9.4, Material Design 2), in MUI's default dark variant (`createTheme({ palette: { mode: 'dark' } })`). Unofficial: it is not affiliated with, endorsed by or sponsored by Google or MUI, and includes none of their logos, fonts or artwork (the tile icon is a neutral glyph, `art/mark.svg`); the menu icons are open-licensed Material Icons (Apache-2.0, `info/LICENSE-material-icons.txt`). Notices: `info/NOTICE-Materia.txt`. The display name is "Materia"; the id, key and folder keep their original names.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -36,8 +36,8 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 |------|-------------------|
 | `Views/MainWindow.xaml` | Flat: drawer and view on `background.default`. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as IconButtons (40px circles, 20px icons, `MainWindowButton`) on the app bar, 12px from the top and against the right edge; close fills with `error.main`. |
-| `Views/Sidebar.xaml` | Permanent mini Drawer, 64px wide, no divider. Its top 64px is painted in the app bar color and holds the menu IconButton (`MainMenuButton`, `PART_ElemMainMenu`), so the bar reads as one full-width app bar. |
-| `CustomControls/SidebarItem.xaml` | ListItemButton rows: 64x48, square, 24px icons in `text.secondary`; `action.hover` on hover; selected = `SelectedBrush` (primary @ 16%) with a primary icon. |
+| `Views/Sidebar.xaml` | Permanent mini Drawer, 44px wide (the repo's compact rail; MUI's is 64px), no divider. Its top 64px is painted in the app bar color and holds the menu IconButton (`MainMenuButton`, `PART_ElemMainMenu`), so the bar reads as one full-width app bar. |
+| `CustomControls/SidebarItem.xaml` | ListItemButton rows: 44x40, square, 16px icons in `text.secondary` (repo rail rule; MUI uses 64x48 and 24px); `action.hover` on hover; selected = `SelectedBrush` (primary @ 16%) with a primary icon. |
 | `Views/TopPanel.xaml` | 64px Toolbar with 16px gutters. App bar search on the left (`TopPanelSearchBox`: white 15%, 25% on hover, no border, widening 240 → 360px while focused). IconButtons on the right; Badges instead of text (primary dot while a filter applies, error count for notifications). |
 | `CustomControls/TopPanelItem.xaml` | IconButton medium, `color="inherit"`: 40px circle, 24px icon; a toggled item turns primary. |
 | `CustomControls/SearchBox.xaml` | FilledInput with a start adornment, for search boxes outside the app bar. |
@@ -65,7 +65,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` render `art/screenshot-details.png` and `art/screenshot-settings.png` (1280x720, colors as `var(--mui-*)` tokens, Segoe UI drawn with the bundled Selawik). Motifs: the 64px mini drawer with its header band in the app bar color, the elevated app bar with the translucent search field, the primary dot and error count Badges, uppercase contained and text buttons, FilledInput with a primary underline, Paper cards with six Divider-split metadata groups. Chips are 4px-radius rectangles, as in the XAML.
+`art/preview-details.html` and `art/preview-settings.html` render `art/screenshot-details.png` and `art/screenshot-settings.png` (1280x720, colors as `var(--mui-*)` tokens, Segoe UI drawn with the bundled Selawik). Motifs: the 44px mini drawer with its header band in the app bar color, the elevated app bar with the translucent search field, the primary dot and error count Badges, uppercase contained and text buttons, FilledInput with a primary underline, Paper cards with six Divider-split metadata groups. Chips are 4px-radius rectangles, as in the XAML.
 
 ## Not verified yet
 

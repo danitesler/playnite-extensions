@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Playnite.SDK;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
@@ -131,11 +132,33 @@ namespace GameHoverDetails
             return HoverLoc.Get("LOCGameHoverDetails_Value_UnknownLibrary", "Unknown library");
         }
 
-        /// <summary>Month, day, and year in current culture without weekday (e.g. April 15, 2026).</summary>
+        /// <summary>Current culture's long date without the weekday (en-US: April 15, 2026; de-DE: 15. April 2026).</summary>
         private static string FormatDateNoWeekday(DateTime localDateTime)
         {
-            return localDateTime.Date.ToString("MMMM d, yyyy", CultureInfo.CurrentCulture);
+            var culture = CultureInfo.CurrentCulture;
+            return localDateTime.Date.ToString(LongDatePatternWithoutWeekday(culture.DateTimeFormat), culture);
         }
+
+        /// <summary>
+        /// <see cref="DateTimeFormatInfo.LongDatePattern"/> with the weekday (<c>dddd</c>) and the commas/spaces around it removed.
+        /// en-US "dddd, MMMM d, yyyy" becomes "MMMM d, yyyy" (unchanged English output).
+        /// </summary>
+        internal static string LongDatePatternWithoutWeekday(DateTimeFormatInfo format)
+        {
+            var pattern = format?.LongDatePattern;
+            if (string.IsNullOrWhiteSpace(pattern))
+            {
+                return FallbackLongDatePattern;
+            }
+
+            var stripped = WeekdayTokenRegex.Replace(pattern, " ").Trim();
+            return string.IsNullOrEmpty(stripped) ? FallbackLongDatePattern : stripped;
+        }
+
+        private const string FallbackLongDatePattern = "MMMM d, yyyy";
+
+        /// <summary>Weekday name token plus adjacent separators (incl. the Arabic comma).</summary>
+        private static readonly Regex WeekdayTokenRegex = new Regex(@"[\s,\u060C]*d{4,}[\s,\u060C]*", RegexOptions.CultureInvariant);
 
         private static string FormatReleaseDateLong(ReleaseDate? releaseDate)
         {
@@ -162,7 +185,8 @@ namespace GameHoverDetails
                 if (rd.Month != null)
                 {
                     var dt = new DateTime(rd.Year, rd.Month.Value, 1);
-                    return dt.ToString("MMMM yyyy", culture);
+                    var yearMonth = culture.DateTimeFormat.YearMonthPattern;
+                    return dt.ToString(string.IsNullOrWhiteSpace(yearMonth) ? "MMMM yyyy" : yearMonth, culture);
                 }
 
                 return rd.Year.ToString(culture);
@@ -273,16 +297,27 @@ namespace GameHoverDetails
             }
 
             var b = (double)bytes.Value;
-            string[] units = { "B", "KB", "MB", "GB", "TB" };
             var order = 0;
-            while (b >= 1024 && order < units.Length - 1)
+            while (b >= 1024 && order < SizeUnitKeys.Length - 1)
             {
                 order++;
                 b /= 1024;
             }
 
-            return string.Format(CultureInfo.CurrentCulture, "{0:0.##} {1}", b, units[order]);
+            var unit = HoverLoc.Get(SizeUnitKeys[order], SizeUnitFallbacks[order]);
+            return string.Format(CultureInfo.CurrentCulture, "{0:0.##} {1}", b, unit);
         }
+
+        private static readonly string[] SizeUnitKeys =
+        {
+            "LOCGameHoverDetails_Value_UnitByte",
+            "LOCGameHoverDetails_Value_UnitKilobyte",
+            "LOCGameHoverDetails_Value_UnitMegabyte",
+            "LOCGameHoverDetails_Value_UnitGigabyte",
+            "LOCGameHoverDetails_Value_UnitTerabyte"
+        };
+
+        private static readonly string[] SizeUnitFallbacks = { "B", "KB", "MB", "GB", "TB" };
 
         private static string FormatPlaytime(ulong playtimeSeconds)
         {
@@ -291,18 +326,23 @@ namespace GameHoverDetails
                 return HoverLoc.Empty;
             }
 
+            // Same localized unit suffixes as Last Played ("3d 4h", "2h 15m", "45m" in English).
             var ts = TimeSpan.FromSeconds(playtimeSeconds);
+            var unitDay = HoverLoc.Get("LOCGameHoverDetails_Value_UnitDay", "d");
+            var unitHour = HoverLoc.Get("LOCGameHoverDetails_Value_UnitHour", "h");
+            var unitMin = HoverLoc.Get("LOCGameHoverDetails_Value_UnitMin", "m");
+            var culture = CultureInfo.CurrentCulture;
             if (ts.TotalDays >= 1)
             {
-                return string.Format(CultureInfo.CurrentCulture, "{0}d {1}h", (int)ts.TotalDays, ts.Hours);
+                return ((int)ts.TotalDays).ToString(culture) + unitDay + " " + ts.Hours.ToString(culture) + unitHour;
             }
 
             if (ts.TotalHours >= 1)
             {
-                return string.Format(CultureInfo.CurrentCulture, "{0}h {1}m", (int)ts.TotalHours, ts.Minutes);
+                return ((int)ts.TotalHours).ToString(culture) + unitHour + " " + ts.Minutes.ToString(culture) + unitMin;
             }
 
-            return string.Format(CultureInfo.CurrentCulture, "{0}m", (int)ts.TotalMinutes);
+            return ((int)ts.TotalMinutes).ToString(culture) + unitMin;
         }
 
         private static string JoinNames(IEnumerable<object> items)

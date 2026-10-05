@@ -11,9 +11,9 @@ Requested in Playnite issues #2828 (status rules from last played), #1028 (Aband
 
 ## Implementation
 
-- **Stale pass** — `AutoStatusPlugin.RunStalePass` on the UI dispatcher: at `ApplicationIdle` after startup, every **6 h** (`DispatcherTimer`, Playnite can run for days in Fullscreen), after settings `EndEdit`, and from **Extensions → AutoStatus → Apply status rules now** (shows a dialog with the count). Automatic passes post one replaceable notification (`AutoStatus_StaleMoved`) only when something changed. Updates go through `Database.BufferedUpdate()`.
+- **Stale pass** — `AutoStatusPlugin.RunStalePass` on the UI dispatcher: at `ApplicationIdle` after startup, every **6 h** (`DispatcherTimer`, Playnite can run for days in Fullscreen), after settings `EndEdit`, and from **Extensions → AutoStatus → Apply status rules now** (shows a dialog with the count, or why the pass was skipped: rule off, settings open, statuses unset, marks unreadable, error). `RunStalePass` returns a `StalePassResult` (skip reason or moved count). Automatic passes post one replaceable notification (`AutoStatus_StaleMoved`) only when something changed. Updates go through `Database.BufferedUpdate()`.
 - **Stale decision** — `StatusRules.IsStale`: requires `LastActivity` (never played in Playnite → never touched; covers console / manually tracked games). Reference time = max(`LastActivity`, mark time).
-- **Marks** — `StatusMarks` (`status-marks.json` in the plugin data folder) records when a game **entered** the watched status, from `Games.ItemUpdated` (old status ≠ new status). Without it, re-marking an old game as Playing would be undone on the next pass. Marks for games that left the status are dropped each pass; saves are debounced 5 s and flushed on stop.
+- **Marks** — `StatusMarks` (`status-marks.json` in the plugin data folder) records when a game **entered** the watched status, from `Games.ItemUpdated` (old status ≠ new status). Without it, re-marking an old game as Playing would be undone on the next pass. Marks for games that left the status are dropped each pass; saves are debounced 5 s and flushed on stop. Saves write `status-marks.json.tmp` and swap it in (`File.Replace` / `File.Move`). A missing file is a normal first run; an unreadable one sets `LoadFailed`, which pauses the stale pass (logged) and blocks saves so the file is not overwritten with empty marks. Fix or delete the file and restart Playnite.
 - **Resume** — `OnGameStarted` → dispatcher → `StatusRules.ShouldResume` → `Games.Update`.
 - **Defaults** — first `OnApplicationStarted` with statuses in the DB: match Playnite stock names (English, then Playnite's `LOCCompletionStatus*` strings, best effort) and set `DefaultsApplied`. Unmatched statuses stay empty; `VerifySettings` asks the user to pick them when the rule is on.
 
@@ -36,7 +36,7 @@ Requested in Playnite issues #2828 (status rules from last played), #1028 (Aband
 | Control | Default | Notes |
 |---------|---------|-------|
 | Enable AutoStatus | on | |
-| Change the status of games I stopped playing | on | watched status, days slider, target status |
+| Change the status of games I stopped playing | **off** | watched status, days slider, target status. Off for new installs so nothing is bulk-moved before the user has seen the settings; saved settings keep their value |
 | Not played for this many days | 30 | 1–365 |
 | Change the status of a game when I start it | on | checkbox list of watched statuses, target status |
 

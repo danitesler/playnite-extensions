@@ -26,6 +26,33 @@ namespace AutoStatus
         private DispatcherTimer marksSaveTimer;
         private bool attached;
 
+        // Why a stale pass did not run. None: it ran (and may still have changed nothing).
+        private enum StaleSkip
+        {
+            None,
+            Off,
+            Editing,
+            Statuses,
+            MarksUnreadable,
+            Failed
+        }
+
+        private struct StalePassResult
+        {
+            public StaleSkip Skip;
+            public int Moved;
+
+            public static StalePassResult Ran(int moved)
+            {
+                return new StalePassResult { Skip = StaleSkip.None, Moved = moved };
+            }
+
+            public static StalePassResult Skipped(StaleSkip skip)
+            {
+                return new StalePassResult { Skip = skip, Moved = 0 };
+            }
+        }
+
         public override Guid Id => PluginId;
 
         public AutoStatusPlugin(IPlayniteAPI api) : base(api)
@@ -133,18 +160,47 @@ namespace AutoStatus
 
         private void ApplyNowFromMenu()
         {
-            var moved = RunStalePass();
-            PlayniteApi.Dialogs.ShowMessage(
-                moved > 0 ? MovedMessage(moved) : AutoStatusLoc.Get("LOCAutoStatus_Result_NothingToDo", "No games needed a status change."),
-                "AutoStatus");
+            var result = RunStalePass();
+            string message;
+            if (result.Skip != StaleSkip.None)
+            {
+                message = AutoStatusLoc.Format("LOCAutoStatus_Result_Skipped", "Status rules did not run. {0}", SkipReason(result.Skip));
+            }
+            else if (result.Moved > 0)
+            {
+                message = MovedMessage(result.Moved);
+            }
+            else
+            {
+                message = AutoStatusLoc.Get("LOCAutoStatus_Result_NothingToDo", "No games needed a status change.");
+            }
+
+            PlayniteApi.Dialogs.ShowMessage(message, "AutoStatus");
         }
 
         private void RunStalePassAndNotify()
         {
-            var moved = RunStalePass();
-            if (moved > 0)
+            var result = RunStalePass();
+            if (result.Moved > 0)
             {
-                PlayniteApi.Notifications.Add(new NotificationMessage(StaleNotificationId, MovedMessage(moved), NotificationType.Info));
+                PlayniteApi.Notifications.Add(new NotificationMessage(StaleNotificationId, MovedMessage(result.Moved), NotificationType.Info));
+            }
+        }
+
+        private static string SkipReason(StaleSkip skip)
+        {
+            switch (skip)
+            {
+                case StaleSkip.Off:
+                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Off", "They are turned off in the AutoStatus settings.");
+                case StaleSkip.Editing:
+                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Editing", "Save or cancel the AutoStatus settings first.");
+                case StaleSkip.Statuses:
+                    return AutoStatusLoc.Get("LOCAutoStatus_Verify_StaleStatuses", "Games I stopped playing: pick two different statuses.");
+                case StaleSkip.MarksUnreadable:
+                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Marks", "AutoStatus could not read its saved status dates. Details are in the Playnite log.");
+                default:
+                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Error", "Something went wrong. Details are in the Playnite log.");
             }
         }
 
@@ -160,18 +216,34 @@ namespace AutoStatus
         }
 
         /// <summary>Moves watched-status games that have not been played (or re-marked) within the window.</summary>
-        private int RunStalePass()
+        private StalePassResult RunStalePass()
         {
             try
             {
                 var from = settings.StaleFromStatusId;
                 var to = settings.StaleToStatusId;
                 var database = PlayniteApi.Database;
-                if (settings.IsEditing || !settings.Enabled || !settings.StaleRuleEnabled
-                    || from == Guid.Empty || to == Guid.Empty || from == to
+                if (!settings.Enabled || !settings.StaleRuleEnabled)
+                {
+                    return StalePassResult.Skipped(StaleSkip.Off);
+                }
+
+                if (settings.IsEditing)
+                {
+                    return StalePassResult.Skipped(StaleSkip.Editing);
+                }
+
+                if (from == Guid.Empty || to == Guid.Empty || from == to
                     || database.CompletionStatuses.Get(to) == null)
                 {
-                    return 0;
+                    return StalePassResult.Skipped(StaleSkip.Statuses);
+                }
+
+                // Without the marks every game re-marked as watched would look stale, so do nothing.
+                if (marks.LoadFailed)
+                {
+                    Logger.Warn("AutoStatus skipped the stale-status pass: its status marks could not be read.");
+                    return StalePassResult.Skipped(StaleSkip.MarksUnreadable);
                 }
 
                 var now = DateTime.Now;
@@ -205,12 +277,12 @@ namespace AutoStatus
                 }
 
                 marks.Save();
-                return stale.Count;
+                return StalePassResult.Ran(stale.Count);
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "AutoStatus stale-status pass failed.");
-                return 0;
+                return StalePassResult.Skipped(StaleSkip.Failed);
             }
         }
 

@@ -6,7 +6,7 @@ Renders SVG icons from any icon pack into PNGs or XAML resources for Playnite th
 Two ways to run it:
 
   From an add-on's icons.json (src/<Folder>/icons.json), re-rendering everything that add-on ships:
-    .\scripts\render-icons.ps1 -Extension primer
+    .\scripts\render-icons.ps1 -Extension primo
 
   Ad hoc:
     .\scripts\render-icons.ps1 -Pack lucide -Icons settings,play=PlayIcon -OutDir <folder> -Color "#e4e4e7"

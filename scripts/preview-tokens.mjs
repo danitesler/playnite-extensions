@@ -4,33 +4,12 @@
 // render-theme-preview.mjs imports tokenStyle() so var(--token) resolves at render time.
 // Tokens are read the way theme-tools.ps1 Read-ThemeTokens does: :root and @theme blocks are the base, blocks whose
 // selector mentions "dark" override them. Colors are resolved by Chromium, so oklch(), rgb(), var() chains all work.
-import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
+import { launchBrowser } from './lib/chrome.mjs';
 
-function findBrowser() {
-  if (process.env.CHROMIUM && fs.existsSync(process.env.CHROMIUM)) return process.env.CHROMIUM;
-  const candidates = [
-    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-    'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/chromium',
-    '/opt/pw-browsers/chromium'
-  ];
-  return candidates.find((c) => fs.existsSync(c));
-}
-
-// Shared by the renderer and the token checks. Set CHROMIUM to a browser executable if a browser cannot be found.
-export async function launchBrowser() {
-  const { chromium } = createRequire(import.meta.url)('playwright');
-  const executablePath = findBrowser();
-  return chromium.launch(executablePath ? { executablePath } : { channel: 'chrome' });
-}
+export { launchBrowser };
 
 // @font-face rules for the bundled open fonts (scripts/data/fonts.json, files in scripts/fonts/): the real families under
 // their own names, plus the Windows / commercial names (Segoe UI, Bahnschrift, Georgia, ...) drawn with their stand-in, so a

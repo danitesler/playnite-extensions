@@ -1,8 +1,8 @@
-# Frozen Throne — theme notes
+# Cold Seat — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Warcraft III: The Frozen Throne main menu**: near-black blue void, stone button plates with a lit top/left and dark bottom/right bevel, gold labels that turn white on hover, frozen-ice blue for glow and selection. Dark only. Unofficial and standalone: no Blizzard asset is in it (`info/NOTICE-frozenthrone.txt`). Resource keys are the shared vocabulary; the game's look lives in `tokens.css` under this theme's own `--wc3-*` names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Warcraft III: The Frozen Throne main menu**: near-black blue void, stone button plates with a lit top/left and dark bottom/right bevel, gold labels that turn white on hover, frozen-ice blue for glow and selection. Dark only. Unofficial and standalone: no Blizzard asset is in it (`info/NOTICE-ColdSeat.txt`). Resource keys are the shared vocabulary; the game's look lives in `tokens.css` under this theme's own `--wc3-*` names.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -37,7 +37,7 @@ Left 44px stone rail with a bevelled library-side edge, icon-only items (gold, w
 
 ## Game page
 
-Shared skeleton. Gold title, Esc-menu style double frame (stone rim plus inner dark line) around the metadata pane, gold PLAY plate beside stone More and Edit buttons.
+Shared skeleton. Gold title, Esc-menu style double frame (stone rim plus inner dark line) around the metadata pane, gold PLAY plate beside blue-bar More and Edit buttons (`SecondaryButton`, `--wc3-blue*`).
 
 ## Components
 

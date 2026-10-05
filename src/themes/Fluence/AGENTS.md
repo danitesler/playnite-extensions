@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme named **Fluence** (`ThemeApiVersion` 2.9.0, Playnite 10.45+), in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9, `@fluentui/react-theme` 9.2.2), dark variant only (`webDarkTheme` tokens), with a Windows 11 style app shell. The Id `Fluent2_3EA906E4`, key `fluent2` and folder `Fluent2` keep the original name so released installs keep updating; only the display name changed.
+Playnite **Desktop** theme named **Fluence** (`ThemeApiVersion` 2.9.0, Playnite 10.45+), in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9, `@fluentui/react-theme` 9.2.2), dark variant only (`webDarkTheme` tokens), with a Windows 11 style app shell. The Id `Fluence_3EA906E4`, key `fluent2` and folder `Fluent2` keep the original name so released installs keep updating; only the display name changed.
 
-Unofficial: not affiliated with, endorsed by or sponsored by Microsoft Corporation. Fluent, Windows and Microsoft are named only as the look's inspiration. No Microsoft logo, Windows logo, font or artwork ships; the icons are the open-licensed Fluent UI System Icons (MIT, `info/LICENSE-fluentui-system-icons.txt`), see `info/NOTICE-Fluent2.txt`. Never use the Windows logo or any Microsoft mark in the icon, previews or listing, and never put "Microsoft", "Windows" or "Fluent 2" alone as the theme's name.
+Unofficial: not affiliated with, endorsed by or sponsored by Microsoft Corporation. Fluent, Windows and Microsoft are named only as the look's inspiration. No Microsoft logo, Windows logo, font or artwork ships; the icons are the open-licensed Fluent UI System Icons (MIT, `info/LICENSE-fluentui-system-icons.txt`), see `info/NOTICE-Fluence.txt`. Never use the Windows logo or any Microsoft mark in the icon, previews or listing, and never put "Microsoft", "Windows" or "Fluent 2" alone as the theme's name.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -34,8 +34,8 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat base layer. |
 | `DerivedStyles/MainWindowStyle.xaml` | Windows 11 caption buttons (`MainWindowButton`): 46x32, square, flush with the top-right corner; subtle fill on hover, red for close. |
-| `Views/Sidebar.xaml` | NavigationView, LeftCompact: 48px rail, no border; the pane toggle (`MainMenuButton`, `PART_ElemMainMenu`) in the title-bar row; 40x36 items with a 4px gutter. |
-| `CustomControls/SidebarItem.xaml` | NavigationViewItem: 40x36, borderRadiusMedium, 20px icons, subtle hover fill; selected = subtle fill + 3x16 compound-brand pill on the left edge. |
+| `Views/Sidebar.xaml` | NavigationView, LeftCompact, narrowed to the repo's 44px compact rail, no border; the pane toggle (`MainMenuButton`, `PART_ElemMainMenu`, a 32x32 plate with a 16px glyph) in the title-bar row; 44x40 items, no gutter. |
+| `CustomControls/SidebarItem.xaml` | NavigationViewItem: 44x40 item with a 32x32 borderRadiusMedium plate, 16px icons, subtle hover fill; selected = subtle fill + 3x16 compound-brand pill on the plate's left edge; 2px brand progress bar along the plate's bottom. |
 | `Views/TopPanel.xaml` | 48px title-bar row: search (`TopPanelSearchBox`) centered, up to 468px; subtle 32px icon buttons on the right; brand CounterBadge for notifications. |
 | `CustomControls/TopPanelItem.xaml` | Button subtle, icon only: 32px; hover and checked = subtle fill + brand icon. |
 | `CustomControls/SearchBox.xaml` | SearchBox (outline): Input chrome with a 20px search icon and a dismiss icon. |

@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Primo** (folder `Primer`, key `primer`), in the style of GitHub's **Primer** design system (`@primer/primitives` 11.10.0), on Primer's `dark` functional tokens (dark variant only).
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Primo** (folder `Primo`, key `primo`), in the style of GitHub's **Primer** design system (`@primer/primitives` 11.10.0), on Primer's `dark` functional tokens (dark variant only).
 
-**Unofficial fan theme**: not affiliated with, endorsed by or sponsored by GitHub, Inc.; "Primer" and "GitHub" are GitHub's names, used only to say what inspired the look. No GitHub logo, Octocat or other mark is drawn anywhere (the `mark-github` glyph must never be used as a UI icon or tile); the only GitHub-made assets are the MIT-licensed Octicons (`info/LICENSE-octicons.txt`, notice in `info/NOTICE-Primer.txt`). The add-on tile (`info/icon.png`) is the Octicons "stack" layers glyph in the default orange. Display name, Id and files: the Id `Primer_55D3FC28`, key, folder and `danitesler_primer.yaml` keep the original name so updates keep working.
+**Unofficial fan theme**: not affiliated with, endorsed by or sponsored by GitHub, Inc.; "Primer" and "GitHub" are GitHub's names, used only to say what inspired the look. No GitHub logo, Octocat or other mark is drawn anywhere (the `mark-github` glyph must never be used as a UI icon or tile); the only GitHub-made assets are the MIT-licensed Octicons (`info/LICENSE-octicons.txt`, notice in `info/NOTICE-Primo.txt`). The add-on tile (`info/icon.png`) is the Octicons "stack" layers glyph in the default orange. Display name, Id and files: the Id `Primo_55D3FC28`, key, folder and `danitesler_primo.yaml` keep the original name so updates keep working.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -36,8 +36,8 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat: sidebar and view on `bgColor-inset`, the same color as the header band. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as invisible IconButtons (32px, `MainWindowButton`) on the band, 16px from the top; close takes the danger hover. |
-| `Views/Sidebar.xaml` | Navigation rail on the page color. Its top 64px is painted in the band color and holds the three-bars button (`MainMenuButton`, `PART_ElemMainMenu`). |
-| `CustomControls/SidebarItem.xaml` | NavList item, icon only: 32px, 16px octicons in `fgColor-muted`; the current item gets the fill and NavList's 4x24 accent bar 8px outside the item. |
+| `Views/Sidebar.xaml` | 44px compact navigation rail on the page color, no side gutter. Its top 64px is painted in the band color and holds the three-bars button (`MainMenuButton`, `PART_ElemMainMenu`). |
+| `CustomControls/SidebarItem.xaml` | NavList item, icon only: 44x40 item with a 32px plate, 16px octicons in `fgColor-muted`; the current item gets the fill and NavList's 4x24 accent bar (2px radius) on the item's left edge, 2px outside the plate. |
 | `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`TopPanelSearchBox`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
 | `CustomControls/TopPanelItem.xaml` | Invisible IconButton, medium; toggled = `control-transparent-bgColor-selected`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on Primer's base-size scale without separators; background art under the band, feathered on every edge. |
@@ -54,7 +54,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 - Header search and icon buttons use the invisible variant (no edge) to keep the band quiet; the search input keeps its edge.
 - No shadows: the Overlay keeps only the 1px ring `shadow-floating-small` starts with.
 - `GlyphColor` is `bgColor-accent-emphasis` (`#1f6feb`) because Playnite also uses it as a fill under white text; Primer's link color (`fgColor-accent`, `#4493f8`) is a little lighter.
-- Menu icons are octicon PNGs in `src/Images/Octicons` (48px, `fgColor-muted`; `fgColor-danger` for exit and remove), referenced by path because Playnite rebuilds TextBlock icons from their glyph and font. They don't follow a token change; the list, colors and Octicons tag are in `icons.json`, so after a palette change update the colors there and run `.\scripts\render-icons.ps1 -Extension primer`.
+- Menu icons are octicon PNGs in `src/Images/Octicons` (48px, `fgColor-muted`; `fgColor-danger` for exit and remove), referenced by path because Playnite rebuilds TextBlock icons from their glyph and font. They don't follow a token change; the list, colors and Octicons tag are in `icons.json`, so after a palette change update the colors there and run `.\scripts\render-icons.ps1 -Extension primo`.
 - Overview fields have visible labels, not octicons with a tooltip: there are 25 fields and Octicons for a handful, and the sidebar has no section headings because themes cannot ship localization (sections are told apart by the rules and spacing).
 
 ## Previews

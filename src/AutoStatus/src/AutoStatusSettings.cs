@@ -39,7 +39,9 @@ namespace AutoStatus
             set => SetValue(ref enabled, value);
         }
 
-        private bool staleRuleEnabled = true;
+        // Off for new installs: it bulk-changes statuses, so the user turns it on after checking the statuses.
+        // Saved settings keep their value; an old file without the property also loads as off.
+        private bool staleRuleEnabled;
         public bool StaleRuleEnabled
         {
             get => staleRuleEnabled;

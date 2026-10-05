@@ -2,9 +2,9 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) named **Shade** (key and folder stay `shadcnui`, `AddonId` `ShadcnUi_B66DB7B1`), in the style of **shadcn/ui** (new-york-v4 registry), fully dark on the **zinc** base color.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) named **Shade** (key `shade`, folder `Shade`, `AddonId` `Shade_B66DB7B1`), in the style of **shadcn/ui** (new-york-v4 registry), fully dark on the **zinc** base color.
 
-**Unofficial fan theme**: not affiliated with, endorsed by or sponsored by shadcn or the shadcn/ui project. shadcn/ui is named only to say what inspired the look (nominative use). No shadcn/ui logo, icon, font or artwork is shipped: the add-on tile (`art/mark.svg`) is an original inset-card mark, the icons are Lucide (ISC, `info/LICENSE-lucide.txt`), and the colors and spacing follow the open-source (MIT) registry values. See `info/NOTICE-ShadcnUi.txt`.
+**Unofficial fan theme**: not affiliated with, endorsed by or sponsored by shadcn or the shadcn/ui project. shadcn/ui is named only to say what inspired the look (nominative use). No shadcn/ui logo, icon, font or artwork is shipped: the add-on tile (`art/mark.svg`) is an original inset-card mark, the icons are Lucide (ISC, `info/LICENSE-lucide.txt`), and the colors and spacing follow the open-source (MIT) registry values. See `info/NOTICE-Shade.txt`.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -34,8 +34,8 @@ shadcn's inset layout (blocks `sidebar-07` / `dashboard-01`):
 |------|---------------|
 | `Views/MainWindow.xaml` | Window frame in `sidebar`; the active view on a `background` card, rounded-xl, inset 8px (m-2, ml-0 beside the sidebar). Four frame-colored corner masks (`MainWindowInsetCorner`) round the card over the view's content. |
 | `DerivedStyles/MainWindowStyle.xaml` | Playnite's window template with minimize / maximize / close (`MainWindowButton`, 32px ghost) centered on the card header. |
-| `Views/Sidebar.xaml` | Sidebar `collapsible="icon"`: no fill, no border, 16px padding. Main menu = the sidebar-07 TeamSwitcher logo (`MainMenuButton`: size-8, rounded-lg, `sidebar-primary`); the top bar reuses it when the sidebar is hidden. |
-| `CustomControls/SidebarItem.xaml` | SidebarMenuButton, icon mode: 32px, rounded-md, `sidebar-accent` on hover and when active. Library and Statistics draw lucide icons. |
+| `Views/Sidebar.xaml` | Sidebar `collapsible="icon"` as the repo's 44px compact rail: no fill, no border, 16px top and bottom padding, none at the sides. Main menu = the sidebar-07 TeamSwitcher logo (`MainMenuButton`: size-8, rounded-lg, `sidebar-primary`); the top bar reuses it when the sidebar is hidden. |
+| `CustomControls/SidebarItem.xaml` | SidebarMenuButton, icon mode: 44x40 item around the 32px rounded-md button (16px glyphs), `sidebar-accent` on hover and when active. Library and Statistics draw lucide icons. |
 | `Views/TopPanel.xaml` | site-header inside the card: 48px, px-4; search on the left (`TopPanelSearchBox`: card fill, borderless, h-8, w-64), ghost 32px icon buttons on the right, progress in the middle. |
 | `CustomControls/TopPanelItem.xaml` | Button ghost, size icon-sm (32px); accent when toggled. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on p-4 spacing without separators. |
@@ -69,4 +69,4 @@ Game overview: the 384px Details Card beside the description (and at narrow wind
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` render `art/screenshot-details.png` and `art/screenshot-settings.png` (`scripts/take-screenshots.ps1 -Extension shadcnui`). Motifs: the rounded-xl `background` card inset in the `sidebar` frame, the borderless `card` panels with 24px padding, ghost 32px icon buttons with the accent fill on the current view switch, the amber count badge on the bell (rounded-md, as in the XAML), and the muted label column of the Details Card with hairline group rules. Segoe UI is drawn with the bundled Selawik stand-in. Colors are `var(--token)` from `src/tokens.css`; the amber of the badge and the white slider thumb are literal, as in `Constants.template.xaml`. The art holds no shadcn/ui logo; the preview shows the theme's own name only.
+`art/preview-details.html` and `art/preview-settings.html` render `art/screenshot-details.png` and `art/screenshot-settings.png` (`scripts/take-screenshots.ps1 -Extension shade`). Motifs: the rounded-xl `background` card inset in the `sidebar` frame, the borderless `card` panels with 24px padding, ghost 32px icon buttons with the accent fill on the current view switch, the amber count badge on the bell (rounded-md, as in the XAML), and the muted label column of the Details Card with hairline group rules. Segoe UI is drawn with the bundled Selawik stand-in. Colors are `var(--token)` from `src/tokens.css`; the amber of the badge and the white slider thumb are literal, as in `Constants.template.xaml`. The art holds no shadcn/ui logo; the preview shows the theme's own name only.

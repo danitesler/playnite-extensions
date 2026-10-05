@@ -30,7 +30,7 @@ The `Type` values differ from `extension.yaml`'s; `validate-extension.ps1` check
 - Required: `AddonId`, `Type`, `Name`, `Author` (`danitesler`), `ShortDescription`, `InstallerManifestUrl`. We also always set `SourceUrl`, `IconUrl`, `Description`, `Tags`, `Links`. Optional upstream: `Screenshots`, `UserAgreement`, `FaqTopics`. Themes list `Screenshots` (Thumbnail + Image URLs under `art/`).
 - All URLs are `raw.githubusercontent.com/danitesler/playnite-extensions/main/...` and must resolve **before** the PR (the files have to be on `main`).
 - `AddonId` equals `Id` in `extension.yaml` / `theme.yaml` and in `InstallerManifest.yaml`.
-- Template: copy an existing `danitesler_*.yaml` (`src/Autogrid/info/danitesler_autogrid.yaml` for plugins, `src/themes/ShadcnUi/info/danitesler_shadcnui.yaml` for themes). `new-extension.ps1` / `new-theme.ps1` scaffold one.
+- Template: copy an existing `danitesler_*.yaml` (`src/Autogrid/info/danitesler_autogrid.yaml` for plugins, `src/themes/Shade/info/danitesler_shade.yaml` for themes). `new-extension.ps1` / `new-theme.ps1` scaffold one.
 
 ## Status check (do this first; it changes over time)
 

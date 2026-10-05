@@ -55,7 +55,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 |-------|--------|
 | Shade | Views on an inset rounded card in a sidebar-colored frame; icon sidebar; header inside the card |
 | Chakram | One flat surface; 64px top bar with segmented view controls |
-| Materia | App bar (the only raised surface) + 64px mini drawer whose top continues the bar |
+| Materia | App bar (the only raised surface) + 44px mini drawer whose top continues the bar |
 | Primo | Dark header band across the top, navigation rail on the page color |
 | Fluence | Windows 11: base layer with a 48px title-bar row and compact nav rail, library on a lighter content layer |
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
@@ -65,8 +65,8 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered icon view buttons between thin rules, 44px compact icon rail, translucent panels over the library art |
 | Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; icon view switches between thin "|" rules, selection as a feathered smudge, framed near-black panels |
-| Ayywi | One black surface; 64px icon rail, 56px top bar with 12px rounded toggles and search box, cards and hairlines instead of fills |
-| Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a floating 44px rounded navy strip of icon view buttons (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
+| Ayywi | One black surface; 44px compact icon rail, 56px top bar with 12px rounded toggles and search box, cards and hairlines instead of fills |
+| Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a row of icon view buttons on the bare bar (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
 | Attache | 44px compact icon rail with pewter selection plates on near black, transparent 56px top strip over darkened library art |
 | Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar with icon view switches (gold when current), panels with 2px black edges |
 | Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
@@ -74,7 +74,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Netrunner | 44px compact black rail with a 1px red rule, red glyphs, the current item a dark red wash with a red edge bar and a cyan glyph; 56px top bar ending in a tapered dim red rule, blue-black page |
 | Tumbleweed | 44px compact black rail with red pause-stack glyphs (white when current) and a maroon paint splash behind the main menu button; transparent 56px top bar closed by a flat 2px grey rule; library and banner art under a red duotone wash |
 | Payload | 44px compact tab-bar navy rail with an orange slanted main menu button and cyan slanted plates (black glyph) for the current item; 56px translucent navy top bar with a 1px rule, slanted cyan plates on toggled view buttons; medium blue panels on the neutral dark blue page |
-| CS 1.6 | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
+| Ace | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
 | Cordon | 44px compact rusted steel rail (rivet, seam, lit plate and amber lamp on the current item), 52px steel caption band over a grainy olive-black panel |
 | Calling Card | 44px compact ink rail with a paper sawtooth edge and a red star block on top; the current item, tab, row and view button sit on a slanted red plate with a blue sliver behind it; 52px transparent top bar on a hard ash rule; red halftone fading into the library corner |
 | Holotape | 44px compact void-black rail closed by a 1px rule, current item boxed in a 1px green outline; transparent 52px top bar ending in a 1px rule with end ticks; warm dark yellow-brown page with faint scanlines behind the art |

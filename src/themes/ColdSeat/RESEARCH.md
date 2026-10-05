@@ -1,4 +1,4 @@
-# FrozenThrone — research & sources
+# ColdSeat — research & sources
 
 ## Sources
 

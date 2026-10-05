@@ -1,4 +1,4 @@
-# CS 1.6 — research & sources
+# Ace — research & sources
 
 Unofficial fan theme. It reproduces the *look* of Counter-Strike 1.6's VGUI menus and the Steam / GoldSrc skin of the same era from public descriptions of their color schemes. No Valve art, logos, fonts, sounds or game assets are used or shipped; every icon is original pixel art drawn for this theme (`art/icons.py`).
 
