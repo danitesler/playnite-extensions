@@ -61,6 +61,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Overworld/art/details.png"><img src="src/themes/Overworld/art/details.png" alt="Overworld details" width="49%" /></a> <a href="src/themes/Overworld/art/settings.png"><img src="src/themes/Overworld/art/settings.png" alt="Overworld settings" width="49%" /></a> |
 | <img src="src/themes/Frontier/info/icon.png" alt="Frontier" width="48" height="48" /> | **Frontier**<br>After the Red Dead Redemption 2 menus: a red painted rail, flat dark rows and a red selection frame on near black. |
 | ↳ | <a href="src/themes/Frontier/art/details.png"><img src="src/themes/Frontier/art/details.png" alt="Frontier details" width="49%" /></a> <a href="src/themes/Frontier/art/settings.png"><img src="src/themes/Frontier/art/settings.png" alt="Frontier settings" width="49%" /></a> |
+| <img src="src/themes/Holotape/info/icon.png" alt="Holotape" width="48" height="48" /> | **Holotape**<br>After the Fallout 3 and New Vegas Pip-Boy: warm dark yellow-brown surfaces, amber titles, thin bracketed rules and a green outline selection. |
+| ↳ | <a href="src/themes/Holotape/art/details.png"><img src="src/themes/Holotape/art/details.png" alt="Holotape details" width="49%" /></a> <a href="src/themes/Holotape/art/settings.png"><img src="src/themes/Holotape/art/settings.png" alt="Holotape settings" width="49%" /></a> |
 
 ## Installation
 

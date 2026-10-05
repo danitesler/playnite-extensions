@@ -71,6 +71,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
 | Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
 | Frontier | 44px compact red painted rail with a ragged edge and black glyphs, 56px top bar ending in a tapered rule, flat near-black page |
+| Holotape | 44px compact void-black rail closed by a 1px rule, current item boxed in a 1px green outline; transparent 52px top bar ending in a 1px rule with end ticks; warm dark yellow-brown page with faint scanlines behind the art |
 
 ## Game page
 
