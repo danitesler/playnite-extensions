@@ -41,7 +41,7 @@ Full database procedure: [addon-database.md](addon-database.md).
 5. **Screenshots (themes always, other add-ons with UI on first listing or a visual change):** run `.\scripts\take-screenshots.ps1 -Extension <key>`. It renders the theme's HTML preview templates (`art/preview-details.html` and `art/preview-settings.html`) using Chromium, saving `art/screenshot-details.png` and `screenshot-settings.png` (and automatically cleaning up any legacy `grid.png`). Check the images, commit them to `main` with the version commit, list them in the `Screenshots:` block of `danitesler_<key>.yaml`, and add them to the release notes. Playnite itself is never launched or captured directly.
 6. When the user says to publish, in this order (the raw manifest URL points at `main` and the package URL at the release, so both must exist or auto-update breaks):
    1. `gh release create <tag> <package> [zip] --title "<Name> <version>" --notes "<changelog>"` (this add-on only).
-   2. Update its title link in root `README.md` to point to the new release (`https://github.com/danitesler/playnite-extensions/releases/tag/<tag>`).
+   2. Refresh the README links: run `node scripts/generate-readmes.mjs` now that the `<tag>` exists (it rewrites the add-on's `Download` link in the root `README.md` and its own `README.md`), and commit the result with the version commit. `npm run check:readmes` must pass.
    3. Merge/push the version commit to `main`.
    4. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
 7. Verify: `curl -sI <PackageUrl>` returns 200 (after redirects); `curl -s <InstallerManifestUrl>` shows the new top entry.

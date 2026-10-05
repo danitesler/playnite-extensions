@@ -141,15 +141,31 @@ jobs:
             ./scripts/build-theme.ps1 -Extension $extension.key
           }
 
+  readmes:
+    name: READMEs
+    runs-on: ubuntu-latest
+    steps:
+      # Full history and tags: whether an add-on counts as released is decided by its `<key>-v<version>` tag.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check generated READMEs and root README links
+        run: node scripts/generate-readmes.mjs --check
+
   build:
     name: Build Summary
-    needs: [filter, plugins, themes]
+    needs: [filter, plugins, themes, readmes]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Check build status
         run: |
-          if [ "${{ needs.plugins.result }}" = "failure" ] || [ "${{ needs.themes.result }}" = "failure" ] || [ "${{ needs.filter.result }}" = "failure" ]; then
+          if [ "${{ needs.plugins.result }}" = "failure" ] || [ "${{ needs.themes.result }}" = "failure" ] || [ "${{ needs.readmes.result }}" = "failure" ] || [ "${{ needs.filter.result }}" = "failure" ]; then
             echo "CI build failed"
             exit 1
           fi
