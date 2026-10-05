@@ -145,7 +145,7 @@ All release screenshots and listing previews are generated from HTML replicas us
 
 A theme's `AGENTS.md` keeps only what is its own, in this order:
 
-1. **What this is**: design system, version, dark variant; for fan themes, the unofficial / no-assets statement.
+1. **What this is**: design system, version, dark variant; the unofficial / no-owner-assets statement for every theme modeled on someone else's design system, app or game (root `AGENTS.md` -> Trademarks & Branding: named "<Source>-inspired", never "official"; ships `info/NOTICE-<Dir>.txt`).
 2. **Sources**: reference notes in `RESEARCH.md` (token package, component specs, icon set, captures, each with version and license); `AGENTS.md` links to it.
 3. **Tokens**: which token plays each key (Playnite palette first, then shared keys), plus radii and fonts.
 4. **Component spacing**: the `Common.xaml` values and the spec each comes from.
