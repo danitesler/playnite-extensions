@@ -74,6 +74,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Payload | 44px compact tab-bar navy rail with an orange slanted main menu button and cyan slanted plates (black glyph) for the current item; 56px translucent navy top bar with a 1px rule, slanted cyan plates on toggled view buttons; medium blue panels on the neutral dark blue page |
 | CS 1.6 | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
 | Cordon | 44px compact rusted steel rail (rivet, seam, lit plate and amber lamp on the current item), 52px steel caption band over a grainy olive-black panel |
+| Calling Card | 44px compact ink rail with a paper sawtooth edge and a red star block on top; the current item, tab, row and view button sit on a slanted red plate with a blue sliver behind it; 52px transparent top bar on a hard ash rule; red halftone fading into the library corner |
 
 ## Game page
 
