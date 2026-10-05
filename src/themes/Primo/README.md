@@ -6,7 +6,7 @@
 
 **An unofficial dark desktop theme inspired by GitHub's Primer design system. Not affiliated with GitHub.**
 
-**[Download Primo 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/primer-v0.1.0)**
+_Not released yet._
 
 ## Screenshots
 
@@ -30,18 +30,18 @@ This theme is not affiliated with, endorsed by or sponsored by GitHub, Inc. Prim
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/primer-v0.1.0)
+- **Latest release:** not released yet
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Minimal, Desktop
 - **Inspired by (GitHub Primer):** https://primer.style
-- **Source:** [src/themes/Primer](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Primer)
+- **Source:** [src/themes/Primo](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Primo)
 - **Issues and suggestions:** [GitHub issues](https://github.com/danitesler/playnite-extensions/issues)
 
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
 - [LICENSE-octicons.txt](info/LICENSE-octicons.txt)
-- [NOTICE-Primer.txt](info/NOTICE-Primer.txt)
+- [NOTICE-Primo.txt](info/NOTICE-Primo.txt)
 
 ---
 

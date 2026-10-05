@@ -39,7 +39,7 @@ Unofficial; not affiliated with Valve. Dota 2 is a trademark of Valve Corporatio
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
-- [NOTICE-ancient.txt](info/NOTICE-ancient.txt)
+- [NOTICE-Ancient.txt](info/NOTICE-Ancient.txt)
 
 ---
 

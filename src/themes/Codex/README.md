@@ -6,7 +6,7 @@
 
 **A dark desktop theme in charcoal, ivory and gold, with a left icon rail and entry-style game screens. Inspired by the Assassin's Creed menus.**
 
-**[Download Codex 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/codex-v0.1.0)**
+_Not released yet._
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Ubisoft. Assassin's Creed is a trademark of Ubis
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/codex-v0.1.0)
+- **Latest release:** not released yet
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gold, Codex
 - **Source:** [src/themes/Codex](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Codex)
@@ -39,7 +39,7 @@ Unofficial; not affiliated with Ubisoft. Assassin's Creed is a trademark of Ubis
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
-- [NOTICE-codex.txt](info/NOTICE-codex.txt)
+- [NOTICE-Codex.txt](info/NOTICE-Codex.txt)
 
 ---
 

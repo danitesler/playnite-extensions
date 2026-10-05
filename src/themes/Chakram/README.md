@@ -6,7 +6,7 @@
 
 **Unofficial fully dark desktop theme inspired by Chakra UI, in teal. Not affiliated with the Chakra UI project.**
 
-**[Download Chakram 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/chakraui-v0.1.0)**
+_Not released yet._
 
 ## Screenshots
 
@@ -30,18 +30,18 @@ Not affiliated with, endorsed by or sponsored by the Chakra UI project or Chakra
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/chakraui-v0.1.0)
+- **Latest release:** not released yet
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Minimal, Desktop, Teal
 - **Inspired by (Chakra UI):** https://chakra-ui.com
-- **Source:** [src/themes/ChakraUi](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/ChakraUi)
+- **Source:** [src/themes/Chakram](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Chakram)
 - **Issues and suggestions:** [GitHub issues](https://github.com/danitesler/playnite-extensions/issues)
 
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
 - [LICENSE-lucide.txt](info/LICENSE-lucide.txt)
-- [NOTICE-ChakraUi.txt](info/NOTICE-ChakraUi.txt)
+- [NOTICE-Chakram.txt](info/NOTICE-Chakram.txt)
 
 ---
 

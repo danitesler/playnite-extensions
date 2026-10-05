@@ -6,7 +6,7 @@
 
 **An unofficial dark desktop theme inspired by shadcn/ui's zinc palette and components.**
 
-**[Download Shade 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/shadcnui-v0.1.0)**
+_Not released yet._
 
 ## Screenshots
 
@@ -30,18 +30,18 @@ Not affiliated with, endorsed by or sponsored by the shadcn/ui project or its ow
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/shadcnui-v0.1.0)
+- **Latest release:** not released yet
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Minimal, Desktop
 - **Inspired by (shadcn/ui):** https://ui.shadcn.com
-- **Source:** [src/themes/ShadcnUi](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/ShadcnUi)
+- **Source:** [src/themes/Shade](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Shade)
 - **Issues and suggestions:** [GitHub issues](https://github.com/danitesler/playnite-extensions/issues)
 
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
 - [LICENSE-lucide.txt](info/LICENSE-lucide.txt)
-- [NOTICE-ShadcnUi.txt](info/NOTICE-ShadcnUi.txt)
+- [NOTICE-Shade.txt](info/NOTICE-Shade.txt)
 
 ---
 

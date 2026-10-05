@@ -39,7 +39,7 @@ Unofficial; not affiliated with Mojang Studios or Microsoft. Minecraft is a trad
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
-- [NOTICE-overworld.txt](info/NOTICE-overworld.txt)
+- [NOTICE-Overworld.txt](info/NOTICE-Overworld.txt)
 
 ---
 

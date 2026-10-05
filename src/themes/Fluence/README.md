@@ -6,7 +6,7 @@
 
 **An unofficial dark desktop theme inspired by the Fluent 2 design system. Not affiliated with or endorsed by Microsoft.**
 
-**[Download Fluence 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/fluent2-v0.1.0)**
+_Not released yet._
 
 ## Screenshots
 
@@ -30,18 +30,18 @@ This theme is not affiliated with, endorsed by or sponsored by Microsoft Corpora
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/fluent2-v0.1.0)
+- **Latest release:** not released yet
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Minimal, Desktop, Fluent
 - **Inspiration (Microsoft Fluent 2 design system):** https://fluent2.microsoft.design
-- **Source:** [src/themes/Fluent2](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Fluent2)
+- **Source:** [src/themes/Fluence](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Fluence)
 - **Issues and suggestions:** [GitHub issues](https://github.com/danitesler/playnite-extensions/issues)
 
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
 - [LICENSE-fluentui-system-icons.txt](info/LICENSE-fluentui-system-icons.txt)
-- [NOTICE-Fluent2.txt](info/NOTICE-Fluent2.txt)
+- [NOTICE-Fluence.txt](info/NOTICE-Fluence.txt)
 
 ---
 

@@ -4,7 +4,7 @@
 
 <img src="info/icon.png" alt="Night City 2" width="64" height="64" />
 
-**A fan-made dark theme inspired by the yellow menus of Cyberpunk 2077.**
+**An unofficial fan-made dark theme inspired by the yellow menus of Cyberpunk 2077. Not affiliated with CD PROJEKT RED.**
 
 _Not released yet._
 
@@ -17,6 +17,8 @@ _Not released yet._
 ## About
 
 A fan-made dark theme inspired by the yellow menus of Cyberpunk 2077.
+
+Unofficial; not affiliated with, endorsed by or sponsored by CD PROJEKT RED or CD PROJEKT S.A. Cyberpunk 2077 is a trademark of CD PROJEKT S.A. No game assets included.
 
 ## Install
 
@@ -38,6 +40,7 @@ A fan-made dark theme inspired by the yellow menus of Cyberpunk 2077.
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
 - [LICENSE-phosphor.txt](info/LICENSE-phosphor.txt)
+- [NOTICE-NightCity2.txt](info/NOTICE-NightCity2.txt)
 
 ---
 

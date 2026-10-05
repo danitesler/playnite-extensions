@@ -4,7 +4,7 @@
 
 <img src="info/icon.png" alt="Night City" width="64" height="64" />
 
-**A yellow-on-black Playnite theme inspired by the Cyberpunk 2077 interface.**
+**An unofficial yellow-on-black Playnite theme inspired by the Cyberpunk 2077 interface. Not affiliated with CD PROJEKT RED.**
 
 _Not released yet._
 
@@ -17,6 +17,8 @@ _Not released yet._
 ## About
 
 A yellow-on-black Playnite theme inspired by the Cyberpunk 2077 interface.
+
+Unofficial; not affiliated with, endorsed by or sponsored by CD PROJEKT RED or CD PROJEKT S.A. Cyberpunk 2077 is a trademark of CD PROJEKT S.A. No game assets included.
 
 ## Install
 

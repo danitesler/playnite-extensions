@@ -4,7 +4,7 @@
 
 <img src="info/icon.png" alt="Holotape" width="64" height="64" />
 
-**A dark, warm terminal theme inspired by the Pip-Boy and RobCo screens of Fallout 3 and Fallout: New Vegas.**
+**An unofficial dark, warm terminal theme inspired by the Pip-Boy and RobCo screens of Fallout 3 and Fallout: New Vegas. Not affiliated with Bethesda.**
 
 _Not released yet._
 
@@ -17,6 +17,8 @@ _Not released yet._
 ## About
 
 A dark, warm terminal theme inspired by the Pip-Boy and RobCo screens of Fallout 3 and Fallout: New Vegas.
+
+Unofficial; not affiliated with, endorsed by or sponsored by Bethesda Softworks, ZeniMax Media, Obsidian Entertainment or Microsoft. Fallout and Pip-Boy are trademarks of Bethesda Softworks LLC, a ZeniMax Media company. No game assets included.
 
 ## Install
 

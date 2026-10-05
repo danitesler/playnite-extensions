@@ -39,7 +39,7 @@ Unofficial; not affiliated with Blizzard Entertainment. StarCraft is a trademark
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
-- [NOTICE-uplink.txt](info/NOTICE-uplink.txt)
+- [NOTICE-Uplink.txt](info/NOTICE-Uplink.txt)
 
 ---
 
