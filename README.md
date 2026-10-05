@@ -61,6 +61,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Overworld/art/details.png"><img src="src/themes/Overworld/art/details.png" alt="Overworld details" width="49%" /></a> <a href="src/themes/Overworld/art/settings.png"><img src="src/themes/Overworld/art/settings.png" alt="Overworld settings" width="49%" /></a> |
 | <img src="src/themes/Frontier/info/icon.png" alt="Frontier" width="48" height="48" /> | **Frontier**<br>After the Red Dead Redemption 2 menus: a red painted rail, flat dark rows and a red selection frame on near black. |
 | ↳ | <a href="src/themes/Frontier/art/details.png"><img src="src/themes/Frontier/art/details.png" alt="Frontier details" width="49%" /></a> <a href="src/themes/Frontier/art/settings.png"><img src="src/themes/Frontier/art/settings.png" alt="Frontier settings" width="49%" /></a> |
+| <img src="src/themes/Cordon/info/icon.png" alt="Cordon" width="48" height="48" /> | **Cordon**<br>After the S.T.A.L.K.E.R. menus: rusted steel plates, olive-black panels, a red-lens dropdown knob and amber lamp toggles. |
+| ↳ | <a href="src/themes/Cordon/art/details.png"><img src="src/themes/Cordon/art/details.png" alt="Cordon details" width="49%" /></a> <a href="src/themes/Cordon/art/settings.png"><img src="src/themes/Cordon/art/settings.png" alt="Cordon settings" width="49%" /></a> |
 
 ## Installation
 
