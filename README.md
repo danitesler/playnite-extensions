@@ -61,6 +61,8 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | ↳ | <a href="src/themes/Overworld/art/details.png"><img src="src/themes/Overworld/art/details.png" alt="Overworld details" width="49%" /></a> <a href="src/themes/Overworld/art/settings.png"><img src="src/themes/Overworld/art/settings.png" alt="Overworld settings" width="49%" /></a> |
 | <img src="src/themes/Frontier/info/icon.png" alt="Frontier" width="48" height="48" /> | **Frontier**<br>After the Red Dead Redemption 2 menus: a red painted rail, flat dark rows and a red selection frame on near black. |
 | ↳ | <a href="src/themes/Frontier/art/details.png"><img src="src/themes/Frontier/art/details.png" alt="Frontier details" width="49%" /></a> <a href="src/themes/Frontier/art/settings.png"><img src="src/themes/Frontier/art/settings.png" alt="Frontier settings" width="49%" /></a> |
+| <img src="src/themes/CallingCard/info/icon.png" alt="Calling Card" width="48" height="48" /> | **Calling Card**<br>After the Persona 5 menus: ink plates, paper text, slanted red plates with a blue sliver for whatever is current, a red halftone corner. |
+| ↳ | <a href="src/themes/CallingCard/art/details.png"><img src="src/themes/CallingCard/art/details.png" alt="Calling Card details" width="49%" /></a> <a href="src/themes/CallingCard/art/settings.png"><img src="src/themes/CallingCard/art/settings.png" alt="Calling Card settings" width="49%" /></a> |
 
 ## Installation
 
