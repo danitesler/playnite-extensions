@@ -1,8 +1,10 @@
-# Shadcn UI — theme notes
+# Shadcn-inspired — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) in the style of **shadcn/ui** (new-york-v4), fully dark on the **zinc** base color.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) named **Shadcn-inspired** (key and folder stay `shadcnui`, `AddonId` `ShadcnUi_B66DB7B1`), in the style of **shadcn/ui** (new-york-v4 registry), fully dark on the **zinc** base color.
+
+**Unofficial fan theme**: not affiliated with, endorsed by or sponsored by shadcn or the shadcn/ui project. shadcn/ui is named only to say what inspired the look (nominative use). No shadcn/ui logo, icon, font or artwork is shipped: the add-on tile (`art/mark.svg`) is an original inset-card mark, the icons are Lucide (ISC, `info/LICENSE-lucide.txt`), and the colors and spacing follow the open-source (MIT) registry values. See `info/NOTICE-ShadcnUi.txt`.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -20,11 +22,7 @@ Keys are the shared vocabulary; the template names the shadcn variable behind ea
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
-*(Full token-to-key mapping: see `src/Constants.template.xaml`)*
-
 ## Component spacing (`src/Common.xaml`)
-
-*(Control padding and dimensions: see `src/Common.xaml`)*
 
 *(Control padding and dimensions: see `src/Common.xaml`)*
 
@@ -42,7 +40,7 @@ shadcn's inset layout (blocks `sidebar-07` / `dashboard-01`):
 | `CustomControls/TopPanelItem.xaml` | Button ghost, size icon-sm (32px); accent when toggled. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Playnite's panels on p-4 spacing without separators. |
 | `Views/Library.xaml` | Background art under the top bar, feathered on every edge (bitmap-cached opacity masks). |
-| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | shadcn page: h1 (text-3xl bold) with the icon, actions on the right (icon Button Edit, secondary More, default Play); Separator; then two columns: the description and Notes Cards, and a 384px Details Card that holds every metadata field Playnite can show, as label cells (muted, font-medium, 120px) beside the value in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by Separators (my-4). A group whose fields are all hidden collapses with its Separator. No art, no cover. The grid panel uses the same two columns (a 280px Details Card on the right), with the label over the value. Fields left out are parts Playnite skips. |
+| `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | shadcn page: h1 (text-3xl bold) with the icon, actions on the right (icon Button Edit, secondary More, default Play); Separator; then two columns: the description and Notes Cards, and a 280px Details Card (`GameDetailsPaneWidth`) that holds every metadata field Playnite can show, as label cells (muted, font-medium, 120px) beside the value in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by Separators (my-4). A group whose fields are all hidden collapses with its Separator. No art, no cover. The grid panel uses the same two columns (a 280px Details Card on the right), with the label over the value. Fields left out are parts Playnite skips. |
 
 The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap) keeps it clear of the window buttons; keep it in step with `MainWindowStyle.xaml`.
 
@@ -52,14 +50,13 @@ Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Play
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
-*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
-
 ## Deviations from shadcn
 
 - No borders on cards, the sidebar or the header, and no layout separators: surfaces and spacing carry the structure. Regular buttons are `secondary` (filled, borderless) rather than `outline`.
 - No shadows (`shadow-xs`, `shadow-md`): WPF popups are layered windows and Playnite's lists redraw often.
 - The logo tile dims to 90% on hover; the block has no hover state of its own there.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`), recolored to muted-foreground.
+- The notification count badge (`Views/TopPanel.xaml`) uses `ControlCornerRadius` (rounded-md, like shadcn's Badge) instead of a pill: its width grows with the count, and `CornerRadiusFull` on a non-square element draws an oval in WPF (AGENTS.md, Control Corner Radii). `CornerRadiusFull` stays defined in `Constants.template.xaml` for custom CSS palettes but nothing in the theme uses it.
 - The Details Card has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
 
 ## Not verified yet
@@ -69,3 +66,7 @@ Built and statically checked on Linux (XML, file allowlist, resource keys, Stati
 Layout checks: the inset card's rounded corners over the library background image (details view), window buttons centered in the card header, the sidebar at each position (Settings → Appearance → Layout), the search placeholder hiding while typing, lucide icons in the top bar and on Library / Statistics, the blue logo tile, and slider ranges ending under the thumb (grid zoom slider).
 
 Game overview: the 384px Details Card beside the description (and at narrow window widths), the group Separators and the collapse of a group whose fields are hidden (the first visible group starts flush at the card padding), Badge wrapping in the 200px value column, Tabs inside the grid panel's scrolling pane.
+
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` render `art/details.png` and `art/settings.png` (`scripts/take-screenshots.ps1 -Extension shadcnui`). Motifs: the rounded-xl `background` card inset in the `sidebar` frame, the borderless `card` panels with 24px padding, ghost 32px icon buttons with the accent fill on the current view switch, the amber count badge on the bell (rounded-md, as in the XAML), and the muted label column of the Details Card with hairline group rules. Segoe UI is drawn with the bundled Selawik stand-in. Colors are `var(--token)` from `src/tokens.css`; the amber of the badge and the white slider thumb are literal, as in `Constants.template.xaml`. The art holds no shadcn/ui logo; the preview shows the theme's own name only.

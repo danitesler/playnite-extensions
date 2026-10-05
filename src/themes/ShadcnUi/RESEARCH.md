@@ -1,4 +1,6 @@
-# ShadcnUi — research & sources
+# Shadcn-inspired (shadcnui) — research & sources
+
+Unofficial theme inspired by shadcn/ui; not affiliated with, endorsed by or sponsored by shadcn or the shadcn/ui project. The names below are references to what inspired the look.
 
 ## Sources
 
