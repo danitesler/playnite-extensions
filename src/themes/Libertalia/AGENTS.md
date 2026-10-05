@@ -52,6 +52,7 @@ Follows the shared skeleton. Differences:
 - **Smudge**: the game's soft light is drawn as a fill through a radial `OpacityMask`, not a blur. Its indent is 6 to 8px instead of the game's 45px at 1080p, so lists don't jump.
 - **No tab strip in the game**: Playnite's tabs become a row of category titles.
 - **Panel frame**: the game's frame is about 6px at 1080p; 3px here on the metadata pane, a 1px hairline on popups (WPF popups keep a thin edge).
+- **Notification count badge** (`TopPanelNotificationsToggle`) uses `ControlCornerRadius` (0, square like every save-slot shape), not `CornerRadiusFull`: the badge is `MinWidth` 15 x `Height` 15 and grows with two-digit counts, so it is not a 1:1 square and a pill radius would distort it.
 - **Scroll bar** has no end arrows.
 - **List view column headers** keep Playnite's Default header style.
 
