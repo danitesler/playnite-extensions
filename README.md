@@ -49,6 +49,7 @@ Each add-on has its own **GitHub Release** and installer (`.pext` for extensions
 | <a href="src/themes/Cs16/art/details.png"><img src="src/themes/Cs16/art/details.png?v=1" alt="CS 1.6 details" width="640" /></a> | **CS 1.6**<br>After the Counter-Strike 1.6 menus: olive Steam-era chrome with bevelled buttons around black panels, amber Verdana text, a pale buy-menu selection bar and a dotted focus rectangle. |
 | <a href="src/themes/Cordon/art/details.png"><img src="src/themes/Cordon/art/details.png?v=1" alt="Cordon details" width="640" /></a> | **Cordon**<br>After the S.T.A.L.K.E.R. menus: rusted steel plates, olive-black panels, a red-lens dropdown knob and amber lamp toggles. |
 | <a href="src/themes/CallingCard/art/details.png"><img src="src/themes/CallingCard/art/details.png?v=1" alt="Calling Card details" width="640" /></a> | **Calling Card**<br>After the Persona 5 menus: ink plates, paper text, slanted red plates with a blue sliver for whatever is current, a red halftone corner. |
+| <a href="src/themes/Holotape/art/details.png"><img src="src/themes/Holotape/art/details.png?v=1" alt="Holotape details" width="640" /></a> | **Holotape**<br>After the Fallout 3 and New Vegas Pip-Boy: warm dark yellow-brown surfaces, amber titles, thin bracketed rules and a green outline selection. |
 
 ## Installation
 
