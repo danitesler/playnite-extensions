@@ -45,7 +45,7 @@ No rounded corners anywhere (the scheme has no radius concept). Controls are 1px
 
 - **Two tones, like the game shipped**: the Steam olive skin for frame, title bands, buttons and scroll bars; black translucent panels with amber text (the in-game menus and buy menu) for lists, the game page and inputs.
 - **Selection** is the buy menu's pale bar with white text, not an amber fill. Amber fill is reserved for the Play button (black ink).
-- **Layout**: compact 44px olive rail on the left, 56px olive top bar, black content layer (per repo shell rules).
+- **Layout**: compact 44px olive rail on the left, 40px olive top bar (28px bevelled buttons, as built in `Views/TopPanel.xaml`), black content layer (per repo shell rules).
 - **Signature motifs** (drawn in the previews): bevelled olive controls, the dotted focus rectangle, white 39 percent selection bar, amber-on-black text with gold section headings, olive dialog title bands, T/CT team colors for danger/info, HUD-amber progress fills.
 
 ## Not done
