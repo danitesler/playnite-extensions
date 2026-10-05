@@ -125,11 +125,14 @@ function Test-SidebarIconPadding {
         $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
 
-        # Static regex linter check: Stacked padding in SidebarItem.xaml (Padding="14,12" wrapping IconPadding)
+        # Static regex linter check: stacked padding in SidebarItem.xaml (a fixed plate padding wrapping
+        # an element bound to IconPadding). The structural check below catches every shape of this precisely;
+        # this fast check names the file directly. Fixed = plain numbers only (bindings and resources are not plates).
         if ($file.Name -eq "SidebarItem.xaml") {
-            if ($clean -match 'Padding\s*=\s*"14\s*,\s*12"[\s\S]*?Padding\s*=\s*"[^"]*IconPadding' -or
-                $clean -match 'Padding\s*=\s*"[^"]*IconPadding[\s\S]*?Padding\s*=\s*"14\s*,\s*12"') {
-                $errors.Add("${where}: Stacked padding in SidebarItem.xaml (Padding=`"14,12`" wrapping IconPadding). Keep only one (AGENTS.md Sidebar Icon Sizing).") | Out-Null
+            $hasFixedPlate = $clean -match 'Padding\s*=\s*"[0-9][0-9\s,\.]*"'
+            $hasIconPadding = $clean -match 'Padding\s*=\s*"[^"]*IconPadding'
+            if ($hasFixedPlate -and $hasIconPadding) {
+                $errors.Add("${where}: Stacked padding in SidebarItem.xaml (a fixed plate padding wrapping IconPadding). Keep only one (AGENTS.md Sidebar Icon Sizing).") | Out-Null
             }
         }
 
@@ -178,17 +181,29 @@ function Test-PillCornerRadius {
         $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
 
-        # Static regex linter check: Slider and ProgressBar are thin tracks/fills; they must NEVER use CornerRadiusFull.
-        if ($file.Name -in @("Slider.xaml", "ProgressBar.xaml")) {
+        # Static regex linter check: thin tracks and fills must NEVER use CornerRadiusFull (it clamps to
+        # width/2, turning a 4-6px line into a needle). Use an explicit numeric radius equal to half the
+        # track thickness. ScrollViewer.xaml is scoped to its ScrollBarThumb block: the file also hosts
+        # square arrow buttons where a pill radius is legitimate (the square-walk below allows those).
+        if ($file.Name -in @("Slider.xaml", "ProgressBar.xaml", "Thumb.xaml")) {
             if ($clean -match 'CornerRadius\s*=\s*"[^"]*CornerRadiusFull' -or $clean -match 'Property\s*=\s*"CornerRadius"\s+Value\s*=\s*"[^"]*CornerRadiusFull') {
                 $errors.Add("${where}: $($file.Name) uses CornerRadiusFull on a thin track/fill. Use an explicit numeric radius equal to half the track thickness (AGENTS.md Control Corner Radii).") | Out-Null
             }
         }
+        if ($file.Name -eq "ScrollViewer.xaml") {
+            $thumbBlock = [regex]::Match($clean, 'x:Key\s*=\s*"ScrollBarThumb"[\s\S]*?</Style>').Value
+            if ($thumbBlock -and ($thumbBlock -match 'CornerRadius\s*=\s*"[^"]*CornerRadiusFull' -or $thumbBlock -match 'Property\s*=\s*"CornerRadius"\s+Value\s*=\s*"[^"]*CornerRadiusFull')) {
+                $errors.Add("${where}: ScrollBarThumb uses CornerRadiusFull on a thin thumb. Use an explicit numeric radius equal to half the thumb thickness (AGENTS.md Control Corner Radii).") | Out-Null
+            }
+        }
 
-        # Static regex linter check: Base button style in DefaultControls/Button.xaml must not use CornerRadiusFull.
-        if ($file.Name -eq "Button.xaml" -and $relative -match "DefaultControls") {
+        # Static regex linter check: base control styles must not use CornerRadiusFull. Plugins (SteamScreenshots
+        # carousel < >, numeric spin buttons) and unconstrained dialogs inherit these styles, and a pill radius
+        # on a non-square element draws an oval.
+        if (($file.Name -in @("Button.xaml", "ToggleButton.xaml", "RepeatButton.xaml", "TabControl.xaml") -and $relative -match "DefaultControls") -or
+            ($file.Name -eq "SearchBox.xaml" -and $relative -match "CustomControls")) {
             if ($clean -match 'Property\s*=\s*"CornerRadius"\s+Value\s*=\s*"[^"]*CornerRadiusFull') {
-                $errors.Add("${where}: Base Button.xaml style uses CornerRadiusFull. Base controls must use ControlCornerRadius (AGENTS.md Control Corner Radii).") | Out-Null
+                $errors.Add("${where}: Base $($file.Name) style uses CornerRadiusFull. Base controls must use ControlCornerRadius (AGENTS.md Control Corner Radii).") | Out-Null
             }
         }
 

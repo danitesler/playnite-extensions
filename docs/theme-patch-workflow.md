@@ -31,12 +31,15 @@ Per-theme `AGENTS.md` records only what differs from the skeleton.
    intentional 1:1 IconButtons (32x32 main menu, 40x40 toggles, 30x30
    plates, 16x16 dots). Only a pill radius on a non-square element is
    a bug — the validator's square-walk already allows the 1:1 cases.
-5. Per touched theme (root `AGENTS.md` mandates):
+5. Validate and build every touched theme — or all of them in one run:
    ```pwsh
-   ./scripts/validate-extension.ps1 -Extension <key>
-   ./scripts/build-theme.ps1 -Extension <key> -Deploy -Restart
-   ./scripts/take-screenshots.ps1 -Extension <key>
+   ./scripts/validate-themes.ps1 [-Keys shade,primo]   # all 29 by default; -Mode Package before a release
+   ./scripts/build-themes.ps1 [-Keys shade,primo] [-DeployKey <key>]  # builds never deploy; -DeployKey deploys + restarts only that theme
+   ./scripts/take-screenshots.ps1 -Extension <key>      # per theme, only where previews changed
    ```
+   Single-theme equivalents still work (`validate-extension.ps1 -Extension <key>`,
+   `build-theme.ps1 -Extension <key> -Deploy -Restart`). Root `AGENTS.md` mandates a build
+   after every edit; deploying sets the active theme, so only the theme being worked on gets `-Deploy -Restart`.
    Then `node scripts/generate-readmes.mjs` (fetch tags first) if
    screenshots or manifests changed.
 6. Keep the PR to one area across themes (e.g. "sidebar padding in all
