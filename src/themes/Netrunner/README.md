@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Netrunner screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Netrunner screenshot 2" width="100%" /></a>
+
 ## About
 
 Blue-black pages, menu text and rules in the game's red, a dark red wash on whatever is selected, cyan for focus and active items and a cut-corner red Play plate, inspired by the Cyberpunk 2077 menus. Unofficial fan theme: no CD PROJEKT RED assets, original artwork only. Install Rajdhani (free, OFL) for the closest type; otherwise it falls back to Bahnschrift.

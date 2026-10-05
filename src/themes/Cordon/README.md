@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Cordon screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Cordon screenshot 2" width="100%" /></a>
+
 ## About
 
 Rusted, riveted steel plates for the rail, top bar, tabs and buttons, grainy olive-black panels, near-black value fields with a red-lens dropdown knob, amber lamp toggles and the beige and cream type of the S.T.A.L.K.E.R.: Shadow of Chernobyl Options screen. Unofficial fan theme: no GSC Game World assets, procedural textures and open icons only. Install Letterica and Graffiti for the closest type; otherwise it falls back to Bahnschrift SemiCondensed or Arial Narrow.

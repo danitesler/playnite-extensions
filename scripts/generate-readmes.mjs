@@ -110,7 +110,13 @@ function buildReadme(a) {
   const rel = latestRelease(a.key);
   const kind = a.isTheme ? 'Theme' : 'Plugin';
   const desc = (listing.Description || listing.ShortDescription || '').trim();
-  const shots = screenshotsOf(listing.Screenshots).map((u) => u.replace(RAW + a.dir + '/', ''));
+  // Screenshots come from the files themselves (art/screenshot-*.png, details first), so a listing yaml that forgot
+  // its Screenshots: block does not leave the page without them; a yaml list is the fallback (plugins).
+  const artDir = path.join(root, a.dir, 'art');
+  const onDisk = fs.existsSync(artDir) ? fs.readdirSync(artDir).filter((f) => /^screenshot-.*\.png$/.test(f)) : [];
+  const rank = (f) => (f === 'screenshot-details.png' ? 0 : f === 'screenshot-settings.png' ? 1 : 2);
+  onDisk.sort((x, y) => rank(x) - rank(y) || x.localeCompare(y));
+  const shots = onDisk.length ? onDisk.map((f) => `art/${f}`) : screenshotsOf(listing.Screenshots).map((u) => u.replace(RAW + a.dir + '/', ''));
   const links = linksOf(listing.Links).filter((l) => !/homepage|report issue/i.test(l.label));
   const notices = fs.readdirSync(path.join(root, info)).filter((f) => /^(NOTICE|LICENSE).*\.txt$/.test(f)).sort();
 
@@ -120,7 +126,8 @@ function buildReadme(a) {
   out.push(rel ? `**[Download ${a.name} ${rel.version}](${rel.url})**` : '_Not released yet._', '');
   if (shots.length) {
     out.push('## Screenshots', '');
-    out.push(shots.map((s, i) => `<a href="${s}"><img src="${s}" alt="${a.name} screenshot ${i + 1}" width="49%" /></a>`).join(' '), '');
+    // One per paragraph, full width: stacked, never side by side.
+    for (const [i, s] of shots.entries()) out.push(`<a href="${s}"><img src="${s}" alt="${a.name} screenshot ${i + 1}" width="100%" /></a>`, '');
   }
   out.push('## About', '', desc, '');
   out.push('## Install', '', installSteps(a, manifest), '');

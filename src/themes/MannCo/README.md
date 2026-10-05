@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Mann Co screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Mann Co screenshot 2" width="100%" /></a>
+
 ## About
 
 Dark brown pages, tan paper plates for whatever you press or select, rust on hover and a thin RED and BLU rule under the top bar, inspired by the Team Fortress 2 menus. Unofficial fan theme: no Valve assets, original artwork only. Uses Verdana and Trebuchet MS, Valve's own Windows fallbacks for its UI fonts.

@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Tumbleweed screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Tumbleweed screenshot 2" width="100%" /></a>
+
 ## About
 
 Pure black pages, maroon headings over flat grey rules, grey text that turns white when selected, prompt-keycap buttons and game art washed in a red duotone, inspired by the original Red Dead Redemption menus. Unofficial fan theme: no Rockstar assets, original artwork only. Install Chinese Rocks (and Oswald) for the closest type; otherwise it falls back to Anton or Impact.

@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Hearthside screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Hearthside screenshot 2" width="100%" /></a>
+
 ## About
 
 Dark tavern wood framed in brass, gold Belwe headings, lit plates with gold edges for whatever is current, parchment tooltips, mana-blue progress bars with a crystal slider thumb, and a yellow End Turn Play button that glows green, inspired by the Hearthstone interface. Unofficial fan theme: no Blizzard assets, original artwork only. Install Belwe for the closest headings; otherwise it falls back to Bookman Old Style or Georgia.

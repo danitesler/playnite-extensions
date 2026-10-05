@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="CS 1.6 screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="CS 1.6 screenshot 2" width="100%" /></a>
+
 ## About
 
 Olive Steam / GoldSrc window frames and bevelled buttons around black panels with amber Verdana text, a pale selection bar like the buy menu, HUD-amber progress fills and a dotted focus rectangle, inspired by the Counter-Strike 1.6 menus. Square corners everywhere, original pixel icons. Unofficial fan theme: no Valve assets. Verdana ships with Windows.

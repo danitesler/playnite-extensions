@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Holotape screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Holotape screenshot 2" width="100%" /></a>
+
 ## About
 
 A dark, warm terminal theme inspired by the Pip-Boy and RobCo screens of Fallout 3 and Fallout: New Vegas.

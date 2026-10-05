@@ -10,7 +10,9 @@ _Not released yet._
 
 ## Screenshots
 
-<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Calling Card screenshot 1" width="49%" /></a> <a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Calling Card screenshot 2" width="49%" /></a>
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Calling Card screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Calling Card screenshot 2" width="100%" /></a>
 
 ## About
 

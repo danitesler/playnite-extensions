@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Night City 2 screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Night City 2 screenshot 2" width="100%" /></a>
+
 ## About
 
 A fan-made dark theme inspired by the yellow menus of Cyberpunk 2077.

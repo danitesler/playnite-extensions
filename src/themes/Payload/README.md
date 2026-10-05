@@ -8,6 +8,12 @@
 
 _Not released yet._
 
+## Screenshots
+
+<a href="art/screenshot-details.png"><img src="art/screenshot-details.png" alt="Payload screenshot 1" width="100%" /></a>
+
+<a href="art/screenshot-settings.png"><img src="art/screenshot-settings.png" alt="Payload screenshot 2" width="100%" /></a>
+
 ## About
 
 Navy panels from the career profile, the game's cyan selection with black type, an OW2-orange Play button slanted 15 degrees like the VS plates, oblique display headings and scores in the team colors, inspired by the Overwatch 2 menus. Unofficial fan theme: no Blizzard assets, original artwork only. Install BigNoodleTooOblique (and Config) for the closest type; otherwise it falls back to Bahnschrift.
