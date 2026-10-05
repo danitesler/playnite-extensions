@@ -34,8 +34,8 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat: sidebar and view on `bg`, no inset. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as ghost IconButtons, size sm (36px, `MainWindowButton`), centered on the 64px bar, 24px from the right; close = red solid on hover. |
-| `Views/Sidebar.xaml` | px-4 around 40px items, gap-2. Main menu = `MainMenuButton`, a rounded-full `colorPalette.solid` IconButton (40px, white icon). |
-| `CustomControls/SidebarItem.xaml` | IconButton md (40px, radius l2): ghost at rest, `gray.subtle` hover; active view = teal `subtle` (`colorPalette.subtle` fill, `colorPalette.fg` icon). |
+| `Views/Sidebar.xaml` | The 44px compact rail (repo mandate), no fill or border. Main menu = `MainMenuButton`, a 32px rounded-full `colorPalette.solid` IconButton with a white 16px icon, centered in the rail and on the 64px bar. |
+| `CustomControls/SidebarItem.xaml` | 44x40 item with a 36x36 plate (radius l2, 4px/2px margin) and a fixed 16px glyph, no `IconPadding`: ghost at rest, `gray.subtle` hover; active view = teal `subtle` (`colorPalette.subtle` fill, `colorPalette.fg` icon). |
 | `Views/TopPanel.xaml` | 64px bar, px-6. Playnite's view controls in one SegmentGroup on the left (`bg.muted` track, radius l3); search on the right (`TopPanelSearchBox`: InputGroup + Input `subtle`, h-10, 320px); ghost IconButtons for filters and notifications, teal `subtle` while active; red solid Badge for the notification count. |
 | `CustomControls/TopPanelItem.xaml` | SegmentGroup items: 40px, 20px icons; checked = `bg.emphasized` indicator, hover = `bg.emphasized/60`. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 4px spacing scale without separators; background art under the top bar, feathered on every edge. |
@@ -49,6 +49,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 
 - Inputs, selects and the search box use the `subtle` variant (Chakra's default is `outline`), so fields have no visible edge; checkbox and radio edges use `border.emphasized` so they stay visible on black.
 - No shadows (menus `lg`, select `md`, tooltip `md`, card `elevated`): WPF popups are layered windows, so menus and popovers get a 1px `border` edge instead, and the card is borderless `bg.panel`.
+- The sidebar is the repo's 44px compact rail, not Chakra's usual 72px nav (px-4 around 40px IconButtons): items are 36px plates with 16px glyphs and the main menu mark is 32px.
 - The SegmentGroup track keeps a 4px inset and radius l3, and items are icon-sized (40px square) with no dividers between them.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`).
 - The notification Badge (`TopPanelNotificationsToggle`) is not a 1:1 square (`MinWidth` 16, grows with the count), so it uses `CornerRadiusSmall` (radii.l1) instead of `CornerRadiusFull` (repo rule: no pill radius on non-square elements). Chakra's Badge is radius l2; the preview draws the same l1.

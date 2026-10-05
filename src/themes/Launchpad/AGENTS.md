@@ -28,7 +28,7 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 34. The client's own typeface is not bundl
 |------|----------|
 | `Views/MainWindow.xaml` | The sidebar docks with Playnite's Sidebar position. Left is the usual rail; the top bar stays the view controls. |
 | `Views/Sidebar.xaml` | Icon rail, 44px, frame color, 1px divider toward the library. The logo button (`PART_ElemMainMenu`: orbit mark in launcher blue) opens the main menu. Items are icon only. Left and right are vertical; top and bottom are a strip, with 140px kept clear for the window buttons. |
-| `CustomControls/SidebarItem.xaml` | Icon only, 44x40, 18px glyph; the title is the tooltip. Muted at rest, white on a card fill when hovered, 3px blue bar on the edge facing the library when current. |
+| `CustomControls/SidebarItem.xaml` | Icon only, 44x40, 16px glyph; the title is the tooltip. Muted at rest, white on a card fill when hovered, 3px blue bar on the edge facing the library when current. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons centered on the top bar (44x36, red close hover); caption height 52. |
 | `Views/TopPanel.xaml` | Top bar, 52px, frame color, 140px clear on the right for the window buttons: search (320px), view controls, filter toggle, notifications (blue count badge), plugin items, global progress. Carries the logo button only when the sidebar is hidden. |
 | `Views/Library.xaml` | Library on the page color; the library-wide background art (`PART_ImageBackground`) is kept but hidden. |
