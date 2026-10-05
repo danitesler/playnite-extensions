@@ -1,4 +1,6 @@
-# Primer — research & sources
+# Primer-inspired — research & sources
+
+Unofficial theme inspired by GitHub's Primer design system; not affiliated with or endorsed by GitHub, Inc. Primer and GitHub are GitHub's trademarks, named here only as the source of the design reference.
 
 ## Sources
 
