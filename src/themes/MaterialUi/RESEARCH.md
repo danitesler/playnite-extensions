@@ -1,4 +1,6 @@
-# MaterialUi — research & sources
+# Material-inspired — research & sources
+
+Unofficial theme, inspired by Google's Material Design and the MUI Material UI library. Not affiliated with, endorsed by or sponsored by Google or MUI; names are nominative references to the sources below.
 
 ## Sources
 

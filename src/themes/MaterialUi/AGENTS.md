@@ -1,8 +1,8 @@
-# Material UI — theme notes
+# Material-inspired — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Material UI** (MUI, Material Design 2), with MUI's default dark theme (`createTheme({ palette: { mode: 'dark' } })`).
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by **Material Design** as implemented in the **MUI Material UI** library (v9.4, Material Design 2), in MUI's default dark variant (`createTheme({ palette: { mode: 'dark' } })`). Unofficial: it is not affiliated with, endorsed by or sponsored by Google or MUI, and includes none of their logos, fonts or artwork (the tile icon is a neutral glyph, `art/mark.svg`); the menu icons are open-licensed Material Icons (Apache-2.0, `info/LICENSE-material-icons.txt`). Notices: `info/NOTICE-MaterialUi.txt`. The display name is "Material-inspired"; the id, key and folder keep their original names.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -59,7 +59,13 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 - The Card title is h6 instead of CardHeader's default h5, sized for settings sections.
 - The indeterminate LinearProgress slides one segment; MUI runs two bars at different speeds.
 - The overview cover is square-cornered (CardMedia inherits the Card radius in MUI); WPF can't clip an Image to a radius without a mask, and the 4px radius isn't worth one.
+- Chips (`PropertyItemButton` with `Tag="Chip"`) use `ControlCornerRadius` (4px) instead of MUI's 16px pill: WPF clamps `CornerRadiusFull` per axis, which would stretch a non-square chip into an oval (repo mandate).
+- `CornerRadiusFull` (9999) is used only on true 1:1 squares: the 40x40 IconButtons (main menu, top panel toggles, window buttons, More and Edit in the overview) and the 22x22 `WindowBarButton`. Tracks (Slider, scroll thumb) use `ControlCornerRadius`.
 - The Details List has no leading icons (there are 25 fields and Material Icons for only a few) and no group subheaders: themes cannot ship localization, so groups are told apart by Dividers and spacing.
+
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` render `art/details.png` and `art/settings.png` (1280x720, colors as `var(--mui-*)` tokens, Segoe UI drawn with the bundled Selawik). Motifs: the 64px mini drawer with its header band in the app bar color, the elevated app bar with the translucent search field, the primary dot and error count Badges, uppercase contained and text buttons, FilledInput with a primary underline, Paper cards with six Divider-split metadata groups. Chips are 4px-radius rectangles, as in the XAML.
 
 ## Not verified yet
 
