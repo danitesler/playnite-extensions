@@ -5,6 +5,12 @@ focused PRs are easiest to review.
 
 ## Before you start
 
+> **Windows-only builds.** Playnite runs on Windows only, so validation,
+> builds, packaging, and in-app testing require Windows. On macOS/Linux
+> you can still contribute docs, `tokens.css`, HTML previews, and static
+> XAML — but a Windows run (`validate-extension.ps1`, build, screenshots)
+> must pass before merge. Say in your PR what you could and could not run.
+
 - For bugs and ideas, [open an issue](https://github.com/danitesler/playnite-extensions/issues) first.
 - For security issues, see [SECURITY.md](SECURITY.md) — do not open a public issue.
 - Check `src/extensions.json` for the add-on `key`, `kind`, and `dir`.
