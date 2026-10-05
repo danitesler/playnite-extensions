@@ -32,7 +32,7 @@ Playnite **GenericPlugin** (`net462`, WPF). Hover popup anchored to a library ti
 
 ## Settings
 
-**Add-ons → Extension settings → Generic → GameHoverDetails.** Enable + Fullscreen toggles sit above a non-clickable **Settings** heading and a divider-less tab strip (**Fields**, **Display**, **Styling**, **Layout**). Live preview on the right.
+**Add-ons → Extension settings → Generic → GameHoverDetails.** Enable + Fullscreen toggles sit above a non-clickable **Settings** heading and a native Playnite `TabControl` (**Fields**, **Display**, **Styling**, **Layout**; no custom `TabControl`/`TabItem` templates). Live preview on the right.
 
 - **Strings** — `Localization/{locale}.xaml`; English fallback. RTL (e.g. Hebrew) sets **inner** hover/settings `FlowDirection` from Playnite language / main window and mirrors placement. New UI copy: `en_US.xaml` first, then **every** locale (skill **`playnite-plugin-dev`** → Localization).
 - **Nesting** — checkbox-owned options indent **25 DIP** so they line up with the checkbox **label**. Dependent controls go in a `SettingsNestedGroup` (`Margin="25,12,0,0"`, `Visibility` bound to the parent checkbox) right after that checkbox, recursively (Show icons → style / size / Show icon background → color picker). Always-on controls come first. `SettingsParentCheckBox` and `SettingsFieldTitle` must stay `BasedOn` the Playnite `CheckBox` / `Label` type (Autogrid-like margins `0,0,0,4` / `0,16,0,4`, no custom `FontSize` / `FontWeight`). Stock `Label` / `CheckBox` only.

@@ -42,7 +42,9 @@ Radii: `ControlCornerRadius` 2px, `CornerRadiusSmall` and the rest 0; the look i
 | `GroupBoxPadding` | 14 | Cards |
 | `TooltipPadding` | 10,6 | Tooltips |
 | `IconSize` | 16 | Phosphor bold at 16px |
-| `GameBannerHeight` | 340 | Default banner; the spacer ratio is `x * 220 / 340` (details) and `x * 160 / 340` (grid) |
+| `GameBannerHeight` | 340 | Default banner; the spacer ratio is `x * 100 / 340` (details) and `x * 72 / 340` (grid) |
+| `GameDetailsPaneWidth` | 320 | Details column on the game page (details view). ThemeModifier edits it. |
+| `GridDetailsPaneWidth` | 280 | Details column in the grid view side panel. ThemeModifier edits it. |
 
 These are this theme's own values: there is no published spec to quote.
 
@@ -57,7 +59,7 @@ These are this theme's own values: there is no published spec to quote.
 
 ## Game page
 
-Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` with the default 340 banner; with `ActualHeight` 0 it drops to 24. Metadata is one card with six collapsing groups separated by 1px yellow rules, with one cut corner. Steam screenshots show a skeleton for Steam games (`SteamScreenshotsSkeletonTemplate`).
+Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` with the default 340 banner (`x * 100 / 340` details, `x * 72 / 340` grid); with `ActualHeight` 0 it drops to 24 (details) and 48 (grid). Metadata is one card with six collapsing groups separated by 1px yellow rules, with one cut corner. Steam screenshots show a skeleton for Steam games (`SteamScreenshotsSkeletonTemplate`).
 
 ## Components
 

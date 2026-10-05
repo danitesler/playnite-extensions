@@ -27,8 +27,9 @@ Docs: [Extensions intro](https://playnite.link/docs/tutorials/extensions/intro.h
 
 Applies to any plugin settings `UserControl`.
 
-- Only Playnite's stock WPF controls: `CheckBox`, `Label`, `Slider`, `RadioButton`, `ComboBox`, `TextBox`, `Button`, `TextBlock`; layout with `StackPanel`/`Grid`.
+- Only Playnite's stock WPF controls: `CheckBox`, `Label`, `Slider`, `RadioButton`, `ComboBox`, `TextBox`, `Button`, `TextBlock`, `TabControl`/`TabItem`, `Separator`; layout with `StackPanel`/`Grid`.
 - Baseline: `src/Autogrid/src/AutogridSettingsView.xaml` (`Label` + `CheckBox` + `Slider`/`RadioButton`, `TextBlock` with `{DynamicResource TextBrush}`, label margins `0,0,0,4` / `0,16,0,4`). Copy that pattern.
+- Prefer Playnite native components over custom-built ones. Dividers are native `Separator`, tabs are native `TabControl`/`TabItem` (no custom templates), swatches are stock `Button` + `TextBox` (no hardcoded `BorderBrush`), headings are stock `Label` (no custom `FontSize`/`FontWeight`). Theme colors/sizes via `{DynamicResource ...}` (`TextBrush`, `PopupBackgroundBrush`, `PopupBorderBrush`, `FontSize`); never hardcoded hex.
 - No invented chrome (cards, pills, tab strips, toggles, icon buttons, pickers, shadows) and no custom `FontSize`/`FontWeight` on `CheckBox`/`Label`. A new control only when the user explicitly asks.
 - A keyed style must be `BasedOn="{StaticResource {x:Type CheckBox}}"` (or `Label`); without `BasedOn` it replaces Playnite's template (12px WPF chrome).
 - Dependent options nest under the checkbox that reveals them (a `StackPanel` with `Margin="25,12,0,0"` bound to the checkbox, recursively). Never above it or in a later sibling block.

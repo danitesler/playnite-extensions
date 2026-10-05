@@ -1,6 +1,6 @@
 # HTML previews - how to build them
 
-`art/preview-details.html` and `art/preview-settings.html` are the only source of the release screenshots (`art/screenshot-details.png`, `art/screenshot-settings.png`). They are 1280x720 replicas of the theme, not Playnite captures. `new-theme.ps1` writes generic placeholders (indigo, Segoe UI, 8px radius); **every theme must replace them** with a replica of its own look. Netrunner, Payload and Tumbleweed are the worked examples: read one before writing.
+`art/preview-details.html` and `art/preview-settings.html` are the only source of the release screenshots (`art/screenshot-details.png`, `art/screenshot-settings.png`). They are 1280x720 replicas of the theme, not Playnite captures. `new-theme.ps1` writes generic placeholders (indigo, Segoe UI, 8px radius); **every theme must replace them** with a replica of its own look. Payload and Tumbleweed are the worked examples: read one before writing.
 
 ## Build order
 
@@ -92,10 +92,10 @@ Every tagged region stays inside 1280x720. A footer or panel that runs past the 
 
 ## Keep it unique
 
-- Pull 3 to 5 signature motifs out of the source material and draw each one: Netrunner's scanline haze, 2px red edge on selected rows, uppercase condensed headings with a short underline, clipped button corners and a footer note. Name them in AGENTS.md -> Previews.
+- Pull 3 to 5 signature motifs out of the source material (scanline haze, an accent edge on selected rows, heading case and underline, clipped corners, a footer note) and draw each one. Name them in AGENTS.md -> Previews.
 - Do not reuse another theme's preview as a base and recolor it. Start from the scaffold shell or from scratch.
 - No leftover scaffold content: the indigo `#6366f1`, "Eldritch Void" sample data copied verbatim in every theme, the generic header comment. Give the sample game, metadata and settings labels that suit the theme.
-- Unofficial replicas of a game or brand: no logos, no game assets; say so in the footer note, as Netrunner does.
+- Unofficial replicas of a game or brand: no logos, no game assets; say so in the footer note,.
 
 ## Checklist before finishing
 

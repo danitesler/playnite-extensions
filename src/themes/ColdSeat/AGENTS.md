@@ -29,7 +29,7 @@ Type: body and headings `Friz Quadrata TT, Palatino Linotype, Book Antiqua, Geor
 
 ## Component spacing (`src/Common.xaml`)
 
-`ButtonPadding` 14,6; `InputPadding` and item paddings 8,5; menu surface 3; group box 12; tooltip 10,6; `IconSize` 16; `GameBannerHeight` 320. `BevelTemplate` (lit top/left, dark bottom/right) is defined there too.
+`ButtonPadding` 14,6; `InputPadding` and item paddings 8,5; menu surface 3; group box 12; tooltip 10,6; `IconSize` 16; `GameBannerHeight` 320; `GameDetailsPaneWidth` 330; `GridDetailsPaneWidth` 280. `BevelTemplate` (lit top/left, dark bottom/right) is defined there too.
 
 ## Shell
 

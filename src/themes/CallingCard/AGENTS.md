@@ -113,5 +113,5 @@ Built and validated on Linux only (`build-theme.ps1`, `validate-extension.ps1 -M
 - Slanted plates do not clip at the edges of lists, menus and the tab strip (their corners reach 0.1 x height past the sides).
 - The name plate on the game page with long, wrapping titles and with an icon.
 - Play / context action alignment (Play is 48 tall, the context action 40, top-aligned).
-- Add-on sidebar icons (Netrunner, Tumbleweed, ...) render 16 x 16 in the fixed-padding `SidebarItem` (the old template stacked `14,12` with `IconPadding` and collapsed them); check one in Playnite.
+- Add-on sidebar icons (Tumbleweed, ...) render 16 x 16 in the fixed-padding `SidebarItem` (the old template stacked `14,12` with `IconPadding` and collapsed them); check one in Playnite.
 - The Settings tree's current row (Playnite's `TreeViewItem` recolored: red row, paper text) as drawn in the preview.
