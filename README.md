@@ -58,6 +58,7 @@ I'm a product designer, and these are what I make when I'm not doing that. They'
 ## Questions, suggestions, and issues
 
 If you have a question, suggestion, or run into a problem, [open an issue](https://github.com/danitesler/playnite-extensions/issues).
+Want to contribute? See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, validation, and PR guidance.
 
 ---
 
