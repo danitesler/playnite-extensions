@@ -1,8 +1,10 @@
-# Fluent 2 — theme notes
+# Fluent-inspired — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9), on the `webDarkTheme` tokens, with a Windows 11 app shell.
+Playnite **Desktop** theme named **Fluent-inspired** (`ThemeApiVersion` 2.9.0, Playnite 10.45+), in the style of Microsoft's **Fluent 2** design system (Fluent UI React v9, `@fluentui/react-theme` 9.2.2), dark variant only (`webDarkTheme` tokens), with a Windows 11 style app shell. The Id `Fluent2_3EA906E4`, key `fluent2` and folder `Fluent2` keep the original name so released installs keep updating; only the display name changed.
+
+Unofficial: not affiliated with, endorsed by or sponsored by Microsoft Corporation. Fluent, Windows and Microsoft are named only as the look's inspiration. No Microsoft logo, Windows logo, font or artwork ships; the icons are the open-licensed Fluent UI System Icons (MIT, `info/LICENSE-fluentui-system-icons.txt`), see `info/NOTICE-Fluent2.txt`. Never use the Windows logo or any Microsoft mark in the icon, previews or listing, and never put "Microsoft", "Windows" or "Fluent 2" alone as the theme's name.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -47,6 +49,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 
 ## Deviations from Fluent
 
+- The notification CounterBadge (`TopPanel.xaml`) uses `ControlCornerRadius` (4px), not Fluent's capsule: its width grows with the count, so `CornerRadiusFull` would stretch it into an oval in WPF (AGENTS.md Control Corner Radii). The preview draws the same 4px corners.
 - No shadows (`shadow16` on menus and tooltips, `shadow4` on cards). Popups get a `colorNeutralStroke2` edge instead of Fluent's transparent stroke; cards have no edge.
 - No Mica or acrylic: WPF layered popups and Playnite's window can't use the Windows 11 backdrop from a theme; the base layer is a flat color.
 - MenuItem text stays `colorNeutralForeground1` (Fluent uses `Foreground2` at rest): Playnite's MenuItem style sets the item foreground, and disabled items rely on it.
