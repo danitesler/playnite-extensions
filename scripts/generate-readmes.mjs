@@ -7,8 +7,8 @@
 // git tags `<key>-v<version>` (an add-on counts as released when such a tag exists).
 //
 // Rules: a README is only overwritten when it is missing or starts with the generated marker, so a hand-written one
-// (RandomTheme) is kept. The root README keeps its hand-written row text; only the final links line of each add-on row
-// is rewritten.
+// (RandomTheme) is kept. The root README keeps its hand-written row text; the generator rewrites each add-on row's image
+// link (it opens the Details page) and its final links line.
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -164,7 +164,10 @@ function updateRootReadme(text) {
     used.add(a.key);
     // first cell = icon or preview, second = name, text and links
     const cells = line.replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').split(/ \| /);
-    const first = cells.shift();
+    const firstCell = cells.shift();
+    // The preview (themes) or icon (plugins) opens the add-on's Details page, not the image file.
+    const img = /<img\b[^>]*\/>/.exec(firstCell);
+    const first = img ? `<a href="${a.dir}/README.md">${img[0]}</a>` : firstCell;
     const cell = cells.join(' | ');
     const parts = cell.split('<br>');
     const name = `**${a.name}**`;
