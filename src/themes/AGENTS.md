@@ -112,7 +112,7 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 - A group is a `Border` that collapses through a `MultiDataTrigger` on `{Binding Visibility, ElementName=PART_Elem<Field>}` = `Collapsed` (a `DataTrigger` for one field), so a game with few fields shows few groups and no stray separator.
 - Separator between groups: a 1px top border on each group inside a `ClipToBounds` wrapper whose inner panel has negative top and bottom margins, so the first group draws no rule; or plain space where the design system has no rules.
-- Rhythm: 12px above and below each group rule (Primer 16), 8px above and below each field (Material details 6, Questlog 6), 4px between a caption and its value in the grid panel. The wrapper's negative margins are `-(2 x group + 1 + field)` on top and `-field` at the bottom; change them together with the spacing. The grid panel keeps 20-24px side padding and a 24px gap between its two columns.
+- Rhythm: 12px above and below each group rule (Primo 16), 8px above and below each field (Materia details 6, Questlog 6), 4px between a caption and its value in the grid panel. The wrapper's negative margins are `-(2 x group + 1 + field)` on top and `-field` at the bottom; change them together with the spacing. The grid panel keeps 20-24px side padding and a 24px gap between its two columns.
 - No group captions: a theme cannot ship a `Localization` folder, so labels are existing Playnite keys (`LOCTimePlayed`, `LOCDevelopersLabel`, `LOCGenresLabel`, ...).
 - Details view: caption column beside the value. Grid panel: caption above the value. Not `GridEx`: `AutoLayoutColumns` would put hidden rows back in the flow.
 - Values in lists (`PART_Items*`) are Buttons Playnite styles with `{StaticResource PropertyItemButton}` from code. `PropertyItemButton.xaml` is the only hook: a text link by default, a chip when the owning list has `Tag="Chip"` (a `RelativeSource AncestorType=ItemsControl` DataTrigger).
@@ -121,7 +121,7 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 ## Icons
 
 - **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`, Overworld `art/icons.py` pixel bitmaps).
-- **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shade, Chakram, Materia, Fluence), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primer, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
+- **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shade, Chakram, Materia, Fluence), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primo, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
 
 ## Previews and screenshots
 
