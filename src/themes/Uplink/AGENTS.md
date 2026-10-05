@@ -54,6 +54,6 @@ The rest (TextBox, PasswordBox, ScrollViewer, ProgressBar, TabControl, Expander,
 
 ## Not verified yet
 
-Screenshots in `art/` (`details.png` and `settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
+Screenshots in `art/` (`screenshot-details.png` and `screenshot-settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
 
 First run, most likely to need a fix: the uppercase converter binding on `SidebarItem` titles; the chamfer plates at small sizes (the 6px corner cells need at least 12px of height); the rail glow and beam on the left, the tab glow and beam with the sidebar at the top and at the bottom; the flipped glow on a right-hand rail; caption buttons over the 56px bar and the 48px strip; `Typography.Capitals` with the installed heading font; and every `[eye]` value in `tokens.css`.

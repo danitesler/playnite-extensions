@@ -65,7 +65,7 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` render `art/details.png` and `art/settings.png` (1280x720, colors as `var(--mui-*)` tokens, Segoe UI drawn with the bundled Selawik). Motifs: the 64px mini drawer with its header band in the app bar color, the elevated app bar with the translucent search field, the primary dot and error count Badges, uppercase contained and text buttons, FilledInput with a primary underline, Paper cards with six Divider-split metadata groups. Chips are 4px-radius rectangles, as in the XAML.
+`art/preview-details.html` and `art/preview-settings.html` render `art/screenshot-details.png` and `art/screenshot-settings.png` (1280x720, colors as `var(--mui-*)` tokens, Segoe UI drawn with the bundled Selawik). Motifs: the 64px mini drawer with its header band in the app bar color, the elevated app bar with the translucent search field, the primary dot and error count Badges, uppercase contained and text buttons, FilledInput with a primary underline, Paper cards with six Divider-split metadata groups. Chips are 4px-radius rectangles, as in the XAML.
 
 ## Not verified yet
 

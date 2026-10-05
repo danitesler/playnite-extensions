@@ -107,7 +107,7 @@ Differences from the skeleton:
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are HTML replicas that use the same tokens, sizes and shell. `.\scripts\take-screenshots.ps1 -Extension hearthside` renders them to `art/details.png` and `art/settings.png`. The art is drawn with CSS gradients, and the game names in the list are made up. They are not Playnite captures.
+`art/preview-details.html` and `art/preview-settings.html` are HTML replicas that use the same tokens, sizes and shell. `.\scripts\take-screenshots.ps1 -Extension hearthside` renders them to `art/screenshot-details.png` and `art/screenshot-settings.png`. The art is drawn with CSS gradients, and the game names in the list are made up. They are not Playnite captures.
 
 On Linux, the screenshot script needs `CHROMIUM` set to a Chromium executable.
 

@@ -10,7 +10,7 @@ param(
     [switch]$KeepLegacy
 )
 
-# Generates release screenshots (details.png and settings.png) for a theme from its
+# Generates release screenshots (screenshot-details.png and screenshot-settings.png) for a theme from its
 # HTML preview templates in art/ (preview-details.html and preview-settings.html)
 # using Chromium. Does not start Playnite.
 
@@ -43,8 +43,8 @@ $nodeScript = Join-Path $PSScriptRoot "render-theme-preview.mjs"
 
 Write-Host "Rendering screenshots for $($profile.name) ($Extension)..."
 
-$detailsOut = Join-Path $OutDir "details.png"
-$settingsOut = Join-Path $OutDir "settings.png"
+$detailsOut = Join-Path $OutDir "screenshot-details.png"
+$settingsOut = Join-Path $OutDir "screenshot-settings.png"
 
 & node $nodeScript $detailsHtml $detailsOut
 if ($LASTEXITCODE -ne 0) { throw "Failed to render $detailsHtml" }
@@ -75,7 +75,7 @@ Write-Host ""
 Write-Host "Screenshots generated in $OutDir"
 Write-Host "Manifest configuration for info/danitesler_$Extension.yaml:"
 Write-Host "Screenshots:"
-Write-Host "  - Thumbnail: $base/details.png"
-Write-Host "    Image: $base/details.png"
-Write-Host "  - Thumbnail: $base/settings.png"
-Write-Host "    Image: $base/settings.png"
+Write-Host "  - Thumbnail: $base/screenshot-details.png"
+Write-Host "    Image: $base/screenshot-details.png"
+Write-Host "  - Thumbnail: $base/screenshot-settings.png"
+Write-Host "    Image: $base/screenshot-settings.png"

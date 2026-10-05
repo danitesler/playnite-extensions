@@ -1,6 +1,6 @@
 # HTML previews - how to build them
 
-`art/preview-details.html` and `art/preview-settings.html` are the only source of the release screenshots (`art/details.png`, `art/settings.png`). They are 1280x720 replicas of the theme, not Playnite captures. `new-theme.ps1` writes generic placeholders (indigo, Segoe UI, 8px radius); **every theme must replace them** with a replica of its own look. Netrunner, Payload and Tumbleweed are the worked examples: read one before writing.
+`art/preview-details.html` and `art/preview-settings.html` are the only source of the release screenshots (`art/screenshot-details.png`, `art/screenshot-settings.png`). They are 1280x720 replicas of the theme, not Playnite captures. `new-theme.ps1` writes generic placeholders (indigo, Segoe UI, 8px radius); **every theme must replace them** with a replica of its own look. Netrunner, Payload and Tumbleweed are the worked examples: read one before writing.
 
 ## Build order
 

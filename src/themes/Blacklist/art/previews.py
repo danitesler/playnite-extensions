@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Writes art/preview-details.html and art/preview-settings.html: 1280x720 HTML replicas of Blacklist in Playnite
-(same sizes, shell and chrome as the XAML), rendered to details.png / settings.png by scripts/take-screenshots.ps1.
+(same sizes, shell and chrome as the XAML), rendered to screenshot-details.png / screenshot-settings.png by scripts/take-screenshots.ps1.
 
 Colors are var(--mw-*) from src/tokens.css (the renderer injects it); only art placeholders (the banner and
 screenshot gradients) use literal colors. Fonts are the theme's own stacks: the renderer draws Eurostile with Orbitron

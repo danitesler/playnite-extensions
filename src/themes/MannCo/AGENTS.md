@@ -103,7 +103,7 @@ Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fad
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` render to 1280x720 (`details.png`, `settings.png`) per `.claude/skills/playnite-theme-dev/previews.md`: the details preview draws the 44px rail, the 52px top bar in the order of `Views/TopPanel.xaml` (search, icon-only view switches / group / sort / view settings / filter presets, filter, notifications), the game list on the left and the game page (340 banner, left column, 340px metadata pane); the settings preview is Playnite's Settings window (section tree, page, bottom bar with Save then Cancel) at 920x680 on a dark backdrop. Colors are `var(--token)` from `src/tokens.css`; art placeholders (banner gradient, screenshot thumbnails) use literal colors.
+`art/preview-details.html` and `art/preview-settings.html` render to 1280x720 (`screenshot-details.png`, `screenshot-settings.png`) per `.claude/skills/playnite-theme-dev/previews.md`: the details preview draws the 44px rail, the 52px top bar in the order of `Views/TopPanel.xaml` (search, icon-only view switches / group / sort / view settings / filter presets, filter, notifications), the game list on the left and the game page (340 banner, left column, 340px metadata pane); the settings preview is Playnite's Settings window (section tree, page, bottom bar with Save then Cancel) at 920x680 on a dark backdrop. Colors are `var(--token)` from `src/tokens.css`; art placeholders (banner gradient, screenshot thumbnails) use literal colors.
 
 Signature motifs drawn:
 

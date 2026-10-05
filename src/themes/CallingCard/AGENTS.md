@@ -98,7 +98,7 @@ Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are 1280x720 HTML replicas (not Playnite captures) rendered to `art/details.png` and `art/settings.png` by `.\scripts\take-screenshots.ps1 -Extension callingcard`. Colors are `var(--token)` from `src/tokens.css`; icons are the theme's own `Media.xaml` Heroicons paths. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md` (top bar in the order of `Views/TopPanel.xaml`: search, icon-only view switches / group / sort, filter, notifications; the main menu button lives in the rail).
+`art/preview-details.html` and `art/preview-settings.html` are 1280x720 HTML replicas (not Playnite captures) rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension callingcard`. Colors are `var(--token)` from `src/tokens.css`; icons are the theme's own `Media.xaml` Heroicons paths. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md` (top bar in the order of `Views/TopPanel.xaml`: search, icon-only view switches / group / sort, filter, notifications; the main menu button lives in the rail).
 
 Signature motifs drawn: (1) the slanted red plate with the blue sliver on the current rail item, view button and list row; (2) the paper sawtooth edge on the rail; (3) the red halftone fading in from the corner; (4) the ink name plate in a paper edge with a red drop, and the red-edged cover; (5) Impact capitals with a red slash before headings and paper chips with ink text.
 

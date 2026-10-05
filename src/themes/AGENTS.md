@@ -17,6 +17,7 @@ Rules that make Playnite load a theme (overlays, `DynamicResource`, brushes only
 | `src/<Playnite path>.xaml` | Overlays at Playnite's Default-theme paths (list below). |
 | `src/Images/` | Optional: PNG menu icons (`Images/<Set>/*.png`), textures. |
 | `icons.json`, `icons/` | Optional: `render-icons.ps1` jobs for the PNG menu icons, and hand-drawn SVG sources. |
+| `art/preview-details.html`, `art/preview-settings.html` → `art/screenshot-details.png`, `art/screenshot-settings.png` | The two release previews and their renders (`scripts/take-screenshots.ps1`). Screenshot PNGs always start with `screenshot-`; README and the listing's `Screenshots:` URLs link to them. Not shipped. |
 | `art/` | Optional: sources for original artwork (`mark.svg`, generators). Not shipped. |
 
 ## The files every theme ships
@@ -128,8 +129,8 @@ How to build them (tokens as `var(--token)`, real sizes and states, signature mo
 Fonts: previews render with bundled open fonts (`scripts/fonts/`, registry `scripts/data/fonts.json`), the same on any machine. A Windows or commercial font a theme asks for (Segoe UI, Consolas, Bahnschrift, Georgia, Impact, ...) is drawn with its open stand-in; see previews.md -> Fonts.
 
 All release screenshots and listing previews are generated from HTML replicas using Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
-- **`art/preview-details.html` → `art/details.png`**: HTML replica of the Game Details view: left compact rail, top panel in the order this theme's `Views/TopPanel.xaml` draws it (search, icon-only view switches / group / sort, filter, notifications), the game list on the left of the game page, then the game page (hero banner, screenshots + description left, metadata pane right).
-- **`art/preview-settings.html` → `art/settings.png`**: HTML replica of Playnite's Settings window (`SettingsWindow.xaml`, 800x620 minimum): title bar, section tree on the left, the section page on the right, bottom bar with the restart note and Save, Cancel. Not a full-screen page and not a tab strip. Layout rules and `data-part` tags: `.claude/skills/playnite-theme-dev/previews.md` -> Layout.
+- **`art/preview-details.html` → `art/screenshot-details.png`**: HTML replica of the Game Details view: left compact rail, top panel in the order this theme's `Views/TopPanel.xaml` draws it (search, icon-only view switches / group / sort, filter, notifications), the game list on the left of the game page, then the game page (hero banner, screenshots + description left, metadata pane right).
+- **`art/preview-settings.html` → `art/screenshot-settings.png`**: HTML replica of Playnite's Settings window (`SettingsWindow.xaml`, 800x620 minimum): title bar, section tree on the left, the section page on the right, bottom bar with the restart note and Save, Cancel. Not a full-screen page and not a tab strip. Layout rules and `data-part` tags: `.claude/skills/playnite-theme-dev/previews.md` -> Layout.
 ## Control corner radii and shapes
 
 - **Why `CornerRadiusFull` distorts in WPF**: Unlike CSS (which scales corner radii uniformly), WPF's `Border` clamps horizontal and vertical radii independently: `radiusX = min(radiusX, width/2)` and `radiusY = min(radiusY, height/2)`. When a single huge radius (e.g. 9999 or 10000) is set on an element where `width != height`, WPF draws an ellipse/oval across the entire element rather than flat edges with circular caps.

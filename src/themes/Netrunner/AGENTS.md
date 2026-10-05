@@ -69,7 +69,7 @@ Skeleton and metadata pane as in `../AGENTS.md` (screenshots left above the desc
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are approximate HTML replicas rendered to `art/details.png` and `art/settings.png` by `.\scripts\take-screenshots.ps1 -Extension netrunner`. Not Playnite captures.
+`art/preview-details.html` and `art/preview-settings.html` are approximate HTML replicas rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension netrunner`. Not Playnite captures.
 
 ## Not verified yet
 

@@ -79,7 +79,7 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are HTML replicas (same tokens, sizes, icons and shell), rendered to `art/details.png` and `art/settings.png` by `.\scripts\take-screenshots.ps1 -Extension tumbleweed`. Anton and Oswald stand in for the title and body faces. They are not Playnite captures.
+`art/preview-details.html` and `art/preview-settings.html` are HTML replicas (same tokens, sizes, icons and shell), rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension tumbleweed`. Anton and Oswald stand in for the title and body faces. They are not Playnite captures.
 
 ## Not verified yet
 

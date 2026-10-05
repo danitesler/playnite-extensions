@@ -90,7 +90,7 @@ Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the l
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are HTML replicas (same tokens, sizes, icons and shell), rendered to `art/details.png` and `art/settings.png` by `.\scripts\take-screenshots.ps1 -Extension payload`. Barlow and Barlow Condensed italic (Google Fonts) stand in for Config and BigNoodleTooOblique. They are not Playnite captures.
+`art/preview-details.html` and `art/preview-settings.html` are HTML replicas (same tokens, sizes, icons and shell), rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension payload`. Barlow and Barlow Condensed italic (Google Fonts) stand in for Config and BigNoodleTooOblique. They are not Playnite captures.
 
 ## Not verified yet
 
