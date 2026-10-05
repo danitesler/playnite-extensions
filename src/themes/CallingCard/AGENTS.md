@@ -12,21 +12,9 @@ Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build 
 
 ## Sources
 
-ATLUS publishes no design system and the menus are drawn art, not style sheets, so every value is measured on screenshots (ImageMagick, `+dither -colors N` on cropped regions; dominant swatch). `src/tokens.css` tags each value with its capture.
+Reference notes, measurements and asset sources (Persona 5 Tactica / Strikers / Royal store screenshots, the confidant-screen analysis, Heroicons, Playnite Default) are in [`RESEARCH.md`](RESEARCH.md). `src/tokens.css` tags each value with its capture (`[P5T]`, `[P5S]`, `[P5R]`, `[P5C]`, `[eye]`).
 
-| Tag | Capture | What it gave |
-|-----|---------|--------------|
-| `[P5T]` | Persona 5 Tactica Steam store screenshots (app 2254740), 1920x1080, the PARTY pause menu | The current command's red plate `#f60305`, the blue sliver `#1e6ee5` offset behind it, the black plates `#030101`, Tactica's cream stripes `#eae2ce`; command rows about 54px tall, plates tilted about 12 degrees, torn white stripes beside the commands (the rail's sawtooth). |
-| `[P5S]` | Persona 5 Strikers Steam store screenshots (app 1382330), 1920x1080, the hideout command list | Selected command `#f90807` (red plate, white text); black command plates `#0a0a09` with white edges; ransom-note lettering (not reproduced). |
-| `[P5R]` | Persona 5 Royal Steam store screenshots (app 1687950), 1920x1080: dialogue box, battle HUD, skill name plates | Paper `#f4f4f4`; HP teal `#73f9dc` and SP pink `#e066d0`; the black name plate in a white edge with a red drop (the title plate on the game page). |
-| `[P5C]` | Confidant screen, mechanicsofmagic.com "Visual Design of Games: Persona 5" (2022-04-23), 1200x675 | Red ground `#9c0511` / `#660206`, greys `#2f2727`, `#605f5f`, `#a5a1a1`; the white name plate (tooltips); the black info box in a white edge (metadata pane). |
-| `[eye]` | Chosen between measured values | Hover and pressed reds, coal and soot plates, amber. |
-| Analysis | mechanicsofmagic.com (above); itch.io "Making UI come to life: study of Persona 5" | The palette is red, black and white with a splash of blue on the current selection; the selected item grows and takes color. |
-| Icons | **Heroicons** 2.2.0 solid (MIT, `info/LICENSE-heroicons.txt`), via `art/icons.py` | The heaviest open set that covers Playnite's roles; the menus draw chunky solid glyphs. Menu PNGs in `src/Images/Heroicons/`. |
-| Mark | `art/icons.py` → `art/mark.svg`, `IconMainMenu`, `info/icon.png` | Original tilted five-point star. |
-| Playnite | Playnite 10.60 Default theme (MIT, `info/LICENSE-Playnite.txt`) | Every file's structure. |
-
-Fonts: the menus' lettering is custom art. `HeadingFontFamily` is **Impact, Haettenschweiler, Arial Black**: Impact ships with Windows and is the closest heavy condensed face. Body text is Segoe UI. The HTML previews inline Anton (OFL) as the stand-in for Impact, because the render machine has no Impact.
+Fonts: the menus' lettering is custom art. `HeadingFontFamily` is **Impact, Haettenschweiler, Arial Black** (Impact ships with Windows, the closest heavy condensed face); body text is Segoe UI.
 
 ## Tokens
 
@@ -69,7 +57,7 @@ Measured at 1080p and scaled by 2/3 (Playnite's 14px body against the menus' 21p
 | File | What it draws |
 |------|---------------|
 | `Views/Sidebar.xaml` | **Left (intended):** a 44px ink rail (`ShellBackgroundBrush`) with a 6px paper sawtooth (`FrameBrush` through a tiled triangle `OpacityMask`, teeth 10px apart) laid over the views by a negative margin. `MainMenuButton`: a 44 x 44 red block with the paper star; hover turns it to paper with a red star. **Right:** mirrored, starts 52px down. **Top/bottom:** a strip without teeth, 156px kept clear for the window buttons. |
-| `CustomControls/SidebarItem.xaml` | 44 x 40, 16px glyph, fog at rest, paper on hover; current: a 30 x 26 slanted red plate with the blue sliver. Progress as a 3px teal bar. |
+| `CustomControls/SidebarItem.xaml` | 44 x 40 tile, 16px glyph (fixed `14,12` plate padding, no `IconPadding`, per the Sidebar Icon Sizing rule, so add-on icons stay 16 x 16), fog at rest, paper on hover; current: a 30 x 26 slanted red plate with the blue sliver. Progress as a 3px teal bar. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px, transparent, on a hard 2px ash rule (hidden with panel separators off). Search 260 x 34. View, filter, sort, explorer, filter and notifications toggles as 44 x 40 glyph buttons: hover a paper slanted plate with an ink glyph; on, the red plate with its sliver. Notification count in a 16px red square. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44 x 32 window buttons 10px from the top and right; hover paper with ink glyph, close red. 1px ash window edge. Caption band 52px. |
 | `Views/Library.xaml` | Ink layer; background art under `ScrimBrush` (85% ink) at 75% plus a bottom fade; a red halftone (`GlyphBrush` through an 8px dot mask) at 22% fading in toward the bottom-right corner. All in a `BitmapCache` wrapper. |
@@ -108,6 +96,16 @@ Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
 - **Tactica's blue sliver** is used on every current plate; mainline Persona 5 draws a black or white drop more often. Blue keeps the current item distinct from plain red accents.
 - **Fonts:** Impact stands in for the custom lettering.
 
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` are 1280x720 HTML replicas (not Playnite captures) rendered to `art/details.png` and `art/settings.png` by `.\scripts\take-screenshots.ps1 -Extension callingcard`. Colors are `var(--token)` from `src/tokens.css`; icons are the theme's own `Media.xaml` Heroicons paths. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md` (top bar in the order of `Views/TopPanel.xaml`: search, icon-only view switches / group / sort, filter, notifications; the main menu button lives in the rail).
+
+Signature motifs drawn: (1) the slanted red plate with the blue sliver on the current rail item, view button and list row; (2) the paper sawtooth edge on the rail; (3) the red halftone fading in from the corner; (4) the ink name plate in a paper edge with a red drop, and the red-edged cover; (5) Impact capitals with a red slash before headings and paper chips with ink text.
+
+Fonts: Anton (OFL) stands in for Impact, Selawik (OFL) for Segoe UI; both come from `scripts/data/fonts.json`. Haettenschweiler and Arial Black are in the XAML stack only as Windows fallbacks and are not drawn.
+
+Settings preview: Playnite's `TreeView` and standard window are not restyled by this theme, so the section tree is drawn as Playnite's recolored template (a flat red current row, soot on hover, no slant).
+
 ## Not verified yet
 
 Built and validated on Linux only (`build-theme.ps1`, `validate-extension.ps1 -Mode Package`); Playnite was not run. On Windows, check beyond the shared list:
@@ -115,3 +113,5 @@ Built and validated on Linux only (`build-theme.ps1`, `validate-extension.ps1 -M
 - Slanted plates do not clip at the edges of lists, menus and the tab strip (their corners reach 0.1 x height past the sides).
 - The name plate on the game page with long, wrapping titles and with an icon.
 - Play / context action alignment (Play is 48 tall, the context action 40, top-aligned).
+- Add-on sidebar icons (Netrunner, Tumbleweed, ...) render 16 x 16 in the fixed-padding `SidebarItem` (the old template stacked `14,12` with `IconPadding` and collapsed them); check one in Playnite.
+- The Settings tree's current row (Playnite's `TreeViewItem` recolored: red row, paper text) as drawn in the preview.
