@@ -1,8 +1,8 @@
-# Chakra UI — theme notes
+# Chakra-inspired — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **Chakra UI v3**, fully dark with **teal** as the color palette.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Chakra-inspired**: an unofficial theme inspired by **Chakra UI v3** (3.37), the dark variant only, with **teal** as the color palette. It is not affiliated with, endorsed by or sponsored by the Chakra UI project or Chakra Systems; the name is used only to say what inspired the look (`info/NOTICE-ChakraUi.txt`). No Chakra logo, mark, font or artwork is included: the tile icon (`art/mark.svg`) is a neutral dashboard glyph, and the icons are lucide (ISC). Only the display name is "Chakra-inspired"; the folder, key `chakraui` and `AddonId` keep their original spelling so installed copies keep updating.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -51,6 +51,7 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 - No shadows (menus `lg`, select `md`, tooltip `md`, card `elevated`): WPF popups are layered windows, so menus and popovers get a 1px `border` edge instead, and the card is borderless `bg.panel`.
 - The SegmentGroup track keeps a 4px inset and radius l3, and items are icon-sized (40px square) with no dividers between them.
 - Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`).
+- The notification Badge (`TopPanelNotificationsToggle`) is not a 1:1 square (`MinWidth` 16, grows with the count), so it uses `CornerRadiusSmall` (radii.l1) instead of `CornerRadiusFull` (repo rule: no pill radius on non-square elements). Chakra's Badge is radius l2; the preview draws the same l1.
 - The DataList has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
 
 ## Not verified yet

@@ -1,4 +1,4 @@
-# ChakraUi — research & sources
+# Chakra-inspired — research & sources
 
 ## Sources
 
