@@ -73,6 +73,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Tumbleweed | 44px compact black rail with red pause-stack glyphs (white when current) and a maroon paint splash behind the main menu button; transparent 56px top bar closed by a flat 2px grey rule; library and banner art under a red duotone wash |
 | Payload | 44px compact tab-bar navy rail with an orange slanted main menu button and cyan slanted plates (black glyph) for the current item; 56px translucent navy top bar with a 1px rule, slanted cyan plates on toggled view buttons; medium blue panels on the neutral dark blue page |
 | CS 1.6 | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
+| Cordon | 44px compact rusted steel rail (rivet, seam, lit plate and amber lamp on the current item), 52px steel caption band over a grainy olive-black panel |
 
 ## Game page
 
