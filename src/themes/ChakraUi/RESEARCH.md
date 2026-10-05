@@ -1,4 +1,4 @@
-# Chakra-inspired — research & sources
+# Chakram — research & sources
 
 ## Sources
 

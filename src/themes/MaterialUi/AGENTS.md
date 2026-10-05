@@ -1,8 +1,8 @@
-# Material-inspired — theme notes
+# Materia — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by **Material Design** as implemented in the **MUI Material UI** library (v9.4, Material Design 2), in MUI's default dark variant (`createTheme({ palette: { mode: 'dark' } })`). Unofficial: it is not affiliated with, endorsed by or sponsored by Google or MUI, and includes none of their logos, fonts or artwork (the tile icon is a neutral glyph, `art/mark.svg`); the menu icons are open-licensed Material Icons (Apache-2.0, `info/LICENSE-material-icons.txt`). Notices: `info/NOTICE-MaterialUi.txt`. The display name is "Material-inspired"; the id, key and folder keep their original names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired by **Material Design** as implemented in the **MUI Material UI** library (v9.4, Material Design 2), in MUI's default dark variant (`createTheme({ palette: { mode: 'dark' } })`). Unofficial: it is not affiliated with, endorsed by or sponsored by Google or MUI, and includes none of their logos, fonts or artwork (the tile icon is a neutral glyph, `art/mark.svg`); the menu icons are open-licensed Material Icons (Apache-2.0, `info/LICENSE-material-icons.txt`). Notices: `info/NOTICE-MaterialUi.txt`. The display name is "Materia"; the id, key and folder keep their original names.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 

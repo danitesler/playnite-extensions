@@ -1,8 +1,8 @@
-# Primer-inspired — theme notes
+# Primo — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Primer-inspired** (folder `Primer`, key `primer`), in the style of GitHub's **Primer** design system (`@primer/primitives` 11.10.0), on Primer's `dark` functional tokens (dark variant only).
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Primo** (folder `Primer`, key `primer`), in the style of GitHub's **Primer** design system (`@primer/primitives` 11.10.0), on Primer's `dark` functional tokens (dark variant only).
 
 **Unofficial fan theme**: not affiliated with, endorsed by or sponsored by GitHub, Inc.; "Primer" and "GitHub" are GitHub's names, used only to say what inspired the look. No GitHub logo, Octocat or other mark is drawn anywhere (the `mark-github` glyph must never be used as a UI icon or tile); the only GitHub-made assets are the MIT-licensed Octicons (`info/LICENSE-octicons.txt`, notice in `info/NOTICE-Primer.txt`). The add-on tile (`info/icon.png`) is the Octicons "stack" layers glyph in the default orange. Display name, Id and files: the Id `Primer_55D3FC28`, key, folder and `danitesler_primer.yaml` keep the original name so updates keep working.
 

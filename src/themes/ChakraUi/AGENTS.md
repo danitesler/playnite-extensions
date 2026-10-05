@@ -1,8 +1,8 @@
-# Chakra-inspired — theme notes
+# Chakram — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Chakra-inspired**: an unofficial theme inspired by **Chakra UI v3** (3.37), the dark variant only, with **teal** as the color palette. It is not affiliated with, endorsed by or sponsored by the Chakra UI project or Chakra Systems; the name is used only to say what inspired the look (`info/NOTICE-ChakraUi.txt`). No Chakra logo, mark, font or artwork is included: the tile icon (`art/mark.svg`) is a neutral dashboard glyph, and the icons are lucide (ISC). Only the display name is "Chakra-inspired"; the folder, key `chakraui` and `AddonId` keep their original spelling so installed copies keep updating.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named **Chakram**: an unofficial theme inspired by **Chakra UI v3** (3.37), the dark variant only, with **teal** as the color palette. It is not affiliated with, endorsed by or sponsored by the Chakra UI project or Chakra Systems; the name is used only to say what inspired the look (`info/NOTICE-ChakraUi.txt`). No Chakra logo, mark, font or artwork is included: the tile icon (`art/mark.svg`) is a neutral dashboard glyph, and the icons are lucide (ISC). Only the display name is "Chakram"; the folder, key `chakraui` and `AddonId` keep their original spelling so installed copies keep updating.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 

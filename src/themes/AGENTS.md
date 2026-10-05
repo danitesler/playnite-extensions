@@ -53,11 +53,11 @@ Each theme lays the shell out its own way; the mechanics are the same:
 
 | Theme | Layout |
 |-------|--------|
-| Shadcn-inspired | Views on an inset rounded card in a sidebar-colored frame; icon sidebar; header inside the card |
-| Chakra-inspired | One flat surface; 64px top bar with segmented view controls |
-| Material-inspired | App bar (the only raised surface) + 64px mini drawer whose top continues the bar |
-| Primer-inspired | Dark header band across the top, navigation rail on the page color |
-| Fluent-inspired | Windows 11: base layer with a 48px title-bar row and compact nav rail, library on a lighter content layer |
+| Shade | Views on an inset rounded card in a sidebar-colored frame; icon sidebar; header inside the card |
+| Chakram | One flat surface; 64px top bar with segmented view controls |
+| Materia | App bar (the only raised surface) + 64px mini drawer whose top continues the bar |
+| Primo | Dark header band across the top, navigation rail on the page color |
+| Fluence | Windows 11: base layer with a 48px title-bar row and compact nav rail, library on a lighter content layer |
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
 | Codex | Icon rail, a tab strip along the top, layered charcoal |
 | Questlog | Gold window frame, stone sidebar strip, transparent top bar |
@@ -121,7 +121,7 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 ## Icons
 
 - **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`, Overworld `art/icons.py` pixel bitmaps).
-- **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shadcn-inspired, Chakra-inspired, Material-inspired, Fluent-inspired), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primer, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
+- **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shade, Chakram, Materia, Fluence), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primer, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
 
 ## Previews and screenshots
 
@@ -147,7 +147,7 @@ All release screenshots and listing previews are generated from HTML replicas us
 
 A theme's `AGENTS.md` keeps only what is its own, in this order:
 
-1. **What this is**: design system, version, dark variant; the unofficial / no-owner-assets statement for every theme modeled on someone else's design system, app or game (root `AGENTS.md` -> Trademarks & Branding: named "<Source>-inspired", never "official"; ships `info/NOTICE-<Dir>.txt`).
+1. **What this is**: design system, version, dark variant; the unofficial / no-owner-assets statement for every theme modeled on someone else's design system, app or game (root `AGENTS.md` -> Trademarks & Branding: given its own abstract name or a plain "<Source>-inspired" name, never an official-sounding one; ships `info/NOTICE-<Dir>.txt`).
 2. **Sources**: reference notes in `RESEARCH.md` (token package, component specs, icon set, captures, each with version and license); `AGENTS.md` links to it.
 3. **Tokens**: which token plays each key (Playnite palette first, then shared keys), plus radii and fonts.
 4. **Component spacing**: the `Common.xaml` values and the spec each comes from.

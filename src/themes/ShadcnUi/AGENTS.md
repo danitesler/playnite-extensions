@@ -1,8 +1,8 @@
-# Shadcn-inspired — theme notes
+# Shade — theme notes
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) named **Shadcn-inspired** (key and folder stay `shadcnui`, `AddonId` `ShadcnUi_B66DB7B1`), in the style of **shadcn/ui** (new-york-v4 registry), fully dark on the **zinc** base color.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, loads on Playnite 10.45+) named **Shade** (key and folder stay `shadcnui`, `AddonId` `ShadcnUi_B66DB7B1`), in the style of **shadcn/ui** (new-york-v4 registry), fully dark on the **zinc** base color.
 
 **Unofficial fan theme**: not affiliated with, endorsed by or sponsored by shadcn or the shadcn/ui project. shadcn/ui is named only to say what inspired the look (nominative use). No shadcn/ui logo, icon, font or artwork is shipped: the add-on tile (`art/mark.svg`) is an original inset-card mark, the icons are Lucide (ISC, `info/LICENSE-lucide.txt`), and the colors and spacing follow the open-source (MIT) registry values. See `info/NOTICE-ShadcnUi.txt`.
 
