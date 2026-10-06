@@ -6,7 +6,7 @@
 
 **Tight Desktop Grid with stable columns—auto-adjusts cover width on resize.**
 
-**[Download Autogrid 1.1.1](https://github.com/danitesler/playnite-extensions/releases/tag/autogrid-v1.1.1)**
+**[Download Autogrid 1.1.2](https://github.com/danitesler/playnite-extensions/releases/tag/autogrid-v1.1.2)**
 
 ## About
 
@@ -25,7 +25,7 @@ Includes optional viewport adjustment for theme gutters and debug measurement lo
 ## Details
 
 - **Type:** Plugin
-- **Latest release:** [1.1.1](https://github.com/danitesler/playnite-extensions/releases/tag/autogrid-v1.1.1)
+- **Latest release:** [1.1.2](https://github.com/danitesler/playnite-extensions/releases/tag/autogrid-v1.1.2)
 - **Extension type:** GenericPlugin
 - **Tags:** Desktop, Grid, Layout, Generic, UI
 - **Source:** [src/Autogrid](https://github.com/danitesler/playnite-extensions/tree/main/src/Autogrid)
