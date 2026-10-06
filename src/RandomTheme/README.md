@@ -25,7 +25,7 @@ Switching between Desktop and Fullscreen restarts Playnite, so every switch also
 
 ### From the `.pext` package
 
-1. Download `RandomTheme_C3F8A2D1_*.pext` from the [Releases](../../releases) page.
+1. Download `RandomTheme_C3F8A2D1_*.pext` from the [Releases](https://github.com/danitesler/playnite-extensions/releases) page.
 2. Double-click the `.pext` file, drag it onto Playnite, or go to **Playnite Menu → Add-ons → Install from file**.
 3. Restart Playnite when prompted.
 

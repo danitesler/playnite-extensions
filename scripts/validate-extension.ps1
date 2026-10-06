@@ -269,6 +269,248 @@ function Test-PillCornerRadius {
     return @($errors | Select-Object -Unique)
 }
 
+function Test-GroupBoxContentSized {
+    <#
+        AGENTS.md "Statistics page": Playnite lays the statistics sections out as GroupBoxes in a wrapping panel, so each
+        one is a compact card sized by its content. A GroupBox template with a child that reports a large desired width
+        (a wide Path or a Stretch=Fill Line outside a Canvas, a fixed Width/MinWidth of 200 or more, or a Control whose template does either)
+        makes every box ask for the whole page: the cards stack full width with large empty areas. Draw such decoration
+        inside a Canvas (no desired size, the host clips it), or use Rectangles/Borders that stretch.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $groupBoxFile = Get-ChildItem -Path $Directory -Recurse -File -Filter "GroupBox.xaml" |
+        Where-Object { ((Get-RelativePathCompat -Root $Directory -Path $_.FullName) -replace "\\", "/") -match "DefaultControls/GroupBox\.xaml$" } |
+        Select-Object -First 1
+    if (-not $groupBoxFile) { return @() }
+    $relative = (Get-RelativePathCompat -Root $Directory -Path $groupBoxFile.FullName) -replace "\\", "/"
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+
+    function Find-WideChild($root, $label) {
+        $found = [System.Collections.Generic.List[string]]::new()
+        foreach ($node in $root.SelectNodes(".//*")) {
+            $name = $node.LocalName
+            if ($name -match "\.") { continue }
+            $inCanvas = $node.SelectSingleNode("ancestor::*[local-name()='Canvas']") -ne $null
+            if (-not $inCanvas) {
+                if ($name -eq "Path" -and $node.GetAttribute("Stretch") -in @("", "None")) {
+                    $extent = 0.0
+                    foreach ($m in [regex]::Matches($node.GetAttribute("Data"), "-?\d+(?:\.\d+)?")) { $extent = [Math]::Max($extent, [Math]::Abs([double]::Parse($m.Value, [Globalization.CultureInfo]::InvariantCulture))) }
+                    if ($extent -ge 200) { $found.Add("$label has a Path outside a Canvas whose geometry spans $extent px") | Out-Null }
+                }
+                elseif ($name -eq "Line" -and $node.GetAttribute("Stretch") -eq "Fill" -and -not $node.GetAttribute("Width")) {
+                    $found.Add("$label has a Line with Stretch=Fill and no Width outside a Canvas") | Out-Null
+                }
+            }
+            foreach ($attr in @("Width", "MinWidth")) {
+                $value = $node.GetAttribute($attr)
+                $number = 0.0
+                if ($value -and [double]::TryParse($value, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$number) -and $number -ge 200) {
+                    $found.Add("$label has $name $attr=$value") | Out-Null
+                }
+            }
+        }
+        return $found
+    }
+
+    $doc = Read-XamlDocument $groupBoxFile.FullName
+    if (-not $doc) { return @() }
+    $template = $doc.SelectSingleNode("//*[local-name()='ControlTemplate'][@TargetType='{x:Type GroupBox}']")
+    if (-not $template) { return @() }
+
+    $problems = [System.Collections.Generic.List[string]]::new()
+    foreach ($p in (Find-WideChild $template "the GroupBox template")) { $problems.Add($p) | Out-Null }
+
+    # Control Template="{DynamicResource X}" inside the GroupBox template: look X up in the theme's other files.
+    foreach ($control in $template.SelectNodes(".//*[@Template]")) {
+        if ($control.GetAttribute("Template") -notmatch "\{(?:Dynamic|Static)Resource\s+(\w+)\}") { continue }
+        $key = $Matches[1]
+        foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "*.xaml") {
+            $other = Read-XamlDocument $file.FullName
+            if (-not $other) { continue }
+            $definition = $other.SelectSingleNode("//*[local-name()='ControlTemplate'][@*[local-name()='Key']='$key']")
+            if ($definition) {
+                foreach ($p in (Find-WideChild $definition "template '$key'")) { $problems.Add($p) | Out-Null }
+                break
+            }
+        }
+    }
+    foreach ($problem in ($problems | Select-Object -Unique)) {
+        $errors.Add("${where}: $problem, used by GroupBox. Its width becomes the card's desired width, so the statistics sections stack full width (AGENTS.md Statistics page). Put it in a Canvas.") | Out-Null
+    }
+    return @($errors | Select-Object -Unique)
+}
+
+function Test-ComboBoxChevronRoom {
+    <#
+        AGENTS.md "ComboBox chevron room": the selected-value ContentPresenter and the dropdown chevron share one cell,
+        and a ComboBox is only as wide as its content, so a value with no space reserved on its right runs under the
+        chevron (Blacklist: "English" with the arrow on top of the h). ContentSite (or a wrapper above it) must carry a
+        right margin of at least 12px, or sit in its own grid column.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $file = Get-ChildItem -Path $Directory -Recurse -File -Filter "ComboBox.xaml" |
+        Where-Object { ((Get-RelativePathCompat -Root $Directory -Path $_.FullName) -replace "\\", "/") -match "DefaultControls/ComboBox\.xaml$" } |
+        Select-Object -First 1
+    if (-not $file) { return @() }
+    $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+    $doc = Read-XamlDocument $file.FullName
+    if (-not $doc) { return @() }
+    $site = $doc.SelectSingleNode("//*[@*[local-name()='Name']='ContentSite']")
+    if (-not $site) { return @() }
+
+    $room = 0.0
+    $node = $site
+    $ownColumn = $false
+    while ($node -and $node.LocalName -ne "ControlTemplate") {
+        $margin = $node.GetAttribute("Margin")
+        if ($margin -and $margin -notmatch "\{") {
+            $parts = $margin -split "[,\s]+" | Where-Object { $_ -ne "" }
+            $right = if ($parts.Count -eq 4) { $parts[2] } elseif ($parts.Count -eq 1) { $parts[0] } else { $parts[0] }
+            $number = 0.0
+            if ([double]::TryParse($right, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$number)) { $room += $number }
+        }
+        if ($node.GetAttribute("Grid.Column") -or $node.ParentNode.SelectSingleNode("*[local-name()='Grid.ColumnDefinitions']")) { $ownColumn = $true }
+        $node = $node.ParentNode
+    }
+    if (-not $ownColumn -and $room -lt 12) {
+        $errors.Add("${where}: the ComboBox value (ContentSite) reserves only ${room}px on its right, so it runs under the dropdown chevron. Wrap it in a Border with a right margin of chevron width + margin + 8px, or give it its own grid column (AGENTS.md ComboBox chevron room).") | Out-Null
+    }
+    return @($errors)
+}
+
+function Test-GameActionButtons {
+    <#
+        AGENTS.md "Game page action buttons": next to Play, the secondary buttons (More, Edit) are icon-only (a glyph,
+        the label as ToolTip) and Edit is always visible, never shown only while the pointer is over the header.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "*ViewGameOverview.xaml") {
+        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
+        if ($relative -notmatch "Views/(Details|Grid)ViewGameOverview\.xaml$") { continue }
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        $doc = Read-XamlDocument $file.FullName
+        if (-not $doc) { continue }
+
+        $more = $doc.SelectSingleNode("//*[local-name()='Button'][@*[local-name()='Name']='PART_ButtonMoreActions']")
+        if ($more) {
+            $labelContent = $more.GetAttribute("Content") -match "LOCMoreAction"
+            $labelText = $more.SelectSingleNode(".//*[local-name()='TextBlock'][contains(@Text,'LOC')]") -ne $null
+            if ($labelContent -or $labelText) {
+                $errors.Add("${where}: the More button carries a text label. Secondary buttons next to Play are icon-only; put the label in ToolTip (AGENTS.md Game page action buttons).") | Out-Null
+            }
+        }
+        $edit = $doc.SelectSingleNode("//*[local-name()='Button'][@*[local-name()='Name']='PART_ButtonEditGame']")
+        if ($edit) {
+            $hidden = $edit.SelectSingleNode(".//*[local-name()='Setter'][@Property='Visibility'][@Value='Hidden' or @Value='Collapsed']") -ne $null
+            $hover = $edit.SelectSingleNode(".//*[local-name()='DataTrigger'][contains(@Binding,'IsMouseOver')][contains(@Binding,'AncestorType')]") -ne $null
+            if ($hidden -or $hover -or $edit.GetAttribute("Visibility") -match "Hidden|Collapsed") {
+                $errors.Add("${where}: the Edit button is hidden until the pointer is over the header. It must always be visible (AGENTS.md Game page action buttons).") | Out-Null
+            }
+        }
+        if ($more -and $edit) {
+            $moreSize = "$($more.GetAttribute('Width'))x$($more.GetAttribute('Height'))"
+            $editSize = "$($edit.GetAttribute('Width'))x$($edit.GetAttribute('Height'))"
+            if ($more.GetAttribute("Width") -ne $more.GetAttribute("Height") -or $moreSize -ne $editSize -or $moreSize -eq "x") {
+                $errors.Add("${where}: More is $moreSize and Edit is $editSize. Both must be the same fixed square (Width == Height, equal on both) (AGENTS.md Game page action buttons).") | Out-Null
+            }
+        }
+        foreach ($pair in @(@($more, "More"), @($edit, "Edit"))) {
+            if ($pair[0] -and -not $pair[0].GetAttribute("ToolTip")) {
+                $errors.Add("${where}: the $($pair[1]) button has no ToolTip. Icon-only buttons need their label as ToolTip (LOCMoreAction / LOCEditGame) (AGENTS.md Game page action buttons).") | Out-Null
+            }
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}
+
+function Test-ThemeModifierIconButtons {
+    <#
+        AGENTS.md "ThemeModifier icon buttons": ThemeModifier hardcodes its pick (pencil) and restore (X) buttons at
+        Width=41 (editor XAML and constants code), inside two fixed 41px columns, with no Height. A Width=41 style
+        trigger lets a theme draw them as a small square icon button and never clip the glyph, while every auto-width
+        button keeps its own padding: Padding 0, both content alignments Center, MinWidth 41 and MinHeight 41 (square,
+        since the plugin's width is 41 — a theme's own MinWidth, e.g. MUI's 64, would coerce them wider), and a small
+        glyph FontSize around 16. Missing the trigger, the buttons fall back to the theme's body padding and the glyph
+        is clipped to a sliver.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "Button.xaml") {
+        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
+        if ($relative -notmatch "DefaultControls/Button\.xaml$") { continue }
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+
+        $doc = Read-XamlDocument $file.FullName
+        if (-not $doc) { continue }
+        $style = $doc.SelectSingleNode("//*[local-name()='Style'][@TargetType='{x:Type Button}'][not(@*[local-name()='Key'])]")
+        if (-not $style) { continue }
+
+        $trigger = $style.SelectSingleNode("*[local-name()='Style.Triggers']/*[local-name()='Trigger'][@Property='Width'][@Value='41']")
+        if (-not $trigger) {
+            $errors.Add("${where}: no Width=41 trigger for ThemeModifier's icon buttons. Add it to the base Button style so the plugin's pencil / restore buttons are a 41x41 square with a small, centred glyph (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            continue
+        }
+
+        $padding = ""
+        $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='Padding']")
+        if ($setter) { $padding = $setter.GetAttribute("Value") }
+        $paddingNumbers = ConvertTo-NumberList $padding
+        $paddingIsZero = ($null -ne $paddingNumbers -and @($paddingNumbers | Where-Object { $_ -ne 0 }).Count -eq 0)
+        if (-not $paddingIsZero) {
+            $shown = if ($padding) { "'$padding'" } else { "not set" }
+            $errors.Add("${where}: the Width=41 trigger does not set Padding=""0"" ($shown). A 41px button with the body padding leaves a few pixels for the glyph and clips it (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+        }
+
+        foreach ($property in @("HorizontalContentAlignment", "VerticalContentAlignment")) {
+            $value = ""
+            $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='$property']")
+            if ($setter) { $value = $setter.GetAttribute("Value") }
+            if ($value -notmatch "Center") {
+                $errors.Add("${where}: the Width=41 trigger does not set $property to Center. The glyph then draws in a corner instead of the middle of the 41x41 square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            }
+        }
+
+        $minHeight = 0.0
+        $minHeightShown = "not set"
+        $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='MinHeight']")
+        if ($setter) {
+            $minHeightShown = $setter.GetAttribute("Value")
+            [void][double]::TryParse($minHeightShown, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$minHeight)
+        }
+        if ($minHeight -lt 41) {
+            $errors.Add("${where}: the Width=41 trigger sets MinHeight '$minHeightShown', below the 41px that makes ThemeModifier's buttons square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+        }
+
+        $minWidth = 0.0
+        $minWidthShown = "not set"
+        $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='MinWidth']")
+        if ($setter) {
+            $minWidthShown = $setter.GetAttribute("Value")
+            [void][double]::TryParse($minWidthShown, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$minWidth)
+        }
+        if ($minWidth -ne 41) {
+            $errors.Add("${where}: the Width=41 trigger sets MinWidth '$minWidthShown'; pin it to 41. A theme's own MinWidth (MUI-style buttons use 64) coerces the plugin's 41px buttons wider and the two overlap in Edit constants (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+        }
+
+        $fontSize = 0.0
+        $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='FontSize']")
+        if ($setter) { [void][double]::TryParse($setter.GetAttribute("Value"), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$fontSize) }
+        if ($fontSize -lt 12 -or $fontSize -gt 24) {
+            $shown = if ($setter) { $setter.GetAttribute("Value") } else { "not set" }
+            $errors.Add("${where}: the Width=41 trigger sets FontSize $shown, outside the small-icon 12-24 range. Use 16 so the glyph sits square in its container with breathing room (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}
+
 function Get-LocalizationKeys {
     # Static regex extraction of x:Key values from Localization/*.xaml
     param([string]$Path)
@@ -389,7 +631,7 @@ if ($isTheme) {
                 $errors.Add("Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')")
             }
             $themeSourceRoot = "$($profile.dir)/src"
-            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot)) {
+            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot)) {
                 $errors.Add($ruleError)
             }
         }

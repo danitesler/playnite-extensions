@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **The Witcher 3: Wild Hunt main menu** and the menus that share its look (pause, settings, journal), patch 1.32 / next-gen layout, dark only. The main menu is the model: a near-black band on the left with a rough brush edge, the logo on top of it, centered uppercase DIN items in grey (icons here), and a thin double frame with notched corners around the selected item. The rest stays minimal: tone on black, brown hairlines, one warm family (taupe, amber, orange) for headings and selection.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of **The Witcher 3: Wild Hunt main menu** and the menus that share its look (pause, settings, journal), patch 1.32 / next-gen layout, dark only. The main menu is the model: a near-black band on the left with a rough brush edge, the logo on top of it, centered uppercase DIN items in grey (icons here), the current item on the game's selection wash (amber fading left to right, orange bar at its left). The rest stays minimal: tone on black, brown hairlines, one warm family (taupe, amber, orange) for headings and selection.
 
 **Unofficial fan theme.** Not affiliated with or endorsed by CD PROJEKT RED. No game logos, icons, fonts, images or files are included (see `info/NOTICE-Medallion.txt`). The medallion mark (`art/mark.svg`, `IconMainMenu`), the brush edge and the double frame are drawn for this theme.
 
@@ -33,7 +33,7 @@ The double frame (`DoubleFrameTemplate`): two 1px lines 2px apart, the outer a p
 | File | What it draws |
 |------|---------------|
 | `Views/Sidebar.xaml` | The main menu band as an icon rail: 44px of `#020202`, the medallion (24px, `PART_ElemMainMenu`) at the top with a 24px brown rule under it, then the items. The right edge is two jagged polygons in the band color (outer one at half strength) hanging 20px over the page. Right docking flips the edge; top/bottom: a 56px strip, no edge, 150px clear for the caption buttons. |
-| `CustomControls/SidebarItem.xaml` | Main menu items as icons: 44x40 items, 16px icon, grey at rest, white with a grey double frame under the pointer, white in the light double frame when current; the title is the tooltip. |
+| `CustomControls/SidebarItem.xaml` | Main menu items as icons: 44x36 items with a 2px gutter, 16px icon, grey at rest, white with a grey double frame under the pointer; the current item takes the game's list selection, the amber wash fading left to right with the 3px orange bar on its left edge (no frame), white icon; the title is the tooltip. The tighter item keeps the rail from scrolling with many add-on items. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | Header row on the bare page, 64px: search field (prompt plate, brown line) at the left; icon view switches centered between two small brown arrows (Playnite's separators); grey icons turning white; filter turns tracked orange while active. |
 | `DerivedStyles/MainWindowStyle.xaml` | Close is the game's close box (X in the brown double frame, light on hover); minimize and maximize are bare glyphs. Caption height 64. |
 | `Views/Library.xaml` | Background art behind the header row, shaded like the game's backdrop; library on black at 55%, 16px in from the band. |
@@ -49,7 +49,7 @@ Follows the shared skeleton. Differences: the page is black (`GameOverviewBackgr
 ## Deviations
 
 - **Font**: Bahnschrift stands in for PF DIN; Playnite also applies the user's font setting over `FontFamily`.
-- **The menu band is a 72px icon rail**, not the game's fifth of the screen with text items, so the library keeps its room; the frames and colors of the game's items carry over to the icons.
+- **The menu band is a 44px icon rail**, not the game's fifth of the screen with text items, so the library keeps its room; the frames and colors of the game's items carry over to the icons.
 - **Brush edge** is a jagged polygon, not a painted texture; it stretches with the window height.
 - **No scene**: the game's animated 3D backdrop is the selected game's background art.
 - **Journal header arrows**: Playnite's two separators get the same style, so both arrows point right; the game's pair points outward.

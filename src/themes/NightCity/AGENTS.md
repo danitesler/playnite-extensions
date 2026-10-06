@@ -78,7 +78,7 @@ Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` w
 ## Deviations
 
 - Yellow is the franchise and fan-UI yellow; the real in-game screens that could be sampled are red and cyan (see Sources).
-- Rajdhani is not shipped (`Fonts/` is not allowed) and is not a Windows font; without it the stack falls back to Bahnschrift. The HTML previews render in a system font here, so the shots show neither face.
+- Rajdhani is not shipped (`Fonts/` is not allowed) and is not a Windows font; without it the stack falls back to Bahnschrift. The HTML previews draw it with the bundled Rajdhani and Orbitron (headings), so the shots show the intended faces.
 - Cut corners are a single 8px triangle drawn in the surface brush on a few elements, not a full chamfer on every control.
 - No `SliderTrackBrush` or `ProgressBarForegroundBrush` is defined: the slider rail uses `ProgressBarTrackBrush` and the progress fill uses `GlyphBrush`.
 - The indeterminate `ProgressBar` scales a fill from the left instead of Default's opaque masks, which would show through a translucent rail.

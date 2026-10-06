@@ -66,7 +66,7 @@ Measured at 1080p and scaled by 2/3 (Playnite's 14px body against the menus' 21p
 ## Game page
 
 Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
-- **Title:** a battle name plate: `SlantPlateTemplate` with an ink body, 2px paper edge and a red drop; title in `HeadingFontFamily` at 40 (details) / 28 (grid panel).
+- **Title:** a battle name plate: `SlantPlateTemplate` with an ink body, 2px paper edge and a red drop; title in `HeadingFontFamily` at `FontSizeLargest` 44 (both views).
 - **Cover (details view):** a 3px paper frame with a red plate dropped 6px behind it.
 - **Headings** (screenshots, description, notes, details): `HeadingTextBlock` (Common.xaml) behind a 7 x 20 red slash.
 - **Info box:** coal (`ExpanderBackgroundBrush`) in a 2px paper edge; group rules 2px ash, so the wrapper's top margin is -34 (2 x 12 + 2 + 8). Captions in heavy capitals, fog.
@@ -99,6 +99,8 @@ Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
 ## Previews
 
 `art/preview-details.html` and `art/preview-settings.html` are 1280x720 HTML replicas (not Playnite captures) rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension callingcard`. Colors are `var(--token)` from `src/tokens.css`; icons are the theme's own `Media.xaml` Heroicons paths. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md` (top bar in the order of `Views/TopPanel.xaml`: search, icon-only view switches / group / sort, filter, notifications; the main menu button lives in the rail).
+
+Game page actions: Play (plate, text) then More and Edit as equal 40 x 40 icon-only paper-edged squares, Edit always visible. ComboBox values keep 40px clear on the right for the chevron.
 
 Signature motifs drawn: (1) the slanted red plate with the blue sliver on the current rail item, view button and list row; (2) the paper sawtooth edge on the rail; (3) the red halftone fading in from the corner; (4) the ink name plate in a paper edge with a red drop, and the red-edged cover; (5) Impact capitals with a red slash before headings and paper chips with ink text.
 

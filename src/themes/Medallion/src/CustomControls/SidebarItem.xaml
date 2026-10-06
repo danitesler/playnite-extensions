@@ -1,11 +1,13 @@
 <!--
     Overlay on Playnite Default/CustomControls/SidebarItem.xaml.
-    A Witcher 3 main menu item on the icon rail: a 52px square with a 24px icon, centered in the band, 4px apart.
+    A Witcher 3 main menu item on the icon rail: a 44x36 item with a 16px icon, centered in the band and tight
+    (a 2px gutter) so the rail holds more items than the game's 43px pitch before it has to scroll.
     Grey (#979797, the menu item grey) at rest; under the pointer the grey double frame comes up (#686868, the frame
-    around the hovered main menu item) and the icon turns white; the current item is white inside the light selection
-    frame (DoubleFrameTemplate in FocusBrush, as around the game's selected settings row). No fills, as in the game.
-    Library and Statistics draw the theme's Phosphor Light glyphs (IconLibrary, IconStatistics); add-on items keep
-    their own icon, scaled into the 24px box. The title is the tooltip.
+    around the hovered main menu item) and the icon turns white; the current item takes the game's list selection, the
+    amber wash (#593A04) fading left to right with the 3px orange bar (#D07201) on its left edge
+    (ListItemSelectedBrush / GlyphBrush, as in DefaultControls/ListBox.xaml and DerivedStyles/DetailsViewItemStyle.xaml),
+    white icon, no frame. Library and Statistics draw the theme's Phosphor Light glyphs (IconLibrary, IconStatistics);
+    add-on items keep their own icon, scaled into the 16px box. The title is the tooltip.
     PART_ProgressStatus is a 2px bar inside the bottom of the frame.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -21,14 +23,26 @@
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Width" Value="44" />
-        <Setter Property="Height" Value="40" />
-        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Margin" Value="0,0,0,2" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="ToolTip" Value="{Binding Title}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type SidebarItem}">
                     <Grid Background="Transparent">
+                        <!-- The current item's selection: the amber wash fading left to right, the orange bar on the left edge. -->
+                        <Rectangle x:Name="Shade" Visibility="Collapsed" IsHitTestVisible="False"
+                                   Fill="{DynamicResource ListItemSelectedBrush}">
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                    <GradientStop Offset="0" Color="#FF000000" />
+                                    <GradientStop Offset="1" Color="#00000000" />
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <Border x:Name="Bar" Width="3" HorizontalAlignment="Left" Visibility="Collapsed"
+                                IsHitTestVisible="False" Background="{DynamicResource GlyphBrush}" />
                         <Control x:Name="Frame" Template="{DynamicResource DoubleFrameTemplate}"
                                  BorderBrush="{TemplateBinding BorderBrush}" Focusable="False" IsTabStop="False" />
                         <Grid x:Name="IconHost" Width="16" Height="16"
@@ -44,6 +58,10 @@
                                      BorderThickness="0" Background="Transparent" />
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Selected}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="Shade" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="Bar" />
+                        </DataTrigger>
                         <DataTrigger Binding="{Binding SideItem.Icon}" Value="SidebarLibraryIcon">
                             <Setter Property="Visibility" Value="Collapsed" TargetName="ItemIcon" />
                             <Setter Property="Visibility" Value="Visible" TargetName="SetIcon" />
@@ -64,7 +82,8 @@
                 <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
             </Trigger>
             <DataTrigger Binding="{Binding Selected}" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                <!-- The wash and the bar are the mark; drop the hover frame. -->
+                <Setter Property="BorderBrush" Value="Transparent" />
                 <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
             </DataTrigger>
             <DataTrigger Binding="{Settings SidebarPosition}" Value="Top">

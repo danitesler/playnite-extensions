@@ -12,7 +12,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 ## Tokens
 
-Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius-lg (8), `CornerRadiusLarge` = radius-card (16), `CornerRadiusXLarge` = 24, `CornerRadiusFull` = pill, reserved for 1:1 square elements (repo rule); ayywi's pill buttons, chips and tabs use `ControlCornerRadius` because WPF distorts a full radius on non-square elements, and the notification count badge uses 8 (half its 16px height). Fonts: `Sora, Segoe UI` for body and `./Typography/#Unbounded` for `HeadingFontFamily` (bundled in `src/Typography/`, fallback to installed Unbounded, Sora, Segoe UI). Game titles: 24px · 700 · 1.3 (`LineHeight="31.2"`). Play button: 18px · 700 · 1.3 (`LineHeight="23.4"`).
+Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius-lg (8), `CornerRadiusLarge` = radius-card (16), `CornerRadiusXLarge` = 24, `CornerRadiusFull` = pill, reserved for 1:1 square elements (repo rule); ayywi's pill buttons, chips and tabs use `ControlCornerRadius` because WPF distorts a full radius on non-square elements, and the notification count badge uses 8 (half its 16px height). Fonts: `Sora, Segoe UI` for body and `./Typography/#Unbounded` for `HeadingFontFamily` (bundled in `src/Typography/`, fallback to installed Unbounded, Sora, Segoe UI). Game titles: 26px (`FontSizeLargest`) · 700 · 1.2 (`LineHeight="31.2"`). Play button: 18px · 700 · 1.3 (`LineHeight="23.4"`).
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -31,7 +31,7 @@ Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius
 
 ## Game page
 
-Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 112px caption column. Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). Edit and More appear on header hover. `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover masked with a `VisualBrush` inside a `BitmapCache` host, round 44px Play and Info buttons (`GridTileButton`).
+Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 112px caption column. Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). More and Edit are always-visible 48px square icon buttons (icon-only, the label in a `ToolTip`; repo rule). `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover masked with a `VisualBrush` inside a `BitmapCache` host, round 44px Play and Info buttons (`GridTileButton`).
 
 ## Components
 

@@ -6,7 +6,7 @@
 
 **A dark fantasy desktop theme with gold frames, red leather buttons and a quest-log game page. Inspired by the World of Warcraft Vanilla interface.**
 
-_Not released yet._
+**[Download Questlog 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/questlog-v0.1.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Blizzard Entertainment. World of Warcraft is a t
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/questlog-v0.1.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Fantasy, Desktop, RPG, Classic
 - **Source:** [src/themes/Questlog](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Questlog)

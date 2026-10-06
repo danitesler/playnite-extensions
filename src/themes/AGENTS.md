@@ -71,10 +71,13 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a row of icon view buttons on the bare bar (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
 | Attache | 44px compact icon rail with pewter selection plates on near black, transparent 56px top strip over darkened library art |
 | Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar with icon view switches (gold when current), panels with 2px black edges |
-| Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; double frames with notched corners mark the current item |
-| Overworld | 44px compact rail of 32px stone icon buttons (white outline on the current one), top panel as a 52px dark tab strip with underlined toggles, blurred game art behind the library |
+| Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; the current item takes the amber wash fading left to right with an orange left bar |
+| Overworld | 44px compact rail of bare 16px pixel icons that fill the whole cell on hover/current, top panel as a 52px dark tab strip with filled tabs and 20px icons, blurred game art behind the library |
+| Night City | 44px compact black rail, yellow marker and tinted plate on the current item; 52px black top strip with icon view switches, the current one a solid yellow plate with one cut corner; library art at 0.18 opacity, not feathered |
 | Tumbleweed | 44px compact black rail with red pause-stack glyphs (white when current) and a maroon paint splash behind the main menu button; transparent 56px top bar closed by a flat 2px grey rule; library and banner art under a red duotone wash |
+| Hearthside | 44px dark wood rail closed by a carved edge (brass over grain), the main menu a mana-blue medallion in a brass ring, 32px plates with a wood/gold current item; 56px wood top bar with the same carved edge and a sunken search well; library art under the page wood at 62% with a grain vignette |
 | Payload | 44px compact tab-bar navy rail with an orange slanted main menu button and cyan slanted plates (black glyph) for the current item; 56px translucent navy top bar with a 1px rule, slanted cyan plates on toggled view buttons; medium blue panels on the neutral dark blue page |
+| Cold Seat | 44px void rail that merges into the library (no edge divider), gold icons with an ice glow on the current item; night top strip with icon view switches and a search box; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush` |
 | Ace | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
 | Cordon | 44px compact rusted steel rail (rivet, seam, lit plate and amber lamp on the current item), 52px steel caption band over a grainy olive-black panel |
 | Calling Card | 44px compact ink rail with a paper sawtooth edge and a red star block on top; the current item, tab, row and view button sit on a slanted red plate with a blue sliver behind it; 52px transparent top bar on a hard ash rule; red halftone fading into the library corner |
@@ -121,8 +124,8 @@ Every field of Playnite's "Game fields to be displayed on details panel" list li
 
 ## Icons
 
-- **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`, Overworld `art/icons.py` pixel bitmaps).
-- **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shade, Chakram, Materia, Fluence), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primo, Battle.net, Assassin's Creed) or by the theme's own art script (WoW Vanilla).
+- **UI icons**: `Icon<Role>` geometries in `Media.xaml`, drawn by `IconTemplate` (stroked sets use a `DrawingImage`). Generated with `scripts/render-icons.ps1 -Format Geometry|DrawingImage`, or hand-drawn (Codex `icons/`, Questlog `art/glyphs.py`, Uplink `art/icons.py`, Ancient `Media.xaml`, Biome/Overworld `art/icons.py` Pixelarticons).
+- **Menu icons Playnite copies** (`AddGameIcon`, `PlayIcon`, ...): Playnite rebuilds them from a `TextBlock`'s glyph and font, so a vector is lost. Either keep Playnite's icofont glyphs and only recolor them (Shade, Chakram, Materia, Fluence), or map each key to a theme-relative PNG path as `sys:String`, rendered by `render-icons.ps1 -Extension <key>` from `icons.json` (Primo, Battle.net, Assassin's Creed) or by the theme's own art script (Biome, Overworld, WoW Vanilla).
 
 ## Previews and screenshots
 
@@ -133,6 +136,23 @@ Fonts: previews render with bundled open fonts (`scripts/fonts/`, registry `scri
 All release screenshots and listing previews are generated from HTML replicas using Chromium via `scripts/take-screenshots.ps1 -Extension <key>`:
 - **`art/preview-details.html` → `art/screenshot-details.png`**: HTML replica of the Game Details view: left compact rail, top panel in the order this theme's `Views/TopPanel.xaml` draws it (search, icon-only view switches / group / sort, filter, notifications), the game list on the left of the game page, then the game page (hero banner, screenshots + description left, metadata pane right).
 - **`art/preview-settings.html` → `art/screenshot-settings.png`**: HTML replica of Playnite's Settings window (`SettingsWindow.xaml`, 800x620 minimum): title bar, section tree on the left, the section page on the right, bottom bar with the restart note and Save, Cancel. Not a full-screen page and not a tab strip. Layout rules and `data-part` tags: `.claude/skills/playnite-theme-dev/previews.md` -> Layout.
+
+## Statistics page
+
+Playnite draws Statistics (the sidebar's second item) from `GroupBox`es in a wrapping panel: each section is a card that is only as wide as its content, so several sit side by side and the page stays compact. The only hook is `DefaultControls/GroupBox.xaml`; no theme restyles the view itself. The reference is Ayywi's GroupBox: a content-sized rounded `Border`, header, body.
+
+- Nothing in the GroupBox template (or a template it references) may report a large desired width: no `Path` or `Line` wider than ~200px, no `Line Stretch="Fill"` without a `Width`, no fixed `Width`/`MinWidth` >= 200. One wide child makes every card ask for the full page, and the sections stack full width with empty space (Blacklist's 2600px stripe Path, Cordon's Line).
+- Full-card decoration (stripes, rules, ornaments) lives in a `Canvas` inside a `Grid ClipToBounds="True"`: the Canvas has no desired size and the Grid clips the overflow. Blacklist's `HazardStripesTemplate` and Cordon's header rule do it this way.
+- Check: open Statistics after any GroupBox or shared decoration change; sections must wrap as compact cards. `validate-extension.ps1` (`Test-GroupBoxContentSized`) catches the common cases.
+
+## ComboBox chevron room
+
+The value (`ContentSite`) and the chevron overlap in one cell, and a ComboBox shrinks to its value, so the template must keep the chevron's space free on the value's right: a `Border Margin="0,0,R,0"` around `ContentSite` with R = chevron width + right margin + 8px (or separate grid columns, as Ayywi). `PART_EditableTextBox` keeps the same right margin. Without it a short value such as "Minimize" or "English" runs under the arrow. `validate-extension.ps1` (`Test-ComboBoxChevronRoom`) requires at least 12px.
+
+## Game page action buttons
+
+In the header actions, Play and the context action show text; every secondary button beside them (More, Edit, others) is icon-only: a 16-20px glyph through `IconTemplate` in a fixed-width square button, the label as `ToolTip`. More and Edit have the same fixed square size and both a `ToolTip`. The Edit button is always visible, with no hover reveal. `validate-extension.ps1` (`Test-GameActionButtons`) enforces both in `DetailsViewGameOverview.xaml` and `GridViewGameOverview.xaml`.
+
 ## Control corner radii and shapes
 
 - **Why `CornerRadiusFull` distorts in WPF**: Unlike CSS (which scales corner radii uniformly), WPF's `Border` clamps horizontal and vertical radii independently: `radiusX = min(radiusX, width/2)` and `radiusY = min(radiusY, height/2)`. When a single huge radius (e.g. 9999 or 10000) is set on an element where `width != height`, WPF draws an ellipse/oval across the entire element rather than flat edges with circular caps.
@@ -143,6 +163,7 @@ All release screenshots and listing previews are generated from HTML replicas us
 - **Thin tracks and progress fills must use half-thickness radii**: `Slider` tracks, `ProgressBar` bars, active tab indicator lines, and scrollbar thumbs (`ScrollBarThumb`) must NEVER use `CornerRadiusFull` (which clamps horizontal radius to `width/2`, turning a 4px or 6px line into an elongated needle/spindle). Always specify an explicit numeric radius equal to half the track thickness (e.g. `CornerRadius="2"` for a 4px slider track, `CornerRadius="3"` for a 6px progress bar or thumb, `CornerRadius="1.5"` for a 3px line).
 - **Scrollbar thumbs (`ScrollBarThumb`)**: Use half track width (e.g. `CornerRadius="3"` for a 6px thumb) or `CornerRadiusSmall`, never `CornerRadiusFull`. Large numbers scale disproportionately across axes in WPF's Border geometry and distort when rotated horizontally.
 - **No pill wrappers on dynamic toolbars**: Never wrap dynamic collections like `PART_PanelMainItems` in an outer pill container.
+- **Fixed-width buttons (ThemeModifier icon buttons)**: ThemeModifier hardcodes its edit pencil and restore X at `Width="41"` (editor XAML and constants code) in two fixed 41px columns, with no height. The base `Button` style carries a `Width == 41` trigger: `Padding="0"`, `HorizontalContentAlignment`/`VerticalContentAlignment` = `Center`, `MinWidth` 41, `MinHeight` 41 and `FontSize` 16 — the two buttons become a 41x41 square with a small centred glyph and inner breathing room that the body `ButtonPadding` would otherwise clip to a sliver (auto-width buttons keep their padding). `MinWidth` 41 must be pinned: a theme's own `MinWidth` (MUI-style buttons use 64) coerces the plugin's 41px buttons wider and the pair overlaps. Keep the glyph small too. `validate-extension.ps1` checks the trigger on every theme.
 
 ## Per-theme notes
 

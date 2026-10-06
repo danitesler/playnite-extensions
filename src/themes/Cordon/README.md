@@ -4,7 +4,7 @@
 
 <img src="info/icon.png" alt="Cordon" width="64" height="64" />
 
-**A dark theme inspired by the S.T.A.L.K.E.R. menus: rusted steel plates, olive-black panels, amber lamp toggles.**
+**A dark theme inspired by the S.T.A.L.K.E.R. menus: rusted steel plates, olive-black panels, square amber lamp check boxes.**
 
 _Not released yet._
 
@@ -16,7 +16,7 @@ _Not released yet._
 
 ## About
 
-Rusted, riveted steel plates for the rail, top bar, tabs and buttons, grainy olive-black panels, near-black value fields with a red-lens dropdown knob, amber lamp toggles and the beige and cream type of the S.T.A.L.K.E.R.: Shadow of Chernobyl Options screen. Unofficial fan theme: no GSC Game World assets, procedural textures and open icons only. Install Letterica and Graffiti for the closest type; otherwise it falls back to Bahnschrift SemiCondensed or Arial Narrow.
+Rusted, riveted steel plates for the rail, top bar, tabs and buttons, grainy olive-black panels, near-black value fields with a dim dropdown chevron, square amber lamp check boxes and the beige and cream type of the S.T.A.L.K.E.R.: Shadow of Chernobyl Options screen. Unofficial fan theme: no GSC Game World assets, procedural textures and open icons only. Install Letterica and Graffiti for the closest type; otherwise it falls back to Bahnschrift SemiCondensed or Arial Narrow.
 
 ## Install
 

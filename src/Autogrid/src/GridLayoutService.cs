@@ -8,7 +8,7 @@ using Playnite.SDK;
 
 namespace Autogrid
 {
-    internal sealed class ViewportMetrics
+    public sealed class ViewportMetrics
     {
         public double Viewport;
         public double PanelWidth;
@@ -18,7 +18,7 @@ namespace Autogrid
         public ScrollViewer PickedScrollViewer;
     }
 
-    internal sealed class TileVerticalMeasurements
+    public sealed class TileVerticalMeasurements
     {
         public double TileHeight;
         public double CoverHeight;

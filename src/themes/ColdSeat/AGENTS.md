@@ -33,11 +33,11 @@ Type: body and headings `Friz Quadrata TT, Palatino Linotype, Book Antiqua, Geor
 
 ## Shell
 
-Left 44px stone rail with a bevelled library-side edge, icon-only items (gold, white on hover, ice glow when current); a night top strip with icon view switches and a search box, 146px clear for the caption buttons; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush`; caption buttons 46x40 with a red close hover.
+Left 44px void rail that merges into the library (no divider on its edge), icon-only items (gold, white on hover, ice glow when current); a night top strip with icon view switches and a search box, 146px clear for the caption buttons; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush`; caption buttons 46x40 with a red close hover.
 
 ## Game page
 
-Shared skeleton. Gold title, Esc-menu style double frame (stone rim plus inner dark line) around the metadata pane, gold PLAY plate beside blue-bar More and Edit buttons (`SecondaryButton`, `--wc3-blue*`).
+Shared skeleton. Gold title, Esc-menu style double frame (stone rim plus inner dark line) around the metadata pane, gold PLAY plate beside stone More and Edit buttons (`SecondaryButton`, stone palette with gold glyphs).
 
 ## Components
 

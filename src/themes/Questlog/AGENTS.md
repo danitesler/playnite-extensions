@@ -28,7 +28,7 @@ Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia,
 
 | File | Behavior |
 |------|----------|
-| `DerivedStyles/MainWindowStyle.xaml` | The window is the gold and bronze frame (`FrameBrush`, 3px) with a dark inner line. `MainWindowButton`: plain 24x22 gold glyphs, no plate; a faint wash on hover, close turns `DangerBrush`. |
+| `DerivedStyles/MainWindowStyle.xaml` | The window is a dark brown 3px ring (literals in `MainWindowStyle`) with a 1px inner line; dialogs keep the same frame. `MainWindowButton`: plain 24x22 gold glyphs, no plate; a faint wash on hover, close turns `DangerBrush`. |
 | `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml` | Dialogs: the same frame, the title on a plaque at the top center (gold on the panel fill in a gold ring, `UI-DialogBox-Header`), caption glyphs as above. Content starts 32px down. |
 | `Views/Sidebar.xaml` | The 44px compact rail: a plain strip of stone (`ShellBackgroundBrush`), no rule toward the library, all four positions. `MainMenuButton`: a bare gold hamburger that takes a faint wash on hover (a 44x40 item with a 16px glyph on the rail, 32px in the top bar). |
 | `CustomControls/SidebarItem.xaml` | Borderless 44x40 items with 16px glyphs. Hover is a faint wash; the current item is a gold glyph on a faint gold wash. Library is the tome, Statistics the hourglass. `PART_ProgressStatus` overlays a translucent gold fill. |
@@ -40,7 +40,7 @@ Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia,
 
 `Views/DetailsViewGameOverview.xaml` (details view) and `GridViewGameOverview.xaml` (grid view side panel) keep Playnite's arrangement and every `PART_` name:
 
-- Title in gold at 28px with a one pixel shadow; the icon and cover sit in a single thin slot edge (hidden with the image).
+- Title in gold at 31px with a one pixel shadow; the icon and cover sit in a single thin slot edge (hidden with the image).
 - **Steam screenshots, description and notes = quest text** on the left: ink on a paper page (`ParchmentBrush`, the tiled `parchment.png` at 90 %, a shaded rim from an `OpacityMask` in a `BitmapCache` wrapper), inside one `FrameBrush` frame. Headings are `QuestTitleFont` style: black with a brown shadow copy behind, with no rule under them. Screenshots use the Steam Screenshots plugin host (`SteamScreenshots_SteamScreenshotsViewControl`), hidden when that plugin's control is not visible.
 - **Properties = an item tooltip** on the right of that page: the tooltip navy inside a 1px light edge, no inner line and no rule under the title. Labels gold, values white, links white until the pointer turns them gold, scores in the item quality colors. It holds every metadata field Playnite can show, in the six shared groups (progress, scores, about, tags as plain dark chips, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by space only (108px gold caption column beside white values; a group whose fields are all hidden collapses). The grid panel uses the same two columns (quest text, then a 280px tooltip) with each caption over its value. The side panel has no bronze rule against the grid.
 - `DescriptionView.html` draws the description with the same ink.
@@ -72,6 +72,12 @@ python3 art/menu_icons.py sheet  # art/menu-sheet.html
 python3 art/parchment.py         # src/Images/parchment.png
 python3 scripts/render-addon-icon.py --svg src/themes/Questlog/art/mark.svg --extension questlog   # info/icon.png
 ```
+
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` replicate the current XAML (screenshots via `scripts/take-screenshots.ps1 -Extension questlog`). Icons are the `Media.xaml` geometries with the one pixel ink shadow of `IconTemplate`. Font stack `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`: Friz Quadrata, Constantia, Palatino and Georgia are all drawn with the bundled Gelasio stand-in.
+
+Signature motifs: the 3px dark brown window ring with a 1px line inside it (`MainWindowStyle` literals) and the plaque title of dialogs; the gold fading highlight on the selected row and tree node; red leather panel buttons (Play 150x40 in the brighter primary leather, More and Edit icon-only 40x40 squares 10px apart); ink on tiled parchment in its own 2px ring beside the navy item-tooltip pane (280px, "Game Details" header); the beige slider plate on a black groove. The details preview uses `GameBannerHeight` 200 (default 320) so the page and the whole tooltip pane fit in 720px; the spacer above the title scales with it (`x * 100 / 320`).
 
 ## Not verified yet
 

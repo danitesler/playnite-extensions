@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **S.T.A.L.K.E.R.: Shadow of Chernobyl** (GSC Game World, 2007), mainly its Options screen. Clear Sky shares most of the color table; Call of Pripyat went neutral grey, so it is not the reference. The look: grainy olive-black panels inside a rusted, riveted steel frame, worn metal plates for tabs and buttons, near-black value fields with a grey hairline and a red-lens dropdown knob, amber lamp toggles, beige labels and cream headings. Dark only.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **S.T.A.L.K.E.R.: Shadow of Chernobyl** (GSC Game World, 2007), mainly its Options screen. Clear Sky shares most of the color table; Call of Pripyat went neutral grey, so it is not the reference. The look: grainy olive-black panels inside a darker brown rusted frame, worn metal plates for tabs and buttons, near-black value fields with a grey hairline and a dim dropdown chevron, square amber lamp checkboxes, beige labels and cream headings. Dark only.
 
 **Unofficial fan theme.** No GSC assets: the rust and grain are procedural (`art/textures.py`), the mark is an original trefoil, the icons are Phosphor. The game's bitmap fonts (Letterica, Graffiti) are not shipped; the theme names them first and falls back to Bahnschrift SemiCondensed, Arial Narrow and Tahoma. S.T.A.L.K.E.R. is a trademark of GSC Game World (`info/NOTICE-Cordon.txt`).
 
@@ -24,11 +24,12 @@ Full notes, quotes and status of each source: **`RESEARCH.md`**. In short:
 
 | Token | Key | Used for |
 |-------|-----|----------|
-| `zone-panel` 1f1c17 | `WindowBackgourndBrush`, `ContentBackgroundBrush`, `PopupBackgroundBrush`, `NormalBrushDark`, `ScrimBrush` | Panel interior |
-| `zone-panel-deep` 171511 | `ExpanderBackgroundBrush`, `BackgroundToneColor` | Inset wells: metadata pane, side panels, notes |
+| `zone-panel` 141210 | `WindowBackgourndBrush`, `ContentBackgroundBrush`, `PopupBackgroundBrush`, `NormalBrushDark`, `ScrimBrush` | Panel interior |
+| `zone-panel-deep` 0f0e0c | `ExpanderBackgroundBrush`, `BackgroundToneColor` | Inset wells: metadata pane, side panels, notes |
 | `zone-field` 100f0d | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, track keys | Value fields, grooves, lamp housings |
 | `zone-hairline` 5e5f5b | `InputBorderBrush`, `NormalBorderBrush`, `PopupBorderBrush` | Field edges, the broken line, popup edges |
-| `zone-steel` 3b3129 | `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `NormalBrush` | The frame: rail, caption band, idle tabs |
+| `zone-frame` 12110e | `ShellBackgroundBrush`, `TopPanelBackgroundBrush` | The frame: rail and caption band, a washed dark brown near the panel tonality |
+| `zone-steel` 3b3129 | `NormalBrush` | Idle tabs and plates |
 | `zone-plate` 4b443f | `ButtonBackgroundBrush`, thumbs | Button plates |
 | `zone-plate-hover` 8d7f6f | `ButtonHoverBackgroundBrush`, `HoverBrush` | A plate under the cursor (the game brightens the texture) |
 | `zone-plate-lit` 775f51 | `ToggleButtonCheckedBackgroundBrush`, `PrimaryButtonBackgroundBrush`, `TopPanelItemCheckedBackgroundBrush` | Current tab, Play, current sidebar item |
@@ -42,7 +43,7 @@ Full notes, quotes and status of each source: **`RESEARCH.md`**. In short:
 | `zone-ink` 291b10 | `TextBrushDark`, `ButtonHoverForegroundBrush` | Dark label on a hovered plate |
 | `zone-led` e7a80c | `GlyphBrush`, `TabItemIndicatorBrush`, `ProgressBarForegroundBrush`, `PrimaryButtonGlowBrush` | The one accent: lit lamps, current-tab strip, gauges |
 | `zone-amber` ee9b17 | `FocusBrush`, `DataChangeNotifBrush` | Keyboard focus |
-| `zone-lens` a5271b | `DangerBrush` | Dropdown knob lens, close hover, badges |
+| `zone-lens` a5271b | `DangerBrush` | Close-button hover, notification badges |
 | `zone-bevel-light` / `-shadow`, `zone-rivet` | `BevelLightBrush`, `BevelShadowBrush`, `SlotBorderBrush`, `FrameBrush` | Plate bevels, seams, rivets |
 
 Radii are 0 (`CornerRadiusSmall` 1 for the scroll thumb). `CornerRadiusFull` stays 9999 and is used only by 1:1 elements (none at the moment besides ellipses). Fonts: `FontFamily` Letterica → Bahnschrift SemiCondensed → Arial Narrow → Tahoma; `HeadingFontFamily` Graffiti1 / Graffiti → Bahnschrift SemiBold SemiCondensed → Bahnschrift SemiCondensed → Arial Narrow. Sizes 12 / 14 / 16 / 20 / 28.
@@ -59,8 +60,8 @@ Vocabulary added for this theme (`scripts/data/theme-keys.json`): `ButtonHoverFo
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px rusted steel rail (BevelTemplate), a seam on its inner side, a rivet at its foot; 44 x 40 items with 16px glyphs (fixed `Padding="14,12"` gives a 16 x 16 content area; `IconPadding` is not bound on top of it, per the Sidebar Icon Sizing rule), the current one on a 32px lit plate with a 2 x 16 amber lamp at the outer edge |
-| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px steel caption band with a rivet and a seam under it; 36px glyph buttons that show a plate on hover (dark glyph) and a lit plate with an amber strip when toggled |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px dark frame rail (BevelTemplate), a seam on its inner side, a rivet at its foot; 44 x 40 items with 16px glyphs (fixed `Padding="14,12"` gives a 16 x 16 content area; `IconPadding` is not bound on top of it, per the Sidebar Icon Sizing rule), the current one on a 32px lit plate with a 2 x 16 amber lamp at the outer edge |
+| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px dark frame caption band with a rivet and a seam under it; 36px glyph buttons that show a plate on hover (dark glyph) and a lit plate with an amber strip when toggled |
 | `DerivedStyles/MainWindowStyle.xaml` | 44 x 32 window buttons, a plate on hover, the red lens for close; 1px dark window edge |
 | `Views/Library.xaml` | Panel color with the grain overlay; library art darkened and vignetted behind it |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Inset wells with the grey hairline |
@@ -76,8 +77,8 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 | Button, RepeatButton | "Use" / "Cancel" plate; hover brightens it and darkens the label, pressed shows the touched color |
 | ToggleButton, TabControl | Options tab plates, flush; current = lit plate, bright label, amber strip |
 | TextBox, PasswordBox, SearchBox | Value field with the hairline, amber edge on focus |
-| ComboBox | Value field with the round red-lens knob |
-| CheckBox | Lamp toggle: grille and lamp in a 30 x 14 housing, amber with a halo when on |
+| ComboBox | Value field with a dim dropdown chevron |
+| CheckBox | Square lamp: an 8px square in a 16 x 16 housing, amber with a halo when on |
 | RadioButton | Round indicator lamp |
 | Slider | 6px groove, amber fill, 10 x 20 steel thumb |
 | ProgressBar | Segmented amber gauge in a groove |
@@ -91,7 +92,7 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 
 `art/preview-details.html` and `art/preview-settings.html` are the only sources of `art/screenshot-details.png` and `art/screenshot-settings.png` (`.\scripts\take-screenshots.ps1 -Extension cordon`); both are 1280x720, hand-written HTML with the Phosphor icons inlined as `<symbol>`s, colors as `var(--zone-*)` from `src/tokens.css`, textures from `../src/Images`. They are replicas, not Playnite captures. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md`: the top bar runs search, icon-only view switches / group / sort / view settings / random, filter, notifications (the order of `src/Views/TopPanel.xaml`); the settings preview is Playnite's Settings window (tree left, Appearance / General page, `* Requires restart to apply` with Save then Cancel).
 
-Signature motifs drawn: (1) rusted, riveted steel plates with a grain overlay for the rail, caption band and buttons (`BevelTemplate`); (2) amber lamp toggles and radio lamps with a halo, and the red-lens dropdown knob; (3) the warm brown engine selection bar with a 2px amber edge; (4) cream headings over the dashed "broken line" rule; (5) the lit tab / Play plate with an amber lamp.
+Signature motifs drawn: (1) rusted, riveted steel plates with a grain overlay for the rail, caption band and buttons (`BevelTemplate`); (2) square amber lamp checkboxes and round radio lamps with a halo; (3) the warm brown engine selection bar with a 2px amber edge; (4) cream headings over the dashed "broken line" rule; (5) the lit tab / Play plate with an amber lamp.
 
 Stand-in fonts (bundled, `scripts/data/fonts.json`): Letterica and Graffiti are not bundled and not shipped, so the stack falls through to Bahnschrift SemiCondensed (Barlow Semi Condensed), Bahnschrift SemiBold SemiCondensed (Barlow Semi Condensed SemiBold, alias added for this theme) and Arial Narrow (Barlow Condensed). Sample game and studio are the reference game itself, as text only (no logos or art); both previews carry an "Unofficial fan theme" note.
 
@@ -103,6 +104,7 @@ Stand-in fonts (bundled, `scripts/data/fonts.json`): Letterica and Graffiti are 
 - Library art keeps its color (the game's menus sit over a desaturated scene).
 - Fonts are fallbacks unless TrueType conversions of the game's fonts are installed; WPF may not resolve `Bahnschrift SemiCondensed` as a family name, in which case the regular width of Bahnschrift is used.
 - Section captions are sentence case; WPF `TextBlock` has no casing property, so the game's ALL CAPS window caption is not reproduced.
+- `DefaultControls/GroupBox.xaml`: the broken line under a header is a `Line Stretch="Fill"` inside a `Canvas`. A bare `Line Stretch="Fill"` reports the whole available width as its desired size, so any `GroupBox` in a content-sized host (the statistics page's `WrapPanel`) claims a full row; the `Canvas` takes no desired size and passes the line its arranged width instead, so the box sizes to its content and the statistics sections wrap side by side again.
 
 ## Not verified yet
 

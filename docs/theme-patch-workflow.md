@@ -13,6 +13,10 @@ individually. This checklist keeps the 29 copies in sync.
 | Game-page skeleton pieces | `GameBannerHeight` in `Common.xaml`, `MathConverter` spacer + `ActualHeight == 0` trigger, `Meta*` groups, `PropertyItemButton` chip trigger |
 | Sidebar rail | 44px rail, 44x40 items, 16px glyphs; exactly one of fixed plate padding or `{Binding IconPadding}` (`SidebarIconPadding` validator rule) |
 | Corner radii | `ControlCornerRadius` on base controls / PlayButton / chips / tracks; `CornerRadiusFull` only on 1:1 squares (validator rule) |
+| ThemeModifier buttons | `DefaultControls/Button.xaml`: a `Width == 41` trigger (`Padding="0"`, content centered, `MinWidth` 41, `MinHeight` 41, `FontSize` 16) that renders the plugin's fixed-width pencil / restore buttons as small 41x41 squares (`ThemeModifierIconButtons` validator rule) |
+| Statistics page | `DefaultControls/GroupBox.xaml`: content-sized — no child reports a large desired width (no Path/Line over ~200px, no fixed `Width`/`MinWidth` ≥ 200); spanning art goes in a clipped `Canvas` so the sections wrap as cards (`GroupBoxContentSized` validator rule) |
+| ComboBox chevron | `DefaultControls/ComboBox.xaml`: `ContentSite` reserves ≥12px on its right (right margin or its own grid column) so a short value never runs under the dropdown arrow (`ComboBoxChevronRoom` validator rule) |
+| Game action buttons | `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml`: More and Edit are icon-only, the same fixed square, each with a `ToolTip`, Edit always visible (`GameActionButtons` validator rule) |
 
 Per-theme `AGENTS.md` records only what differs from the skeleton.
 
@@ -42,6 +46,12 @@ Per-theme `AGENTS.md` records only what differs from the skeleton.
    after every edit; deploying sets the active theme, so only the theme being worked on gets `-Deploy -Restart`.
    Then `node scripts/generate-readmes.mjs` (fetch tags first) if
    screenshots or manifests changed.
+   **Playnite reads the deployed copy, not the repo.** It loads
+   `%AppData%\Playnite\Themes\Desktop\<Id>`, so a build drop (`artifacts/builds/...`) and
+   `-DeployKey`/`-Deploy` of one theme leave every other deployed copy stale — switching to
+   those themes in Playnite still shows the old build. After a change that spans themes,
+   redeploy each one (`build-theme.ps1 -Extension <key> -Deploy`; no restart, keeps the active
+   theme), then restart Playnite once to reload.
 6. Keep the PR to one area across themes (e.g. "sidebar padding in all
    themes"), not one theme across areas, so review stays mechanical.
 

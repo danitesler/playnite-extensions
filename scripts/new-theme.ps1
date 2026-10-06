@@ -333,6 +333,7 @@ Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own nam
 Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
 Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
 Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
+Write-Host "     In DefaultControls/Button.xaml add the ThemeModifier icon-button trigger: Width == 41 -> Padding 0, content Center, MinHeight 41, FontSize 16 (AGENTS.md ThemeModifier Icon Buttons; validate-extension.ps1 enforces it)."
 Write-Host "  5. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key -Deploy and restart Playnite."
 Write-Host "  6. Rewrite art/preview-details.html and art/preview-settings.html from the research, with var(--token) colors from src/tokens.css"
 Write-Host "     (they are generic placeholders), then .\scripts\take-screenshots.ps1 -Extension $Key. After token changes: .\scripts\validate-extension.ps1 lists preview colors that drifted."

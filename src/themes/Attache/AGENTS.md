@@ -18,7 +18,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 `GlyphColor` is amber, not the menus' warm white, so links and checked states stay distinguishable from body text.
 
-Radii are 0 everywhere. Fonts: Segoe UI for body text; `HeadingFontFamily` is **Bahnschrift SemiCondensed** (it falls back to Bahnschrift, then Segoe UI), the condensed grotesque Windows ships, closest to the menus' Helvetica Condensed-like face. WPF has no `text-transform`. Text a template can reach goes through Playnite's `StringToUpperCaseConverter`: sidebar words and the game page section captions. Text it cannot reach uses small caps (`Typography.Capitals`) set a step larger, because small caps are short: tabs and group box captions at `FontSizeLarger`, the Play label at 24, the game name at 38.
+Radii are 0 everywhere. Fonts: Segoe UI for body text; `HeadingFontFamily` is **Bahnschrift SemiCondensed** (it falls back to Bahnschrift, then Segoe UI), the condensed grotesque Windows ships, closest to the menus' Helvetica Condensed-like face. WPF has no `text-transform`. Text a template can reach goes through Playnite's `StringToUpperCaseConverter`: sidebar words and the game page section captions. Text it cannot reach uses small caps (`Typography.Capitals`) set a step larger, because small caps are short: tabs and group box captions at `FontSizeLarger`, the Play label at 24, the game name at `FontSizeLargest` (42).
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -45,7 +45,7 @@ Shared templates in `Common.xaml`:
 
 It follows the skeleton in `../AGENTS.md`. Differences:
 - **Banner:** darkened by three scrims (35% overall, heavier at the left, heavier toward the title), like the menus' scenes.
-- **Title:** small caps at 38px, in warm white. Section captions are uppercase words over a hairline.
+- **Title:** small caps at `FontSizeLargest` (42px), in warm white. Section captions are uppercase words over a hairline.
 - **Actions:** Play is the always-lit pewter plate; More and Edit are square buttons (44px in details, 40px in the grid panel).
 - **Metadata pane:** no card. Group rules are hairlines.
 

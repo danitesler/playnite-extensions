@@ -79,7 +79,7 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are HTML replicas (same tokens, sizes, icons and shell), rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension tumbleweed`. Anton and Oswald stand in for the title and body faces. They are not Playnite captures.
+`art/preview-details.html` and `art/preview-settings.html` are HTML replicas (same tokens, sizes, icons and shell), rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension tumbleweed`. Anton and Oswald stand in for the title and body faces. Motifs: the maroon paint splash behind the main menu, pause-stack red glyphs on the black rail (white when current), flat 2px grey rules, the red duotone banner under a 37px selection-white title, maroon section headings over full-width rules, and a Play bar with torn ends (title face at `FontSizeLarge`, 140px) beside icon-only 40x40 More (gear) and Edit (pencil) keycaps, 8px apart, always visible. Combo boxes keep 30px clear for the chevron. They are not Playnite captures.
 
 ## Not verified yet
 

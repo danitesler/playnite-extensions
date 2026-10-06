@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) taking ins
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
-**Intended layout: the sidebar on the left** (Playnite's default, like the other themes here): the game's navigation bar turned into a 56px icon rail, with the top panel as the sub navigation strip. At the top it becomes the game's horizontal tab bar with uppercase titles; right and bottom work too.
+**Intended layout: the sidebar on the left** (Playnite's default, like the other themes here): the game's navigation bar turned into a 44px icon rail, with the top panel as the sub navigation strip. At the top it becomes the game's horizontal tab bar with uppercase titles; right and bottom work too.
 
 ## Sources
 
@@ -29,14 +29,14 @@ New shared key this theme added to `scripts/data/theme-keys.json`: **`ChamferTem
 | File | Behavior |
 |------|----------|
 | `Views/Sidebar.xaml` | **Left/right (intended):** a 44px rail, `ShellBackgroundBrush` with the glow rising toward the 1px line on the library side; the home button (`MainMenuButton`, `PART_ElemMainMenu`, 44px wide plate with a hexagon mark) boxed at the start. **Top:** the game's horizontal navigation bar, 56px, glow toward the bottom line, 146px kept clear for the caption buttons. **Bottom:** a strip. |
-| `CustomControls/SidebarItem.xaml` | **Top/bottom:** icon + title in uppercase heading sans (15px, Playnite's `StringToUpperCaseConverter`), 20px either side, short 1px dividers; `TextBrushDarker` at rest; hover and current = white over a blue glow (`FrameInnerBrush`) rising from the bar's bottom edge; current adds a 2px beam (`TabItemIndicatorBrush`) that fades out at both ends. **Rails:** icon only, 56x48, glow from the library-side edge and a 2px beam there; title as tooltip. |
+| `CustomControls/SidebarItem.xaml` | **Top/bottom:** icon + title in uppercase heading sans (15px, Playnite's `StringToUpperCaseConverter`), 20px either side, short 1px dividers; `TextBrushDarker` at rest; hover and current = white over a blue glow (`FrameInnerBrush`) rising from the bar's bottom edge; current adds a 2px beam (`TabItemIndicatorBrush`) that fades out at both ends. **Rails:** icon only, 44x40, glow from the library-side edge and a 2px beam there; title as tooltip. |
 | `Views/TopPanel.xaml` | The sub navigation strip: 48px on `TopPanelBackgroundBrush`, 1px line under it; search (320px) left; view, sort, filter, notification icons right, `TextBrushDarker`, light blue on a glow wash when on. Keeps 146px clear for the caption buttons only when it is the topmost bar (sidebar not at the top). |
 | `DerivedStyles/MainWindowStyle.xaml` | Caption buttons 46x40, 8px from the top with the sidebar at the top (centered on the 56px bar), 4px otherwise; red close hover. |
 | `Views/Library.xaml`, `FilterPanelView.xaml`, `ExplorerPanel.xaml`, `SearchView.xaml` | Library layer on `deck`, the game's background art feathered in; side panels on `hull`. |
 
 ## Game page
 
-Follows the shared skeleton. Title in the heading sans (28px), Play 180x40, the other actions 150x40. Section headings (`HeadingTextBlock`) are the heading sans in `GlyphBrush` over the lit divider (`DividerTemplate`: a 28x3 bar and a 1px line fading right). The cover in the details header sits in a 1px frame with the lit corner ticks.
+Follows the shared skeleton. Title in the heading sans (31px), Play 180x40, More and Edit icon-only 40x40 squares. Section headings (`HeadingTextBlock`) are the heading sans in `GlyphBrush` over the lit divider (`DividerTemplate`: a 28x3 bar and a 1px line fading right). The cover in the details header sits in a 1px frame with the lit corner ticks.
 
 ## Components
 
@@ -51,6 +51,10 @@ The rest (TextBox, PasswordBox, ScrollViewer, ProgressBar, TabControl, Expander,
 - **Not the game's font**: Eurostile Extended is used only if installed. Bahnschrift is narrower, so tabs are shorter than in the game.
 - **No hexagon pattern, no 3D scenes**: the bar's animated hex shimmer and the menu backgrounds are game art; the library shows the game's own background art instead.
 - Playnite templates this theme does not replace (DataGrid in List view, DatePicker, TreeView, notification panel, add-on views) take the colors, not the chamfers.
+
+## Previews
+
+`art/preview-details.html` and `art/preview-settings.html` replicate the XAML (`scripts/take-screenshots.ps1 -Extension uplink`): the 44px rail with the boxed home plate (22px hexagon) and 44x40 items with a lit beam on the current one, the 48px sub navigation strip, 1px-ruled game rows with a glow wash and light blue bar on the current game, chamfered plates (Play 180x40 in the call-to-action blue, icon-only 40x40 More and Edit 10px apart), and the unboxed Game Details column (heading over the lit divider, 120px caption column in the heading sans beside the values, 1px group rules). Icons are the `Media.xaml` strokes (1.5px, miter joins, flat caps). The heading sans is drawn as `Bahnschrift SemiBold` (Barlow stand-in), what most machines resolve, since Eurostile Extended is not bundled; headings show as typed (AllSmallCaps has no effect on it), button labels are uppercase (`StringToUpperCaseConverter`). The details preview uses `GameBannerHeight` 200 (default 320) so the page fits; the spacer above the title scales with it (`x * 100 / 320`).
 
 ## Not verified yet
 

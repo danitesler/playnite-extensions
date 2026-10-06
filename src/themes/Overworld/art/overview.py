@@ -368,8 +368,6 @@ def details():
 {indent(splash(18, "12,-6,0,0"), 16)}
             </Grid>
         </Grid>
-        <Control Template="{{DynamicResource DividerTemplate}}" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
-                 Width="420" HorizontalAlignment="Left" Margin="0,12,0,0" />
         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,18,0,0">
             <Grid>
                 <Button Name="PART_ButtonPlayAction" Width="220" Height="48" Style="{{DynamicResource PlayButton}}" />
@@ -429,7 +427,6 @@ def grid_panel():
 {indent(title("{DynamicResource FontSizeLargest}", 2), 4)}
 </DockPanel>
 {splash(14, "0,8,0,-4")}
-<Control Template="{{DynamicResource DividerTemplate}}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" Margin="0,10,0,0" />
 <Grid Margin="0,16,0,24" Background="Transparent">
     <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" MaxWidth="200" />

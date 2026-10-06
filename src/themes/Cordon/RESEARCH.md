@@ -26,7 +26,7 @@ Not reachable during research: PCGamingWiki (403), the Fandom wiki (402).
 - Surfaces, metal, text and accent tokens, with their tags, are the table in `src/tokens.css` (and `AGENTS.md` -> Tokens for which Playnite key plays each one).
 - Shape: square plates (`--zone-radius` 0, `--zone-radius-sm` 1 for the scroll thumb); the frame and plate edges are drawn, never rounded.
 - Type: Letterica (body) and Graffiti1 / Graffiti (headings) first, then Bahnschrift SemiCondensed, Arial Narrow, Tahoma. Sizes 12 / 14 / 16 / 20 / 28 mapped from letterica16 (14), graffiti19 (16), letterica25 / graffiti22 (20) and graffiti32 (28) at 1024x768.
-- Chrome and selection: worn steel plates for the rail, caption band, tabs and buttons (`BevelTemplate`: rust overlay, shade, lit top line, dark bottom line); engine selection bar (warm brown, no outline); lamp toggles and a red-lens dropdown knob for check boxes and combo boxes; broken-line section rule.
+- Chrome and selection: worn steel plates for the rail, caption band, tabs and buttons (`BevelTemplate`: rust overlay, shade, lit top line, dark bottom line); engine selection bar (warm brown, no outline); a square lamp indicator for check boxes and a dim dropdown chevron for combo boxes; broken-line section rule.
 
 ## Design decisions
 

@@ -10,7 +10,7 @@ Mojang publishes no design system. Values were read from the game itself; `token
 | `[src]` | Text colors (button `#FFF` / `#A0A0A0`, field `#E0E0E0`, hint `#808080`), text shadow (color x 0.25, offset 1,1), list selection (white outline focused, `#808080` unfocused, black fill), tooltip (`0xF0100010`, frame `0x505000FF` to `0x5028007F`), splash (`0xFFFF00`, -20 degrees), title screen layout (200x20 buttons, 24px pitch, 20x20 icon buttons), tab underline | The 1.21.1 client (piston-meta.mojang.com) decompiled with Mojang's published mappings: `TitleScreen`, `EditBox`, `AbstractSelectionList`, `TooltipRenderUtil`, `SplashRenderer`, `TabButton`, `Font`. |
 | `[br]` | Play button green `#3C8527`, ramp `#52A535` / `#2A641C` | Bedrock Ore UI palette (Mojang/bedrock-samples `textures/ui` for the legacy buttons, approximate). |
 | `[eye]` | Window, rail and library surfaces, list background flattened for popups, row hover veil, XP green | Chosen between sourced values. |
-| Icons | Original 16x16 pixel artwork, filled squares only | `art/icons.py` writes the geometries into `src/Media.xaml`. Menu icons stay Playnite's glyphs. MIT with the repo. |
+| Icons | Pixelarticons 2.4.1 (MIT), whole pixels on a 24px grid | `art/icons.py` writes the geometries into `src/Media.xaml` and the menu PNGs into `src/Images/Pixel`. `info/LICENSE-pixelarticons.txt`. |
 | Tile icon | `art/mark.svg` (original isometric block), default orange | `scripts/render-addon-icon.py` |
 | Font | Monocraft (OFL 1.1) suggested, not bundled; Minecraftia is personal-use only, so only named | |
 | Playnite | Every file starts from the Playnite 10.60 Default theme (MIT, `info/LICENSE-Playnite.txt`); game page and side panels follow the shared skeleton | |

@@ -18,7 +18,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 Library art: `Views/Library.xaml` lays a black scrim over it with the game's menu vignette (`#DD` at the top fading out by 25%, `#94` over the bottom 15%, `ScrimBrush`).
 
-Type: 12 / 14 / 16 / 20 / 32. `HtmlTextView` reads the Colors of the brushes on its `TextElement.Foreground` and `Tag`, so ThemeModifier brush edits reach the description too.
+Type: 12 / 14 / 16 / 20 / 35. `HtmlTextView` reads the Colors of the brushes on its `TextElement.Foreground` and `Tag`, so ThemeModifier brush edits reach the description too.
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -40,7 +40,7 @@ Type: 12 / 14 / 16 / 20 / 32. `HtmlTextView` reads the Colors of the brushes on 
 
 Follows the shared skeleton. Differences:
 
-- Header: name in Bahnschrift bold 32px (Playnite sets its text, so it keeps its case); actions at the **right** of the title in the details view (GO button, then square Options and edit buttons), under the title in the grid panel.
+- Header: name in Bahnschrift bold 35px (`FontSizeLargest`) (Playnite sets its text, so it keeps its case); actions at the **right** of the title in the details view (GO button, then square Options and edit buttons), under the title in the grid panel.
 - Steam screenshots live in the left column above the description (not full width); metadata stays on the right.
 - Section titles (Description, Notes, Steam screenshots) are the game's settings section titles: uppercase Bahnschrift, 40% white, 1px rule under them. Uppercasing goes through a `ContentControl` whose inline `DataTemplate` runs `StringToUpperCaseConverter` on the `LOC` string.
 - Metadata pane on a black 75% panel with 3px corners; in the details view the cover sits above it. Rhythm: 12px around group rules, 6px around fields, caption column 128px (details), caption above value (grid).
@@ -66,3 +66,5 @@ Seen running (Playnite 10.60 under Wine, stand-in fonts): details, grid (with si
 ## Preview and screenshots
 
 Screenshots in `art/` (`screenshot-details.png` and `screenshot-settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
+
+The details preview draws the header actions as the XAML does: GO (48 tall, 180 min) then More and Edit as equal 48 x 48 icon-only squares (Edit always visible). Settings buttons are uppercase like the Button template, and ComboBox values keep 32px clear for the chevron.

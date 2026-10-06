@@ -16,7 +16,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 Shell fills (`ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `ContentBackgroundBrush`, `TabControlHeaderBackgroundBrush`) are transparent: the menus have no bars.
 
-Type: 12 / 14 / 16 / 19 / 30, title case, normal weight everywhere (the game's 1080p rows are 26 to 28px, titles 30). `HtmlTextView` reads the Colors of the brushes on its `TextElement.Foreground` and `Tag`, so ThemeModifier brush edits reach the description.
+Type: 12 / 14 / 16 / 19 / 33, title case, normal weight everywhere (the game's 1080p rows are 26 to 28px, titles 33). `HtmlTextView` reads the Colors of the brushes on its `TextElement.Foreground` and `Tag`, so ThemeModifier brush edits reach the description.
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -37,7 +37,7 @@ Type: 12 / 14 / 16 / 19 / 30, title case, normal weight everywhere (the game's 1
 
 Follows the shared skeleton. Differences:
 
-- Header: the name as a screen title (Constantia 30, normal weight, ivory, keeps Playnite's case); Play is the main menu's selected entry in the selected save slot's ivory frame; More and Edit are square khaki-framed buttons.
+- Header: the name as a screen title (Constantia 33, normal weight, ivory, keeps Playnite's case); Play is the main menu's selected entry in the selected save slot's ivory frame; More and Edit are icon-only 48x48 khaki-framed squares, always visible.
 - Section titles (Description, Notes, Steam screenshots) are options section headers: ivory, 19px, title case, 1px hairline under them.
 - Metadata pane on the options panel: near-black in the 3px panel frame, groups split by hairlines; khaki captions, values in the description color, chips as small save slots.
 - Banner scrim: black, clear at the top, 70% toward the title.
