@@ -6,7 +6,7 @@
 
 **A monochrome dark theme in the ayywi design system, with black surfaces, hairline borders and pill buttons.**
 
-_Not released yet._
+**[Download Ayywi 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ayywi-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ The ayywi design system on its black dark theme: white primary, hairline borders
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ayywi-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Ayywi design system:** https://github.com/danitesler/ayywi

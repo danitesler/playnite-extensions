@@ -6,7 +6,7 @@
 
 **A dark game-launcher theme with an icon rail, a game list, a full-width-art game page and a big blue Play button. Unofficial, inspired by the Battle.net app.**
 
-**[Download Launchpad 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/launchpad-v0.1.0)**
+**[Download Launchpad 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/launchpad-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with, endorsed by or sponsored by Blizzard Entertainm
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/launchpad-v0.1.0)
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/launchpad-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Launcher
 - **Source:** [src/themes/Launchpad](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Launchpad)

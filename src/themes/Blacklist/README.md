@@ -6,7 +6,7 @@
 
 **A dark street-racing theme inspired by the Need for Speed: Most Wanted (2005) menus: amber type, hazard-striped headers, corner-bracket selection.**
 
-_Not released yet._
+**[Download Blacklist 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/blacklist-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Amber type and glyphs on warm near-black and amber-brown panels, black and amber
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/blacklist-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Blacklist](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Blacklist)

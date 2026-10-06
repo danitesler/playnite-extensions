@@ -6,7 +6,7 @@
 
 **Olive Steam chrome around black panels with amber text, inspired by the Counter-Strike 1.6 menus: square corners, 1px bevels, dotted focus.**
 
-_Not released yet._
+**[Download Ace 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ace-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Olive Steam / GoldSrc window frames and bevelled buttons around black panels wit
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ace-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Ace](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Ace)

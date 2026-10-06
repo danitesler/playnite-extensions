@@ -6,7 +6,7 @@
 
 **A dark theme inspired by the S.T.A.L.K.E.R. menus: rusted steel plates, olive-black panels, square amber lamp check boxes.**
 
-_Not released yet._
+**[Download Cordon 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/cordon-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Rusted, riveted steel plates for the rail, top bar, tabs and buttons, grainy oli
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/cordon-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Cordon](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Cordon)

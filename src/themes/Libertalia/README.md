@@ -6,7 +6,7 @@
 
 **Unofficial fan theme inspired by the Uncharted 4 menus: ivory text on black, a soft highlight behind the selected item, framed panels.**
 
-_Not released yet._
+**[Download Libertalia 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/libertalia-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial fan theme; not affiliated with, endorsed by or sponsored by Naughty D
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/libertalia-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gaming
 - **Source:** [src/themes/Libertalia](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Libertalia)

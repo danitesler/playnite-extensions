@@ -6,7 +6,7 @@
 
 **A dark desktop theme inspired by Material Design and MUI's default dark theme. Unofficial; not affiliated with Google or MUI.**
 
-_Not released yet._
+**[Download Materia 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/materia-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with, endorsed by or sponsored by Google or MUI. Mate
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/materia-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Material
 - **Inspired by (MUI Material UI):** https://mui.com

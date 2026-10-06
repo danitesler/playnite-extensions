@@ -6,7 +6,7 @@
 
 **A dark, minimal theme with a main menu of words, a brushed pewter selection plate and warm grey type. Inspired by the Resident Evil 4 menus.**
 
-_Not released yet._
+**[Download Attache 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/attache-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Capcom. Resident Evil is a trademark of Capcom C
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/attache-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gaming
 - **Source:** [src/themes/Attache](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Attache)

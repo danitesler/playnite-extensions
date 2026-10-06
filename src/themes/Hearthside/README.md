@@ -6,7 +6,7 @@
 
 **A warm tavern theme inspired by the Hearthstone interface: dark wood, brass trim, gold selection, parchment tooltips and an End Turn Play button.**
 
-_Not released yet._
+**[Download Hearthside 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/hearthside-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Dark tavern wood framed in brass, gold Belwe headings, lit plates with gold edge
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/hearthside-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Hearthside](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Hearthside)

@@ -6,7 +6,7 @@
 
 **A dark, minimal theme with a rounded navbar strip, a light pill for the current view, a yellow PLAY button and rounded covers. Inspired by the Fortnite lobby.**
 
-_Not released yet._
+**[Download Dropzone 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/dropzone-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Epic Games. Fortnite is a trademark of Epic Game
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/dropzone-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gaming
 - **Source:** [src/themes/Dropzone](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Dropzone)

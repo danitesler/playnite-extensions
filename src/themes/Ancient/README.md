@@ -6,7 +6,7 @@
 
 **A dark desktop theme with a slate navigation rail, a black top strip, bevelled grey buttons and a big green Play button. Inspired by the Dota 2 main menu.**
 
-_Not released yet._
+**[Download Ancient 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ancient-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Valve. Dota 2 is a trademark of Valve Corporatio
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ancient-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Game, Green
 - **Source:** [src/themes/Ancient](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Ancient)

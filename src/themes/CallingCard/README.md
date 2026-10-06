@@ -6,7 +6,7 @@
 
 **A dark theme inspired by the Persona 5 menus: red, black and white, slanted plates with a blue sliver, heavy capitals.**
 
-_Not released yet._
+**[Download Calling Card 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/callingcard-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Ink black pages, paper white text and one screaming red, inspired by the Persona
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/callingcard-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/CallingCard](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/CallingCard)

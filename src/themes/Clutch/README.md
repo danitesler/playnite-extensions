@@ -6,7 +6,7 @@
 
 **A dark, minimal theme with a 64px navbar of uppercase view tabs, a GO play button and map-tile covers. Inspired by the Counter-Strike 2 main menu.**
 
-_Not released yet._
+**[Download Clutch 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/clutch-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Valve. Counter-Strike is a trademark of Valve Co
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/clutch-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gaming
 - **Source:** [src/themes/Clutch](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Clutch)

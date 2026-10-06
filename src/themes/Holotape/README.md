@@ -6,7 +6,7 @@
 
 **An unofficial dark, warm terminal theme inspired by the Pip-Boy and RobCo screens of Fallout 3 and Fallout: New Vegas. Not affiliated with Bethesda.**
 
-_Not released yet._
+**[Download Holotape 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/holotape-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with, endorsed by or sponsored by Bethesda Softworks,
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/holotape-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Holotape](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Holotape)

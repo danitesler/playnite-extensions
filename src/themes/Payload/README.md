@@ -6,7 +6,7 @@
 
 **A dark theme inspired by the Overwatch 2 menus: navy panels, cyan selection, slanted orange Play plate, team-colored scores.**
 
-_Not released yet._
+**[Download Payload 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/payload-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Navy panels from the career profile, the game's cyan selection with black type, 
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/payload-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Payload](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Payload)

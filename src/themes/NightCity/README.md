@@ -6,7 +6,7 @@
 
 **An unofficial fan-made dark theme inspired by the yellow menus of Cyberpunk 2077. Not affiliated with CD PROJEKT RED.**
 
-_Not released yet._
+**[Download Night City 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/nightcity-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with, endorsed by or sponsored by CD PROJEKT RED or C
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/nightcity-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/NightCity](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/NightCity)

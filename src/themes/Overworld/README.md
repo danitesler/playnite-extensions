@@ -6,7 +6,7 @@
 
 **A dark desktop theme with stone buttons, a tab strip over blurred game art, pixel icons and a green Play button. Inspired by the Minecraft title screen.**
 
-_Not released yet._
+**[Download Overworld 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/overworld-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Mojang Studios or Microsoft. Minecraft is a trad
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/overworld-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Game, Green
 - **Source:** [src/themes/Overworld](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Overworld)

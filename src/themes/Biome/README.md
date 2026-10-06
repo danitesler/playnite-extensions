@@ -6,7 +6,7 @@
 
 **A dark, minimal theme with blue menu panels over a night sky, outlined menu words that turn gold and pixel-art icons. Inspired by the Terraria main menu.**
 
-_Not released yet._
+**[Download Biome 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/biome-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Re-Logic. Terraria is a trademark of Re-Logic. N
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/biome-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gaming
 - **Source:** [src/themes/Biome](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Biome)

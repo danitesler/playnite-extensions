@@ -6,7 +6,7 @@
 
 **A dark sci-fi desktop theme with a lit navigation rail, cut-corner plates and blue glows. Inspired by the StarCraft II menus.**
 
-_Not released yet._
+**[Download Uplink 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/uplink-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with Blizzard Entertainment. StarCraft is a trademark
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/uplink-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Sci-Fi, Blue
 - **Source:** [src/themes/Uplink](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Uplink)
