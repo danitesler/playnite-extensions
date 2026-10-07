@@ -56,8 +56,10 @@ git clone https://github.com/danitesler/PlayniteAddonDatabase.git   # or reuse a
 cd PlayniteAddonDatabase && git switch -c add-danitesler-<key>
 cp <repo>/<dir>/info/danitesler_<key>.yaml addons/<folder>/
 git add addons && git commit -m "Add <Name>" && git push -u origin HEAD
-gh pr create -R JosefNemec/PlayniteAddonDatabase --base master --title "Add <Name>" --body "<what it is, type, link to repo>"
+gh pr create -R JosefNemec/PlayniteAddonDatabase --base master --title "Add <Name>" --body "<what it is, Type, link to repo dir + Screenshots images below>"
 ```
+
+- **PR body must link screenshots.** Embed every `Screenshots: Image:` URL from the listing as a markdown image (`![details](<Image URL>)`, `![settings](<Image URL>)`) so reviewers see the add-on without installing. Use the same raw `main` URLs as the listing. If the listing has no `Screenshots:` (plugin without UI), say so in the body instead of linking.
 
 - **One PR per add-on, always.** Several new add-ons or themes: repeat the whole sequence for each, on its own branch (`add-danitesler-<key>`), with its own PR titled `Add <Name>`, and never put two listing files in one PR. (Upstream PR 561 bundled two; do not repeat that.) Start each branch from a fresh `master` so the PRs stay independent.
 - Do not clone the database inside this repo. Use a sibling directory or the scratchpad.
@@ -66,7 +68,7 @@ gh pr create -R JosefNemec/PlayniteAddonDatabase --base master --title "Add <Nam
 ## Update an existing add-on
 
 - **New version**: no database PR. Release, prepend the `Packages` entry, get it on `main`. Playnite picks it up from the installer manifest.
-- **Listing change** (description, tags, icon, screenshots, name, links): edit `<dir>/info/danitesler_<key>.yaml` here, get any new icon/screenshot files onto `main`, then repeat the PR steps above with the updated file (branch `update-danitesler-<key>`, title `Update <Name> listing`). Diff before copying:
+- **Listing change** (description, tags, icon, screenshots, name, links): edit `<dir>/info/danitesler_<key>.yaml` here, get any new icon/screenshot files onto `main`, then repeat the PR steps above with the updated file (branch `update-danitesler-<key>`, title `Update <Name> listing`, body links the screenshots the same way). Diff before copying:
 
 ```bash
 gh api repos/JosefNemec/PlayniteAddonDatabase/contents/addons/<folder>/danitesler_<key>.yaml --jq .content | base64 -d | diff - <dir>/info/danitesler_<key>.yaml
