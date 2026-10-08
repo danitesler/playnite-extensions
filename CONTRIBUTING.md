@@ -22,6 +22,16 @@ focused PRs are easiest to review.
 - Node 20 for `npm run check:readmes` and theme preview scripts.
 - Full agent conventions live in [AGENTS.md](AGENTS.md).
 
+## All checks
+
+```pwsh
+pwsh scripts/check-all.ps1          # Windows: validate + build every plugin and theme, unit tests, READMEs, preview checks
+scripts/check-all.sh                # Linux: the same through PowerShell 7, .NET 8 and Mono (WPF-dependent tests skipped)
+```
+
+`-Quick` / `--quick` skips the builds and the layout render. There is no hosted CI: this is the gate
+before merging or releasing. Don't add GitHub Actions workflows.
+
 ## Plugins (`src/<Name>/`)
 
 ```pwsh

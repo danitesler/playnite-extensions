@@ -60,7 +60,7 @@ User-visible strings live in `src/<Plugin>/Localization/*.xaml`. `en_US.xaml` is
 
 - Output: `src\<Plugin>\bin\Release\net462\<Plugin>.dll` + `extension.yaml`; the drop is cleared and re-copied each run. Never edit `artifacts/`.
 - "File in use / access denied": Playnite has the DLL locked. Ask the user to exit Playnite fully and retry before suspecting code.
-- The index `src/extensions.json` holds only what cannot be derived (`key`, `name`, `kind`, `dir`, `addonId`, `pluginType`, `requiredApiVersion`); `scripts/extension-profiles.ps1` (`Get-ExtensionProfile`) derives every path and URL. Scripts and CI read profiles, never hardcoded paths. CI (`ci.yml`, `windows-latest`, .NET 8 SDK) runs validate then build for every row.
+- The index `src/extensions.json` holds only what cannot be derived (`key`, `name`, `kind`, `dir`, `addonId`, `pluginType`, `requiredApiVersion`); `scripts/extension-profiles.ps1` (`Get-ExtensionProfile`) derives every path and URL. Scripts read profiles, never hardcoded paths. `scripts/check-all.ps1` (there is no hosted CI) runs validate then build for every row.
 
 ## Debug: "does nothing" / throws at startup
 
