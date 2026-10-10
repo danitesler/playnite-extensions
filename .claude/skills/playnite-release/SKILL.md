@@ -33,7 +33,7 @@ Full database procedure: [addon-database.md](addon-database.md).
 
 ```powershell
 .\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller   # validate -> verify -> build -> package
-.\scripts\package-release.ps1 -Extension <key> [-VerifyOnly]      # package only / Toolbox verify only
+.\scripts\package-release.ps1 -Extension <key> [-VerifyOnly]      # package only / Toolbox verify (installer + addon) only
 .\scripts\validate-extension.ps1 -Extension <key> -Mode Package   # metadata + expected PackageUrl
 ```
 
@@ -46,7 +46,7 @@ Full database procedure: [addon-database.md](addon-database.md).
    4. Only for a new add-on or changed listing metadata: database PR ([addon-database.md](addon-database.md)).
 7. Verify: `curl -sI <PackageUrl>` returns 200 (after redirects); `curl -s <InstallerManifestUrl>` shows the new top entry.
 
-`Toolbox.exe` is found automatically (`%LOCALAPPDATA%\Playnite`, Program Files, PATH, `%TEMP%`; override `-ToolboxExe` or `$env:TOOLBOX_EXE`). Manual: `Toolbox.exe verify Installer <InstallerManifest.yaml>`, `Toolbox.exe pack <build dir> <out dir>`.
+`Toolbox.exe` is found automatically (`%LOCALAPPDATA%\Playnite`, Program Files, PATH, `%TEMP%`; override `-ToolboxExe` or `$env:TOOLBOX_EXE`). Manual: `Toolbox.exe verify Installer <InstallerManifest.yaml>`, `Toolbox.exe verify Addon <danitesler_key.yaml>`, `Toolbox.exe pack <build dir> <out dir>`. Always verify both manifests before packing or opening a database PR (an unquoted `:` in `ShortDescription` fails Toolbox but not our static validation).
 
 ## Installer manifest shape
 

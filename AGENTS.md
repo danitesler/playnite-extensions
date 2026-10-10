@@ -15,7 +15,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 ## Key Commands
 - Validate: `.\scripts\validate-extension.ps1 -Extension <key>`
 - Build plugin: `.\scripts\build-plugin.ps1 -Extension <key>`
-- Package: `.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller`
+- Package: `.\scripts\build-artifacts.ps1 -Extension <key> -VerifyInstaller` (Toolbox verifies installer + addon manifests before packing)
 - Scaffold plugin: `.\scripts\new-extension.ps1 -Name MyPlugin -Key myplugin -Type GenericPlugin -Author <name>`
 - Build theme: `.\scripts\build-theme.ps1 -Extension <key> [-Deploy] [-Restart]`
 - Scaffold theme: `.\scripts\new-theme.ps1 -Name "My Theme" -Key mytheme [-DesignSystem "My DS"] [-TokensCss <css>]`

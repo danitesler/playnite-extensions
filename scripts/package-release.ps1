@@ -51,6 +51,23 @@ try {
                 throw "Installer manifest verification failed."
             }
         }
+
+        Write-Host "Verifying addon manifest..."
+        $databaseManifestFull = Join-RepoPath $profile.databaseManifest
+        if (-not (Test-Path $databaseManifestFull)) {
+            throw "Database manifest not found at $databaseManifestFull"
+        }
+        $addonOutput = & $ToolboxExe verify addon $databaseManifestFull 2>&1
+        $addonText = $addonOutput | Out-String
+        Write-Host $addonText.Trim()
+        if ($LASTEXITCODE -ne 0 -or $addonText -match "didn't pass verification|Failed to parse") {
+            if ($AllowUnpublishedPackageUrl -and $addonText -match "PackageUrl doesn't point to reachable HTTP location" -and $addonText -notmatch "Failed to parse") {
+                Write-Warning "Addon manifest PackageUrl is not reachable yet. Continuing because package-only builds may run before the GitHub Release asset is uploaded."
+            }
+            else {
+                throw "Addon manifest verification failed (usual cause: unquoted ':' in ShortDescription; quote the value)."
+            }
+        }
     }
 
     if ($VerifyOnly) {
