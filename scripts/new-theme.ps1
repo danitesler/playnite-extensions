@@ -121,13 +121,18 @@ AddonId: $addonId
 Type: Theme$Mode
 Name: $Name
 Author: $Author
-ShortDescription: $Description
+ShortDescription: '$($Description -replace "'", "''")'
 InstallerManifestUrl: $rawBaseUrl/$installerRel
 SourceUrl: $sourceUrl
 Description: |
   $Description
 Tags: [Dark, $Mode]
 IconUrl: $rawBaseUrl/$infoRel/icon.png
+Screenshots:
+  - Thumbnail: $rawBaseUrl/$artRel/screenshot-details.png
+    Image: $rawBaseUrl/$artRel/screenshot-details.png
+  - Thumbnail: $rawBaseUrl/$artRel/screenshot-settings.png
+    Image: $rawBaseUrl/$artRel/screenshot-settings.png
 Links:
   Theme homepage: $sourceUrl
   Report issue: $issuesUrl

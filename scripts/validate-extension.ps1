@@ -706,6 +706,18 @@ if (Test-Path $installerPath) {
 
 if (Test-Path $databasePath) {
     $databaseLines = Get-Content -Path $databasePath
+    if ($isTheme) {
+        $shortLine = @($databaseLines | Where-Object { $_ -match "^ShortDescription:" }) | Select-Object -First 1
+        if ($shortLine) {
+            $shortValue = $shortLine -replace "^ShortDescription:\s*", ""
+            if ($shortValue -notmatch "^['""]" -and $shortValue -match ":\s") {
+                $errors.Add("Database ShortDescription contains ': ' but is not quoted; Toolbox rejects the manifest. Quote it (single quotes).")
+            }
+        }
+        if (@($databaseLines | Where-Object { $_ -match "^Screenshots:" }).Count -eq 0) {
+            $errors.Add("Database manifest has no Screenshots: block. Themes always list screenshot-details.png and screenshot-settings.png (render them with take-screenshots.ps1).")
+        }
+    }
     $databaseAddonId = Get-YamlScalar -Lines $databaseLines -Key "AddonId"
     $databaseInstallerManifestUrl = Get-YamlScalar -Lines $databaseLines -Key "InstallerManifestUrl"
     $databaseSourceUrl = Get-YamlScalar -Lines $databaseLines -Key "SourceUrl"
