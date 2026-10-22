@@ -25,7 +25,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - Add-on READMEs: `node scripts/generate-readmes.mjs` (`--check` or `npm run check:readmes` to verify; fetch tags first)
 - Update API snapshot: `.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <path> -PlayniteVersion <tag>`
 - Run unit tests: `dotnet test tests/Tests.csproj`
-- All checks: `pwsh scripts/check-all.ps1` (Windows) or `scripts/check-all.sh` (Linux): validate + build every plugin and theme, unit tests, READMEs, preview checks. Run before merging or releasing. **There is no hosted CI. Never add GitHub Actions workflows** (or Dependabot or any other `.github/` automation).
+- All checks: `pwsh scripts/check-all.ps1` (Windows) or `scripts/check-all.sh` (Linux): validate + build every plugin and theme, unit tests, READMEs, preview checks. Run before merging or releasing. There is no hosted CI; these scripts are the gate. Don't add Dependabot.
 
 ## Strict Mandates
 - **Build after edit (Windows: always Deploy + Restart)**: After every update to a theme or plugin (code, tokens, XAML, previews, manifests), when working on a Windows machine, always finish with a deploy build. Themes: run `.\scripts\build-theme.ps1 -Extension <key> -Deploy -Restart` (auto-sets active theme and restarts/launches Playnite on local Windows). Plugins: run `.\scripts\build-plugin.ps1 -Extension <key>` (remind user to replace DLL). Never end an update on a bare build on Windows.

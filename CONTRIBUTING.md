@@ -30,7 +30,7 @@ scripts/check-all.sh                # Linux: the same through PowerShell 7, .NET
 ```
 
 `-Quick` / `--quick` skips the builds and the layout render. There is no hosted CI: this is the gate
-before merging or releasing. Don't add GitHub Actions workflows.
+before merging or releasing.
 
 ## Plugins (`src/<Name>/`)
 

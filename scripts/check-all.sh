@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs scripts/check-all.ps1 (every check, the old CI workflow's equivalent) on a Linux box.
-# There is no hosted CI: never add GitHub Actions workflows.
+# There is no hosted CI. Run this before merging or releasing.
 #
 #   scripts/check-all.sh            # everything
 #   scripts/check-all.sh --quick    # skip the plugin and theme builds and the layout render

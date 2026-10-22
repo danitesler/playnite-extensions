@@ -51,7 +51,7 @@ User-visible strings live in `src/<Plugin>/Localization/*.xaml`. `en_US.xaml` is
 
 ## Build
 
-**Build after every change** to the plugin (code, XAML, `extension.yaml`) and end the reply with the footer below. There is no deploy script: to test, the user copies the DLL from `artifacts/builds/<key>/` into Playnite's Extensions folder and restarts Playnite; remind them when a change needs testing.
+**Build after every change** to the plugin (code, XAML, `extension.yaml`). There is no deploy script: to test, the user copies the DLL from `artifacts/builds/<key>/` into Playnite's Extensions folder and restarts Playnite; remind them when a change needs testing.
 
 ```powershell
 .\scripts\build-plugin.ps1 -Extension <key>            # dotnet build + drop in artifacts/builds/<key>/

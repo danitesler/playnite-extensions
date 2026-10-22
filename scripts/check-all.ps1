@@ -1,5 +1,5 @@
 # Every check this repo has, run locally (Windows, or Linux/macOS with PowerShell 7 and the .NET SDK).
-# There is no hosted CI (never add GitHub Actions workflows): run this before merging or releasing.
+# There is no hosted CI: run this before merging or releasing.
 # It replaces the old CI workflow: validate + build every plugin, unit tests, validate + build every
 # theme, generated READMEs, and the preview token and layout checks.
 #

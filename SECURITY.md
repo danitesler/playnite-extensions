@@ -30,16 +30,15 @@ I will say so.
 ## Scope
 
 In scope: plugin C# code under `src/*/`, theme XAML under
-`src/themes/*/`, packaging and install scripts under `scripts/`,
-and this repo's GitHub Actions workflows.
+`src/themes/*/`, and packaging and install scripts under `scripts/`.
 
 Out of scope: Playnite itself, third-party themes/plugins,
 and social-engineering or physical-access reports.
 
 ## Hardening in place
 
-- Plugin releases are built by `scripts/build-artifacts.ps1 -VerifyInstaller`
-  via `.github/workflows/release.yml`.
+- Plugin releases are built locally by `scripts/build-artifacts.ps1 -VerifyInstaller`.
+  There is no hosted CI.
 - Per-add-on releases are tagged `{key}-v{version}` so a fix ships
   as a new tag users can verify.
 - Do not submit PRs with prebuilt `.pext`/`.pthm`, `bin/`, or `obj/`.
