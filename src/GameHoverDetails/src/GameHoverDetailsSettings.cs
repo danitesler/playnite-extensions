@@ -75,6 +75,9 @@ namespace GameHoverDetails
 
         public const string BackgroundStyleRegular = "Regular";
         public const string BackgroundStyleGameCover = "GameCover";
+        public const string EmptyFieldsDoNothing = "DoNothing";
+        public const string EmptyFieldsHide = "Hide";
+        public const string EmptyFieldsFallback = "Fallback";
 
         /// <summary>Turning <c>Use game background</c> on always snaps opacity here.</summary>
         internal const int FanartDefaultOpacity = 50;
@@ -90,11 +93,12 @@ namespace GameHoverDetails
         private bool hoverDisabled;
         private bool hoverDisabledInFullscreen = true;
         private bool hideFieldTitlesInHover;
+        private bool showGameNameHeader;
         private bool showFieldInlineIconsInHover = true;
         private bool hideIconChipBackground;
         private bool hideFieldDividers;
         private bool hidePanelBorder = true;
-        private bool hideEmptyFields;
+        private string emptyFieldBehavior = EmptyFieldsDoNothing;
         private double hoverBodyFontSize = DefaultBodyFontSize;
         private double hoverTitleFontSize = DefaultTitleFontSize;
         private string hoverIconStyle = IconStyleHugeIcons;
@@ -161,6 +165,13 @@ namespace GameHoverDetails
             set => SetValue(ref hoverDisabledInFullscreen, value);
         }
 
+        /// <summary>Show the game name above the fields without using a field slot.</summary>
+        public bool ShowGameNameHeader
+        {
+            get => showGameNameHeader;
+            set => SetValue(ref showGameNameHeader, value);
+        }
+
         /// <summary>When true, field labels (e.g. Publisher) are hidden in the hover panel.</summary>
         public bool HideFieldTitlesInHover
         {
@@ -224,12 +235,42 @@ namespace GameHoverDetails
         [DontSerialize]
         public bool ShowBorderColorControls => !hidePanelBorder;
 
-        /// <summary>When true, field blocks with no value are hidden from the hover panel.</summary>
+        /// <summary>One mutually exclusive choice; persisted through the existing flags for compatibility.</summary>
+        [DontSerialize]
+        public string EmptyFieldBehavior
+        {
+            get => emptyFieldBehavior;
+            set => SetValue(ref emptyFieldBehavior,
+                value == EmptyFieldsHide || value == EmptyFieldsFallback ? value : EmptyFieldsDoNothing,
+                nameof(EmptyFieldBehavior), nameof(HideEmptyFields), nameof(UseFallbackFields));
+        }
+
+        /// <summary>Derived rendering flag; selecting Hide also turns automatic fallbacks off.</summary>
+        [DontSerialize]
         public bool HideEmptyFields
         {
-            get => hideEmptyFields;
-            set => SetValue(ref hideEmptyFields, value);
+            get => emptyFieldBehavior == EmptyFieldsHide;
+            set
+            {
+                if (value) EmptyFieldBehavior = EmptyFieldsHide;
+                else if (HideEmptyFields) EmptyFieldBehavior = EmptyFieldsDoNothing;
+            }
         }
+
+        /// <summary>Derived rendering flag; selecting Fallback also turns empty-field hiding off.</summary>
+        [DontSerialize]
+        public bool UseFallbackFields
+        {
+            get => emptyFieldBehavior == EmptyFieldsFallback;
+            set
+            {
+                if (value) EmptyFieldBehavior = EmptyFieldsFallback;
+                else if (UseFallbackFields) EmptyFieldBehavior = EmptyFieldsDoNothing;
+            }
+        }
+
+        [DontSerialize]
+        public string FallbackFieldsTooltip => HoverFieldResolver.TooltipText();
 
         /// <summary>Body / value text size in the hover panel (device-independent pixels).</summary>
         public double HoverBodyFontSize
@@ -616,11 +657,13 @@ namespace GameHoverDetails
                 hoverDisabled = saved.HoverDisabled;
                 hoverDisabledInFullscreen = saved.HoverDisabledInFullscreen ?? true;
                 hideFieldTitlesInHover = saved.HideFieldTitlesInHover;
+                showGameNameHeader = saved.ShowGameNameHeader;
                 showFieldInlineIconsInHover = saved.ShowFieldInlineIconsInHover;
                 hideIconChipBackground = saved.HideIconChipBackground;
                 hideFieldDividers = saved.HideFieldDividers ?? true;
                 hidePanelBorder = saved.HidePanelBorder ?? false;
-                hideEmptyFields = saved.HideEmptyFields ?? false;
+                emptyFieldBehavior = saved.UseFallbackFields ? EmptyFieldsFallback
+                    : saved.HideEmptyFields == true ? EmptyFieldsHide : EmptyFieldsDoNothing;
                 hoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
                     ? LegacyMissingBodyFontSize
                     : ClampBodyFontSize(saved.HoverBodyFontSize.Value);
@@ -661,6 +704,18 @@ namespace GameHoverDetails
         public IReadOnlyList<string> GetOrderedSelectedKeys()
         {
             return selectedFieldKeys.Where(HoverFieldCatalog.IsKnownKey).ToList();
+        }
+
+        internal bool ApplyFieldPreset(string presetId)
+        {
+            var preset = HoverFieldPresets.All.FirstOrDefault(p => p.Id == presetId);
+            if (preset == null)
+            {
+                return false;
+            }
+
+            SelectedFieldKeys = new List<string>(preset.FieldKeys);
+            return true;
         }
 
         /// <summary>Catalog keys not currently selected, in catalog order (for Add-field UI).</summary>
@@ -794,11 +849,13 @@ namespace GameHoverDetails
             HoverDisabled = saved.HoverDisabled;
             HoverDisabledInFullscreen = saved.HoverDisabledInFullscreen ?? true;
             HideFieldTitlesInHover = saved.HideFieldTitlesInHover;
+            ShowGameNameHeader = saved.ShowGameNameHeader;
             ShowFieldInlineIconsInHover = saved.ShowFieldInlineIconsInHover;
             HideIconChipBackground = saved.HideIconChipBackground;
             HideFieldDividers = saved.HideFieldDividers ?? true;
             HidePanelBorder = saved.HidePanelBorder ?? false;
-            HideEmptyFields = saved.HideEmptyFields ?? false;
+            EmptyFieldBehavior = saved.UseFallbackFields ? EmptyFieldsFallback
+                : saved.HideEmptyFields == true ? EmptyFieldsHide : EmptyFieldsDoNothing;
             HoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
                 ? LegacyMissingBodyFontSize
                 : saved.HoverBodyFontSize.Value;
@@ -850,11 +907,13 @@ namespace GameHoverDetails
                 HoverDisabled = HoverDisabled,
                 HoverDisabledInFullscreen = HoverDisabledInFullscreen,
                 HideFieldTitlesInHover = HideFieldTitlesInHover,
+                ShowGameNameHeader = ShowGameNameHeader,
                 ShowFieldInlineIconsInHover = ShowFieldInlineIconsInHover,
                 HideIconChipBackground = HideIconChipBackground,
                 HideFieldDividers = HideFieldDividers,
                 HidePanelBorder = HidePanelBorder,
                 HideEmptyFields = HideEmptyFields,
+                UseFallbackFields = UseFallbackFields,
                 HoverBodyFontSize = HoverBodyFontSize,
                 HoverTitleFontSize = HoverTitleFontSize,
                 HoverIconStyle = HoverIconStyle,

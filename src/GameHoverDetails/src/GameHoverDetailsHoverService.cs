@@ -102,6 +102,16 @@ namespace GameHoverDetails
         private ContextMenu openLibraryContextMenu;
         private readonly ContextMenuEventHandler contextMenuOpeningHandler;
         private readonly ContextMenuEventHandler contextMenuClosingHandler;
+        private readonly KeyboardFocusChangedEventHandler keyboardFocusHandler;
+
+        /// <summary>
+        /// Hover was opened by keyboard or gamepad focus, not the pointer. A resting cursor must not
+        /// steal it back; the next pointer move onto a tile clears this and takes over.
+        /// </summary>
+        private bool keyboardFollowActive;
+
+        /// <summary>Delayed open must be confirmed against focus, not <see cref="Mouse.DirectlyOver"/>.</summary>
+        private bool pendingShowFromKeyboard;
 
         public GameHoverDetailsHoverService(Window mainWindow, IPlayniteAPI playniteApi, GameHoverDetailsSettings settings)
         {
@@ -111,6 +121,7 @@ namespace GameHoverDetails
             dispatcher = mainWindow.Dispatcher;
             contextMenuOpeningHandler = MainWindowOnContextMenuOpening;
             contextMenuClosingHandler = MainWindowOnContextMenuClosing;
+            keyboardFocusHandler = MainWindowOnGotKeyboardFocus;
         }
 
         public void NotifySettingsChanged()
@@ -204,6 +215,7 @@ namespace GameHoverDetails
             mainWindow.PreviewMouseMove += MainWindowOnPreviewMouseMove;
             mainWindow.PreviewMouseWheel += MainWindowOnPreviewMouseWheel;
             mainWindow.PreviewKeyDown += MainWindowOnPreviewKeyDown;
+            mainWindow.AddHandler(Keyboard.GotKeyboardFocusEvent, keyboardFocusHandler, true);
             mainWindow.StateChanged += MainWindowOnStateChanged;
             mainWindow.Deactivated += MainWindowOnDeactivated;
             mainWindow.Closed += MainWindowOnClosed;
@@ -246,6 +258,7 @@ namespace GameHoverDetails
             mainWindow.PreviewMouseMove -= MainWindowOnPreviewMouseMove;
             mainWindow.PreviewMouseWheel -= MainWindowOnPreviewMouseWheel;
             mainWindow.PreviewKeyDown -= MainWindowOnPreviewKeyDown;
+            mainWindow.RemoveHandler(Keyboard.GotKeyboardFocusEvent, keyboardFocusHandler);
             mainWindow.StateChanged -= MainWindowOnStateChanged;
             mainWindow.Deactivated -= MainWindowOnDeactivated;
             mainWindow.Closed -= MainWindowOnClosed;
@@ -572,7 +585,7 @@ namespace GameHoverDetails
                 return;
             }
 
-            QueueDeferredHoverSync();
+            QueueDeferredHoverSync(preferFocusedTile: true);
         }
 
         /// <summary>
@@ -586,14 +599,138 @@ namespace GameHoverDetails
                 return;
             }
 
-            QueueDeferredHoverSync();
+            QueueDeferredHoverSync(preferFocusedTile: false);
         }
 
         /// <summary>
-        /// After Playnite handles a key or wheel (list scroll, F4/F9), hit-test the pointer.
-        /// Still over a game → keep the tooltip and switch content; otherwise hide.
+        /// Arrow keys and gamepad navigation move focus onto a grid/list tile without a pointer move.
+        /// A click (mouse button down) and a menu closing back onto the tile stay on the pointer path,
+        /// so leaving the tile with the mouse still hides.
         /// </summary>
-        private void QueueDeferredHoverSync()
+        private void MainWindowOnGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (broken || !attached)
+            {
+                return;
+            }
+
+            try
+            {
+                var mouseDown = IsAnyMouseButtonDown();
+                var oldInMenu = IsHitOnMenu(e.OldFocus as DependencyObject);
+                Game focusedGame;
+                FrameworkElement focusedAnchor;
+                var hasTile = TryResolveFocusedGameTile(e.NewFocus as DependencyObject, out focusedGame, out focusedAnchor);
+                Game pointerGame;
+                FrameworkElement pointerAnchor;
+                TryResolveGameAndAnchor(Mouse.DirectlyOver as DependencyObject, playniteApi, out pointerGame, out pointerAnchor);
+                var pointerOnSame = hasTile && pointerGame != null && pointerGame.Id == focusedGame.Id;
+                Game previousGame;
+                var movedFromAnotherTile = hasTile
+                    && TryResolveFocusedGameTile(e.OldFocus as DependencyObject, out previousGame, out _)
+                    && previousGame.Id != focusedGame.Id;
+                var navigationKeyDown = IsNavigationKeyDown();
+                if (mainWindow.WindowState == WindowState.Minimized)
+                {
+                    return;
+                }
+
+                if (hasTile && pointerOnSame && !mouseDown && !oldInMenu && !ShouldBlockHover()
+                    && (movedFromAnotherTile || navigationKeyDown))
+                {
+                    // Focus landed on the tile the pointer is already on. Hand back to the pointer
+                    // path so a later mouse-leave still hides (arrowing onto a rested cursor).
+                    keyboardFollowActive = false;
+                    pendingShowFromKeyboard = false;
+                    hideDebounceTimer?.Stop();
+                    if (!IsAlreadyShowing(focusedGame, focusedAnchor))
+                    {
+                        ScheduleShowAfterDelay(focusedGame, focusedAnchor);
+                    }
+
+                    return;
+                }
+
+                if (!ShouldFollowKeyboardFocus(
+                    mouseDown,
+                    oldInMenu,
+                    hasTile,
+                    pointerOnSame,
+                    movedFromAnotherTile,
+                    navigationKeyDown))
+                {
+                    if (keyboardFollowActive && !hasTile && !oldInMenu)
+                    {
+                        keyboardFollowActive = false;
+                        pendingShowFromKeyboard = false;
+                        if (pointerGame != null && !ShouldBlockHover())
+                        {
+                            hideDebounceTimer?.Stop();
+                            ScheduleShowAfterDelay(pointerGame, pointerAnchor);
+                            return;
+                        }
+
+                        HidePopup();
+                    }
+
+                    return;
+                }
+
+                if (ShouldBlockHover())
+                {
+                    return;
+                }
+
+                consecutiveHoverErrors = 0;
+                keyboardFollowActive = true;
+                hideDebounceTimer?.Stop();
+                if (IsAlreadyShowing(focusedGame, focusedAnchor))
+                {
+                    showDelayTimer?.Stop();
+                    pendingShowGame = null;
+                    pendingShowAnchor = null;
+                    pendingShowFromKeyboard = false;
+                    return;
+                }
+
+                ScheduleShowAfterDelay(focusedGame, focusedAnchor, fromKeyboard: true);
+            }
+            catch (Exception ex)
+            {
+                HandleHoverError(ex);
+            }
+        }
+
+        private static bool IsAnyMouseButtonDown()
+        {
+            return Mouse.LeftButton == MouseButtonState.Pressed
+                || Mouse.RightButton == MouseButtonState.Pressed
+                || Mouse.MiddleButton == MouseButtonState.Pressed;
+        }
+
+        /// <summary>
+        /// Keys that move the library selection. Gamepad browsing does not set these; it moves focus
+        /// from one tile to another, which is tracked separately. Window restore sets neither.
+        /// </summary>
+        private static bool IsNavigationKeyDown()
+        {
+            return Keyboard.IsKeyDown(Key.Left)
+                || Keyboard.IsKeyDown(Key.Right)
+                || Keyboard.IsKeyDown(Key.Up)
+                || Keyboard.IsKeyDown(Key.Down)
+                || Keyboard.IsKeyDown(Key.Tab)
+                || Keyboard.IsKeyDown(Key.PageUp)
+                || Keyboard.IsKeyDown(Key.PageDown)
+                || Keyboard.IsKeyDown(Key.Home)
+                || Keyboard.IsKeyDown(Key.End);
+        }
+
+        /// <summary>
+        /// After Playnite handles a key or wheel (list scroll, F4/F9), sync the open tooltip.
+        /// A key that moved focus onto a tile keeps that tile even if the pointer is elsewhere.
+        /// Wheel still follows the pointer; a key that left the list hides when the pointer is not on a game.
+        /// </summary>
+        private void QueueDeferredHoverSync(bool preferFocusedTile)
         {
             var popupOpen = popup != null && popup.IsOpen;
             var showPending = pendingShowGame != null || (showDelayTimer != null && showDelayTimer.IsEnabled);
@@ -604,11 +741,11 @@ namespace GameHoverDetails
 
             var generation = ++deferredHoverSyncGeneration;
             dispatcher.BeginInvoke(
-                new Action(() => DeferredHoverSync(generation)),
+                new Action(() => DeferredHoverSync(generation, preferFocusedTile)),
                 DispatcherPriority.ContextIdle);
         }
 
-        private void DeferredHoverSync(int generation)
+        private void DeferredHoverSync(int generation, bool preferFocusedTile)
         {
             if (broken || !attached || generation != deferredHoverSyncGeneration)
             {
@@ -624,6 +761,26 @@ namespace GameHoverDetails
 
             try
             {
+                Game focusedGame;
+                FrameworkElement focusedAnchor;
+                if (preferFocusedTile
+                    && TryGetKeyboardFollowTarget(out focusedGame, out focusedAnchor))
+                {
+                    hideDebounceTimer?.Stop();
+                    consecutiveHoverErrors = 0;
+                    if (IsAlreadyShowing(focusedGame, focusedAnchor))
+                    {
+                        showDelayTimer?.Stop();
+                        pendingShowGame = null;
+                        pendingShowAnchor = null;
+                        pendingShowFromKeyboard = false;
+                        return;
+                    }
+
+                    ScheduleShowAfterDelay(focusedGame, focusedAnchor, fromKeyboard: true);
+                    return;
+                }
+
                 var hit = Mouse.DirectlyOver as DependencyObject;
                 Game game;
                 FrameworkElement anchor;
@@ -631,6 +788,8 @@ namespace GameHoverDetails
                 consecutiveHoverErrors = 0;
                 if (game != null)
                 {
+                    keyboardFollowActive = false;
+                    pendingShowFromKeyboard = false;
                     hideDebounceTimer?.Stop();
                     if (IsAlreadyShowing(game, anchor))
                     {
@@ -641,6 +800,12 @@ namespace GameHoverDetails
                     }
 
                     ScheduleShowAfterDelay(game, anchor);
+                    return;
+                }
+
+                if (!preferFocusedTile
+                    && TryGetKeyboardFollowTarget(out focusedGame, out focusedAnchor))
+                {
                     return;
                 }
 
@@ -688,6 +853,8 @@ namespace GameHoverDetails
 
                 if (game != null)
                 {
+                    keyboardFollowActive = false;
+                    pendingShowFromKeyboard = false;
                     hideDebounceTimer?.Stop();
                     if (IsAlreadyShowing(game, anchor))
                     {
@@ -699,8 +866,19 @@ namespace GameHoverDetails
 
                     ScheduleShowAfterDelay(game, anchor);
                 }
+                else if (TryGetKeyboardFollowTarget(out var focusedGame, out var focusedAnchor))
+                {
+                    // Pointer drifted off tiles while arrow/gamepad browsing. Do not start the hide debounce.
+                    hideDebounceTimer?.Stop();
+                    if (!IsAlreadyShowing(focusedGame, focusedAnchor))
+                    {
+                        ScheduleShowAfterDelay(focusedGame, focusedAnchor, fromKeyboard: true);
+                    }
+                }
                 else
                 {
+                    keyboardFollowActive = false;
+                    pendingShowFromKeyboard = false;
                     showDelayTimer?.Stop();
                     pendingShowGame = null;
                     pendingShowAnchor = null;
@@ -728,18 +906,20 @@ namespace GameHoverDetails
                 && ReferenceEquals(lastShownAnchor, anchor);
         }
 
-        private void ScheduleShowAfterDelay(Game game, FrameworkElement anchor)
+        private void ScheduleShowAfterDelay(Game game, FrameworkElement anchor, bool fromKeyboard = false)
         {
             if (ShouldBlockHover())
             {
                 showDelayTimer?.Stop();
                 pendingShowGame = null;
                 pendingShowAnchor = null;
+                pendingShowFromKeyboard = false;
                 return;
             }
 
             pendingShowGame = game;
             pendingShowAnchor = anchor;
+            pendingShowFromKeyboard = fromKeyboard;
             showDelayTimer?.Stop();
 
             // Appear delay is first-open only. An already-visible tooltip must swap
@@ -750,6 +930,7 @@ namespace GameHoverDetails
             {
                 pendingShowGame = null;
                 pendingShowAnchor = null;
+                pendingShowFromKeyboard = false;
                 ShowOrUpdatePopup(game, anchor);
                 return;
             }
@@ -768,14 +949,23 @@ namespace GameHoverDetails
             try
             {
                 showDelayTimer?.Stop();
-                var hit = Mouse.DirectlyOver as DependencyObject;
+                var confirmFromKeyboard = pendingShowFromKeyboard;
                 Game g;
                 FrameworkElement anchor;
-                TryResolveGameAndAnchor(hit, playniteApi, out g, out anchor);
+                if (confirmFromKeyboard)
+                {
+                    TryResolveFocusedGameTile(Keyboard.FocusedElement as DependencyObject, out g, out anchor);
+                }
+                else
+                {
+                    TryResolveGameAndAnchor(Mouse.DirectlyOver as DependencyObject, playniteApi, out g, out anchor);
+                }
+
                 if (g == null || pendingShowGame == null || g.Id != pendingShowGame.Id)
                 {
                     pendingShowGame = null;
                     pendingShowAnchor = null;
+                    pendingShowFromKeyboard = false;
                     return;
                 }
 
@@ -783,12 +973,14 @@ namespace GameHoverDetails
                 {
                     pendingShowGame = null;
                     pendingShowAnchor = null;
+                    pendingShowFromKeyboard = false;
                     return;
                 }
 
                 var useAnchor = anchor ?? pendingShowAnchor;
                 pendingShowGame = null;
                 pendingShowAnchor = null;
+                pendingShowFromKeyboard = false;
                 ShowOrUpdatePopup(g, useAnchor);
             }
             catch (Exception ex)
@@ -800,8 +992,9 @@ namespace GameHoverDetails
         /// <summary>
         /// Last line of defence for a panel that outlived its trigger: a plugin window opened from the
         /// context menu, the view switched, or the tile was recycled while the pointer never moved.
-        /// Runs only while the popup is open. Hides when the pointer is off games; switches content
-        /// when the pointer is over a different game (wheel scroll in details view).
+        /// Runs only while the popup is open. Pointer-driven: hides when the pointer is off games and
+        /// switches when it is over a different game. Keyboard-driven: keeps the focused tile even if
+        /// the pointer is elsewhere, and hides once focus leaves the list.
         /// </summary>
         private void VisibilityWatchdogOnTick(object sender, EventArgs e)
         {
@@ -822,6 +1015,22 @@ namespace GameHoverDetails
 
                 Game game;
                 FrameworkElement anchor;
+                if (TryGetKeyboardFollowTarget(out game, out anchor))
+                {
+                    if (!IsAlreadyShowing(game, anchor))
+                    {
+                        ScheduleShowAfterDelay(game, anchor, fromKeyboard: true);
+                    }
+
+                    return;
+                }
+
+                if (keyboardFollowActive)
+                {
+                    keyboardFollowActive = false;
+                    pendingShowFromKeyboard = false;
+                }
+
                 TryResolveGameAndAnchor(Mouse.DirectlyOver as DependencyObject, playniteApi, out game, out anchor);
                 if (game == null)
                 {
@@ -853,12 +1062,23 @@ namespace GameHoverDetails
             try
             {
                 hideDebounceTimer?.Stop();
-                var hit = Mouse.DirectlyOver as DependencyObject;
                 Game g;
                 FrameworkElement anchor;
-                TryResolveGameAndAnchor(hit, playniteApi, out g, out anchor);
+                if (TryGetKeyboardFollowTarget(out g, out anchor) && !ShouldBlockHover())
+                {
+                    if (!IsAlreadyShowing(g, anchor))
+                    {
+                        ScheduleShowAfterDelay(g, anchor, fromKeyboard: true);
+                    }
+
+                    return;
+                }
+
+                TryResolveGameAndAnchor(Mouse.DirectlyOver as DependencyObject, playniteApi, out g, out anchor);
                 if (g != null && !ShouldBlockHover())
                 {
+                    keyboardFollowActive = false;
+                    pendingShowFromKeyboard = false;
                     if (!IsAlreadyShowing(g, anchor))
                     {
                         ScheduleShowAfterDelay(g, anchor);
@@ -916,6 +1136,78 @@ namespace GameHoverDetails
             {
                 // ignore
             }
+        }
+
+        /// <summary>
+        /// Keyboard/gamepad focus should open the hover only when the user navigated onto a tile.
+        /// Restoring the window (minimize/maximize, alt-tab) puts focus back on the selected tile
+        /// with no key and no previous tile — that must not open the hover. A click, a menu closing
+        /// back onto the tile, or the pointer already sitting on that tile stays on the pointer path.
+        /// </summary>
+        internal static bool ShouldFollowKeyboardFocus(
+            bool mouseButtonDown,
+            bool oldFocusInsideMenu,
+            bool newFocusIsGameTile,
+            bool pointerOnSameGame,
+            bool movedFromAnotherTile,
+            bool navigationKeyDown)
+        {
+            return newFocusIsGameTile
+                && !mouseButtonDown
+                && !oldFocusInsideMenu
+                && !pointerOnSameGame
+                && (movedFromAnotherTile || navigationKeyDown);
+        }
+
+        /// <summary>
+        /// Game list tile that currently has keyboard focus, while keyboard-follow is the active source.
+        /// A selected tile that merely retained focus after a click does not count.
+        /// </summary>
+        private bool TryGetKeyboardFollowTarget(out Game game, out FrameworkElement anchor)
+        {
+            game = null;
+            anchor = null;
+            if (!keyboardFollowActive)
+            {
+                return false;
+            }
+
+            return TryResolveFocusedGameTile(Keyboard.FocusedElement as DependencyObject, out game, out anchor);
+        }
+
+        /// <summary>
+        /// List item under keyboard focus. The details pane also carries a <see cref="Game"/> data context
+        /// and must not open a hover; only a <see cref="ListBoxItem"/> tile/row counts. Playnite's grid,
+        /// list, and fullscreen browser all focus those containers (arrow keys and gamepad).
+        /// </summary>
+        internal static bool TryResolveFocusedGameTile(DependencyObject focus, out Game game, out FrameworkElement anchor)
+        {
+            game = null;
+            anchor = null;
+            if (focus == null || IsHitOnMenu(focus))
+            {
+                return false;
+            }
+
+            for (var current = focus; current != null; current = GetTreeParent(current))
+            {
+                if (!(current is ListBoxItem item))
+                {
+                    continue;
+                }
+
+                var resolved = TryGetGameFromDataContext(item.DataContext);
+                if (resolved == null)
+                {
+                    continue;
+                }
+
+                game = resolved;
+                anchor = item;
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1111,6 +1403,8 @@ namespace GameHoverDetails
             visibilityWatchdogTimer?.Stop();
             pendingShowGame = null;
             pendingShowAnchor = null;
+            pendingShowFromKeyboard = false;
+            keyboardFollowActive = false;
             StopEnterStoryboard();
             if (popup != null)
             {
@@ -1254,6 +1548,7 @@ namespace GameHoverDetails
                 + "\x1e" + (settings.HideFieldDividers ? "1" : "0")
                 + "\x1e" + (settings.HidePanelBorder ? "1" : "0")
                 + "\x1e" + (settings.HideEmptyFields ? "1" : "0")
+                + "\x1e" + (settings.UseFallbackFields ? "1" : "0")
                 + "\x1e" + settings.HoverFieldBlockSpacingDip.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 + "\x1e" + settings.HoverFieldColumnCount.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 + "\x1e" + settings.HoverContentPaddingDip.ToString(System.Globalization.CultureInfo.InvariantCulture)

@@ -19,6 +19,7 @@ namespace GameHoverDetails
         /// <summary>Null in legacy JSON — treated as true (off in Fullscreen).</summary>
         public bool? HoverDisabledInFullscreen { get; set; }
         public bool HideFieldTitlesInHover { get; set; }
+        public bool ShowGameNameHeader { get; set; }
         public bool ShowFieldInlineIconsInHover { get; set; }
         /// <summary>When true, field icon chips have no fill (glyph only).</summary>
         public bool HideIconChipBackground { get; set; }
@@ -28,6 +29,8 @@ namespace GameHoverDetails
         public bool? HidePanelBorder { get; set; }
         /// <summary>When true, field blocks with no value are omitted. Null in legacy JSON — treated as false.</summary>
         public bool? HideEmptyFields { get; set; }
+        /// <summary>Missing in legacy settings: automatic fallbacks stay off.</summary>
+        public bool UseFallbackFields { get; set; }
         /// <summary>Null in legacy JSON — treated as 13.</summary>
         public double? HoverBodyFontSize { get; set; }
         /// <summary>Null in legacy JSON — treated as 10.5.</summary>

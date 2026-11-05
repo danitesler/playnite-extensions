@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Playnite.SDK;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
@@ -56,19 +55,19 @@ namespace GameHoverDetails
                     case "InstallSize":
                         return FormatInstallSize(game.InstallSize);
                     case "ReleaseDate":
-                        return FormatReleaseDateLong(game.ReleaseDate);
+                        return FormatReleaseDateLong(game.ReleaseDate, api);
                     case "DateAdded":
                         return game.Added == null
                             ? HoverLoc.Empty
-                            : FormatDateNoWeekday(game.Added.Value.ToLocalTime());
+                            : FormatPlayniteDate(api, "DateTimeFormatAdded", game.Added.Value.ToLocalTime());
                     case "TimePlayed":
-                        return FormatPlaytime(game.Playtime);
+                        return FormatPlaytime(game.Playtime, api);
                     case "RecentActivity":
                         return game.RecentActivity == null
                             ? HoverLoc.Empty
-                            : FormatDateNoWeekday(game.RecentActivity.Value.ToLocalTime());
+                            : FormatPlayniteDate(api, "DateTimeFormatRecentActivity", game.RecentActivity.Value.ToLocalTime());
                     case "LastPlayed":
-                        return FormatLastPlayedDate(game.LastActivity);
+                        return FormatLastPlayedDate(game.LastActivity, api);
                     case "CompletionStatus":
                         return game.CompletionStatus?.Name ?? HoverLoc.Empty;
                     case "UserScore":
@@ -132,35 +131,50 @@ namespace GameHoverDetails
             return HoverLoc.Get("LOCGameHoverDetails_Value_UnknownLibrary", "Unknown library");
         }
 
-        /// <summary>Current culture's long date without the weekday (en-US: April 15, 2026; de-DE: 15. April 2026).</summary>
-        private static string FormatDateNoWeekday(DateTime localDateTime)
-        {
-            var culture = CultureInfo.CurrentCulture;
-            return localDateTime.Date.ToString(LongDatePatternWithoutWeekday(culture.DateTimeFormat), culture);
-        }
-
         /// <summary>
-        /// <see cref="DateTimeFormatInfo.LongDatePattern"/> with the weekday (<c>dddd</c>) and the commas/spaces around it removed.
-        /// en-US "dddd, MMMM d, yyyy" becomes "MMMM d, yyyy" (unchanged English output).
+        /// Date in the format chosen in Playnite's settings for that field (<paramref name="settingBlock"/> is the
+        /// config.json block, e.g. <c>DateTimeFormatAdded</c>). With "relative format for the past week" on, Playnite's
+        /// own strings are used: Today, Yesterday, then the weekday name for the rest of the past week.
         /// </summary>
-        internal static string LongDatePatternWithoutWeekday(DateTimeFormatInfo format)
+        private static string FormatPlayniteDate(IPlayniteAPI api, string settingBlock, DateTime localDateTime)
         {
-            var pattern = format?.LongDatePattern;
-            if (string.IsNullOrWhiteSpace(pattern))
+            var setting = HoverPlayniteDateSettings.Get(api, settingBlock);
+            if (setting.PastWeekRelative)
             {
-                return FallbackLongDatePattern;
+                var relative = FormatPastWeekRelative(localDateTime, DateTime.Now);
+                if (relative != null)
+                {
+                    return relative;
+                }
             }
 
-            var stripped = WeekdayTokenRegex.Replace(pattern, " ").Trim();
-            return string.IsNullOrEmpty(stripped) ? FallbackLongDatePattern : stripped;
+            return setting.FormatDate(localDateTime, CultureInfo.CurrentCulture);
         }
 
-        private const string FallbackLongDatePattern = "MMMM d, yyyy";
+        /// <summary>Playnite's past-week wording, or null when the date is older than a week (or in the future).</summary>
+        internal static string FormatPastWeekRelative(DateTime localDateTime, DateTime now)
+        {
+            var days = (now.Date - localDateTime.Date).Days;
+            if (days < 0 || days >= 7)
+            {
+                return null;
+            }
 
-        /// <summary>Weekday name token plus adjacent separators (incl. the Arabic comma).</summary>
-        private static readonly Regex WeekdayTokenRegex = new Regex(@"[\s,\u060C]*d{4,}[\s,\u060C]*", RegexOptions.CultureInvariant);
+            if (days == 0)
+            {
+                return HoverLoc.Get("LOCToday", "Today");
+            }
 
-        private static string FormatReleaseDateLong(ReleaseDate? releaseDate)
+            if (days == 1)
+            {
+                return HoverLoc.Get("LOCYesterday", "Yesterday");
+            }
+
+            var dow = localDateTime.DayOfWeek.ToString();
+            return HoverLoc.Get("LOC" + dow, CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(localDateTime.DayOfWeek));
+        }
+
+        private static string FormatReleaseDateLong(ReleaseDate? releaseDate, IPlayniteAPI api)
         {
             if (releaseDate == null)
             {
@@ -176,17 +190,15 @@ namespace GameHoverDetails
             var culture = CultureInfo.CurrentCulture;
             try
             {
+                var setting = HoverPlayniteDateSettings.Get(api, "DateTimeFormatReleaseDate");
                 if (rd.Month != null && rd.Day != null)
                 {
-                    var dt = new DateTime(rd.Year, rd.Month.Value, rd.Day.Value);
-                    return FormatDateNoWeekday(dt);
+                    return setting.FormatDate(new DateTime(rd.Year, rd.Month.Value, rd.Day.Value), culture);
                 }
 
                 if (rd.Month != null)
                 {
-                    var dt = new DateTime(rd.Year, rd.Month.Value, 1);
-                    var yearMonth = culture.DateTimeFormat.YearMonthPattern;
-                    return dt.ToString(string.IsNullOrWhiteSpace(yearMonth) ? "MMMM yyyy" : yearMonth, culture);
+                    return setting.FormatPartial(new DateTime(rd.Year, rd.Month.Value, 1), culture);
                 }
 
                 return rd.Year.ToString(culture);
@@ -197,7 +209,7 @@ namespace GameHoverDetails
             }
         }
 
-        private static string FormatLastPlayedDate(DateTime? lastActivityUtc)
+        private static string FormatLastPlayedDate(DateTime? lastActivityUtc, IPlayniteAPI api)
         {
             if (lastActivityUtc == null)
             {
@@ -205,53 +217,12 @@ namespace GameHoverDetails
             }
 
             var local = lastActivityUtc.Value.ToLocalTime();
-            var now = DateTime.Now;
-            if (local > now)
+            if (local > DateTime.Now)
             {
                 return HoverLoc.Empty;
             }
 
-            var elapsed = now - local;
-            if (elapsed.TotalDays >= 30)
-            {
-                return FormatDateNoWeekday(local);
-            }
-
-            return HoverLoc.Format(
-                "LOCGameHoverDetails_Value_RelativeAgo",
-                "{0} ago",
-                FormatRelativeElapsed(elapsed));
-        }
-
-        /// <summary>Relative unit phrase for Last Played within the past 30 days (e.g. "2m", "3h").</summary>
-        private static string FormatRelativeElapsed(TimeSpan elapsed)
-        {
-            var totalSeconds = (int)elapsed.TotalSeconds;
-            if (totalSeconds < 60)
-            {
-                return Math.Max(1, totalSeconds) + HoverLoc.Get("LOCGameHoverDetails_Value_UnitSec", "s");
-            }
-
-            var totalMinutes = (int)elapsed.TotalMinutes;
-            if (totalMinutes < 60)
-            {
-                return totalMinutes + HoverLoc.Get("LOCGameHoverDetails_Value_UnitMin", "m");
-            }
-
-            var totalHours = (int)elapsed.TotalHours;
-            if (totalHours < 24)
-            {
-                return totalHours + HoverLoc.Get("LOCGameHoverDetails_Value_UnitHour", "h");
-            }
-
-            var totalDays = (int)elapsed.TotalDays;
-            if (totalDays < 7)
-            {
-                return totalDays + HoverLoc.Get("LOCGameHoverDetails_Value_UnitDay", "d");
-            }
-
-            var totalWeeks = totalDays / 7;
-            return totalWeeks + HoverLoc.Get("LOCGameHoverDetails_Value_UnitWeek", "w");
+            return FormatPlayniteDate(api, "DateTimeFormatLastPlayed", local);
         }
 
         private static string FormatLinks(Game game)
@@ -319,30 +290,39 @@ namespace GameHoverDetails
 
         private static readonly string[] SizeUnitFallbacks = { "B", "KB", "MB", "GB", "TB" };
 
-        private static string FormatPlaytime(ulong playtimeSeconds)
+        private static string FormatPlaytime(ulong playtimeSeconds, IPlayniteAPI api)
         {
             if (playtimeSeconds == 0UL)
             {
                 return HoverLoc.Empty;
             }
 
-            // Same localized unit suffixes as Last Played ("3d 4h", "2h 15m", "45m" in English).
+            return FormatPlaytimeText(playtimeSeconds, HoverPlayniteDateSettings.GetBool(api, "PlaytimeUseDaysFormat"));
+        }
+
+        /// <summary>
+        /// Playnite's own playtime wording (its localized <c>LOCPlayed*</c> strings): seconds under a minute, minutes under
+        /// an hour, then hours + minutes, or days + hours + minutes when "use days format" is on in Playnite's settings.
+        /// </summary>
+        internal static string FormatPlaytimeText(ulong playtimeSeconds, bool useDays)
+        {
             var ts = TimeSpan.FromSeconds(playtimeSeconds);
-            var unitDay = HoverLoc.Get("LOCGameHoverDetails_Value_UnitDay", "d");
-            var unitHour = HoverLoc.Get("LOCGameHoverDetails_Value_UnitHour", "h");
-            var unitMin = HoverLoc.Get("LOCGameHoverDetails_Value_UnitMin", "m");
-            var culture = CultureInfo.CurrentCulture;
-            if (ts.TotalDays >= 1)
+            if (ts.TotalSeconds < 60)
             {
-                return ((int)ts.TotalDays).ToString(culture) + unitDay + " " + ts.Hours.ToString(culture) + unitHour;
+                return HoverLoc.Format("LOCPlayedSeconds", "{0} seconds", ts.Seconds);
             }
 
-            if (ts.TotalHours >= 1)
+            if (ts.TotalMinutes < 60)
             {
-                return ((int)ts.TotalHours).ToString(culture) + unitHour + " " + ts.Minutes.ToString(culture) + unitMin;
+                return HoverLoc.Format("LOCPlayedMinutes", "{0} minutes", ts.Minutes);
             }
 
-            return ((int)ts.TotalMinutes).ToString(culture) + unitMin;
+            if (useDays && ts.TotalDays >= 1)
+            {
+                return HoverLoc.Format("LOCPlayedDays", "{0}d {1}h {2}min", (int)ts.TotalDays, ts.Hours, ts.Minutes);
+            }
+
+            return HoverLoc.Format("LOCPlayedHours", "{0}h {1}min", (long)ts.TotalHours, ts.Minutes);
         }
 
         private static string JoinNames(IEnumerable<object> items)

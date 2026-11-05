@@ -17,6 +17,7 @@ namespace GameHoverDetails
         private const double InnerScrollEpsilon = 0.5;
 
         private GameHoverDetailsSettings boundSettings;
+        private bool suppressPresetSelectionChanged;
         private bool suppressAddComboSelectionChanged;
         private bool suppressAddFieldTextChanged;
         private bool addFieldTextHandlerAttached;
@@ -275,11 +276,11 @@ namespace GameHoverDetails
             }
 
             if (e.PropertyName == nameof(GameHoverDetailsSettings.HideFieldTitlesInHover) ||
+                e.PropertyName == nameof(GameHoverDetailsSettings.ShowGameNameHeader) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.ShowFieldInlineIconsInHover) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HideIconChipBackground) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HideFieldDividers) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HidePanelBorder) ||
-                e.PropertyName == nameof(GameHoverDetailsSettings.HideEmptyFields) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HoverFieldBlockSpacingDip) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HoverFieldColumnCount) ||
                 e.PropertyName == nameof(GameHoverDetailsSettings.HoverContentPaddingDip) ||
@@ -352,6 +353,11 @@ namespace GameHoverDetails
                 new HoverFieldListSource
                 {
                     OmitEmptyArt = false,
+                    IgnoreEmptyFieldBehavior = true,
+                    IsUnplayed = game != null && game.Playtime == 0 && game.LastActivity == null,
+                    FormatRawValue = key => game != null
+                        ? HoverFieldFormatter.Format(key, game, api)
+                        : HoverPreviewSampleText.ForKey(key),
                     TryGetGameArt = key =>
                     {
                         if (game == null || api == null)
@@ -576,6 +582,49 @@ namespace GameHoverDetails
         private Brush SettingsGlyphBrush =>
             TryFindResource("TextBrush") as Brush ?? SystemColors.ControlTextBrush;
 
+        private void PresetCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (suppressPresetSelectionChanged || boundSettings == null || attaching || unloading)
+            {
+                return;
+            }
+
+            var item = PresetCombo.SelectedItem as ComboBoxItem;
+            var id = item?.Tag as string;
+            var settings = boundSettings;
+            if (id == null || id == HoverFieldPresets.Match(settings.SelectedFieldKeys))
+            {
+                return;
+            }
+
+            // Finish WPF's selection transaction before rebuilding the field editor.
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (unloading || boundSettings != settings || PresetCombo.SelectedItem != item ||
+                    id == HoverFieldPresets.Match(settings.SelectedFieldKeys))
+                {
+                    return;
+                }
+
+                settings.ApplyFieldPreset(id);
+                RefreshPresetSelection();
+            }), DispatcherPriority.Background);
+        }
+
+        private void RefreshPresetSelection()
+        {
+            suppressPresetSelectionChanged = true;
+            try
+            {
+                var id = HoverFieldPresets.Match(boundSettings.SelectedFieldKeys);
+                PresetCombo.SelectedValue = id;
+            }
+            finally
+            {
+                suppressPresetSelectionChanged = false;
+            }
+        }
+
         private void RefreshFieldsList()
         {
             if (FieldsList == null || boundSettings == null)
@@ -584,6 +633,7 @@ namespace GameHoverDetails
             }
 
             var keys = boundSettings.SelectedFieldKeys;
+            RefreshPresetSelection();
             var n = keys.Count;
             var style = boundSettings.HoverIconStyle;
             var glyphBrush = SettingsGlyphBrush;

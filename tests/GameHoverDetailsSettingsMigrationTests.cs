@@ -9,6 +9,20 @@ namespace PlayniteExtensions.Tests
     {
         private static readonly List<string> FactoryDefaultKeys = new List<string> { "TimePlayed", "LastPlayed", "Library", "Developer" };
 
+        [Fact]
+        public void GameNameHeaderIsOptInAndDoesNotConsumeAFieldSlot()
+        {
+            Assert.False(new GameHoverDetailsSettings().ShowGameNameHeader);
+            Assert.False(LoadFromJson("{}").ShowGameNameHeader);
+            var settings = LoadFromJson(@"{
+                ""ShowGameNameHeader"": true,
+                ""SelectedFieldKeys"": [""TimePlayed"", ""LastPlayed"", ""Library"", ""Developer"", ""Genre""]
+            }");
+            Assert.True(settings.ShowGameNameHeader);
+            Assert.Equal(5, settings.SelectedFieldCount);
+            Assert.DoesNotContain("Name", settings.SelectedFieldKeys);
+        }
+
         /// <summary>Same path as the plugin: Playnite deserializes the saved JSON, then the settings migrate it.</summary>
         private static GameHoverDetailsSettings LoadFromJson(string json)
         {

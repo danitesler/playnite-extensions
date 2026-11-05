@@ -62,19 +62,19 @@ namespace GameHoverDetails
                     fallback = "42.5 GB";
                     break;
                 case "ReleaseDate":
-                    fallback = "April 15, 2020";
+                    fallback = new System.DateTime(2020, 4, 15).ToString("d", System.Globalization.CultureInfo.CurrentCulture);
                     break;
                 case "DateAdded":
-                    fallback = "January 1, 2025";
+                    fallback = new System.DateTime(2025, 1, 1).ToString("d", System.Globalization.CultureInfo.CurrentCulture);
                     break;
                 case "TimePlayed":
-                    fallback = "12h 30m";
+                    fallback = HoverFieldFormatter.FormatPlaytimeText(45000UL, false);
                     break;
                 case "RecentActivity":
-                    fallback = "April 10, 2026";
+                    fallback = new System.DateTime(2026, 4, 10).ToString("d", System.Globalization.CultureInfo.CurrentCulture);
                     break;
                 case "LastPlayed":
-                    fallback = "2h ago";
+                    fallback = HoverLoc.Get("LOCYesterday", "Yesterday");
                     break;
                 case "CompletionStatus":
                     fallback = "Playing";

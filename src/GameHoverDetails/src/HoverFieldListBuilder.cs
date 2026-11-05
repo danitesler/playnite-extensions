@@ -11,18 +11,24 @@ namespace GameHoverDetails
     internal sealed class HoverFieldListSource
     {
         public bool OmitEmptyArt { get; set; }
+        public bool IsUnplayed { get; set; }
+        /// <summary>The settings preview illustrates selected fields regardless of live empty-field rules.</summary>
+        public bool IgnoreEmptyFieldBehavior { get; set; }
 
         public Func<string, ImageSource> TryGetGameArt { get; set; }
 
         public Func<IReadOnlyList<ImageSource>> TryGetPlatformIcons { get; set; }
 
         public Func<string, string> FormatValue { get; set; }
+        /// <summary>Preview sample text must not mask the real game's missing data.</summary>
+        public Func<string, string> FormatRawValue { get; set; }
 
         public static HoverFieldListSource ForLiveGame(Game game, IPlayniteAPI api)
         {
             return new HoverFieldListSource
             {
                 OmitEmptyArt = true,
+                IsUnplayed = game != null && game.Playtime == 0 && game.LastActivity == null,
                 TryGetGameArt = key => HoverBitmapLoader.TryLoadGameArt(key, game, api),
                 TryGetPlatformIcons = () => LoadPlatformIcons(game, api),
                 FormatValue = key => HoverFieldFormatter.Format(key, game, api)
@@ -72,12 +78,23 @@ namespace GameHoverDetails
             }
 
             target.Children.Clear();
+            if (settings.ShowGameNameHeader)
+            {
+                var header = new TextBlock();
+                HoverDetailValuePresenter.ConfigureBodyTextBlock(header, innerMax, palette.BodyText, settings.HoverBodyFontSize);
+                header.FontWeight = FontWeights.SemiBold;
+                HoverDetailValuePresenter.SetBodyContent(header, ValueText(source, "Name"));
+                target.Children.Add(header);
+            }
+
             if (keys == null || keys.Count == 0)
             {
                 return;
             }
 
-            var onlyIconSelected = keys.Count == 1 && keys[0] == "Icon";
+            keys = HoverFieldResolver.Resolve(settings, keys, ref source);
+
+            var onlyIconSelected = !settings.ShowGameNameHeader && keys.Count == 1 && keys[0] == "Icon";
             var columns = FieldColumnCount(settings);
             if (columns <= 1)
             {
@@ -265,13 +282,12 @@ namespace GameHoverDetails
             HoverFieldListSource source,
             string key)
         {
-            if (settings == null || source == null || !settings.HideEmptyFields)
+            if (settings == null || source == null || source.IgnoreEmptyFieldBehavior || !settings.HideEmptyFields)
             {
                 return false;
             }
 
-            var valueText = source.FormatValue != null ? source.FormatValue(key) : null;
-            return string.IsNullOrWhiteSpace(valueText) || valueText == HoverLoc.Empty;
+            return HoverFieldResolver.IsEmpty(ValueText(source, key));
         }
 
         private static bool IsFullWidthField(string key)
@@ -426,9 +442,7 @@ namespace GameHoverDetails
                 HoverDetailValuePresenter.ConfigureFieldLabelTextBlock(label, textMaxStat, palette.LabelText, titleSize);
                 HoverDetailValuePresenter.SetHeaderText(label, labelText, textMaxStat);
 
-                var body = new TextBlock();
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, textMaxStat, palette.BodyText, bodySize);
-                HoverDetailValuePresenter.SetBodyContent(body, valueText);
+                var body = CreateValueBody(valueText, textMaxStat, palette, bodySize);
 
                 var textCol = new StackPanel { Margin = new Thickness(StatRowGlyphToTextGapDip, 0, 0, 0) };
                 textCol.Children.Add(label);
@@ -447,9 +461,8 @@ namespace GameHoverDetails
                 HoverDetailValuePresenter.ConfigureFieldLabelTextBlock(label, innerMax, palette.LabelText, titleSize);
                 HoverDetailValuePresenter.SetHeaderText(label, labelText, innerMax);
 
-                var body = new TextBlock { Margin = new Thickness(0, 0, 0, bottomInset) };
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, innerMax, palette.BodyText, bodySize);
-                HoverDetailValuePresenter.SetBodyContent(body, valueText);
+                var body = CreateValueBody(valueText, innerMax, palette, bodySize);
+                body.Margin = new Thickness(0, 0, 0, bottomInset);
 
                 target.Children.Add(label);
                 target.Children.Add(body);
@@ -469,12 +482,8 @@ namespace GameHoverDetails
                 var chip = CreateGlyphChip(settings, palette, key);
                 Grid.SetColumn(chip, 0);
 
-                var body = new TextBlock
-                {
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-                HoverDetailValuePresenter.ConfigureBodyTextBlock(body, textMaxStat, palette.BodyText, bodySize);
-                HoverDetailValuePresenter.SetBodyContent(body, valueText);
+                var body = CreateValueBody(valueText, textMaxStat, palette, bodySize);
+                body.VerticalAlignment = VerticalAlignment.Center;
                 Grid.SetColumn(body, 1);
                 body.Margin = new Thickness(StatRowGlyphToTextGapDip, 0, 0, 0);
 
@@ -484,13 +493,19 @@ namespace GameHoverDetails
                 return;
             }
 
-            var bodyOnly = new TextBlock
-            {
-                Margin = new Thickness(0, topInset, 0, bottomInset)
-            };
-            HoverDetailValuePresenter.ConfigureBodyTextBlock(bodyOnly, innerMax, palette.BodyText, bodySize);
-            HoverDetailValuePresenter.SetBodyContent(bodyOnly, valueText);
+            var bodyOnly = CreateValueBody(valueText, innerMax, palette, bodySize);
+            bodyOnly.Margin = new Thickness(0, topInset, 0, bottomInset);
             target.Children.Add(bodyOnly);
+        }
+
+        private static TextBlock CreateValueBody(
+            string valueText, double width,
+            HoverChromePalette palette, double fontSize)
+        {
+            var body = new TextBlock();
+            HoverDetailValuePresenter.ConfigureBodyTextBlock(body, width, palette.BodyText, fontSize);
+            HoverDetailValuePresenter.SetBodyContent(body, valueText);
+            return body;
         }
 
         private static void AppendTextDetailRow(
@@ -525,7 +540,7 @@ namespace GameHoverDetails
             var bmp = source.TryGetGameArt != null ? source.TryGetGameArt(key) : null;
             if (bmp == null)
             {
-                if (source.OmitEmptyArt || settings.HideEmptyFields)
+                if (source.OmitEmptyArt || (settings.HideEmptyFields && !source.IgnoreEmptyFieldBehavior))
                 {
                     return;
                 }
