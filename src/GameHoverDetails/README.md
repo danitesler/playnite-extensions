@@ -6,7 +6,7 @@
 
 **Peek game info on hover—resize the card and choose what it shows.**
 
-**[Download GameHoverDetails 1.1.3](https://github.com/danitesler/playnite-extensions/releases/tag/gamehoverdetails-v1.1.3)**
+**[Download GameHoverDetails 1.1.4](https://github.com/danitesler/playnite-extensions/releases/tag/gamehoverdetails-v1.1.4)**
 
 ## About
 
@@ -23,7 +23,7 @@ Arrange and reorder them so your hover matches how you browse.
 ## Details
 
 - **Type:** Plugin
-- **Latest release:** [1.1.3](https://github.com/danitesler/playnite-extensions/releases/tag/gamehoverdetails-v1.1.3)
+- **Latest release:** [1.1.4](https://github.com/danitesler/playnite-extensions/releases/tag/gamehoverdetails-v1.1.4)
 - **Extension type:** GenericPlugin
 - **Tags:** Desktop, Hover, Details, Tooltip, Generic
 - **Source:** [src/GameHoverDetails](https://github.com/danitesler/playnite-extensions/tree/main/src/GameHoverDetails)
