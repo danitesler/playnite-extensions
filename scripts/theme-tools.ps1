@@ -777,11 +777,11 @@ function Get-PlayniteExePath {
 
     $exeName = if ($Mode -eq "Fullscreen") { "Playnite.FullscreenApp.exe" } else { "Playnite.DesktopApp.exe" }
     $candidates = @()
-    if ($env:LOCALAPPDATA) {
-        $candidates += (Join-Path $env:LOCALAPPDATA "Playnite\$exeName")
-    }
     if ($DataPath) {
         $candidates += (Join-Path $DataPath $exeName)
+    }
+    if ($env:LOCALAPPDATA) {
+        $candidates += (Join-Path $env:LOCALAPPDATA "Playnite\$exeName")
     }
     if ($env:ProgramFiles) {
         $candidates += (Join-Path $env:ProgramFiles "Playnite\$exeName")
@@ -801,7 +801,8 @@ function Get-PlayniteExePath {
 
 function Get-PlayniteProcess {
     param(
-        [ValidateSet("Desktop", "Fullscreen", "Any")] [string]$Mode = "Any"
+        [ValidateSet("Desktop", "Fullscreen", "Any")] [string]$Mode = "Any",
+        [string]$InstallPath = ""
     )
 
     $names = switch ($Mode) {
@@ -810,40 +811,51 @@ function Get-PlayniteProcess {
         default      { @("Playnite.DesktopApp", "Playnite.FullscreenApp", "Playnite.BrowserProcess") }
     }
 
-    return @(Get-Process -Name $names -ErrorAction SilentlyContinue)
+    $processes = @(Get-Process -Name $names -ErrorAction SilentlyContinue)
+    if ($InstallPath) {
+        $root = [IO.Path]::GetFullPath($InstallPath).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+        $processes = @($processes | Where-Object { $_.Path -and $_.Path.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) })
+    }
+    return $processes
 }
 
 function Stop-PlayniteApp {
     param(
         [string]$PlayniteExe = "",
+        [string]$DataPath = "",
         [int]$TimeoutSeconds = 15
     )
 
-    $running = @(Get-PlayniteProcess)
+    $installPath = if ($PlayniteExe) { Split-Path $PlayniteExe -Parent } else { "" }
+    $running = @(Get-PlayniteProcess -InstallPath $installPath)
     if ($running.Count -eq 0) { return }
 
     Write-Host "Playnite is currently open. Closing gracefully..."
     if ($PlayniteExe -and (Test-Path $PlayniteExe)) {
-        Start-Process -FilePath $PlayniteExe -ArgumentList "--shutdown" -ErrorAction SilentlyContinue | Out-Null
+        $mainProcesses = @($running | Where-Object { $_.ProcessName -in @("Playnite.DesktopApp", "Playnite.FullscreenApp") })
+        foreach ($process in $mainProcesses) {
+            Start-Process -FilePath $process.Path -ArgumentList "--shutdown" -WindowStyle Hidden -ErrorAction SilentlyContinue | Out-Null
+        }
     } else {
         $running | ForEach-Object { $_.CloseMainWindow() | Out-Null }
     }
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     while ((Get-Date) -lt $deadline) {
-        $stillRunning = @(Get-PlayniteProcess)
+        $stillRunning = @(Get-PlayniteProcess -InstallPath $installPath)
         if ($stillRunning.Count -eq 0) { break }
         Start-Sleep -Milliseconds 300
     }
 
-    $stillRunning = @(Get-PlayniteProcess)
+    $stillRunning = @(Get-PlayniteProcess -InstallPath $installPath)
     if ($stillRunning.Count -gt 0) {
         Write-Host "Playnite did not close within $TimeoutSeconds seconds; stopping forcefully..."
         $stillRunning | Stop-Process -Force -ErrorAction SilentlyContinue
     }
     Start-Sleep -Milliseconds 800
 
-    $dp = Get-PlayniteDataPath
+    if (@(Get-PlayniteProcess -InstallPath $installPath).Count -gt 0) { throw "Playnite did not exit; deployment cancelled." }
+    $dp = if ($DataPath) { $DataPath } else { Get-PlayniteDataPath }
     if ($dp) {
         $flag = Join-Path $dp "safestart.flag"
         if (Test-Path $flag) { Remove-Item $flag -Force -ErrorAction SilentlyContinue }
@@ -854,7 +866,8 @@ function Set-PlayniteActiveTheme {
     param(
         [Parameter(Mandatory = $true)] [string]$ThemeId,
         [ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop",
-        [string]$DataPath = ""
+        [string]$DataPath = "",
+        [string]$PlayniteExe = ""
     )
 
     $resolvedDataPath = if ($DataPath) { $DataPath } else { Get-PlayniteDataPath }
@@ -869,7 +882,10 @@ function Set-PlayniteActiveTheme {
         return $false
     }
 
-    $running = @(Get-PlayniteProcess)
+    $installPath = if ($PlayniteExe) { Split-Path $PlayniteExe -Parent } else { "" }
+    $running = @(Get-PlayniteProcess -InstallPath $installPath | Where-Object {
+        $_.ProcessName -in @("Playnite.DesktopApp", "Playnite.FullscreenApp")
+    })
     if ($running.Count -gt 0) {
         Write-Warning "Playnite is currently running. Changes to config.json would be overwritten on shutdown. Stop Playnite first or use -Restart."
         return $false
@@ -905,7 +921,8 @@ function Start-PlayniteApp {
     # Ensure any lingering process has completely exited so mutex is released
     $timeout = (Get-Date).AddSeconds(5)
     while ((Get-Date) -lt $timeout) {
-        $lingering = @(Get-PlayniteProcess -Mode $Mode)
+        $lingering = @(Get-PlayniteProcess -Mode $Mode -InstallPath (Split-Path $resolvedExe -Parent) |
+            Where-Object { $_.ProcessName -ne "Playnite.BrowserProcess" })
         if ($lingering.Count -eq 0) { break }
         Start-Sleep -Milliseconds 300
     }

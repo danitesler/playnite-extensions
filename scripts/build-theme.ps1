@@ -5,15 +5,19 @@ param(
 
     # Copy the build drop into Playnite's user themes folder so a restart picks it up.
     [switch]$Deploy,
+    # Build artifacts only: no deployment, activation or restart (used by validation/packaging).
+    [switch]$NoDeploy,
+    # Copy files without restarting a running Playnite (for batched theme redeploys).
+    [switch]$NoRestart,
 
     # Themes root to deploy into (the folder that holds Desktop\ and Fullscreen\). Defaults to %AppData%\Playnite\Themes;
     # pass <Playnite folder>\Themes for portable installs.
     [string]$DeployPath = "",
 
-    # Close Playnite if running, deploy the theme, set it as active in config.json, and launch/restart Playnite.
+    # Deploy and activate the theme; restart Playnite only if it was already running.
     [switch]$Restart,
 
-    # Alias for -Restart (launches if closed, restarts if running).
+    # Explicitly launch Playnite even when it was closed.
     [switch]$Launch,
 
     # Update config.json to activate this theme without launching/restarting Playnite.
@@ -29,6 +33,10 @@ param(
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "extension-profiles.ps1")
 . (Join-Path $PSScriptRoot "theme-tools.ps1")
+. (Join-Path $PSScriptRoot "playnite-runtime.ps1")
+
+if ($NoDeploy -and ($Deploy -or $Restart -or $Launch -or $SetTheme)) { throw "-NoDeploy cannot be combined with deployment/activation flags." }
+if ($NoRestart -and ($Restart -or $Launch)) { throw "-NoRestart cannot be combined with -Restart or -Launch." }
 
 if ($Restart -or $Launch) {
     $Deploy = $true
@@ -42,6 +50,11 @@ if ((Get-ExtensionKind $profile) -ne "theme") {
 
 $manifest = Get-ExtensionManifestInfo -Profile $profile
 $mode = if ($manifest.Mode) { $manifest.Mode } else { "Desktop" }
+$context = if (-not $NoDeploy) { Get-PlayniteBuildContext -DataPath $DataPath -DeployPath $DeployPath -PlayniteExe $PlayniteExe -Mode $mode }
+if ($context -and -not $Deploy) {
+    $Deploy = $true
+    if (-not $NoRestart) { $SetTheme = $true }
+}
 
 $buildDrop = Join-RepoPath $profile.outputPath
 
@@ -72,51 +85,20 @@ $fileCount = @(Get-ChildItem -Path $buildDrop -Recurse -File).Count
 Write-Host ""
 Write-Host "Build drop: $buildDrop ($fileCount files)"
 
-# If restarting/launching, close any running Playnite first so file locks are released and config.json won't be overwritten.
-$resolvedExe = $null
-if ($Restart -or $Launch) {
-    if ($env:OS -ne "Windows_NT") {
-        Write-Warning "Playnite launch/restart is only supported on Windows."
-    } elseif ($env:CI -eq "true") {
-        Write-Warning "CI environment detected; skipping Playnite launch/restart."
-    } else {
-        $resolvedExe = Get-PlayniteExePath -PlayniteExe $PlayniteExe -Mode $mode -DataPath $DataPath
-        Stop-PlayniteApp -PlayniteExe $resolvedExe
+if ($context -and $Deploy) {
+    $themesRoot = if ($DeployPath) { $DeployPath } else { Join-Path $context.DataPath "Themes" }
+    Invoke-PlayniteDeployment -Context $context -NoRestart:$NoRestart -Launch:$Launch -Deploy {
+        Copy-PlayniteBuild -Source $buildDrop -Root (Join-Path $themesRoot $mode) -Folder $manifest.Id
+        if ($SetTheme) {
+            if (-not (Set-PlayniteActiveTheme -ThemeId $manifest.Id -Mode $mode -DataPath $context.DataPath -PlayniteExe $context.Exe)) {
+                throw "Could not activate the deployed theme."
+            }
+            Write-Host "Set active $mode theme to '$($manifest.Name)' ($($manifest.Id))."
+        }
     }
-}
-
-if ($Deploy) {
-    $themesRoot = if ($DeployPath) { $DeployPath } else { Get-PlayniteThemesRoot -DataPath $DataPath }
-    if (-not $themesRoot -or -not (Test-Path $themesRoot)) {
-        throw "Playnite themes folder not found. Pass -DeployPath <Playnite folder>\Themes (portable) or install Playnite."
-    }
-
-    # Same folder name every time, so redeploys replace the previous copy instead of stacking duplicates.
-    $target = Join-Path $themesRoot (Join-Path $mode $manifest.Id)
-    if (Test-Path $target) {
-        Get-ChildItem -Path $target -Force | Remove-Item -Recurse -Force
-    }
-    New-Item -ItemType Directory -Path $target -Force | Out-Null
-    Copy-Item -Path (Join-Path $buildDrop "*") -Destination $target -Recurse -Force
-    Write-Host "Deployed to $target"
-}
-
-if ($SetTheme) {
-    $applied = Set-PlayniteActiveTheme -ThemeId $manifest.Id -Mode $mode -DataPath $DataPath
-    if ($applied) {
-        Write-Host "Set active $mode theme in config.json to '$($manifest.Name)' ($($manifest.Id))."
-    }
-}
-
-if ($Restart -or $Launch) {
+} elseif ($Deploy -or $SetTheme -or $Restart -or $Launch) {
     if ($env:OS -eq "Windows_NT" -and $env:CI -ne "true") {
-        Start-PlayniteApp -PlayniteExe $resolvedExe -Mode $mode -DataPath $DataPath | Out-Null
+        throw "Playnite installation not found. Pass -DataPath, -DeployPath or -PlayniteExe."
     }
-} elseif ($Deploy) {
-    $running = @(Get-PlayniteProcess -Mode $mode)
-    if ($running.Count -gt 0) {
-        Write-Host "Playnite is currently open. Restart Playnite to view changes (or use -Restart to automate)."
-    } else {
-        Write-Host "Playnite is closed. Launch Playnite to view changes, and pick '$($manifest.Name)' under Settings > Appearance > Theme (or use -Restart to automate)."
-    }
+    Write-Host "Non-Windows/CI: kept the build drop without deployment or restart."
 }

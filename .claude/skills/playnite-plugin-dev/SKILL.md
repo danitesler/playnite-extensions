@@ -51,22 +51,22 @@ User-visible strings live in `src/<Plugin>/Localization/*.xaml`. `en_US.xaml` is
 
 ## Build
 
-**Build after every change** to the plugin (code, XAML, `extension.yaml`). There is no deploy script: to test, the user copies the DLL from `artifacts/builds/<key>/` into Playnite's Extensions folder and restarts Playnite; remind them when a change needs testing.
+**Build after every change** to the plugin (code, XAML, `extension.yaml`). On local Windows, the script deploys the complete runtime drop (DLL, manifest, localization, fonts and icons), gracefully closes the targeted Playnite installation and restores its running Desktop/Fullscreen sessions. If Playnite was closed, it stays closed. Do not ask for manual DLL copying or restart. Use `-DataPath`, `-DeployPath` (Extensions root) or `-PlayniteExe` for an explicit installation. `-NoDeploy` leaves compiler output in `bin/<Configuration>/net462` without replacing a possibly loaded artifact drop or restarting Playnite; CI/non-Windows also skip deployment.
 
 ```powershell
-.\scripts\build-plugin.ps1 -Extension <key>            # dotnet build + drop in artifacts/builds/<key>/
+.\scripts\build-plugin.ps1 -Extension <key>            # build + deploy; restart only if Playnite was running
 .\scripts\validate-extension.ps1 -Extension <key>      # manifest / installer / database consistency
 ```
 
 - Output: `src\<Plugin>\bin\Release\net462\<Plugin>.dll` + `extension.yaml`; the drop is cleared and re-copied each run. Never edit `artifacts/`.
-- "File in use / access denied": Playnite has the DLL locked. Ask the user to exit Playnite fully and retry before suspecting code.
+- "File in use / access denied": automatic shutdown must complete before copying installed files. Report the failing path/process if it cannot; deployment must not continue with locked DLLs. Use `-NoDeploy` for an isolated artifact build.
 - The index `src/extensions.json` holds only what cannot be derived (`key`, `name`, `kind`, `dir`, `addonId`, `pluginType`, `requiredApiVersion`); `scripts/extension-profiles.ps1` (`Get-ExtensionProfile`) derives every path and URL. Scripts read profiles, never hardcoded paths. `scripts/check-all.ps1` (there is no hosted CI) runs validate then build for every row.
 
 ## Debug: "does nothing" / throws at startup
 
 1. Plugin disabled in Add-ons settings?
 2. Wrong surface (Desktop vs Fullscreen)? Check the `ActiveDesktopView` gate.
-3. Old DLL still loaded? Copy DLL (and manifest if changed) and restart Playnite.
+3. Old DLL still loaded? Run `build-plugin.ps1` normally; verify the printed deployment directory and automatic restart.
 4. Reflection failed after a Playnite upgrade? Look for the latch/log line; do not retry every tick.
 5. UI touched off the UI thread? Route through `UIDispatcher`.
 6. Persistence wrong? Check `GetSettings`, `BeginEdit`/`EndEdit`, `SavePluginSettings`.

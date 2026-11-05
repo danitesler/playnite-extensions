@@ -19,5 +19,5 @@ if ($VerifyInstaller) {
         -AllowUnpublishedPackageUrl:(-not $StrictInstallerVerification)
 }
 
-& (Join-Path $PSScriptRoot "build-plugin.ps1") -Extension $Extension -Configuration $Configuration
+& (Join-Path $PSScriptRoot "build-plugin.ps1") -Extension $Extension -Configuration $Configuration -NoDeploy
 & (Join-Path $PSScriptRoot "package-release.ps1") -Extension $Extension -Configuration $Configuration -ToolboxExe $ToolboxExe

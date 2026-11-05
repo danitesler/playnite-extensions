@@ -76,9 +76,6 @@ namespace Autogrid
         private int targetColumnsOriginal;
         private int targetRowsOriginal;
         private int viewportAdjustPxOriginal;
-        private bool hasSavedUserLayoutOriginal;
-        private double savedUserGridItemWidthOriginal;
-        private int savedUserGridItemSpacingOriginal;
 
         public AutogridSettings()
         {
@@ -117,9 +114,6 @@ namespace Autogrid
             targetColumnsOriginal = TargetColumns;
             targetRowsOriginal = TargetRows;
             viewportAdjustPxOriginal = ViewportAdjustPx;
-            hasSavedUserLayoutOriginal = HasSavedUserLayout;
-            savedUserGridItemWidthOriginal = SavedUserGridItemWidth;
-            savedUserGridItemSpacingOriginal = SavedUserGridItemSpacing;
         }
 
         public void CancelEdit()
@@ -129,9 +123,7 @@ namespace Autogrid
             TargetColumns = targetColumnsOriginal;
             TargetRows = targetRowsOriginal;
             ViewportAdjustPx = viewportAdjustPxOriginal;
-            HasSavedUserLayout = hasSavedUserLayoutOriginal;
-            SavedUserGridItemWidth = savedUserGridItemWidthOriginal;
-            SavedUserGridItemSpacing = savedUserGridItemSpacingOriginal;
+            // The live layout snapshot belongs to the apply/restore loop, not this edit transaction.
         }
 
         public void EndEdit()

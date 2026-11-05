@@ -87,15 +87,8 @@ try {
     New-Item -ItemType Directory -Path $releaseDrop -Force | Out-Null
 
     $zipPath = Join-Path $releaseDrop ("{0}-{1}.zip" -f $profile.slug, $version)
-    if ($isTheme) {
-        # The theme build drop is the whole theme; ship all of it in the zip.
-        Compress-Archive -Path (Join-Path $buildOutput "*") -DestinationPath $zipPath -Force
-    }
-    else {
-        $dllPath = Join-Path $buildOutput $manifest.Module
-        $outputManifest = Join-Path $buildOutput "extension.yaml"
-        Compress-Archive -LiteralPath @($outputManifest, $dllPath) -DestinationPath $zipPath -Force
-    }
+    # Match the Toolbox package: plugins also need their loose localization, icons and fonts.
+    Compress-Archive -Path (Join-Path $buildOutput "*") -DestinationPath $zipPath -Force
 
     $packageKind = if ($isTheme) { ".pthm" } else { ".pext" }
     Write-Host "Packing $packageKind with Playnite Toolbox..."

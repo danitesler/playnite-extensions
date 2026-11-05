@@ -8,7 +8,7 @@
 #
 # On Linux and macOS (scripts/check-all.sh sets this up): the plugins build with
 # EnableWindowsTargeting, the tests run on Mono, and the tests that load WPF
-# (GameHoverDetailsSettingsMigrationTests needs PresentationCore) only run on Windows.
+# (settings migration and Autogrid layout integration need WPF) only run on Windows.
 # Builds never deploy or restart Playnite.
 [CmdletBinding()]
 param(
@@ -46,17 +46,18 @@ $plugins = @((Get-ExtensionIndex).extensions | Where-Object { $_.kind -eq "plugi
 foreach ($plugin in $plugins) {
     Step "validate plugin $($plugin.key)" { & (Join-Path $PSScriptRoot "validate-extension.ps1") -Extension $plugin.key -Mode Ci -Configuration $Configuration }
     if (-not $Quick) {
-        Step "build plugin $($plugin.key)" { & (Join-Path $PSScriptRoot "build-plugin.ps1") -Extension $plugin.key -Configuration $Configuration }
+        Step "build plugin $($plugin.key)" { & (Join-Path $PSScriptRoot "build-plugin.ps1") -Extension $plugin.key -Configuration $Configuration -NoDeploy }
     }
 }
 
 $testArgs = @("test", "tests/Tests.csproj", "-c", $Configuration)
 $testName = "unit tests"
 if (-not $onWindows) {
-    $testArgs += @("--filter", "FullyQualifiedName!~GameHoverDetailsSettingsMigrationTests")
+    $testArgs += @("--filter", "FullyQualifiedName!~GameHoverDetailsSettingsMigrationTests&FullyQualifiedName!~AutogridSettingsTests")
     $testName = "unit tests (Mono; WPF-dependent tests run on Windows only)"
 }
 Step $testName { dotnet @testArgs } -Native
+Step "script regressions" { & (Join-Path $repoRoot "tests/ScriptRegressionTests.ps1") }
 
 Step "validate themes" { & (Join-Path $PSScriptRoot "validate-themes.ps1") -Mode Ci -Configuration $Configuration }
 if (-not $Quick) {

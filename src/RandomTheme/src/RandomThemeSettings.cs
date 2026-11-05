@@ -73,6 +73,9 @@ namespace RandomTheme
             {
                 Fullscreen.Restore(fullscreenBackup);
             }
+
+            // A manual pick may have saved pending edits. Keep its timestamp, but roll back preferences on disk too.
+            Persist();
         }
 
         public void EndEdit()

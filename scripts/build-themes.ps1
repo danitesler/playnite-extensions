@@ -40,7 +40,7 @@ foreach ($theme in $themes) {
     Write-Host ""
     Write-Host "== $($theme.key)"
     try {
-        & (Join-Path $PSScriptRoot "build-theme.ps1") -Extension $theme.key
+        & (Join-Path $PSScriptRoot "build-theme.ps1") -Extension $theme.key -NoDeploy
     }
     catch {
         $failed.Add($theme.key) | Out-Null

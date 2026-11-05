@@ -50,8 +50,8 @@ Per-theme `AGENTS.md` records only what differs from the skeleton.
    `%AppData%\Playnite\Themes\Desktop\<Id>`, so a build drop (`artifacts/builds/...`) and
    `-DeployKey`/`-Deploy` of one theme leave every other deployed copy stale — switching to
    those themes in Playnite still shows the old build. After a change that spans themes,
-   redeploy each one (`build-theme.ps1 -Extension <key> -Deploy`; no restart, keeps the active
-   theme), then restart Playnite once to reload.
+   redeploy each one (`build-theme.ps1 -Extension <key> -Deploy -NoRestart`; keeps the active
+   theme), then normally build/deploy the intended active theme to restart a running Playnite once. Normal single-theme builds now deploy automatically; `-NoDeploy` keeps only artifacts, and `-Launch` explicitly starts a closed Playnite.
 6. Keep the PR to one area across themes (e.g. "sidebar padding in all
    themes"), not one theme across areas, so review stays mechanical.
 
