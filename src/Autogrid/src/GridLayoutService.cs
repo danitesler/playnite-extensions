@@ -41,6 +41,15 @@ namespace Autogrid
 
         private const double WindowEdgeMargin = 12;
 
+        /// <summary>
+        /// PlayniteSettings flag behind the grid view's game details side panel
+        /// (PART_ControlGameView). ShowGameSideBarCommand sets it, CloseGameSideBarCommand clears it.
+        /// </summary>
+        internal const string GridDetailsPanelProperty = "GridViewSideBarVisible";
+
+        /// <summary>PlayniteSettings Dock for that panel (Left or Right in the stock template).</summary>
+        internal const string GridDetailsPositionProperty = "GridViewDetailsPosition";
+
         public static object TryResolveAppSettings(Window mainWindow)
         {
             if (mainWindow?.DataContext == null)
@@ -78,6 +87,82 @@ namespace Autogrid
                 }
 
                 return widthProp != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Reads whether the grid view's game details panel is open. Returns false when
+        /// Playnite no longer exposes the flag, so callers can log once and carry on.
+        /// </summary>
+        public static bool TryGetGridDetailsPanelOpen(object appSettings, out bool open)
+        {
+            open = false;
+            if (appSettings == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var prop = appSettings.GetType().GetProperty(GridDetailsPanelProperty, BindingFlags.Instance | BindingFlags.Public);
+                if (!(prop?.GetValue(appSettings, null) is bool value))
+                {
+                    return false;
+                }
+
+                open = value;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private const string WrapPanelTypeName = "VirtualizingWrapPanel";
+        private const string WrapPanelFirstItemSizeField = "sizeOfFirstItem";
+
+        /// <summary>
+        /// Clears VirtualizingWrapPanel's cached tile size under the games list. The panel (2.5.x)
+        /// caches the first tile's size and only refreshes it when item 0 is realized (scrolled to the
+        /// top), then lays out rows and measures every tile with it. After a cover width change the
+        /// stale size leaves gaps and clipped or missing covers. Empty makes it measure one tile again.
+        /// Returns the number of panels reset, or -1 when the field no longer exists.
+        /// </summary>
+        public static int ResetWrapPanelItemSize(DependencyObject gamesList)
+        {
+            var count = 0;
+            foreach (var node in EnumerateDescendants(gamesList, skip: d => d is ListBoxItem))
+            {
+                if (!(node is Panel panel) || panel.GetType().Name != WrapPanelTypeName)
+                {
+                    continue;
+                }
+
+                var field = panel.GetType().GetField(WrapPanelFirstItemSizeField, BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field == null || field.FieldType != typeof(Size))
+                {
+                    return -1;
+                }
+
+                field.SetValue(panel, Size.Empty);
+                panel.InvalidateMeasure();
+                count++;
+            }
+
+            return count;
+        }
+
+        public static bool IsGridDetailsPanelOnLeft(object appSettings)
+        {
+            try
+            {
+                var prop = appSettings?.GetType().GetProperty(GridDetailsPositionProperty, BindingFlags.Instance | BindingFlags.Public);
+                return prop?.GetValue(appSettings, null) is Dock dock && dock == Dock.Left;
             }
             catch
             {
@@ -524,7 +609,9 @@ namespace Autogrid
             return best;
         }
 
-        private static IEnumerable<DependencyObject> EnumerateDescendants(DependencyObject root)
+        private static IEnumerable<DependencyObject> EnumerateDescendants(
+            DependencyObject root,
+            Func<DependencyObject, bool> skip = null)
         {
             if (root == null)
             {
@@ -535,8 +622,13 @@ namespace Autogrid
             for (var i = 0; i < count; i++)
             {
                 var child = VisualTreeHelper.GetChild(root, i);
+                if (skip != null && skip(child))
+                {
+                    continue;
+                }
+
                 yield return child;
-                foreach (var nested in EnumerateDescendants(child))
+                foreach (var nested in EnumerateDescendants(child, skip))
                 {
                     yield return nested;
                 }

@@ -64,6 +64,61 @@ namespace PlayniteExtensions.Tests
             });
         }
 
+        [Theory]
+        [InlineData(true, true, true)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, false)]
+        [InlineData(false, false, false)]
+        public void DetailsPanel_PausesResizingOnlyWhenOpenAndEnabled(bool pauseSetting, bool panelOpen, bool expectPaused)
+        {
+            RunSta(() =>
+            {
+                var settings = new AutogridSettings { KeepGridWhileDetailsOpen = pauseSetting };
+                var appSettings = new AppSettings { GridViewSideBarVisible = panelOpen };
+                var plugin = CreatePlugin(settings, appSettings);
+
+                Assert.Equal(expectPaused, InvokeBool(plugin, "IsPausedForDetailsPanel", appSettings));
+            });
+        }
+
+        [Fact]
+        public void DetailsPanel_MissingPlayniteFlag_KeepsResizing()
+        {
+            RunSta(() =>
+            {
+                var settings = new AutogridSettings { KeepGridWhileDetailsOpen = true };
+                var plugin = CreatePlugin(settings, new AppSettings());
+
+                Assert.False(InvokeBool(plugin, "IsPausedForDetailsPanel", new object()));
+            });
+        }
+
+        [Fact]
+        public void KeepGridWhileDetailsOpen_DefaultsOnForSettingsSavedBeforeIt()
+        {
+            var legacy = Newtonsoft.Json.JsonConvert.DeserializeObject<AutogridSettings>(
+                "{\"Enabled\":true,\"SizingMode\":0,\"TargetColumns\":6}");
+
+            Assert.True(legacy.KeepGridWhileDetailsOpen);
+        }
+
+        [Fact]
+        public void CancelEdit_RestoresKeepGridWhileDetailsOpen()
+        {
+            var settings = new AutogridSettings { KeepGridWhileDetailsOpen = true };
+            settings.BeginEdit();
+            settings.KeepGridWhileDetailsOpen = false;
+            settings.CancelEdit();
+
+            Assert.True(settings.KeepGridWhileDetailsOpen);
+        }
+
+        private static bool InvokeBool(AutogridPlugin plugin, string method, params object[] args)
+        {
+            return (bool)typeof(AutogridPlugin).GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(plugin, args);
+        }
+
         private static AutogridPlugin CreatePlugin(AutogridSettings settings, AppSettings appSettings)
         {
             // Bypass SDK initialization so this harness cannot load or save real Playnite settings.
@@ -104,6 +159,7 @@ namespace PlayniteExtensions.Tests
         {
             public double GridItemWidth { get; set; }
             public int GridItemSpacing { get; set; }
+            public bool GridViewSideBarVisible { get; set; }
             public int SaveCount { get; private set; }
             public void SaveSettings() => SaveCount++;
         }

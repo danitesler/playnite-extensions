@@ -14,6 +14,8 @@ Autogrid keeps your Playnite Desktop Grid visually tight and easy to scan: you c
 
 Set a target column count once. When you resize the window, the extension adjusts cover width so that column count stays stable and the grid does not constantly reflow.
 
+Opening a game's details panel in Grid view leaves the grid where it is, with no reflow and no cover reload: the panel covers the grid's edge until you close it. You can turn this off in settings.
+
 Includes optional viewport adjustment for theme gutters and debug measurement logging for troubleshooting.
 
 ## Install

@@ -129,5 +129,31 @@ namespace PlayniteExtensions.Tests
             var margin = GridLayoutService.SpacingToAxisMargin(spacing);
             Assert.Equal(expectedMargin, margin);
         }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TryGetGridDetailsPanelOpen_ReadsPlayniteFlag(bool visible)
+        {
+            var found = GridLayoutService.TryGetGridDetailsPanelOpen(
+                new FakeAppSettings { GridViewSideBarVisible = visible },
+                out var open);
+
+            Assert.True(found);
+            Assert.Equal(visible, open);
+        }
+
+        [Fact]
+        public void TryGetGridDetailsPanelOpen_MissingFlag_ReturnsFalse()
+        {
+            Assert.False(GridLayoutService.TryGetGridDetailsPanelOpen(new object(), out var open));
+            Assert.False(open);
+            Assert.False(GridLayoutService.TryGetGridDetailsPanelOpen(null, out open));
+        }
+
+        public sealed class FakeAppSettings
+        {
+            public bool GridViewSideBarVisible { get; set; }
+        }
     }
 }

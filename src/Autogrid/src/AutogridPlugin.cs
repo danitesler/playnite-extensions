@@ -24,6 +24,11 @@ namespace Autogrid
         private bool startupApplyComplete;
         private int startupApplyAttemptsRemaining;
         private bool settingsApplyPosted;
+        private INotifyPropertyChanged watchedAppSettings;
+        private bool detailsPanelFlagMissingLogged;
+        private readonly GridWidthPin gridPin = new GridWidthPin();
+        private bool gridPinMissingLogged;
+        private bool wrapPanelResetBroken;
 
         public override Guid Id => PluginId;
 
@@ -64,6 +69,11 @@ namespace Autogrid
 
         private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (!settings.Enabled || !settings.KeepGridWhileDetailsOpen)
+            {
+                gridPin.Release();
+            }
+
             if (reflectionBroken)
             {
                 return;
@@ -75,6 +85,7 @@ namespace Autogrid
                 n != nameof(AutogridSettings.TargetColumns) &&
                 n != nameof(AutogridSettings.TargetRows) &&
                 n != nameof(AutogridSettings.ViewportAdjustPx) &&
+                n != nameof(AutogridSettings.KeepGridWhileDetailsOpen) &&
                 n != nameof(AutogridSettings.Enabled))
             {
                 return;
@@ -163,6 +174,7 @@ namespace Autogrid
             debounceTimer.Tick += DebounceTimerOnTick;
 
             window.SizeChanged += OnWindowLayoutHint;
+            window.SizeChanged += OnWindowSizeChanged;
             window.LayoutUpdated += OnWindowLayoutHint;
             window.StateChanged += OnWindowLayoutHint;
             window.Loaded += WindowOnLoadedOnce;
@@ -274,6 +286,15 @@ namespace Autogrid
             RequestDebouncedApply();
         }
 
+        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // The details panel keeps its width, so the grid's full width moves with the window.
+            if (e.WidthChanged && e.PreviousSize.Width > 0)
+            {
+                gridPin.Grow(e.NewSize.Width - e.PreviousSize.Width);
+            }
+        }
+
         private void DebounceTimerOnTick(object sender, EventArgs e)
         {
             debounceTimer?.Stop();
@@ -315,6 +336,14 @@ namespace Autogrid
             if (appSettings == null)
             {
                 return false;
+            }
+
+            WatchAppSettings(appSettings);
+            if (IsPausedForDetailsPanel(appSettings))
+            {
+                // The details panel narrows the grid; keep the covers as they are and
+                // re-fit when it closes (OnAppSettingsPropertyChanged).
+                return true;
             }
 
             if (!GridLayoutService.TryGetGridLayoutInputs(appSettings, out var currentSpacing, out var currentWidth))
@@ -389,8 +418,168 @@ namespace Autogrid
                 return false;
             }
 
+            ResetGridTileSizeCache(window);
             ScheduleSaveAppSettings(appSettings);
             return true;
+        }
+
+        /// <summary>
+        /// Runs right after a cover size write, before the layout pass that re-measures the tiles,
+        /// so the grid's wrap panel lays rows out with the new tile size instead of its cached one.
+        /// </summary>
+        private void ResetGridTileSizeCache(Window window)
+        {
+            if (wrapPanelResetBroken)
+            {
+                return;
+            }
+
+            var list = GridWidthPin.FindGamesList(window);
+            if (list == null || GridLayoutService.ResetWrapPanelItemSize(list) >= 0)
+            {
+                return;
+            }
+
+            wrapPanelResetBroken = true;
+            Logger.Warn("Autogrid cannot reset the grid panel's cached tile size; covers can misplace after large size changes.");
+        }
+
+        private bool IsPausedForDetailsPanel(object appSettings)
+        {
+            if (!settings.KeepGridWhileDetailsOpen)
+            {
+                return false;
+            }
+
+            if (GridLayoutService.TryGetGridDetailsPanelOpen(appSettings, out var open))
+            {
+                return open;
+            }
+
+            if (!detailsPanelFlagMissingLogged)
+            {
+                detailsPanelFlagMissingLogged = true;
+                Logger.Warn(
+                    $"Autogrid cannot read Playnite's {GridLayoutService.GridDetailsPanelProperty}; " +
+                    "covers keep resizing while game details are open.");
+            }
+
+            return false;
+        }
+
+        private void WatchAppSettings(object appSettings)
+        {
+            if (ReferenceEquals(appSettings, watchedAppSettings))
+            {
+                return;
+            }
+
+            UnwatchAppSettings();
+            watchedAppSettings = appSettings as INotifyPropertyChanged;
+            if (watchedAppSettings != null)
+            {
+                watchedAppSettings.PropertyChanged += OnAppSettingsPropertyChanged;
+            }
+        }
+
+        private void UnwatchAppSettings()
+        {
+            if (watchedAppSettings != null)
+            {
+                watchedAppSettings.PropertyChanged -= OnAppSettingsPropertyChanged;
+            }
+
+            watchedAppSettings = null;
+        }
+
+        private void OnAppSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.PropertyName) &&
+                e.PropertyName != GridLayoutService.GridDetailsPanelProperty)
+            {
+                return;
+            }
+
+            if (!GridLayoutService.TryGetGridDetailsPanelOpen(sender, out var open))
+            {
+                return;
+            }
+
+            // ShowGameSideBarCommand sets the flag on every game it shows, even when already open.
+            if (open && gridPin.IsPinned)
+            {
+                return;
+            }
+
+            // Pin or release before Playnite's next layout pass, which is when the list would reflow.
+            var dispatcher = PlayniteApi.MainView.UIDispatcher;
+            if (dispatcher.CheckAccess())
+            {
+                OnGridDetailsPanelToggled(sender, open);
+            }
+            else
+            {
+                dispatcher.BeginInvoke(
+                    new Action(() => OnGridDetailsPanelToggled(sender, open)),
+                    DispatcherPriority.Send);
+            }
+        }
+
+        private void OnGridDetailsPanelToggled(object appSettings, bool open)
+        {
+            if (open)
+            {
+                Logger.Debug("Autogrid: grid game details opened.");
+                PinGridForDetailsPanel(appSettings);
+                return;
+            }
+
+            Logger.Debug("Autogrid: grid game details closed.");
+            gridPin.Release();
+
+            // Loaded runs right after the layout pass that collapses the panel, so the scroll
+            // viewport already has its full width. Applying there (not through the debounce, which
+            // every layout pass of the reflow restarts) re-fits the covers in the next frame.
+            PlayniteApi.MainView.UIDispatcher.BeginInvoke(
+                new Action(ApplyAfterDetailsClosed),
+                DispatcherPriority.Loaded);
+        }
+
+        private void ApplyAfterDetailsClosed()
+        {
+            debounceTimer?.Stop();
+            if (TryApplyOnce())
+            {
+                Logger.Debug("Autogrid: grid re-fit after game details closed.");
+                return;
+            }
+
+            RequestDebouncedApply();
+        }
+
+        private void PinGridForDetailsPanel(object appSettings)
+        {
+            if (reflectionBroken || !settings.Enabled || !settings.KeepGridWhileDetailsOpen)
+            {
+                return;
+            }
+
+            if (PlayniteApi.MainView.ActiveDesktopView != DesktopView.Grid)
+            {
+                return;
+            }
+
+            var window = hookedWindow ?? Application.Current?.MainWindow;
+            var content = GridWidthPin.FindGamesListContent(window);
+            if (gridPin.TryPin(content, GridLayoutService.IsGridDetailsPanelOnLeft(appSettings)))
+            {
+                Logger.Debug($"Autogrid: grid kept at {gridPin.PinnedWidth:0} px while game details are open.");
+            }
+            else if (!gridPinMissingLogged)
+            {
+                gridPinMissingLogged = true;
+                Logger.Warn("Autogrid could not hold the grid view's games list; the grid reflows while game details are open.");
+            }
         }
 
         private void CaptureUserLayoutIfNeeded(double currentWidth, int currentSpacing)
@@ -501,6 +690,8 @@ namespace Autogrid
         private void DetachWindowHooks()
         {
             FlushPendingAppSettingsSave();
+            UnwatchAppSettings();
+            gridPin.Release();
 
             if (saveSettingsTimer != null)
             {
@@ -521,6 +712,7 @@ namespace Autogrid
             if (hookedWindow != null && handlersAttached)
             {
                 hookedWindow.SizeChanged -= OnWindowLayoutHint;
+                hookedWindow.SizeChanged -= OnWindowSizeChanged;
                 hookedWindow.LayoutUpdated -= OnWindowLayoutHint;
                 hookedWindow.StateChanged -= OnWindowLayoutHint;
                 hookedWindow.Loaded -= WindowOnLoadedOnce;

@@ -50,6 +50,13 @@ namespace Autogrid
             set => SetValue(ref viewportAdjustPx, ClampViewportAdjust(value));
         }
 
+        private bool keepGridWhileDetailsOpen = true;
+        public bool KeepGridWhileDetailsOpen
+        {
+            get => keepGridWhileDetailsOpen;
+            set => SetValue(ref keepGridWhileDetailsOpen, value);
+        }
+
         private bool hasSavedUserLayout;
         public bool HasSavedUserLayout
         {
@@ -76,6 +83,7 @@ namespace Autogrid
         private int targetColumnsOriginal;
         private int targetRowsOriginal;
         private int viewportAdjustPxOriginal;
+        private bool keepGridWhileDetailsOpenOriginal;
 
         public AutogridSettings()
         {
@@ -92,6 +100,7 @@ namespace Autogrid
                 TargetColumns = saved.TargetColumns;
                 TargetRows = saved.TargetRows;
                 ViewportAdjustPx = saved.ViewportAdjustPx;
+                KeepGridWhileDetailsOpen = saved.KeepGridWhileDetailsOpen;
                 HasSavedUserLayout = saved.HasSavedUserLayout;
                 SavedUserGridItemWidth = saved.SavedUserGridItemWidth;
                 SavedUserGridItemSpacing = saved.SavedUserGridItemSpacing;
@@ -114,6 +123,7 @@ namespace Autogrid
             targetColumnsOriginal = TargetColumns;
             targetRowsOriginal = TargetRows;
             viewportAdjustPxOriginal = ViewportAdjustPx;
+            keepGridWhileDetailsOpenOriginal = KeepGridWhileDetailsOpen;
         }
 
         public void CancelEdit()
@@ -123,6 +133,7 @@ namespace Autogrid
             TargetColumns = targetColumnsOriginal;
             TargetRows = targetRowsOriginal;
             ViewportAdjustPx = viewportAdjustPxOriginal;
+            KeepGridWhileDetailsOpen = keepGridWhileDetailsOpenOriginal;
             // The live layout snapshot belongs to the apply/restore loop, not this edit transaction.
         }
 
