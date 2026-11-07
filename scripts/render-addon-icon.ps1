@@ -46,5 +46,20 @@ $python = @(
 if (-not $python) { throw "python3 is required, with Pillow installed." }
 
 $script = Join-Path $PSScriptRoot "render-addon-icon.py"
-& $python.Source $script --svg $Svg --out $Out --color $Color --mark-scale $MarkScale --size $Size
-if ($LASTEXITCODE) { throw "render-addon-icon.py failed ($LASTEXITCODE)" }
+# The Python side prints notices (e.g. "Quick Look is not available") to stderr. In Windows PowerShell 5.1 a
+# captured or redirected stderr line becomes an ErrorRecord, and under "Stop" that aborts the run before the icon is
+# written. Run it under "Continue", pass stderr lines on as plain messages, and judge success by the exit code only.
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+try {
+    & $python.Source $script --svg $Svg --out $Out --color $Color --mark-scale $MarkScale --size $Size 2>&1 |
+        ForEach-Object {
+            if ($_ -is [System.Management.Automation.ErrorRecord]) { Write-Host $_.Exception.Message }
+            else { $_ }
+        }
+    $exitCode = $LASTEXITCODE
+}
+finally {
+    $ErrorActionPreference = $previousPreference
+}
+if ($exitCode) { throw "render-addon-icon.py failed ($exitCode)" }

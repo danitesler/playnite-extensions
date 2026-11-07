@@ -48,6 +48,7 @@ I'm a product designer, and these are what I make when I'm not doing that. They'
 | <a href="src/themes/Primo/README.md"><img src="src/themes/Primo/art/screenshot-details.png?v=4" alt="Primo details" width="280" /></a> | **Primo**<br>GitHub Primer inspired, in dark, tidy, utilitarian, built for focused developers.<br>[Details](src/themes/Primo/README.md) · [Download 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/primo-v1.0.0) |
 | <a href="src/themes/Fluence/README.md"><img src="src/themes/Fluence/art/screenshot-details.png?v=4" alt="Fluence details" width="280" /></a> | **Fluence**<br>Microsoft Fluent 2 inspired, in airy dark surfaces, soft, smooth, modern Windows.<br>[Details](src/themes/Fluence/README.md) · [Download 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/fluence-v1.0.0) |
 | <a href="src/themes/Ayywi/README.md"><img src="src/themes/Ayywi/art/screenshot-details.png?v=3" alt="Ayywi details" width="280" /></a> | **Ayywi**<br>ayywi inspired, in stark black, hairline borders, soft rounded pills.<br>[Details](src/themes/Ayywi/README.md) · [Download 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/ayywi-v1.0.0) |
+| <a href="src/themes/Cloudbank/README.md"><img src="src/themes/Cloudbank/art/screenshot-details.png" alt="Cloudbank details" width="280" /></a> | **Cloudbank**<br>Transistor inspired, in deep teal panels, glowing mint circuit edges, cyan selection brackets and a charged Turn() bar.<br>[Details](src/themes/Cloudbank/README.md) · _not released yet_ |
 
 ## Installation
 

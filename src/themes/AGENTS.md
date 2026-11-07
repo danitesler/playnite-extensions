@@ -37,7 +37,8 @@ All themes restyle the same set; a few add more (Expander, ListView, group style
 | `DefaultControls/*` | Button, ToggleButton, RepeatButton, TextBox (+ `BareTextBox`), PasswordBox, ComboBox, CheckBox, RadioButton, Slider, ProgressBar, ScrollViewer, Thumb, ToolTip, ContextMenu, Menu, TabControl, GroupBox, ListBox | `SliderRangeButton`, `SliderThumb`, `ScrollBarThumb` |
 | `CustomControls/SliderEx.xaml`, `GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | One-line styles `BasedOn` the theme's Slider / ContextMenu | |
 | `CustomControls/SearchBox.xaml` | Search input (keeps all three `PART_` names) | |
-| `DerivedStyles/DetailsViewItemStyle.xaml`, `GridViewItemStyle.xaml` | Library rows and cover tiles | |
+| `DerivedStyles/DetailsViewItemStyle.xaml`, `GridViewItemStyle.xaml` | Library rows and cover tiles (animated cover hover, required for new themes) | |
+| `DerivedStyles/GridViewItemTemplate.xaml` | Cover content: the Play / Info hover controls, themed and animated (required for new themes; Cloudbank first) | `GridTileButton` |
 | `DerivedStyles/PlayButton.xaml`, `PropertyItemButton.xaml`, `WindowBarButton.xaml`, `HighlightBorder.xaml` | Play, metadata values and chips, dialog caption buttons, input chrome for Default templates | |
 
 Everything a theme does not restyle (DataGrid, DatePicker, TreeView, the edit dialog, ...) is Playnite's template, recolored through the palette keys.
@@ -100,6 +101,8 @@ Each theme lays the shell out its own way; the mechanics are the same:
    - **Dynamic scaling with ThemeModifier**: When the user adjusts "Banner height (0 = off)" in ThemeModifier, decreasing the value shifts top elements closer to the top (and to 0 when banner is turned off), and increasing it shifts them further down proportionally. Never bind spacer height directly to `{DynamicResource GameBannerHeight}`.
 3. **Header**: `PART_ImageIcon` and `PART_TextDisplayName`, then the actions (`PART_ButtonPlayAction` and `PART_ButtonContextAction` stacked in one cell, `PART_ButtonMoreActions`, `PART_ButtonEditGame`). Details view: actions beside the title. Grid panel: actions under it, and a close button (`CloseGameSideBarCommand`) over the top-right corner.
 4. **Two columns**: **Steam screenshots**, then description (`PART_HtmlDescription`) and notes on the **left**; the **metadata pane** on the **right** (details view: fixed width beside the text; grid panel: a narrower column). Screenshots never span the full page over the metadata pane. They sit in the left column, above the description, in both the details view and the grid side panel. Host is `SteamScreenshots_SteamScreenshotsViewControl`, shown while `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}` is true, plus a 12 s skeleton for Steam games (the plugin hides its control on every game change and needs about a second). The bindings use `FallbackValue=PluginUnavailable` (not `False`), so with the plugin missing or disabled neither the control nor the skeleton shows.
+
+5. **Empty state**: with no game selected (`{Binding Game, FallbackValue={x:Null}}` is null) the content is hidden and a designed empty state shows `LOCErrorNoGameSelected`, centred in the viewport. Required for new themes; recipe in `.claude/skills/playnite-theme-dev/reference.md` -> Interactive layer.
 
 ### Metadata pane
 

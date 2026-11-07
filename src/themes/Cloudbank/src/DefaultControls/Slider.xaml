@@ -1,0 +1,121 @@
+<!--
+    Cloudbank: Slider as a memory meter. 6px cell track with a frame-line edge (radius 3 = half its thickness); the
+    filled part is a 4px run of aqua pips (4px lit, 2px gap, drawn with a tiled OpacityMask; radius 2). Thumb: a 10x18
+    aqua cap with a cell-colored edge, like the end of the Turn() bar. Track.Thumb is set last.
+    Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="SliderTrackButton" TargetType="{x:Type RepeatButton}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SliderRangeButton" TargetType="RepeatButton" BasedOn="{StaticResource SliderTrackButton}" />
+
+    <Style x:Key="SliderThumb" TargetType="Thumb">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="Height" Value="18" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border x:Name="Cap" Background="{DynamicResource SliderThumbBackgroundBrush}" BorderBrush="{DynamicResource TextBrushDark}"
+                            BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Cap" Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Cap" Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Slider}">
+                    <Grid x:Name="GridRoot">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TickBar x:Name="TopTick" Visibility="Collapsed" Height="4" Placement="Top"
+                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Fill="{DynamicResource NormalBorderBrush}" />
+                        <Border x:Name="Border" Grid.Row="1" Height="6" CornerRadius="3"
+                                Background="{DynamicResource SliderTrackBrush}" BorderBrush="{DynamicResource NormalBorderBrush}"
+                                BorderThickness="{DynamicResource ControlBorderThickness}" />
+                        <Border Grid.Row="1" Margin="1,0,0,0" Height="4" CornerRadius="2" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                Background="{TemplateBinding Foreground}" Width="{Binding ActualWidth, ElementName=ButtonDecrease}">
+                            <Border.OpacityMask>
+                                <DrawingBrush TileMode="Tile" Viewport="0,0,6,4" ViewportUnits="Absolute" Viewbox="0,0,6,4" ViewboxUnits="Absolute">
+                                    <DrawingBrush.Drawing>
+                                        <DrawingGroup>
+                                            <GeometryDrawing Brush="Transparent" Geometry="M0,0 H6 V4 H0Z" />
+                                            <GeometryDrawing Brush="Black" Geometry="M0,0 H4 V4 H0Z" />
+                                        </DrawingGroup>
+                                    </DrawingBrush.Drawing>
+                                </DrawingBrush>
+                            </Border.OpacityMask>
+                        </Border>
+                        <Track Grid.Row="1" x:Name="PART_Track" Height="{TemplateBinding Height}">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton x:Name="ButtonDecrease" Style="{DynamicResource SliderRangeButton}" Command="Slider.DecreaseLarge" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton x:Name="ButtonIncrease" Style="{StaticResource SliderTrackButton}" Command="Slider.IncreaseLarge" />
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{DynamicResource SliderThumb}" />
+                            </Track.Thumb>
+                        </Track>
+                        <TickBar x:Name="BottomTick" Visibility="Collapsed" Grid.Row="2" Height="4" Placement="Bottom"
+                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Fill="{DynamicResource NormalBorderBrush}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="PART_Track" Property="FocusManager.FocusedElement" Value="{Binding ElementName=PART_Track}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="TopLeft">
+                            <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="BottomRight">
+                            <Setter Property="Visibility" Value="Visible" TargetName="BottomTick" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="Both">
+                            <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="BottomTick" />
+                        </Trigger>
+                        <Trigger Property="Orientation" Value="Vertical">
+                            <Setter Property="LayoutTransform" TargetName="GridRoot">
+                                <Setter.Value>
+                                    <RotateTransform Angle="-90" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="PART_Track" Property="Orientation" Value="Horizontal" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

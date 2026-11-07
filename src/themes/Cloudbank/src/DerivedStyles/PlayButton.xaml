@@ -1,0 +1,157 @@
+<!--
+    Cloudbank: Play = the lit remainder of the Turn() bar. Aqua plate, cell-colored label in the heading font, 2px
+    corners (ControlCornerRadius). The plate always blooms (GlowFrameTemplate in the plate color, host at -32).
+    Hover, animated both ways (no setters on the animated parts, so nothing snaps):
+      in  0.22s ease-out: mint plate fades in over the aqua one, the bloom rises 0.45 -> 1, electric arcs fade in along
+          the top and bottom edges; while hovered the arcs crawl (top leftward, bottom rightward, one 512px sprite tile
+          per loop) and flicker.
+      out 0.35s ease-in-out: everything fades back; the crawl is replaced by a short glide so it stops with the fade.
+          Every exit animation has FillBehavior Stop, so after the fade no clock is left and the layers render as
+          static content again (animated masked layers left faint boxes at their bounds on scaled displays).
+    Pressed fades in the falloff-teal plate (its own layer, so leaving while pressed cannot strand the mint plate). Arcs: arc-strip.png tiled on a 1200px rectangle inside a
+    Canvas (no layout clip), clipped to its band, moved by a TranslateTransform. Brushes only; no DropShadowEffect, no BitmapCache (it outlines the layer bounds).
+    Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="{DynamicResource ButtonPadding}" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid UseLayoutRounding="True">
+                        <Control x:Name="Bloom" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource PrimaryButtonBackgroundBrush}"
+                                 Margin="-32" Opacity="0.45" />
+                        <Border Background="{TemplateBinding Background}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" />
+                        <Border x:Name="HoverPlate" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" Opacity="0" />
+                        <Border x:Name="PressPlate" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" Opacity="0" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+
+                        <!-- Arcs: faded as one layer, flickered as one layer, each edge band crawls on its own. -->
+                        <Grid x:Name="Arcs" Opacity="0" Visibility="Hidden" IsHitTestVisible="False" Margin="-8,-20,-8,-20">
+                            <Grid x:Name="Flicker">
+                                <Grid Height="40" VerticalAlignment="Top" ClipToBounds="True">
+                                    <Canvas>
+                                        <Rectangle Width="1200" Height="40" Opacity="0.85" Fill="{DynamicResource PrimaryButtonHoverBackgroundBrush}">
+                                            <Rectangle.RenderTransform>
+                                                <TranslateTransform x:Name="ArcTopShift" X="0" />
+                                            </Rectangle.RenderTransform>
+                                            <Rectangle.OpacityMask>
+                                                <ImageBrush ImageSource="{ThemeFile 'Images/fx/arc-strip.png'}" TileMode="Tile" Stretch="Fill"
+                                                            Viewport="0,0,512,40" ViewportUnits="Absolute" />
+                                            </Rectangle.OpacityMask>
+                                        </Rectangle>
+                                    </Canvas>
+                                </Grid>
+                                <Grid Height="40" VerticalAlignment="Bottom" ClipToBounds="True">
+                                    <Canvas>
+                                        <Rectangle Width="1200" Height="40" Opacity="0.65" Fill="{DynamicResource PrimaryButtonHoverBackgroundBrush}">
+                                            <Rectangle.RenderTransform>
+                                                <TranslateTransform x:Name="ArcBottomShift" X="-512" />
+                                            </Rectangle.RenderTransform>
+                                            <Rectangle.OpacityMask>
+                                                <ImageBrush ImageSource="{ThemeFile 'Images/fx/arc-strip.png'}" TileMode="Tile" Stretch="Fill"
+                                                            Viewport="256,0,512,40" ViewportUnits="Absolute" />
+                                            </Rectangle.OpacityMask>
+                                        </Rectangle>
+                                    </Canvas>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Arcs" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="Arcs" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="ArcTopShift" Storyboard.TargetProperty="X" From="0" To="-512" Duration="0:0:2.4" />
+                                        <DoubleAnimation Storyboard.TargetName="ArcBottomShift" Storyboard.TargetProperty="X" From="-512" To="0" Duration="0:0:3.1" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Flicker" Storyboard.TargetProperty="Opacity" Duration="0:0:1.3">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.07" Value="0.62" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.46" Value="0.82" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.52" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.9" Value="0.7" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.98" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.3" Value="0.9" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.35">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Arcs" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Arcs" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <!-- Replace the endless crawl and flicker with finite glides (default SnapshotAndReplace). -->
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ArcTopShift" Storyboard.TargetProperty="X" By="-60" Duration="0:0:0.3" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ArcBottomShift" Storyboard.TargetProperty="X" By="60" Duration="0:0:0.3" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Flicker" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

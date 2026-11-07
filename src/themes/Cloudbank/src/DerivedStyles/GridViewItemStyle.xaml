@@ -1,0 +1,107 @@
+<!--
+    Cloudbank: cover tiles. Selected = the game's selected-function look, static: a cyan bloom behind the cover
+    (GlowFrameTemplate), a 1px cyan outline and cyan corner brackets 4px outside it (CornerMarksTemplate).
+    Hover = a "target lock", animated both ways (no setters on animated parts, so nothing snaps):
+      in  0.2s ease-out: cyan brackets close in from 8% outside the cover while fading in, the 1px mint outline and a
+          mint bloom fade in; while hovered the bloom breathes (1 to 0.55, 1.4s each way).
+      out 0.25s: everything fades away; exit animations use FillBehavior Stop so no clock outlives the fade.
+    Everything is drawn inside the item's own spacing margin so the panel does not clip it. Library art behind the grid
+    has no OpacityMask (reference.md -> masked art behind animated controls). Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="GridViewItemStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid">
+                        <!-- Selected: static -->
+                        <Control x:Name="SelectGlow" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource SelectedBorderBrush}"
+                                 Margin="-32" Opacity="0.85" Visibility="Collapsed" />
+                        <!-- Hover: animated -->
+                        <Grid x:Name="Pulse" Margin="-32" IsHitTestVisible="False">
+                            <Control x:Name="HoverGlow" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource GridViewItemHoverBorderBrush}"
+                                     Opacity="0" Visibility="Hidden" />
+                        </Grid>
+                        <ContentPresenter />
+                        <Border x:Name="SelectionBorder" BorderThickness="1" Margin="-2" IsHitTestVisible="False" />
+                        <Border x:Name="HoverBorder" BorderThickness="1" Margin="-2" IsHitTestVisible="False" Opacity="0"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
+                        <Control x:Name="Marks" Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource SelectedBorderBrush}"
+                                 Margin="-5" Visibility="Collapsed" />
+                        <Control x:Name="HoverMarks" Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource SelectedBorderBrush}"
+                                 Margin="-5" Opacity="0" Visibility="Hidden" RenderTransformOrigin="0.5,0.5">
+                            <Control.RenderTransform>
+                                <ScaleTransform x:Name="HoverMarksScale" ScaleX="1" ScaleY="1" />
+                            </Control.RenderTransform>
+                        </Control>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverMarksScale" Storyboard.TargetProperty="ScaleX" From="1.08" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverMarksScale" Storyboard.TargetProperty="ScaleY" From="1.08" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.2">
+                                        <DoubleAnimation Storyboard.TargetName="Pulse" Storyboard.TargetProperty="Opacity" From="1" To="0.55" Duration="0:0:1.4">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Pulse" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.25" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="Marks" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="SelectGlow" />
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                        </Trigger>
+                        <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
+                            <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
