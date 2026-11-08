@@ -43,10 +43,19 @@ Follows the shared skeleton, dressed as the island details screen: the banner ge
 
 ## Components
 
-*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`. The interactive layer is as close to the game's behaviour as public sources allow (`RESEARCH.md` -> Motion, no official numbers):
+
+| Playnite file | Game component |
+|---------------|----------------|
+| `PlayButton` | PLAY: hover pops to 1.04 (0.15s ease-out), lighter plate, yellow halo and a one-shot 0.5s flash; while hovered the halo breathes; pressed is its own deep-yellow layer with a 0.97 squash |
+| `GridViewItemStyle` | Discover tile: selected = static 3px focus ring; hover = a pale-cyan ring fading in with an overshoot pop (0.96 to 1); the tile mask and its bitmap cache stay |
+| `GridViewItemTemplate` (+ `GridTileButton`) | cover hover controls as the round icon buttons of the Chapter 5 and 6 menus (44px circles, Material Rounded glyphs `IconPlay` / `IconInfo` / `IconDownload` from `Media.xaml`): the cover zooms 1.04 with a one-shot flash, the navy shade fades in, buttons rise 10px and scale 0.86 to 1 with an overshoot, Info 60ms later; hover pops a button to 1.1 and lights the pale-cyan ring; Play yellow, Info the translucent lobby pill |
+| Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | content hidden; the parachute mark drifting down (bob and sway) onto a breathing drop-zone ring above `LOCErrorNoGameSelected` in heavy condensed capitals; the loops run only while it shows |
 
 ## Deviations
 
+- Motion is built from a fan rebuild of one Fortnite button and the game's look, not from Epic numbers (`RESEARCH.md` -> Motion).
+- The banner washes through plain gradients, not an `OpacityMask`: PLAY animates over it (reference.md). `Library.xaml` still masks its solid scrim rectangles (not art).
 - Burbank Big Condensed is replaced by Bahnschrift Bold Condensed.
 - Values in chips and the game title keep their own case: Playnite's `StringToUpperCaseConverter` returns an empty string for non-string content, and `PART_TextDisplayName` is filled from code.
 - The lobby's 3D scene is the game's background art under a navy wash; no animated scene, no rarity gradients.
@@ -55,6 +64,7 @@ Follows the shared skeleton, dressed as the island details screen: the banner ge
 
 ## Not verified yet
 
+- Motion in Playnite: PLAY hover (pop, flash, halo breathing, leave while pressed), the tile ring and zoom, the cover buttons at 125% and 150%, the empty page in both overviews, the rounded tile mask with the new animated content inside its bitmap cache (any dark seams at the corners), the banner foot against the translucent page, ThemeModifier recolour of the halo, ring and plates.
 - Bahnschrift's condensed bold instance is picked by WPF from `FontWeight="Bold"` + `FontStretch="Condensed"`; if WPF falls back to the regular width, tabs and titles will be wider than designed.
 - The rounded cover mask (VisualBrush bound to the tile size) at large zoom levels and with "Show grid item background" on.
 - The slanted rail plate with add-on sidebar items that bring their own icon sizes.

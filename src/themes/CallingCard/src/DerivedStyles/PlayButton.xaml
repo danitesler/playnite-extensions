@@ -3,8 +3,14 @@
     command of the pause menu: a slanted red plate (PrimaryButtonBackgroundBrush) in a 2px paper edge
     (PrimaryButtonBorderBrush) with the blue sliver offset behind it (SelectedBorderBrush), paper text
     (PrimaryButtonForegroundBrush) in heavy condensed capitals (HeadingFontFamily) at FontSizeLarger, at least 44 tall.
-    Hover: the brighter red (PrimaryButtonHoverBackgroundBrush); pressed: the darker red. Keyboard focus: FocusVisual.
-    The plate is inset 6px left, 10px right and 4px below so its slanted corners and the sliver stay inside the button.
+    Keyboard focus: FocusVisual. The plate is inset 6px left, 10px right and 4px below so its slanted corners and the sliver
+    stay inside the button.
+    Hover is the menus' pop (RESEARCH.md -> Motion), quick and with overshoot, both ways, on separate layers:
+      in  0.16s: the plate grows 5% with a back-ease overshoot while the brighter red (PrimaryButtonHoverBackgroundBrush)
+          fades in over it (0.08s); the blue sliver is thrown 3px further out (0.18s, overshoot); a paper slash cuts across the
+          plate once (0.22s). While hovered the sliver wobbles 1.5px (0.5s each way).
+      out 0.15s: everything settles back (FillBehavior Stop on every exit).
+    Pressed is its own layer: the plate squeezes to 96% and a darker red plate (PrimaryButtonPressedBackgroundBrush) fades in.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -26,11 +32,43 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid Background="Transparent" SnapsToDevicePixels="True">
-                        <Control x:Name="Plate" Margin="6,0,10,4" IsHitTestVisible="False"
-                                 Template="{DynamicResource SlantPlateTemplate}" Focusable="False" IsTabStop="False"
-                                 Background="{TemplateBinding Background}"
-                                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                                 Foreground="{DynamicResource SelectedBorderBrush}" />
+                        <Grid x:Name="SliverBreath" Margin="6,0,10,4" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="BreathShift" X="0" Y="0" />
+                            </Grid.RenderTransform>
+                            <Border x:Name="Sliver" Background="{DynamicResource SelectedBorderBrush}" Margin="4,4,-4,-4" RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <SkewTransform AngleX="-12" />
+                                        <TranslateTransform x:Name="SliverPopX" X="0" />
+                                        <TranslateTransform x:Name="SliverPopY" Y="0" />
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
+                        <Grid x:Name="PlateHost" Margin="6,0,10,4" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="PlateScale" ScaleX="1" ScaleY="1" />
+                                    <ScaleTransform x:Name="PressScale" ScaleX="1" ScaleY="1" />
+                                    <SkewTransform AngleX="-12" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border x:Name="Plate" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}" />
+                            <Border x:Name="HoverPlate" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}" Margin="{TemplateBinding BorderThickness}" Opacity="0" />
+                            <Border x:Name="PressPlate" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}" Margin="{TemplateBinding BorderThickness}" Opacity="0" />
+                        </Grid>
+                        <Grid x:Name="SlashHost" Margin="6,0,10,4" ClipToBounds="True" IsHitTestVisible="False">
+                            <Rectangle x:Name="Slash" Width="16" HorizontalAlignment="Left" Fill="{DynamicResource PrimaryButtonForegroundBrush}" Opacity="0" Visibility="Hidden">
+                                <Rectangle.RenderTransform>
+                                    <TransformGroup>
+                                        <SkewTransform AngleX="-12" />
+                                        <TranslateTransform x:Name="SlashShift" X="-30" />
+                                    </TransformGroup>
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Grid>
                         <ContentPresenter Margin="{TemplateBinding Padding}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -38,10 +76,73 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="PlateScale" Storyboard.TargetProperty="ScaleX" To="1.05" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.9" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlateScale" Storyboard.TargetProperty="ScaleY" To="1.05" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.9" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SliverPopX" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="1.2" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SliverPopY" Storyboard.TargetProperty="Y" To="3" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="1.2" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Slash" Storyboard.TargetProperty="Visibility">
+    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+</ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Slash" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.02" Value="0.45" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.22" Value="0.45" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.24" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SlashShift" Storyboard.TargetProperty="X">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-30" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.22" Value="230" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.2">
+                                        <DoubleAnimation Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="X" From="0" To="1.5" Duration="0:0:0.5"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="Y" From="0" To="1.5" Duration="0:0:0.5"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlateScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlateScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SliverPopX" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SliverPopY" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Slash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.05" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Slash" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.05" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Plate" Property="Background" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleX" To="0.96" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleY" To="0.96" Duration="0:0:0.06" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.8" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.8" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

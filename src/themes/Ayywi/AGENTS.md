@@ -31,15 +31,24 @@ Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius
 
 ## Game page
 
-Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 112px caption column. Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). More and Edit are always-visible 48px square icon buttons (icon-only, the label in a `ToolTip`; repo rule). `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover masked with a `VisualBrush` inside a `BitmapCache` host, round 44px Play and Info buttons (`GridTileButton`).
+Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 112px caption column. Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). More and Edit are always-visible 48px square icon buttons (icon-only, the label in a `ToolTip`; repo rule). `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover (clip plus corner pieces, no mask), round 44px Play and Info buttons (`GridTileButton`). With no game selected both overviews show an empty state (icon tile and title).
 
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
+| File | ayywi component and motion |
+|------|----------------------------|
+| `DerivedStyles/PlayButton.xaml` | Primary button. Hover 0.3s: plate dims to 90 percent, `shadow.glow` (9-sliced `Images/fx/glow.png` through `GlowFrameTemplate` in `Common.xaml`), 2px spring lift. Pressed cancels the lift and dims the plate to 80 percent. The outer grid keeps the hit area so the lift cannot flicker the hover. |
+| `DerivedStyles/GridViewItemStyle.xaml` | Selected outline static; hover is a separate outline layer fading 0.3s in and out. No card lift or shadow (stays inside the spacing margin). |
+| `DerivedStyles/GridViewItemTemplate.xaml` | Cover without `OpacityMask` (cell clip plus four 12px page-colour corner pieces, because the buttons animate over it). Hover: image zoom 1.03 (0.6s out-expo), scrim fade 0.15s, Play and Info fade 0.15s and rise 6px (0.3s out-expo, Info 50ms later). `GridTileButton` (Info) and an inline primary style on Play: fill and edge fade, 2px lift. Lucide glyphs. |
+| `Views/*GameOverview.xaml` | Banner fade is a gradient on top (`PageRoot` on `ContentBackgroundBrush`) instead of a mask. Empty state: icon tile with the Lucide gamepad (inline path, because the validator allows no new `Icon*` keys) and the title in the heading font, 0.45s fade-in, no loop. |
+
+Generated asset: `art/fx.py` writes `src/Images/fx/glow.png` and `art/fx-sheet.png` (deterministic).
+
 ## Deviations
 
-- No hover lift, glow, heading tracking or shimmer: WPF templates here cannot animate `translateY` or run CSS effects.
+- Hover lift (2px) and glow are drawn on Play and the cover buttons (a transform and one glow mask). Not drawn: card lift and `shadow.lift`, heading tracking, shimmer. The glow layer is 2x the CSS opacity (`RESEARCH.md` -> Motion).
 - Unbounded font is bundled in `src/Typography/`; Sora applies where installed (falling back to Segoe UI).
 - Main window caption band is the whole 56px top bar (Default: 25px).
 - `Expander` and `ExpanderEx` are not restyled (palette recolor only), so the game edit dialog sections are not cards.
@@ -54,7 +63,7 @@ Everything was checked statically (`build-theme.ps1`, `validate-extension.ps1 -M
 - Rounded popups (menus, tooltips, dropdowns) need popup transparency.
 - Sidebar Library and Statistics icons trigger on `SideItem.Icon` equal to `SidebarLibraryIcon` / `SidebarStatisticsIcon`; if Playnite passes something else, Playnite's own glyphs show.
 - `PasswordBox.SelectionOpacity`, the rotated horizontal scroll bar, and the `LOC*` caption keys in the metadata pane (a wrong key shows an empty caption).
-- `BitmapCache` on every cover tile in a very large library.
+- Hover and empty-state animations in Playnite at 125% and 150% display scaling (no dark patches behind Play or the cover buttons), and a ThemeModifier recolour of the glow and the empty tile.
 
 ## Preview and screenshots
 

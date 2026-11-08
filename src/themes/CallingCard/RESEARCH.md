@@ -60,3 +60,16 @@ Every plate in the menus is a hard polygon, so all radii are 0 (`--radius`). The
 ## Not reproduced
 
 Ransom-note lettering, collage art, stars and moving shapes, character art, game fonts. See AGENTS.md -> Deviations.
+
+## Motion
+
+**No frame timing is documented anywhere findable.** ATLUS publishes nothing, the store pages and press quotes describe the menus only in words, and the two UI studies read for this ([itch.io, "Making UI come to life: study of Persona 5"](https://itch.io/blog/533534/making-ui-come-to-life-study-of-persona-5), [mechanicsofmagic.com](https://mechanicsofmagic.com/?p=7280)) give one number (the day-change transition, 12 x 60 frames, not a menu) and one static observation. The motion below is therefore my reading of how the menus move, with every duration chosen:
+
+| Statement | Source | Used for |
+|-----------|--------|----------|
+| The highlighted menu item becomes larger and gains a splash of blue | mechanicsofmagic.com (static description of the hover state) | The pop: plate grows 5 to 8% and the blue sliver is thrown 3px further out |
+| Every menu has its own bespoke design and animation, "a whole separate program running" | Katsura Hashino quoted by PC Gamer and GamesRadar | Each plate, frame and slab animates on its own layers, never a shared fade |
+| The menus animate constantly (already in this theme's Deviations, from the 2022 article) | AGENTS.md | Loops while hovered or empty: sliver or slab wobbles 1.5px (0.5s each way), the empty page's star turns (9s per turn) |
+| Fast, snappy and with overshoot (recalled from footage, not measured) | none | 0.14 to 0.2s, `BackEase` overshoot on every entrance, a paper slash cutting across the Play plate once (0.22s) |
+
+Not verified: any real duration or curve, whether the real menus slash on hover, the cursor and sound behavior, transitions between screens. The theme still draws no ransom-note lettering, collage art or character art.

@@ -1,8 +1,14 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml: the frame around a cover tile in the grid view.
-    Like an inventory cell: under the pointer a 1px frame in the dim label color (GridViewItemHoverBorderBrush) just
-    outside the tile; selected, a 2px amber frame (GridViewItemSelectedBorderBrush, FrameThickness), square. The tile is
-    GridViewItemTemplate.
+    Like an inventory cell. Selected (static, setters): a 2px amber frame (GridViewItemSelectedBorderBrush, FrameThickness),
+    square.
+    Hover is small, as the game's UI is (RESEARCH.md -> Motion), and animated both ways on its own layers (no setters on
+    animated parts):
+      in  0.1s: a 1px frame in the dim label color (GridViewItemHoverBorderBrush) just outside the tile and a faint
+          warm wash (SelectedBrush at 0.16, the engine's selection bar) fade in, and a 4px amber lamp (GlyphBrush) in the
+          top right corner of the cell kindles over 0.2s; while hovered the lamp flickers faintly (1.8s loop).
+      out 0.15s: everything fades away; exit animations use FillBehavior Stop so no clock outlives the fade.
+    No OpacityMask on anything. The tile is GridViewItemTemplate.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -19,12 +25,48 @@
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
                         <ContentPresenter />
+                        <Rectangle x:Name="HoverWash" Fill="{DynamicResource SelectedBrush}" Opacity="0" IsHitTestVisible="False" />
                         <Border x:Name="SelectionBorder" BorderThickness="1" Margin="-3" IsHitTestVisible="False" />
+                        <Border x:Name="HoverFrame" BorderThickness="1" Margin="-3" IsHitTestVisible="False" Opacity="0"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
+                        <Grid x:Name="LampFlicker" Width="4" Height="4" Margin="0,5,5,0" HorizontalAlignment="Right" VerticalAlignment="Top" IsHitTestVisible="False">
+                            <Rectangle x:Name="HoverLamp" Fill="{DynamicResource GlyphBrush}" Opacity="0" />
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverWash" Storyboard.TargetProperty="Opacity" To="0.16" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverLamp" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" Duration="0:0:1.8" BeginTime="0:0:0.2">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LampFlicker" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.6" Value="0.75" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.66" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.2" Value="0.85" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.26" Value="0.6" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.32" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverWash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverLamp" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LampFlicker" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />

@@ -24,10 +24,10 @@
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
                     <ScrollViewer x:Name="PART_ScrollViewHost"
                                   HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                                  Style="{DynamicResource DetailsScrollViewer}">
-                        <Grid>
+                                  Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible">
+                        <Grid x:Name="PageRoot" Background="{DynamicResource WindowBackgourndBrush}">
 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
-                                <Grid.Style>
+<Grid.Style>
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
@@ -39,19 +39,30 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Grid.Style>
-                                <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
+<FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <Rectangle Fill="{DynamicResource WindowBackgourndBrush}">
-                                    <Rectangle.OpacityMask>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="#33000000" Offset="0" />
-                                            <GradientStop Color="#99000000" Offset="0.55" />
-                                            <GradientStop Color="#FF000000" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Rectangle.OpacityMask>
-                                </Rectangle>
-                            </Grid>
+<Border Background="{DynamicResource WindowBackgourndBrush}" Opacity="0.2" />
+<!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark patches on scaled displays.
+     The fade is a plain gradient to the page color, read from the page brush (PageRoot). -->
+<Rectangle>
+<Rectangle.Fill>
+<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+<GradientStop Color="#00000000" Offset="0.3" />
+<GradientStop Color="{Binding Background.Color, ElementName=PageRoot}" Offset="1" />
+</LinearGradientBrush>
+</Rectangle.Fill>
+</Rectangle>
+</Grid>
 <Grid>
+<Grid.Style>
+<Style TargetType="Grid">
+<Style.Triggers>
+<DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+<Setter Property="Visibility" Value="Collapsed" />
+</DataTrigger>
+</Style.Triggers>
+</Style>
+</Grid.Style>
                             <Grid.Resources>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
                                     <Setter Property="TextWrapping" Value="Wrap" />
@@ -498,6 +509,50 @@
                                 </Grid>
                             </StackPanel>
                         </Grid>
+<!-- Empty state (no game selected), Material's empty pattern: a large icon in text.secondary over a secondary-text line (Typography), centered in the visible area. It fades in over 225ms (enteringScreen, easeOut) when it appears; no loop (RemoveStoryboard on exit). -->
+<Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
+<Grid.Style>
+<Style TargetType="Grid">
+<Setter Property="Visibility" Value="Collapsed" />
+<Style.Triggers>
+<DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+<Setter Property="Visibility" Value="Visible" />
+</DataTrigger>
+</Style.Triggers>
+</Style>
+</Grid.Style>
+<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24,0,24,24">
+<StackPanel.Style>
+    <Style TargetType="StackPanel">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="EmptyFadeIn">
+                        <Storyboard>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.225" Value="1" KeySpline="0,0,0.2,1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="EmptyFadeIn" />
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</StackPanel.Style>
+<Viewbox Width="56" Height="56" HorizontalAlignment="Center">
+<Canvas Width="24" Height="24">
+<!-- Material Icons: videogame_asset -->
+<Path Data="F1 M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" Fill="{DynamicResource TextBrushDarker}" />
+</Canvas>
+</Viewbox>
+<TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,12,0,0" TextAlignment="Center" TextWrapping="Wrap"
+FontSize="{DynamicResource FontSizeLarge}" FontWeight="Medium" Foreground="{DynamicResource TextBrushDarker}" />
+</StackPanel>
+</Grid>
 </Grid>
                     </ScrollViewer>
                 </ControlTemplate>

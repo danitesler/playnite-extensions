@@ -3,9 +3,9 @@
     The library layer is the inside of a menu window: the olive-black panel (ContentBackgroundBrush) with the grain of
     the game's panel texture over it (Images/grain.png, an original procedural overlay of specks and soft blotches,
     tiled at its own size). The optional background art (PART_ImageBackground) sits behind the views like the scene
-    behind the game's menus: darkened by the panel color (ScrimBrush at 75%) and a heavy vignette (the same brush through
-    a radial mask, solid at the edges). Art and scrims sit in a BitmapCache wrapper because they are masked; the grain
-    lies over them. Layout and parts are Playnite's.
+    behind the game's menus: darkened by the panel color (ScrimBrush at 75%) and a heavy vignette (a radial gradient from clear to the panel
+    color). No OpacityMask and no BitmapCache: animated covers and Play above masked art left dark boxes on scaled
+    displays; the grain lies over the art. Layout and parts are Playnite's.
     Deviation: the game's menus sit over a desaturated scene; WPF has no cheap desaturation, so the art keeps its color.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -19,7 +19,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Library}">
-                    <Grid Background="{TemplateBinding Background}"
+                    <Grid x:Name="LibraryRoot" Background="{TemplateBinding Background}"
                           d:DesignWidth="1500" d:DesignHeight="960"
                           d:DataContext="{x:Static DesignMainViewModel.DesignIntance}">
                         <Grid.RowDefinitions>
@@ -31,20 +31,19 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" ClipToBounds="True">
-                            <Grid.CacheMode>
-                                <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                            </Grid.CacheMode>
                             <FadeImage x:Name="PART_ImageBackground"
                                        HorizontalAlignment="Center" VerticalAlignment="Top" />
                             <Border Background="{DynamicResource ScrimBrush}" Opacity="0.75" />
-                            <Border Background="{DynamicResource ScrimBrush}">
-                                <Border.OpacityMask>
+                            <!-- Vignette as a plain radial gradient to the panel color (no OpacityMask: animated covers above it would leave
+                                 dark boxes on scaled displays, see reference.md). -->
+                            <Rectangle>
+                                <Rectangle.Fill>
                                     <RadialGradientBrush GradientOrigin="0.5,0.4" Center="0.5,0.4" RadiusX="0.75" RadiusY="0.8">
                                         <GradientStop Color="#00000000" Offset="0.35" />
-                                        <GradientStop Color="#FF000000" Offset="1" />
+                                        <GradientStop Color="{Binding Background.Color, ElementName=LibraryRoot}" Offset="1" />
                                     </RadialGradientBrush>
-                                </Border.OpacityMask>
-                            </Border>
+                                </Rectangle.Fill>
+                            </Rectangle>
                         </Grid>
 
                         <Border Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False">

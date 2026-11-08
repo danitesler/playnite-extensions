@@ -28,7 +28,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type GridViewGameOverview}">
-                    <Border BorderBrush="{DynamicResource PanelSeparatorBrush}"
+                    <Border x:Name="PageRoot" Background="{DynamicResource ContentBackgroundBrush}" BorderBrush="{DynamicResource PanelSeparatorBrush}"
                             d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}">
                         <Border.Style>
                             <Style TargetType="Border">
@@ -44,20 +44,66 @@
                             </Style>
                         </Border.Style>
                         <Grid>
-                            <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" Margin="24,24,24,0"
-                                       HorizontalAlignment="Center" VerticalAlignment="Top" TextWrapping="Wrap"
-                                       Foreground="{DynamicResource TextBrushDarker}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                            <Border IsHitTestVisible="False">
+                                <Border.Background>
+                                    <ImageBrush ImageSource="{ThemeFile 'Images/grain.png'}" TileMode="Tile" Stretch="None" Viewport="0,0,256,256" ViewportUnits="Absolute" />
+                                </Border.Background>
+                            </Border>
+                            <!-- Empty state (no game selected): an empty inventory cell, a riveted steel slot (BevelTemplate) with the radiation trefoil dim in it
+                                 and a standby lamp at its corner that rises and dies down slowly (1.9s cycle, chosen), Playnite's "No game selected" in the heading face
+                                 over the broken line. Centered in the visible area; the loop runs only while it shows (RemoveStoryboard on exit). -->
+                            <Grid IsHitTestVisible="False">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
-                                            <Trigger Property="DataContext" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                            </Trigger>
+                                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                                </Grid.Style>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+                                    <Grid Width="130" Height="100" HorizontalAlignment="Center">
+                                        <Control Template="{DynamicResource BevelTemplate}" Focusable="False" IsTabStop="False" Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" />
+                                        <ContentControl Content="{DynamicResource IconLibrary}" ContentTemplate="{DynamicResource IconTemplate}" Width="40" Height="40"
+                                                        Foreground="{DynamicResource TextBrushDarker}" Opacity="0.55" />
+                                        <Grid Width="10" Height="18" Margin="0,10,10,0" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                            <Border Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="1" Padding="1">
+                                                <Rectangle Fill="{DynamicResource GlyphBrush}">
+                                                    <Rectangle.Style>
+                                                        <Style TargetType="Rectangle">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                                    <DataTrigger.EnterActions>
+                                                                        <BeginStoryboard x:Name="StandbyLamp">
+                                                    <Storyboard RepeatBehavior="Forever">
+                                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                                            <LinearDoubleKeyFrame KeyTime="0:0:0.7" Value="1" />
+                                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="0.2" />
+                                                            <LinearDoubleKeyFrame KeyTime="0:0:1.65" Value="0.2" />
+                                                            <LinearDoubleKeyFrame KeyTime="0:0:1.9" Value="1" />
+                                                        </DoubleAnimationUsingKeyFrames>
+                                                    </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </DataTrigger.EnterActions>
+                                                                    <DataTrigger.ExitActions>
+                                                                        <RemoveStoryboard BeginStoryboardName="StandbyLamp" />
+                                                                    </DataTrigger.ExitActions>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Rectangle.Style>
+                                                </Rectangle>
+                                            </Border>
+                                        </Grid>
+                                    </Grid>
+                                    <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,18,0,0"
+                                               FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource HeadingForegroundBrush}" />
+                                    <Line X1="0" X2="170" Y1="0.5" Y2="0.5" Width="170" Height="1" Margin="0,10,0,0" HorizontalAlignment="Center" Stroke="{DynamicResource InputBorderBrush}" StrokeThickness="1" StrokeDashArray="4 3" />
+                                </StackPanel>
+                            </Grid>
 
                             <ScrollViewer x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid>
@@ -70,8 +116,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
-                                <!-- Banner: the game's background art as a band of GameBannerHeight (0 turns it off). Faded out downward by the mask, darkened
-                                     toward the title by a page-colored scrim, and cached because it is masked. Collapsed when the game has no background
+                                <!-- Banner: the game's background art as a band of GameBannerHeight (0 turns it off). Faded out downward by a veil and a plain gradient to the page color (no OpacityMask). Collapsed when the game has no background
                                      art or Playnite hides the image. -->
                                 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                     <Grid.Style>
@@ -86,27 +131,19 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
-                                    <Grid.CacheMode>
-                                        <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                                    </Grid.CacheMode>
-                                    <Grid>
-                                        <Grid.OpacityMask>
-                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                                <GradientStop Color="Black" Offset="0.25" />
-                                                <GradientStop Color="Transparent" Offset="1" />
+                                    <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark
+                                         seams on scaled displays. A veil and a plain gradient to the page color fade it toward the title instead. -->
+                                    <Border Background="{DynamicResource ContentBackgroundBrush}" Opacity="0.35" />
+                                    <Rectangle>
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#00000000" Offset="0.2" />
+                                                <GradientStop Color="{Binding Background.Color, ElementName=PageRoot}" Offset="1" />
                                             </LinearGradientBrush>
-                                        </Grid.OpacityMask>
-                                        <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                        <Border Background="{DynamicResource ContentBackgroundBrush}" Opacity="0.75">
-                                            <Border.OpacityMask>
-                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                                    <GradientStop Color="Transparent" Offset="0.1" />
-                                                    <GradientStop Color="Black" Offset="1" />
-                                                </LinearGradientBrush>
-                                            </Border.OpacityMask>
-                                        </Border>
-                                    </Grid>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
                                 </Grid>
                                     <Grid Margin="24,0,24,24">
                                         <Grid.RowDefinitions>
@@ -316,26 +353,51 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemCompletionStatus" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCCompletionStatus}" />
-                                                                        <Button x:Name="PART_ButtonCompletionStatus" HorizontalAlignment="Left" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemPlayTime" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCTimePlayed}" />
-                                                                        <TextBlock x:Name="PART_TextPlayTime" TextWrapping="Wrap" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemLastPlayed" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCLastPlayed}" />
-                                                                        <TextBlock x:Name="PART_TextLastActivity" TextWrapping="Wrap" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemRecentActivity" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCRecentActivityLabel}" />
-                                                                        <TextBlock x:Name="PART_TextRecentActivity" TextWrapping="Wrap" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemAdded" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCDateAddedLabel}" />
-                                                                        <TextBlock x:Name="PART_TextAdded" TextWrapping="Wrap" />
-                                                                    </StackPanel>
+                                                                    <Grid x:Name="PART_ElemCompletionStatus" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCCompletionStatus}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <Button Grid.Column="2" x:Name="PART_ButtonCompletionStatus" HorizontalAlignment="Left" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemPlayTime" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCTimePlayed}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextPlayTime" TextWrapping="Wrap" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemLastPlayed" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCLastPlayed}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextLastActivity" TextWrapping="Wrap" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemRecentActivity" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCRecentActivityLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextRecentActivity" TextWrapping="Wrap" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemAdded" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCDateAddedLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextAdded" TextWrapping="Wrap" />
+                                                                    </Grid>
                                                                 </StackPanel>
                                                             </Border>
                                                             <Border x:Name="MetaScores" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
@@ -355,18 +417,33 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemCommunityScore" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCCommunityScore}" />
-                                                                        <TextBlock x:Name="PART_TextCommunityScore" Style="{DynamicResource TextBlockGameScore}" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemCriticScore" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCCriticScore}" />
-                                                                        <TextBlock x:Name="PART_TextCriticScore" Style="{DynamicResource TextBlockGameScore}" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemUserScore" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCUserScore}" />
-                                                                        <TextBlock x:Name="PART_TextUserScore" Style="{DynamicResource TextBlockGameScore}" />
-                                                                    </StackPanel>
+                                                                    <Grid x:Name="PART_ElemCommunityScore" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCCommunityScore}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextCommunityScore" Style="{DynamicResource TextBlockGameScore}" TextWrapping="Wrap" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemCriticScore" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCCriticScore}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextCriticScore" Style="{DynamicResource TextBlockGameScore}" TextWrapping="Wrap" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemUserScore" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCUserScore}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextUserScore" Style="{DynamicResource TextBlockGameScore}" TextWrapping="Wrap" />
+                                                                    </Grid>
                                                                 </StackPanel>
                                                             </Border>
                                                             <Border x:Name="MetaAbout" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
@@ -389,30 +466,60 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemDevelopers" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCDevelopersLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsDevelopers" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemPublishers" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCPublishersLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsPublishers" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemReleaseDate" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCGameReleaseDateTitle}" />
-                                                                        <Button x:Name="PART_ButtonReleaseDate" HorizontalAlignment="Left" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemSeries" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCSeriesLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsSeries" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemAgeRating" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCAgeRatingLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsAgeRatings" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemRegion" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCRegionLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsRegions" />
-                                                                    </StackPanel>
+                                                                    <Grid x:Name="PART_ElemDevelopers" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCDevelopersLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsDevelopers" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemPublishers" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCPublishersLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsPublishers" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemReleaseDate" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCGameReleaseDateTitle}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <Button Grid.Column="2" x:Name="PART_ButtonReleaseDate" HorizontalAlignment="Left" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemSeries" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCSeriesLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsSeries" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemAgeRating" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCAgeRatingLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsAgeRatings" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemRegion" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCRegionLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsRegions" />
+                                                                    </Grid>
                                                                 </StackPanel>
                                                             </Border>
                                                             <Border x:Name="MetaTags" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
@@ -434,56 +541,81 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemPlatform" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCPlatformsTitle}" />
-                                                                        <ItemsControl x:Name="PART_ItemsPlatforms" Tag="Chip" Margin="0,0,0,-6">
+                                                                    <Grid x:Name="PART_ElemPlatform" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCPlatformsTitle}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsPlatforms" Tag="Chip" Margin="0,0,0,-6">
                                                                             <ItemsControl.ItemsPanel>
                                                                                 <ItemsPanelTemplate>
                                                                                     <WrapPanel />
                                                                                 </ItemsPanelTemplate>
                                                                             </ItemsControl.ItemsPanel>
                                                                         </ItemsControl>
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemGenres" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCGenresLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsGenres" Tag="Chip" Margin="0,0,0,-6">
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemGenres" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCGenresLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsGenres" Tag="Chip" Margin="0,0,0,-6">
                                                                             <ItemsControl.ItemsPanel>
                                                                                 <ItemsPanelTemplate>
                                                                                     <WrapPanel />
                                                                                 </ItemsPanelTemplate>
                                                                             </ItemsControl.ItemsPanel>
                                                                         </ItemsControl>
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemCategories" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCCategoriesLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsCategories" Tag="Chip" Margin="0,0,0,-6">
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemCategories" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCCategoriesLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsCategories" Tag="Chip" Margin="0,0,0,-6">
                                                                             <ItemsControl.ItemsPanel>
                                                                                 <ItemsPanelTemplate>
                                                                                     <WrapPanel />
                                                                                 </ItemsPanelTemplate>
                                                                             </ItemsControl.ItemsPanel>
                                                                         </ItemsControl>
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemFeatures" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCFeaturesLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsFeatures" Tag="Chip" Margin="0,0,0,-6">
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemFeatures" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCFeaturesLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsFeatures" Tag="Chip" Margin="0,0,0,-6">
                                                                             <ItemsControl.ItemsPanel>
                                                                                 <ItemsPanelTemplate>
                                                                                     <WrapPanel />
                                                                                 </ItemsPanelTemplate>
                                                                             </ItemsControl.ItemsPanel>
                                                                         </ItemsControl>
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemTags" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCTagsLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsTags" Tag="Chip" Margin="0,0,0,-6">
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemTags" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCTagsLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsTags" Tag="Chip" Margin="0,0,0,-6">
                                                                             <ItemsControl.ItemsPanel>
                                                                                 <ItemsPanelTemplate>
                                                                                     <WrapPanel />
                                                                                 </ItemsPanelTemplate>
                                                                             </ItemsControl.ItemsPanel>
                                                                         </ItemsControl>
-                                                                    </StackPanel>
+                                                                    </Grid>
                                                                 </StackPanel>
                                                             </Border>
                                                             <Border x:Name="MetaLibrary" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
@@ -505,26 +637,51 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemLibrary" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCGameProviderTitle}" />
-                                                                        <Button x:Name="PART_ButtonLibrary" HorizontalAlignment="Left" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemSource" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCSourceLabel}" />
-                                                                        <Button x:Name="PART_ButtonSource" HorizontalAlignment="Left" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemVersion" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCVersionLabel}" />
-                                                                        <Button x:Name="PART_ButtonVersion" HorizontalAlignment="Left" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemInstallSize" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCInstallSizeLabel}" />
-                                                                        <TextBlock x:Name="PART_TextInstallSize" TextWrapping="Wrap" />
-                                                                    </StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemInstallDirectory" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCGameInstallDirTitle}" />
-                                                                        <Button x:Name="PART_ButtonInstallDirectory" HorizontalAlignment="Left" />
-                                                                    </StackPanel>
+                                                                    <Grid x:Name="PART_ElemLibrary" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCGameProviderTitle}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <Button Grid.Column="2" x:Name="PART_ButtonLibrary" HorizontalAlignment="Left" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemSource" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCSourceLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <Button Grid.Column="2" x:Name="PART_ButtonSource" HorizontalAlignment="Left" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemVersion" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCVersionLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <Button Grid.Column="2" x:Name="PART_ButtonVersion" HorizontalAlignment="Left" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemInstallSize" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCInstallSizeLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <TextBlock Grid.Column="2" x:Name="PART_TextInstallSize" TextWrapping="Wrap" />
+                                                                    </Grid>
+                                                                    <Grid x:Name="PART_ElemInstallDirectory" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCGameInstallDirTitle}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <Button Grid.Column="2" x:Name="PART_ButtonInstallDirectory" HorizontalAlignment="Left" />
+                                                                    </Grid>
                                                                 </StackPanel>
                                                             </Border>
                                                             <Border x:Name="MetaLinks" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
@@ -539,10 +696,15 @@
                                                                     </Style>
                                                                 </Border.Style>
                                                                 <StackPanel>
-                                                                    <StackPanel x:Name="PART_ElemLinks" Margin="0,8,0,8">
-                                                                        <TextBlock Tag="Caption" Margin="0,0,0,4" Text="{DynamicResource LOCLinksLabel}" />
-                                                                        <ItemsControl x:Name="PART_ItemsLinks" />
-                                                                    </StackPanel>
+                                                                    <Grid x:Name="PART_ElemLinks" Margin="0,8,0,8">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="2*" />
+                                                                            <ColumnDefinition Width="12" />
+                                                                            <ColumnDefinition Width="3*" />
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <TextBlock Tag="Caption" Text="{DynamicResource LOCLinksLabel}" Margin="0,0,0,0" VerticalAlignment="Top" TextWrapping="Wrap" />
+                                                                        <ItemsControl Grid.Column="2" x:Name="PART_ItemsLinks" />
+                                                                    </Grid>
                                                                 </StackPanel>
                                                             </Border>
                                                         </StackPanel>

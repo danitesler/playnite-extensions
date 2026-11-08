@@ -1,9 +1,14 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml (cover tiles).
-    The main-menu carousel's selection box around a cover: hover draws a 1px dim amber outline 3px outside the tile
-    (GridViewItemHoverBorderBrush); the selected tile gets that outline in amber plus the game's L brackets 6px outside
-    (CornerMarksTemplate in GridViewItemSelectedBorderBrush). The item spacing (Playnite's setting) must leave the
-    brackets room; the hovered or selected tile is raised above its neighbors.
+    The main-menu carousel's selection box around a cover. Selected (static, setters): the 1px amber outline 3px outside
+    the tile (GridViewItemSelectedBorderBrush) and the game's L brackets 6px outside (CornerMarksTemplate).
+    Hover is the same frame arriving, animated both ways on its own layers (no setters on animated parts):
+      in  0.12s: the 1px dim amber outline (GridViewItemHoverBorderBrush) fades in and the L brackets (SelectedBrush at
+          0.7, dimmer than the selected ones) snap in from 14% outside (scale 1.14 to 1, ease-out); while hovered the
+          brackets breathe 3% (0.45s each way).
+      out 0.15s: everything fades away; exit animations use FillBehavior Stop so no clock outlives the fade.
+    The brackets sit 6px outside the tile, so the item spacing (Playnite's setting) must leave them room; the hovered or
+    selected tile is raised above its neighbors. No OpacityMask on anything.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -20,18 +25,70 @@
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
                         <ContentPresenter />
-                        <Border x:Name="HoverBorder" BorderThickness="1" Margin="-3" IsHitTestVisible="False" />
+                        <Border x:Name="SelectionBorder" BorderThickness="1" Margin="-3" IsHitTestVisible="False" />
+                        <Border x:Name="HoverBorder" BorderThickness="1" Margin="-3" IsHitTestVisible="False" Opacity="0"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
                         <Control x:Name="Brackets" Visibility="Collapsed" Margin="-6" Focusable="False" IsTabStop="False"
                                  Foreground="{DynamicResource GridViewItemSelectedBorderBrush}"
                                  Template="{DynamicResource CornerMarksTemplate}" />
+                        <Grid x:Name="HoverPulse" Margin="-6" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="PulseScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <Control x:Name="HoverBrackets" Visibility="Hidden" Opacity="0" Focusable="False" IsTabStop="False" RenderTransformOrigin="0.5,0.5"
+                                     Foreground="{DynamicResource SelectedBrush}" Template="{DynamicResource CornerMarksTemplate}">
+                                <Control.RenderTransform>
+                                    <ScaleTransform x:Name="HoverScale" ScaleX="1.14" ScaleY="1.14" />
+                                </Control.RenderTransform>
+                            </Control>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="HoverBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBrackets" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverBrackets" Storyboard.TargetProperty="Opacity" To="0.7" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleX" From="1.14" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleY" From="1.14" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.12">
+                                        <DoubleAnimation Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleX" From="1" To="1.03" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleY" From="1" To="1.03" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverBrackets" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverBrackets" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.12" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="HoverBorder" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Visibility" Value="Visible" TargetName="Brackets" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
                         </Trigger>

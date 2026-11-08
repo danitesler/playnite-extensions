@@ -63,11 +63,14 @@ Rows are 48px at 1080p, 32 here: `ButtonPadding` 16,6.5; `InputPadding` 8,6.5; m
 
 Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left column above the description, banner spacer scaled with `HeroArt` through `MathConverter` (100/340 details, 72/340 grid). Differences: the title is in the blackletter face (33px, no stripe under it); section headings are an 8px amber square bullet and bold amber text; the metadata pane is an amber panel with a 1px brown edge, amber L brackets on its corners and a hazard-striped title band across its top.
 
+Empty state (no game selected): both overviews hide the page and show an empty slot of the amber list panel under a hazard-striped title band, `LOCErrorNoGameSelected` in bold amber inside L brackets that blink, the stripes crawling; loops run only while it shows. The page root is opaque (`ContentBackgroundBrush`) so the banner fades to it with a plain gradient (no `OpacityMask`); library art (now under a plain radial gradient, no mask) no longer shows behind the game page.
+
 ## Components
 
 | Playnite file | Most Wanted element |
 |---------------|---------------------|
-| Button, ToggleButton, PlayButton | GPS dialog Yes / No: panel fill and bold amber type; hover adds the brackets; pressed and default are the amber plate with ink |
+| Button, ToggleButton | GPS dialog Yes / No: panel fill and bold amber type; hover adds the brackets; pressed and default are the amber plate with ink |
+| PlayButton | The selected Yes plate. Hover: full amber plate fades in (0.1s), the L brackets snap in from 20% outside (0.12s), a 6px hazard strip appears along the bottom edge and crawls (one period per 0.6s) while the brackets breathe; leaving fades back in 0.15s; pressed is its own plate |
 | TextBox, PasswordBox, ComboBox, SearchBox | Frontend controls cell: black with a brown edge; amber edge and brackets while focused |
 | CheckBox, RadioButton | Square boxes; checked is the amber plate with an ink tick; the radio is a square with an amber square (nothing in the game is round) |
 | Slider | Video options: 4px rail, amber fill, an off-white 6 x 18 bar as thumb |
@@ -75,7 +78,8 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 | Menu, ContextMenu, ComboBox items, ListBox, DetailsViewItemStyle | SMS inbox / list panel: amber labels in menus, the selected row darker with bright text and a 3px amber bar |
 | TabControl | Panel header switch: bold olive titles, the current one amber over a 3px amber bar |
 | GroupBox | Dialog: hazard-striped title bar with the title on a dark plate, amber-brown body |
-| GridViewItemStyle, GridViewItemTemplate | Main menu carousel: amber brackets around the selected cover; Play and Info as 40px plates |
+| GridViewItemStyle | Selected: static 1px amber outline and L brackets. Hover: dim outline fades in and dimmer brackets (0.7) snap in from 14% outside in 0.12s, breathing while hovered; fades out in 0.15s |
+| GridViewItemTemplate (+ GridTileButton) | Cover hover controls as 40px square plates (Play the amber plate with ink) with monoline angular glyphs (`IconPlay` a double chevron like the carousel arrows, `IconInfo` a squared i, `IconDownload` an arrow over a bar, in `Media.xaml`); shade fades in, buttons rise 8px and scale 0.9 to 1 with a hard ease-out (0.16s, Info 0.05s later); hover snaps brackets around the plate |
 | ToolTip | Prompt-bar plate with a 3px amber tab |
 
 ## Previews
@@ -88,6 +92,8 @@ Stand-in fonts (bundled, `scripts/data/fonts.json`): Eurostile is drawn with Orb
 
 ## Deviations
 
+- No `OpacityMask` on banner or library art: masked art behind animated controls leaves dark boxes on scaled displays; the fades are plain gradients to the page color.
+- Motion timings are chosen, not measured; no source documents the game's menu animation (RESEARCH.md -> Motion).
 - No grunge, ink splatter or graffiti textures, and no olive/sepia color grading of the library art (WPF has no cheap grading).
 - The blackletter screen titles are lowercase in the game; WPF cannot lowercase bound text, so game titles keep their case.
 - The game's amber panels are translucent over the moving city; here they are flattened onto the near-black page.
@@ -95,6 +101,8 @@ Stand-in fonts (bundled, `scripts/data/fonts.json`): Eurostile is drawn with Orb
 - No button prompt bar (Playnite has no such strip); its hazard tail appears on the dialog title bar and under the top bar.
 
 ## Not verified yet
+
+- Hover and empty state in Playnite at 125% and 150%: Play brackets and strip (the brackets draw 4px outside the button), cover brackets (6px outside the tile, clipped when grid spacing is small), the hazard strip crawl, ThemeModifier recolour of the brackets and stripes (`SelectedBrush`, `HazardStripeBrush`, `ShellBackgroundBrush`).
 
 - Everything in a real Playnite: the build and validation pass on Linux, but the theme has not been run in the app.
 - Hazard stripes on hosts taller than 64px or wider than 2600px (they stop there).

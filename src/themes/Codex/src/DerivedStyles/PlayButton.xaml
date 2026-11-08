@@ -1,7 +1,13 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/PlayButton.xaml.
-    The main action (Play, Install): a solid gold plate with dark ink, semibold. Under the pointer it brightens and four
-    ivory corner brackets close around it; keyboard focus draws the gold brackets (FocusVisual).
+    The main action (Play, Install): a solid gold plate with dark ink, semibold. The menus answer the pointer crisply and
+    without glow, so the motion is a blade being drawn, not light:
+    Hover, animated both ways (no setters on the animated parts, so nothing snaps):
+      in  0.18s ease-out: the bright gold plate fades in, four ivory corner brackets fade in around the plate, and two
+          hairlines in the ink color are drawn from the middle outward along the top and bottom edges inside it (0.3s).
+      out 0.25s: everything fades back; every exit animation has FillBehavior Stop, so no clock is left running.
+    Pressed: its own deep-gold plate fades in and the brackets tighten onto the plate (the menus' confirm), then relax on
+    release. Keyboard focus draws the gold brackets (FocusVisual). Brushes only; no shadows or blur, like the games.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -23,19 +29,91 @@
                         <Border x:Name="DefaultBorder" BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="HoverPlate" Opacity="0"
+                                BorderBrush="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="PressPlate" Opacity="0"
+                                BorderBrush="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" />
+
+                        <!-- Blade: two hairlines drawn from the middle outward. -->
+                        <Rectangle Height="1" Margin="12,5,12,0" VerticalAlignment="Top" IsHitTestVisible="False" Opacity="0.55"
+                                   Fill="{DynamicResource PrimaryButtonForegroundBrush}" RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="RuleTop" ScaleX="0" ScaleY="1" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Rectangle Height="1" Margin="12,0,12,5" VerticalAlignment="Bottom" IsHitTestVisible="False" Opacity="0.55"
+                                   Fill="{DynamicResource PrimaryButtonForegroundBrush}" RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="RuleBottom" ScaleX="0" ScaleY="1" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           RecognizesAccessKey="True" />
-                        <Control x:Name="Marks" Margin="-4" Focusable="False" IsHitTestVisible="False" Visibility="Collapsed"
+                        <Control x:Name="Marks" Margin="-4" Focusable="False" IsHitTestVisible="False" Visibility="Hidden" Opacity="0"
                                  Template="{DynamicResource CornerMarksTemplate}"
                                  Foreground="{DynamicResource TextBrush}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" TargetName="DefaultBorder" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" TargetName="DefaultBorder" />
-                            <Setter Property="Visibility" Value="Visible" TargetName="Marks" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Marks" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="RuleTop" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="RuleBottom" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.04" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Marks" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Marks" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RuleTop" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RuleBottom" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <ThicknessAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Margin" To="-1" Duration="0:0:0.08" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <ThicknessAnimation FillBehavior="Stop" Storyboard.TargetName="Marks" Storyboard.TargetProperty="Margin" To="-4" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" TargetName="Grid" Value="0.5" />

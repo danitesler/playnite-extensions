@@ -1,6 +1,6 @@
 <!--
     Ace: DetailsViewGameOverview (details view game page)
-    Black page (GameOverviewBackgroundBrush); the banner art fades down into it under a scrim. Bold amber Verdana title
+    Black page (GameOverviewBackgroundBrush); the banner art fades down into it under a scrim (gradients, no OpacityMask), and with no game selected a console prompt shows instead of the page. Bold amber Verdana title
     with the game icon; Steam screenshots, description and notes (gold captions over a 1px rule) on the left; ONE metadata
     pane on the right: a black box with a 1px square edge, six collapsing groups split by 1px rules, dim beige captions
     and amber values. Rhythm: 12px above and below each group rule, 8px above and below each field. Square corners.
@@ -54,17 +54,14 @@
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto"
-                                  Style="{DynamicResource DetailsScrollViewer}"
+                                  Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible"
                                   d:DesignWidth="1280"
                                   d:DesignHeight="1280"
                                   d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}"
                                   x:Name="PART_ScrollViewHost">
-                        <Grid Background="{DynamicResource GameOverviewBackgroundBrush}">
-                            <!-- Banner: a band of GameBannerHeight, masked to fade down into the page, a scrim darkening it toward the title. Collapses with the background art. The BitmapCache wrapper keeps the opacity masks cheap. -->
+                        <Grid x:Name="PageRoot" Background="{DynamicResource GameOverviewBackgroundBrush}">
+                            <!-- Banner: a band of GameBannerHeight, fading down into the page through plain gradients (no OpacityMask: the Play button animates over it), a scrim darkening it toward the title. Collapses with the background art. -->
                             <Grid x:Name="HeroArt" VerticalAlignment="Top" Height="{DynamicResource GameBannerHeight}" IsHitTestVisible="False">
-                                <Grid.CacheMode>
-                                    <BitmapCache />
-                                </Grid.CacheMode>
                                 <Grid.Style>
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
@@ -75,26 +72,40 @@
                                     </Style>
                                 </Grid.Style>
                                 <Grid ClipToBounds="True">
-                                    <Grid.OpacityMask>
-                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="Black" Offset="0.4" />
-                                            <GradientStop Color="Transparent" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Grid.OpacityMask>
+                                    <Border x:Name="ScrimSwatch" Background="{DynamicResource ScrimBrush}" Visibility="Collapsed" />
                                     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                                HorizontalAlignment="Center" VerticalAlignment="Top" />
-                                    <Rectangle Fill="{DynamicResource ScrimBrush}" Opacity="0.6">
-                                        <Rectangle.OpacityMask>
+                                    <!-- No OpacityMask or BitmapCache on the banner: masked art repainted in part (behind the animated Play button) left dark seams
+                                         on scaled displays. The scrim and the fade into the page are plain gradients. -->
+                                    <Rectangle Opacity="0.6">
+                                        <Rectangle.Fill>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                                <GradientStop Color="Transparent" Offset="0.3" />
-                                                <GradientStop Color="Black" Offset="1" />
+                                                <GradientStop Color="#00000000" Offset="0.3" />
+                                                <GradientStop Color="{Binding Background.Color, ElementName=ScrimSwatch}" Offset="1" />
                                             </LinearGradientBrush>
-                                        </Rectangle.OpacityMask>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                    <Rectangle>
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#00000000" Offset="0.4" />
+                                                <GradientStop Color="{Binding Background.Color, ElementName=PageRoot}" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Rectangle.Fill>
                                     </Rectangle>
                                 </Grid>
                             </Grid>
 
                             <Grid HorizontalAlignment="Stretch" Margin="20,0,20,0">
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -129,12 +140,12 @@
                                             <Button Name="PART_ButtonContextAction" Height="40" />
                                         </Grid>
                                         <Button Name="PART_ButtonMoreActions"
-                                                Width="40" Height="40" Margin="8,0,0,0"
+                                                Width="40" Height="40" Margin="4,0,0,0"
                                                 ToolTip="{DynamicResource LOCMoreAction}" Padding="0">
                                             <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
                                                             Content="{DynamicResource IconOptions}" ContentTemplate="{DynamicResource IconTemplate}" />
                                         </Button>
-                                        <Button Padding="0" Width="40" x:Name="PART_ButtonEditGame" Margin="8,0,0,0" Height="40" Focusable="False"
+                                        <Button Padding="0" Width="40" x:Name="PART_ButtonEditGame" Margin="4,0,0,0" Height="40" Focusable="False"
                                                 Content="&#xeded;" FontFamily="{DynamicResource FontIcoFont}" ToolTip="{DynamicResource LOCEditGame}">
                                         </Button>
                                     </StackPanel>
@@ -615,6 +626,53 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </DockPanel>
+                            </Grid>
+                            <!-- Empty state (no game selected): the GoldSrc console prompt, "]" then Playnite's "No game selected" and a block cursor that blinks
+                                 in whole frames (0.5s on, 0.5s off, no fade), in a sunken VGUI box. Centered in the visible area; the blink runs only while this shows. -->
+                            <Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
+                                <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+                                    <Control Template="{DynamicResource BevelInsetTemplate}" Background="{DynamicResource InputBackgroundBrush}"
+                                             IsHitTestVisible="False" Focusable="False" IsTabStop="False" />
+                                    <StackPanel Orientation="Horizontal" Margin="18,12,18,12">
+                                        <TextBlock Text="]" Margin="0,0,8,0" FontFamily="Lucida Console, Courier New" FontSize="{DynamicResource FontSizeLarge}"
+                                                   Foreground="{DynamicResource TextBrushDarker}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" FontFamily="Lucida Console, Courier New" FontSize="{DynamicResource FontSizeLarge}"
+                                                   Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
+                                        <Rectangle Width="9" Height="16" Margin="6,0,0,0" Fill="{DynamicResource TextBrush}" VerticalAlignment="Center">
+                                            <Rectangle.Style>
+                                                <Style TargetType="Rectangle">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                            <DataTrigger.EnterActions>
+                                                                <BeginStoryboard x:Name="CursorBlink">
+                                                                    <Storyboard RepeatBehavior="Forever">
+                                                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:1">
+                                                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.5" Value="0" />
+                                                                        </DoubleAnimationUsingKeyFrames>
+                                                                    </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.EnterActions>
+                                                            <DataTrigger.ExitActions>
+                                                                <RemoveStoryboard BeginStoryboardName="CursorBlink" />
+                                                            </DataTrigger.ExitActions>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Rectangle.Style>
+                                        </Rectangle>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                         </Grid>
                     </ScrollViewer>

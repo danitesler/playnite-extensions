@@ -47,6 +47,17 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
+Interactive layer, on Fluent's tokens (durationFaster 100ms, curveEasyEase for state, DecelerateMid / AccelerateMid for entering and leaving; details and assumptions in `RESEARCH.md` -> Motion):
+
+| File | What it does |
+|------|--------------|
+| `DerivedStyles/PlayButton.xaml` | Primary button: hover and pressed are separate layers (`colorBrandBackgroundHover`, `colorBrandBackgroundPressed`) fading in 100ms. No press scale (Fluent 2 has none). |
+| `DerivedStyles/GridViewItemStyle.xaml` | Ring on hover is its own layer fading in and out in 100ms; selected stays static. |
+| `DerivedStyles/GridViewItemTemplate.xaml` | Shade 0.5 fades in 200ms; the 48px subtle buttons fade in and rise 6px (200ms in, 100ms out, 40ms apart); each fades `colorSubtleBackgroundHover` in 100ms and the selected step when pressed. Fluent glyphs (`IconPlay`, `IconInfo`, `IconDownload`) already existed. |
+| `Views/*GameOverview.xaml` | Banner fade is a flat tint plus a gradient on top (`PageRoot` on `ContentBackgroundBrush`) instead of a mask; the grid panel's rounded banner corners are two page-colour pieces. Empty state: the Fluent `games` icon (inline path because the validator allows no new `Icon*` keys) in `colorNeutralForeground3` over a semibold line, 250ms fade-in. |
+
+`tokens.css` and `Constants.template.xaml` gained `colorBrandBackgroundPressed` (`#0c3b5e`, brand[40]) and `PrimaryButtonPressedBackgroundBrush` for the pressed Play layer.
+
 ## Deviations from Fluent
 
 - The notification CounterBadge (`TopPanel.xaml`) uses `ControlCornerRadius` (4px), not Fluent's capsule: its width grows with the count, so `CornerRadiusFull` would stretch it into an oval in WPF (AGENTS.md Control Corner Radii). The preview draws the same 4px corners.
@@ -65,3 +76,5 @@ Built and statically checked on Linux; **not yet loaded in Playnite**. First run
 Layout checks: the content layer's rounded corner with the background image on (details view), the corner going square with the rail on the right or hidden, the centered search shrinking in narrow windows, caption buttons flush with the corner (also maximized), and the rail's brand pill.
 
 Game overview: the hero fade into the content layer, the box art tile mask and edge, the two columns at narrow pane widths (the details column is a fixed 320px, the main column has a 240px minimum), the Dividers and the collapse of a group whose fields are hidden (the first visible group starts flush under the heading), InteractionTag wrapping, long install folders. Grid side panel: the same 320px details column beside screenshots, description and notes (widen the panel if the left column is squeezed).
+
+Interactive layer: hover and empty states are not checked in Playnite at 125% / 150% display scaling (hover Play and the cover buttons repeatedly, deselect the game, look for dark patches behind Play) or against a ThemeModifier recolour. The rise and curves of the cover-button entrance are assumptions, and the pressed Play color (`#0c3b5e`) comes from the brand ramp, not a palette file (`RESEARCH.md` -> Motion).

@@ -3,6 +3,10 @@
     ayywi draws focus and hover as edges, never fills: a 2px outline just outside the tile, line-hover
     (GridViewItemHoverBorderBrush) under the pointer, the primary color (GlyphBrush, white) when selected. The corner
     is radius-card (16, CornerRadiusLarge): the cover's radius-control (12, see GridViewItemTemplate) plus the gap.
+    Selected is static (SelectionBorder, setters). Hover is its own layer (HoverBorder) that fades in and out: ayywi's
+    card changes border-color over duration.base (300ms, ease) on hover, so 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) in,
+    the same out (FillBehavior Stop). The card's lift and shadow are not drawn here: the outline sits in the item's
+    spacing margin and a lift would push it out of it. The cover zoom (card media scale 1.03) is in GridViewItemTemplate.
     The tile itself is drawn by GridViewItemTemplate.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -19,14 +23,34 @@
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
+                        <Border x:Name="HoverBorder" BorderThickness="2" Margin="-2" IsHitTestVisible="False" Opacity="0"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}"
+                                CornerRadius="{DynamicResource CornerRadiusLarge}" />
                         <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-2" IsHitTestVisible="False"
                                 CornerRadius="{DynamicResource CornerRadiusLarge}" />
                         <ContentPresenter />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1" KeySpline="0.25,0.1,0.25,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="0" KeySpline="0.25,0.1,0.25,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="SelectionBorder" />

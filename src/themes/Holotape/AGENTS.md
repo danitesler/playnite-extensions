@@ -65,6 +65,8 @@ Rows 32px (`ButtonPadding` 14,6.5; `InputPadding` 10,6.5); menu and list rows 28
 
 Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left column above the description, banner spacer scaled with `HeroArt` through `MathConverter` (100/340 details, 72/340 grid). Differences: the banner carries the same faint scanlines as the library; the title is amber over a 48 x 2 green mark; section headings are amber at `FontSizeLarge` over the tick rule; the metadata pane is `pb-panel` inside a 1px rule, 18px inside.
 
+Empty state (no game selected): both overviews hide the page and show a RobCo terminal prompt, `> No game selected` (`LOCErrorNoGameSelected`) with a blinking block cursor in a recessed well, faint phosphor flicker, a scanline band rolling down the well every 4s and a tick rule below; loops run only while it shows. The page root is opaque (`ContentBackgroundBrush`) so the banner fades to it with a plain gradient; the banner scanlines are 1px scrim-colored lines drawn on top, not an `OpacityMask`.
+
 ## Components
 
 | Playnite file | Fallout element |
@@ -77,11 +79,14 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 | ProgressBar | Segmented stat bar: 5px lit / 2px gap through a tiled `OpacityMask` |
 | Menu, ContextMenu, ComboBoxItem, ListBox, DetailsViewItemStyle | Pip-Boy list: highlight/selection = 1px green outline over the green wash with green type |
 | TabControl, GroupBox | Pip-Boy header: amber/green labels over the tick rule |
-| GridViewItemStyle | 1px green box 3px outside the cover |
+| GridViewItemStyle | Selected: 1px green box 3px outside the cover (static). Hover: a 1px stronger-rule box steps on in three frames (0.12s), flickers while hovered, and a faint green scanline band rolls down the cover once per 3s; leaving decays in 0.35s |
+| GridViewItemTemplate (+ GridTileButton) | Cover hover controls as 40px square terminal keys with Pip-Boy pictograms (`IconPlay` bar and outlined triangle, `IconInfo` bracketed i, `IconDownload` arrow into a tray, built from bars in `Media.xaml`); shade and keys step on in three frames with a 3 step rise (Info 0.06s later), no scale or glide; hover steps the green wash, edge and glyph on in 0.1s, pressed is solid green with dark ink |
+| PlayButton | Lit terminal key. Hover: wash and a selection box 3px outside step on in three frames (0.12s), the box flickers, a scanline band rolls down once per 3.6s; leaving decays over 0.5s; pressed is its own solid green plate |
 | PropertyItemButton | Text links that turn green; chips with a hairline edge that take the selection box on hover |
 
 ## Deviations
 
+- No `OpacityMask` on any art (banner, library): the scanlines are tiled lines in the scrim color drawn over the art and the vignette is a radial gradient to the page color, because masked art behind animated controls leaves dark boxes on scaled displays. The library art no longer shows behind the game page.
 - No bloom, blur or color tint over images: WPF has no cheap equivalent over live art; the scanlines are the only screen effect.
 - Fonts are fallbacks unless Monofonto / Fixedsys Excelsior are installed (not redistributable / not shipped).
 - Add-on sidebar icons are 16 x 16 (plate padding), not sized by `IconPadding`: stacking both collapses the icon to 0px.
@@ -97,6 +102,8 @@ Signature motifs drawn: (1) the 1px green selection box over the green wash (rai
 Stand-in fonts (`scripts/data/fonts.json`): Monofonto and Fixedsys Excelsior 3.01 are drawn with Cascadia Mono (OFL, nearest bundled monospace); Bahnschrift with Barlow, Bahnschrift SemiCondensed with Barlow Semi Condensed, Segoe UI with Selawik. Real Monofonto differs in letterforms and width.
 
 ## Not verified yet
+
+- Hover and empty state in Playnite at 125% and 150% (leftover boxes around the Play halo, the box flicker, the rolling band over covers), and ThemeModifier recolour of the halo, band and cursor (`SelectedBrush`).
 
 - Everything in a real Playnite: the build, validation and XML checks pass, but the theme has not been run in the app.
 - Scanline mask cost while scrolling over large background art.

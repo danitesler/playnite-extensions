@@ -1,9 +1,15 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/PlayButton.xaml.
     The selected Yes plate of the game's dialogs as the call to action: solid amber (PrimaryButtonBackgroundBrush,
-    c28432) with bold dark ink (PrimaryButtonForegroundBrush), square (ControlCornerRadius 0), 40px tall. Hover brightens
-    it to the full amber (PrimaryButtonHoverBackgroundBrush) and adds the L brackets 4px outside, as the game frames
-    the selected button; pressed is the darker amber.
+    c28432) with bold dark ink (PrimaryButtonForegroundBrush), square (ControlCornerRadius 0), 40px tall.
+    Hover is the game's selection frame arriving (RESEARCH.md -> Motion), hard and quick, both ways:
+      in  0.1s: the full amber plate (PrimaryButtonHoverBackgroundBrush) fades in over the plate, the four L brackets
+          snap in from 20% outside (scale 1.2 to 1, 0.12s ease-out) and a 6px hazard strip (the header stripes)
+          appears along the bottom edge; while hovered the stripes crawl one 20px period per 0.6s and the brackets
+          breathe 4% (0.45s each way).
+      out 0.15s: everything fades back and the crawl is replaced by a short step (FillBehavior Stop on every exit).
+    Pressed is its own plate (PressPlate), so leaving while pressed cannot strand the hover plate. The brackets are
+    CornerMarksTemplate in SelectedBrush; the strip is HazardStripesTemplate moved by one period inside a clip.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -24,23 +30,110 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid>
+                        <Grid x:Name="BracketPulse" Margin="-4" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="PulseScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <Control x:Name="Brackets" Visibility="Hidden" Opacity="0" Focusable="False" IsTabStop="False" RenderTransformOrigin="0.5,0.5"
+                                     Foreground="{DynamicResource SelectedBrush}" Template="{DynamicResource CornerMarksTemplate}">
+                                <Control.RenderTransform>
+                                    <ScaleTransform x:Name="BracketScale" ScaleX="1.2" ScaleY="1.2" />
+                                </Control.RenderTransform>
+                            </Control>
+                        </Grid>
                         <Border x:Name="Chrome" SnapsToDevicePixels="True" Background="{TemplateBinding Background}"
-                                CornerRadius="{DynamicResource ControlCornerRadius}">
-                            <ContentPresenter Margin="{TemplateBinding Padding}"
-                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              RecognizesAccessKey="True" />
-                        </Border>
-                        <Control x:Name="Brackets" Visibility="Collapsed" Margin="-4" Focusable="False" IsTabStop="False"
-                                 Foreground="{DynamicResource SelectedBrush}" Template="{DynamicResource CornerMarksTemplate}" />
+                                CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="HoverPlate" SnapsToDevicePixels="True" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="PressPlate" SnapsToDevicePixels="True" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                        <Grid x:Name="Strip" Height="6" VerticalAlignment="Bottom" ClipToBounds="True" IsHitTestVisible="False" Opacity="0" Visibility="Hidden">
+                            <Canvas>
+                                <Control Width="700" Height="6" Focusable="False" IsTabStop="False" Template="{DynamicResource HazardStripesTemplate}"
+                                         Background="{DynamicResource ShellBackgroundBrush}" Foreground="{DynamicResource HazardStripeBrush}">
+                                    <Control.RenderTransform>
+                                        <TranslateTransform x:Name="StripShift" X="-20" />
+                                    </Control.RenderTransform>
+                                </Control>
+                            </Canvas>
+                        </Grid>
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
-                            <Setter TargetName="Brackets" Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Brackets" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Strip" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="Brackets" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="BracketScale" Storyboard.TargetProperty="ScaleX" From="1.2" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BracketScale" Storyboard.TargetProperty="ScaleY" From="1.2" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Strip" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="StripShift" Storyboard.TargetProperty="X" From="-20" To="0" Duration="0:0:0.6" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.12">
+                                        <DoubleAnimation Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleX" From="1" To="1.04" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleY" From="1" To="1.04" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Brackets" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Strip" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="StripShift" Storyboard.TargetProperty="X" By="6" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PulseScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Brackets" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.12" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Strip" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.12" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.05" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

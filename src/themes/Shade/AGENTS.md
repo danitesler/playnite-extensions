@@ -50,6 +50,15 @@ Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Play
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
+Interactive layer, all at shadcn's 150ms `cubic-bezier(0.4, 0, 0.2, 1)` (details in `RESEARCH.md` -> Motion):
+
+| File | What it does |
+|------|--------------|
+| `DerivedStyles/PlayButton.xaml` | Button default: the plate fades to 90 percent on hover (hover brush is the color at alpha, so the plate dims). No pressed layer (shadcn has no active style), no glow. |
+| `DerivedStyles/GridViewItemStyle.xaml` | Ring on hover is its own layer fading in and out; selected stays static. |
+| `DerivedStyles/GridViewItemTemplate.xaml` | New. Image scales 1.05 in a clipped cell, shade 0.5 fades in, 40px icon buttons (Play default, Info secondary, 80 percent dim) enter like a popover: fade, scale 0.95 to 1, 8px rise, 30ms apart. Lucide glyphs in `Media.xaml` (`IconPlay`, `IconInfo`, `IconDownload`). |
+| `Views/*GameOverview.xaml` | Banner fade is a gradient on top (`PageRoot` on `WindowBackgourndBrush`) instead of a mask; the grid panel's rounded banner corners are two page-colour pieces. Empty state: shadcn `Empty` (40px muted tile, 24px gamepad icon inline because the validator allows no new `Icon*` keys, `text-lg` title), 150ms fade-in. |
+
 ## Deviations from shadcn
 
 - No borders on cards, the sidebar or the header, and no layout separators: surfaces and spacing carry the structure. Regular buttons are `secondary` (filled, borderless) rather than `outline`.
@@ -59,9 +68,11 @@ Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Play
 - The notification count badge (`Views/TopPanel.xaml`) uses `ControlCornerRadius` (rounded-md, like shadcn's Badge) instead of a pill: its width grows with the count, and `CornerRadiusFull` on a non-square element draws an oval in WPF (AGENTS.md, Control Corner Radii). `CornerRadiusFull` stays defined in `Constants.template.xaml` for custom CSS palettes but nothing in the theme uses it.
 - The Details Card has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
 
+- No glow, no lift, no pressed state on Play: shadcn draws none. The banner and the hover controls animate over art, so no `OpacityMask` sits behind them (the banner fades with a plain gradient).
+
 ## Not verified yet
 
-Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope); **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`.
+Built and statically checked on Linux (XML, file allowlist, resource keys, StaticResource scope); **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. The new hover and empty states are not checked in Playnite at 125% / 150% display scaling (hover Play, covers and both cover buttons repeatedly; deselect the game; look for dark patches behind Play) and the empty tile is not checked against a ThemeModifier recolour.
 
 Layout checks: the inset card's rounded corners over the library background image (details view), window buttons centered in the card header, the sidebar at each position (Settings → Appearance → Layout), the search placeholder hiding while typing, lucide icons in the top bar and on Library / Statistics, the white logo tile with black icon, and slider ranges ending under the thumb (grid zoom slider).
 

@@ -2,9 +2,15 @@
     Overlay on Playnite Default/DerivedStyles/PlayButton.xaml.
     The selected quest header of the journal: a dark amber plate (#1B1505) inside the gold double frame (#9A6020,
     DoubleFrameTemplate), the label in capitals in the open category cream (#EDE0CF), and the orange bar (#D07201) on
-    its left edge, the way the game marks the quest in focus. Under the pointer the amber selection wash (#593A04)
-    rises from the left and the frame turns orange; pressed, the plate darkens to the header's end tone (#120F0A).
-    Size comes from the host.
+    its left edge, the way the game marks the quest in focus. Size comes from the host.
+    Hover, animated both ways (no setters on the animated parts, so nothing snaps). The game selects a row by letting
+    the amber wash (#593A04) come in from the left edge and by lighting its frame, so:
+      in  0.4s ease-out: the wash is drawn out from the left edge to the right (a scale from the left, fading to
+          nothing on the right through its mask), the frame turns orange (a second frame fades over the gold one,
+          0.18s) and the label cross-fades from cream to white (0.18s).
+      out 0.35s: the wash fades, frame and label fade back. Every exit animation has FillBehavior Stop.
+    Pressed has its own plate (#120F0A, the header's end tone) so leaving while pressed cannot strand the hover look.
+    No glow: the menus are flat tone on black.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -22,8 +28,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
+                    <ControlTemplate.Resources>
+                        <DataTemplate DataType="{x:Type sys:String}">
+                            <AccessText Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                        </DataTemplate>
+                    </ControlTemplate.Resources>
                     <Grid Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                        <Rectangle x:Name="Wash" Opacity="0" IsHitTestVisible="False" Fill="{DynamicResource PrimaryButtonHoverBackgroundBrush}">
+                        <Rectangle x:Name="Wash" Opacity="0" IsHitTestVisible="False" Fill="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                   RenderTransformOrigin="0,0.5">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="WashScale" ScaleX="0.02" ScaleY="1" />
+                            </Rectangle.RenderTransform>
                             <Rectangle.OpacityMask>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Offset="0" Color="#FF000000" />
@@ -31,35 +46,65 @@
                                 </LinearGradientBrush>
                             </Rectangle.OpacityMask>
                         </Rectangle>
+                        <Rectangle x:Name="PressPlate" Opacity="0" IsHitTestVisible="False" Fill="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
                         <Control Template="{DynamicResource DoubleFrameTemplate}" BorderBrush="{TemplateBinding BorderBrush}"
                                  Focusable="False" IsTabStop="False" />
+                        <Control x:Name="FrameHot" Template="{DynamicResource DoubleFrameTemplate}" BorderBrush="{DynamicResource PrimaryButtonGlowBrush}"
+                                 Focusable="False" IsTabStop="False" Opacity="0" />
                         <Rectangle Width="3" Margin="7,7,0,7" HorizontalAlignment="Left" IsHitTestVisible="False"
                                    Fill="{DynamicResource PrimaryButtonGlowBrush}" />
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Margin="{TemplateBinding Padding}" RecognizesAccessKey="True">
-                            <ContentPresenter.Resources>
-                                <DataTemplate DataType="{x:Type sys:String}">
-                                    <AccessText Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
-                                </DataTemplate>
-                            </ContentPresenter.Resources>
-                        </ContentPresenter>
+                                          Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" />
+                        <ContentPresenter x:Name="LabelHot" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                          Margin="{TemplateBinding Padding}" Opacity="0"
+                                          TextElement.Foreground="{DynamicResource ButtonForegroundBrush}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Opacity" Value="1" TargetName="Wash" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Wash" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="WashScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.4">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="FrameHot" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelHot" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Wash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="WashScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="FrameHot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LabelHot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonGlowBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 </ResourceDictionary>

@@ -52,3 +52,23 @@ No rounded corners anywhere (the scheme has no radius concept). Controls are 1px
 
 - No original Valve scheme file for the olive skin was available offline; compare the olive tokens against a Steam 2004 skin capture if exact digits matter.
 - The theme does not ship fonts (Verdana ships with Windows).
+
+## Motion
+
+Short on purpose: Counter-Strike 1.6's menus barely move.
+
+| Fact | Source / status |
+|------|-----------------|
+| VGUI buttons have discrete states, not transitions: normal, armed (mouse over), depressed (pressed), selected, disabled, each with its own colors in the scheme (`ArmedTextColor`, `ArmedBgColor`, `DepressedBgColor` in the Source-era scheme format, which 1.6's `ClientScheme.res` shares in shape). A state changes on the frame the mouse moves. | Valve Developer Community / Facepunch wiki pages on `SourceScheme.res` (search results, fetched pages not read in full); 1.6 behaviour from memory of the game, **not frame-stepped** |
+| The GoldSrc console prompt is `]` followed by a blinking cursor. | From memory of the game; no capture was available to time the blink. Used as the empty-page motif; 0.5s on / 0.5s off is my number |
+| No published motion values for 1.6 menus | The sources searched (Valve wiki, Facepunch scheme docs, mod repos) describe colors and fonts only |
+
+What I used, following reference.md -> Motion by source type, "Pixel or retro game": frame swaps in two or three steps (`DiscreteDoubleKeyFrame`), no smooth fades and no glows.
+
+- **Play hover:** the amber hover plate steps 0, 0.5, 1 in two 50ms frames and back the same way; pressed is the instant sunken bevel the theme already had, plus the plate hides so nothing stays blended.
+- **Cover hover:** the amber frame pops on as two 1px rings 50ms apart (so it reads as a 2px frame arriving), and leaves the same way. Selected stays the static 2px frame.
+- **Cover buttons:** 36px bevelled VGUI plates with the theme's own pixel glyphs (`IconPlay`, `IconInfo`, `IconDownload`, 16-unit grid, not scaled up: `StretchDirection="DownOnly"`). Entrance: the shade pops in at half then full strength, the buttons step up 8px, 4px, 0 in 40ms frames with Info 60ms later; no scaling, which would blur the pixels. Hover and press are the same stepped plate swap as Play.
+- **Empty page:** the console prompt in a sunken box: `]`, "No game selected", a block cursor blinking in whole frames. Nothing else moves.
+- **Assets:** none generated. The glyphs already exist as vector pixel art in `Media.xaml`.
+
+Not verified: the blink rate, the real armed-state behaviour of 1.6's buy menu and main menu against footage, whether any 1.6 menu animates (the buy menu's slide-in is the only candidate and was not measured).

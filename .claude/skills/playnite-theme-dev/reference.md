@@ -98,6 +98,18 @@ Recipes for the items listed in SKILL.md -> New theme -> Required interactive la
 - **Generated assets for realism:** backgrounds, light, glows, ornaments and textures come from generator scripts (Effects and motion above). Prefer white masks filled with theme brushes; full-color art is only for non-themeable illustration and ships with its generator. Busy textures behind lists and covers read as noise in a real library: keep those layers solid or gradient and put texture where content is sparse (panels, headers, empty states).
 - **Verify in Playnite**, not only in previews: hover Play, covers and the cover buttons repeatedly at 125% and 150% scaling, deselect the game to see the empty state, and check ThemeModifier recolors every animated layer.
 
+## Motion by source type
+
+Motion has a language per source. Pick the row, then measure the source (frame-step a capture, or read the motion tokens) before writing durations.
+
+| Source | Play hover | Cover hover | Cover buttons | Empty page | Assets |
+|--------|-----------|-------------|---------------|-----------|--------|
+| Design system (Material, Fluent, shadcn, Chakra, Primer, ayywi) | Its own interactive states: state layer or elevation fade, ripple (Material), reveal highlight (Fluent), ring (shadcn, Chakra), 80-200 ms, its easing | Ring, elevation or scale 1.02, the system's focus/hover colour fading in; no ornament | Icon buttons of the system (round, rounded square, ghost) with its icon set, fade and 6-8 px rise | Its empty-state pattern: a quiet icon in a tinted circle or box, one line of text, no loops (or a slow 3 s fade) | None. Never generate glow sprites for a system that has no glow |
+| Game menu with a signature effect (glow, sheen, ink, frost, rust, pixel) | The effect, animated in and out, looping only while hovered | Game's selection language animated (cursor, brackets, bevel flash, underline sweep, page-flip) | Buttons in the game's shapes and icon style | A game motif (empty slot, vault door, blank card, standby screen) with a slow idle | Generated from measured specs when the source has light or texture (reference.md -> Effects and motion); otherwise none |
+| Pixel or retro game (Terraria, Minecraft, Fallout, Warcraft) | Frame swap: step the bevel or sprite in 2-3 steps (`DiscreteDoubleKeyFrame`), no smooth glows | Pixel-snapped outline pop or bounce | Pixel-art or bevelled square buttons | Sprite-style empty slot or terminal prompt blink | Pixel sprites from a generator at 1x, `RenderOptions.BitmapScalingMode="NearestNeighbor"` |
+
+Always: fades, never snaps; loops only while visible; exit animations `FillBehavior="Stop"`; durations 120-350 ms unless the source is slower on purpose; no `DropShadowEffect`; no `OpacityMask` on art behind animated controls.
+
 ## Template placeholders (`Constants.template.xaml`)
 
 | Placeholder | Result |

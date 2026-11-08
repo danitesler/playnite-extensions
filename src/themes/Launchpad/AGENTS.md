@@ -39,10 +39,18 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 37. The client's own typeface is not bundl
 
 ## Components
 
-*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`. The interactive layer (motion notes and their honesty caveat: `RESEARCH.md` -> Motion):
+
+| Playnite file | What it does |
+|---------------|--------------|
+| `PlayButton` | Flat launcher blue. Hover fades the lighter plate and a 1px inner light edge in (0.15s) and out (0.22s); pressed is its own deep-blue layer with a 0.985 scale settle. No glow |
+| `GridViewItemStyle` | Selected: static 2px blue outline. Hover: a grey outline fades in and a 3px blue bar grows from the centre of the bottom edge (the app's selected-tab underline); all inside the item spacing |
+| `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover controls as 44px rounded squares: Play blue, Info on the card fill, Phosphor-style glyphs `IconPlay` / `IconInfo` / `IconDownload` (uninstalled) in `Media.xaml`. Entrance: shade fades in, buttons rise 10px and scale 0.86 to 1, Info 60ms later; hover lightens the plate and grows the glyph to 1.08 |
+| Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | With no game selected the content hides and a Library glyph in a card square breathes (3s) above `LOCErrorNoGameSelected`; the loop runs only while it shows |
 
 ## Deviations from the Battle.net app it is inspired by
 
+- **Motion is interpreted, not measured.** No capture of the client's hover states was available; durations and the cover underline are this theme's own, kept flat and short like the rest of the client (`RESEARCH.md` -> Motion). No sprites ship: the client has no glow to recreate.
 - **Game list is a vertical rail, not a top row of icons.** The client shows its few games as a row of icons at the top; that does not scale to a Playnite library of hundreds of games, so the details view uses a vertical list (icon and name) beside the game page.
 - **The bottom bar is on the game page only** (Details view and the grid side panel), not on the whole window.
 - **No Blizzard logo, game logos or icon files** (see Sources). The menu button is the orbit mark on its own, without the tile styling.
@@ -60,5 +68,7 @@ Icons are re-rendered with `.\scripts\render-icons.ps1 -Extension launchpad` (Wi
 ## Not verified yet
 
 Built and statically checked (`build-theme.ps1`); **not compared with a screenshot of the real client**. First run on Windows: the left icon rail (logo opens the main menu; titles are tooltips) and the top bar's view controls (also with the sidebar on the right, top, or bottom), the Details view (game list, game page with art, cards, bottom action bar, blue Play) with a game that has art and one that does not, Grid and List views, game context menu, top panel dropdowns, settings tabs, a game edit dialog, search (Ctrl+F), a progress dialog, keyboard focus. Layout risks to look at: the window buttons against the top bar's right edge, the 340px hero band on the details page and the grid side panel, the cover beside a long game title, the description text color (`HtmlTextView`), the Game details pane with every field switched on and with only a few (rules between groups, chip wrapping, groups collapsing with their rule, the 280px pane in the grid panel), text box padding, the Options button label (`LOCMoreAction`), and the 3px selected bar on rail items.
+
+Motion, not checked in Playnite yet: Play hover and press, the cover hover (outline and underline), the cover buttons (entrance, exit, hover, no leftovers) at 125% and 150% display scaling, the empty page in the details view and the grid panel (centred, breathing stops when a game is selected), and ThemeModifier recolouring of the blue bar, plates and edge.
 
 Known limit: the top bar belongs to the library view, so on other views (Statistics, add-on views) only the icon rail shows.

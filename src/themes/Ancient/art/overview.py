@@ -78,7 +78,7 @@ def indent(text, n):
 
 
 def field_xaml(field, label, kind, part, beside):
-    """beside=True: caption column beside the value (details view); False: caption above (grid panel)."""
+    """Details use a fixed caption column; the narrower grid pane uses proportional columns."""
     if beside:
         return (f'<Grid x:Name="PART_Elem{field}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
                 '    <Grid.ColumnDefinitions>\n'
@@ -88,10 +88,18 @@ def field_xaml(field, label, kind, part, beside):
                 f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSize}}" TextWrapping="Wrap" Margin="0,0,12,0" />\n'
                 + indent(value_xaml(kind, part, True), 4) + "\n"
                 '</Grid>')
-    return (f'<StackPanel x:Name="PART_Elem{field}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
-            f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSizeSmall}}" Margin="0,0,0,4" />\n'
-            + indent(value_xaml(kind, part, False), 4) + "\n"
-            '</StackPanel>')
+    grid_value = value_xaml(kind, part, True).replace('Grid.Column="1"', 'Grid.Column="2"')
+    if kind == "score":
+        grid_value = grid_value.replace(' />', ' TextWrapping="Wrap" />')
+    return (f'<Grid x:Name="PART_Elem{field}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
+            '    <Grid.ColumnDefinitions>\n'
+            '        <ColumnDefinition Width="2*" />\n'
+            '        <ColumnDefinition Width="12" />\n'
+            '        <ColumnDefinition Width="3*" />\n'
+            '    </Grid.ColumnDefinitions>\n'
+            f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSizeSmall}}" TextWrapping="Wrap" VerticalAlignment="Top" />\n'
+            + indent(grid_value, 4) + "\n"
+            '</Grid>')
 
 
 def group_xaml(name, fields, beside):
@@ -247,40 +255,125 @@ def hero(brush, name="HeroArt"):
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <Grid.CacheMode>
-        <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-    </Grid.CacheMode>
-    <Grid.OpacityMask>
-        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-            <GradientStop Color="Black" Offset="0" />
-            <GradientStop Color="Black" Offset="0.45" />
-            <GradientStop Color="Transparent" Offset="1" />
-        </LinearGradientBrush>
-    </Grid.OpacityMask>
+    <!-- No OpacityMask and no BitmapCache on the banner: masked art repainted in part (behind the animated PLAY button) left dark
+         seams on scaled displays. The scrim, the side vignette and the fade into the page are plain gradients in the page brush;
+         the fade stops at half strength, which is how far the library art under the page is veiled (Views/Library.xaml). -->
+    <Border x:Name="LayerSwatch" Background="{{DynamicResource {brush}}}" Visibility="Collapsed" />
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                HorizontalAlignment="Center" VerticalAlignment="Center" />
     <!-- Scrim: the page's own brush, light at the top, closing in toward the title. -->
-    <Border Background="{{DynamicResource {brush}}}">
-        <Border.OpacityMask>
+    <Rectangle Opacity="0.9">
+        <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                <GradientStop Color="#33000000" Offset="0" />
-                <GradientStop Color="#80000000" Offset="0.5" />
-                <GradientStop Color="#E6000000" Offset="1" />
+                <GradientStop Color="#00000000" Offset="0" />
+                <GradientStop Color="{{Binding Background.Color, ElementName=LayerSwatch}}" Offset="1" />
             </LinearGradientBrush>
-        </Border.OpacityMask>
-    </Border>
+        </Rectangle.Fill>
+    </Rectangle>
     <!-- Side vignette, like the dashboard's darkened scene edges. -->
-    <Border Background="{{DynamicResource {brush}}}">
-        <Border.OpacityMask>
+    <Rectangle Opacity="0.6">
+        <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                <GradientStop Color="#99000000" Offset="0" />
-                <GradientStop Color="Transparent" Offset="0.35" />
-                <GradientStop Color="Transparent" Offset="0.8" />
-                <GradientStop Color="#66000000" Offset="1" />
+                <GradientStop Color="{{Binding Background.Color, ElementName=LayerSwatch}}" Offset="0" />
+                <GradientStop Color="#00000000" Offset="0.35" />
             </LinearGradientBrush>
-        </Border.OpacityMask>
-    </Border>
+        </Rectangle.Fill>
+    </Rectangle>
+    <Rectangle Opacity="0.4">
+        <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                <GradientStop Color="#00000000" Offset="0.8" />
+                <GradientStop Color="{{Binding Background.Color, ElementName=LayerSwatch}}" Offset="1" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
+    <!-- Fade into the page. -->
+    <Rectangle Opacity="0.5">
+        <Rectangle.Fill>
+            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#00000000" Offset="0.45" />
+                <GradientStop Color="{{Binding Background.Color, ElementName=LayerSwatch}}" Offset="1" />
+            </LinearGradientBrush>
+        </Rectangle.Fill>
+    </Rectangle>
 </Grid>'''
+
+
+ATTR_DETAILS = ' HorizontalAlignment="Stretch" Margin="32,0,40,0"'
+ATTR_GRID = ' Margin="24,0,24,0"'
+
+
+def empty_state(viewport):
+    height = 'VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}"' if viewport else 'VerticalAlignment="Center"'
+    return f'''<!-- Empty state (no game selected): the keystone mark, outline only, with the dashboard's SearchingAnimation on it ([CSS]
+     play.css: wash-color white to #7aa8b7 and back, a 2s loop), and "No game selected" in the title face. The loop runs only
+     while this shows (RemoveStoryboard on exit). Centered in the visible area. -->
+<Grid {height}>
+    <Grid.Style>
+        <Style TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{{Binding Game, FallbackValue={{x:Null}}}}" Value="{{x:Null}}">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Grid.Style>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+        <Grid Width="72" Height="72" HorizontalAlignment="Center">
+            <Path Data="M12 2.5 L20.5 7.4 L18.4 18.6 L12 21.4 L5.6 18.6 L3.5 7.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
+                  Stroke="{{DynamicResource TextBrushDarker}}" Margin="2" />
+            <Path Data="M12 7 L16.2 9.4 L15.1 15.6 L12 17 L8.9 15.6 L7.8 9.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
+                  Stroke="{{DynamicResource TextBrushDarker}}" Margin="20" />
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Opacity" Value="0" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{{Binding Game, FallbackValue={{x:Null}}}}" Value="{{x:Null}}">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard x:Name="KeystoneWash">
+                                        <Storyboard RepeatBehavior="Forever">
+                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                                <EasingDoubleKeyFrame KeyTime="0:0:1" Value="1"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                                <EasingDoubleKeyFrame KeyTime="0:0:2" Value="0"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            </DoubleAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <RemoveStoryboard BeginStoryboardName="KeystoneWash" />
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                <Path Data="M12 2.5 L20.5 7.4 L18.4 18.6 L12 21.4 L5.6 18.6 L3.5 7.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
+                      Stroke="{{DynamicResource SelectedForegroundBrush}}" Margin="2" />
+                <Path Data="M12 7 L16.2 9.4 L15.1 15.6 L12 17 L8.9 15.6 L7.8 9.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
+                      Stroke="{{DynamicResource SelectedForegroundBrush}}" Margin="20" />
+            </Grid>
+        </Grid>
+        <TextBlock Text="{{DynamicResource LOCErrorNoGameSelected}}" HorizontalAlignment="Center" Margin="0,22,0,0"
+                   FontFamily="{{DynamicResource HeadingFontFamily}}" FontSize="{{DynamicResource FontSizeLarge}}" FontWeight="SemiBold"
+                   Typography.Capitals="AllSmallCaps" Foreground="{{DynamicResource TextBrushDarker}}" />
+    </StackPanel>
+</Grid>'''
+
+
+def hide_when_empty(kind="Grid", attrs=""):
+    return f'''<{kind}{attrs}>
+    <{kind}.Style>
+        <Style TargetType="{kind}">
+            <Style.Triggers>
+                <DataTrigger Binding="{{Binding Game, FallbackValue={{x:Null}}}}" Value="{{x:Null}}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </{kind}.Style>'''
+
 
 
 def spacer(height, banner=340):
@@ -300,7 +393,8 @@ def spacer(height, banner=340):
 
 def edit_button(margin, size, column=None):
     col = f' Grid.Column="{column}"' if column is not None else ""
-    return f'''<Button x:Name="PART_ButtonEditGame"{col} Margin="{margin}" Height="{size}" Width="{size}" Padding="0" Focusable="False">
+    return f'''<Button x:Name="PART_ButtonEditGame"{col} Margin="{margin}" Height="{size}" Width="{size}" Padding="0" Focusable="False"
+        ToolTip="{{DynamicResource LOCEditGame}}">
     <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
                     Content="{{DynamicResource IconEdit}}"
                     ContentTemplate="{{DynamicResource IconTemplate}}" />
@@ -372,10 +466,10 @@ def details():
 </DockPanel>'''
 
     body = f'''<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-              Style="{{DynamicResource DetailsScrollViewer}}" x:Name="PART_ScrollViewHost">
+              Style="{{DynamicResource DetailsScrollViewer}}" Visibility="Visible" x:Name="PART_ScrollViewHost">
     <Grid>
 {indent(hero("ContentBackgroundBrush"), 8)}
-        <Grid HorizontalAlignment="Stretch" Margin="32,0,40,0">
+{indent(hide_when_empty("Grid", ATTR_DETAILS), 8)}
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -385,6 +479,7 @@ def details():
 {indent(header, 12)}
 {indent(columns, 12)}
         </Grid>
+{indent(empty_state(True), 8)}
     </Grid>
 </ScrollViewer>'''
     return wrap("DetailsViewGameOverview", f'''    The game page of the Details view, read like a hero page of the Dota 2 dashboard: the game's art as a wide banner
@@ -468,20 +563,8 @@ def grid_panel():
         </Style>
     </Border.Style>
     <Grid>
+{indent(empty_state(False), 8)}
         <DockPanel>
-            <TextBlock Text="{{DynamicResource LOCErrorNoGameSelected}}" Margin="0,20,0,0" DockPanel.Dock="Top"
-                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock" BasedOn="{{StaticResource BaseTextBlockStyle}}">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <Trigger Property="DataContext" Value="{{x:Null}}">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
             <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                           x:Name="PART_ScrollViewHost">
                 <ScrollViewer.Style>
@@ -495,7 +578,7 @@ def grid_panel():
                 </ScrollViewer.Style>
                 <Grid>
 {indent(hero("ContentBackgroundBrush"), 20)}
-                    <StackPanel Margin="24,0,24,0">
+{indent(hide_when_empty("StackPanel", ATTR_GRID), 20)}
 {indent(spacer(110), 24)}
                         <StackPanel Margin="0,20,0,0">
 {indent(header, 28)}
@@ -511,7 +594,7 @@ def grid_panel():
     game's art as a banner at the top with the same scrim and gradient transition toward the title; the title in
     the title font with no rule under it; the green PLAY button and a grey bevel button under it; then two
     columns: Steam screenshots, description and notes on the left, Game details on the right (the six metadata
-    groups with no card, captions above values). A 1px edge on the grid side and a close button over the top-right corner.
+    groups with no card, captions beside values). A 1px edge on the grid side and a close button over the top-right corner.
 {HEADER_NOTE}''', body)
 
 

@@ -83,10 +83,18 @@ def field(name, label, kind, part, beside):
                 f'    {cap} Margin="0,0,12,0" />\n'
                 f'{indent(value(kind, part, True), 4)}\n'
                 f'</Grid>')
-    return (f'<StackPanel x:Name="PART_Elem{name}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
-            f'    {cap} FontSize="{{DynamicResource FontSizeSmall}}" Margin="0,0,0,4" />\n'
-            f'{indent(value(kind, part, False), 4)}\n'
-            f'</StackPanel>')
+    grid_value = value(kind, part, True).replace('Grid.Column="1"', 'Grid.Column="2"')
+    if kind == "score":
+        grid_value = grid_value.replace(' />', ' TextWrapping="Wrap" />')
+    return (f'<Grid x:Name="PART_Elem{name}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
+            f'    <Grid.ColumnDefinitions>\n'
+            f'        <ColumnDefinition Width="2*" />\n'
+            f'        <ColumnDefinition Width="12" />\n'
+            f'        <ColumnDefinition Width="3*" />\n'
+            f'    </Grid.ColumnDefinitions>\n'
+            f'    {cap} FontSize="{{DynamicResource FontSizeSmall}}" VerticalAlignment="Top" />\n'
+            + indent(grid_value, 4) + '\n'
+            '</Grid>')
 
 
 def group(gname, fields, beside):

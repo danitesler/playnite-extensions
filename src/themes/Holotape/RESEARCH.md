@@ -36,3 +36,19 @@ Body text stays proportional (Bahnschrift, Segoe UI): a monospace description re
 - No captures of either game were measured; row heights, gaps and the amber / green mix are judged, not sampled.
 - The exact Fallout terminal font is unverified.
 - The sample game, studio and descriptions in the previews are fictional.
+
+## Motion
+
+How the Pip-Boy and the menus move, from the games' shipped INI defaults (STEP Modifications' full default-value list for Fallout 3, [stepmodifications.org/forum/topic/8957](https://stepmodifications.org/forum/topic/8957-fallout-3-default-values-for-all-valid-ini-settings/), values are the page's estimates) plus the game's behavior as the community documents it. No capture was frame-stepped.
+
+| Setting or behavior | Value | Used for |
+|---------------------|-------|----------|
+| `[Pipboy] fLightEffectFadeDuration` / `fLightEffectLightFadeDuration` | 800 / 500 (ms) | Exit fades: the Pip-Boy light decays over 0.5s (Play wash and halo, cover box 0.35s, small keys 0.2s) |
+| `[Pipboy] bEnableFlickerPipboy` | 1 | The hovered selection box flickers: opacity 1, 0.7 to 0.85 and back in 0.06s steps, a few times per 3s loop |
+| `[Pipboy] fScanlineFrequencyPipboy` | 100 | Already the static scanlines; not animated |
+| `[InterfaceFX] fShudderChance` 0.2, `fVertHoldChance` 0.05 | menu transition effects (shudder, vertical hold roll) | A faint scanline band that rolls down a hovered Play key and cover once per 3 to 4s (the vertical hold), not a shudder |
+| `[RenderedTerminal] fRenderedTerminalScanlineScale` | 130 | Not used |
+| Selection | The Pip-Boy and terminal menus change selection instantly, with a click and no glide (community description; not measured) | Hover enters in three frame steps (0.4, 0.75, 1 over 0.12s), per reference.md's pixel/retro row, never a smooth bloom |
+| Terminal text and cursor | Text prints character by character with a blip; a block cursor sits at the prompt | Empty page: `> No game selected` with a block cursor blinking 0.55s on, 0.55s off |
+
+Not found: the terminal cursor's blink rate in either game (the 1.1s cycle is my choice), the terminal print rate (`iTerminalDisplayRate` is a Fallout 4 console setting, not used), any highlight style detail beyond the outlined box. Everything marked "chosen" is not sourced.

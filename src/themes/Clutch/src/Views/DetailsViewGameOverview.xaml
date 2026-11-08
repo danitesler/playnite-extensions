@@ -25,7 +25,7 @@
                           d:DesignWidth="1280" d:DesignHeight="960"
                           d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}">
                         <ScrollViewer x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                                      Style="{DynamicResource DetailsScrollViewer}">
+                                      Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible">
                             <Grid>
                                 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                     <Grid.Style>
@@ -40,29 +40,39 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
-                                    <Grid.CacheMode>
-                                        <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                                    </Grid.CacheMode>
-                                    <Grid.OpacityMask>
-                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                            <GradientStop Color="Black" Offset="0" />
-                                            <GradientStop Color="Black" Offset="0.45" />
-                                            <GradientStop Color="Transparent" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Grid.OpacityMask>
+                                    <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated GO button) left dark seams on scaled
+                                         displays. Both the map tile gradient and the fade into the page are plain gradients that end in the scrim color. -->
+                                    <Border x:Name="ScrimSwatch" Background="{DynamicResource ScrimBrush}" Visibility="Collapsed" />
                                     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <!-- The game's map tile gradient (.map-selection-btn__gradient): black, clear at the top, 70% toward the title. -->
-                                    <Rectangle Fill="{DynamicResource ScrimBrush}">
-                                        <Rectangle.OpacityMask>
+                                    <!-- The game's map tile gradient (.map-selection-btn__gradient): clear at the top, 70% toward the title. -->
+                                    <Rectangle Opacity="0.7">
+                                        <Rectangle.Fill>
                                             <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
                                                 <GradientStop Color="#00000000" Offset="0.2" />
-                                                <GradientStop Color="#B2000000" Offset="1" />
+                                                <GradientStop Color="{Binding Background.Color, ElementName=ScrimSwatch}" Offset="1" />
                                             </LinearGradientBrush>
-                                        </Rectangle.OpacityMask>
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                    <Rectangle>
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                <GradientStop Color="#00000000" Offset="0.45" />
+                                                <GradientStop Color="{Binding Background.Color, ElementName=ScrimSwatch}" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Rectangle.Fill>
                                     </Rectangle>
                                 </Grid>
                                 <StackPanel Margin="32,0,32,32" MaxWidth="1400">
+                                    <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
                                     <Border IsHitTestVisible="False">
                                         <Border.Style>
                                             <Style TargetType="Border">
@@ -574,6 +584,126 @@
                                         </StackPanel>
                                     </DockPanel>
                                 </StackPanel>
+<!-- Empty state (no game selected): the game's crosshair, its four arms breathing out and in (1.4s ease, only while this shows), and
+                                     Playnite's "No game selected" in the menu's uppercase heading face, like .map-selection-no-subscriptions-label. Centered in the visible area. -->
+                                <Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
+                                    <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+                                        <Grid Width="72" Height="72" HorizontalAlignment="Center">
+                                            <Rectangle Width="3" Height="14" HorizontalAlignment="Center" VerticalAlignment="Top" Fill="{DynamicResource TextBrushDarker}">
+                                                <Rectangle.RenderTransform><TranslateTransform /></Rectangle.RenderTransform>
+                                                <Rectangle.Style>
+                                                    <Style TargetType="Rectangle">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard x:Name="ArmTop">
+                                                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="-5" Duration="0:0:1.4">
+                                                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                                    </DoubleAnimation>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <RemoveStoryboard BeginStoryboardName="ArmTop" />
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                                </Rectangle.Style>
+                                            </Rectangle>
+                                            <Rectangle Width="3" Height="14" HorizontalAlignment="Center" VerticalAlignment="Bottom" Fill="{DynamicResource TextBrushDarker}">
+                                                <Rectangle.RenderTransform><TranslateTransform /></Rectangle.RenderTransform>
+                                                <Rectangle.Style>
+                                                    <Style TargetType="Rectangle">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard x:Name="ArmBottom">
+                                                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="0" To="5" Duration="0:0:1.4">
+                                                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                                    </DoubleAnimation>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <RemoveStoryboard BeginStoryboardName="ArmBottom" />
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                                </Rectangle.Style>
+                                            </Rectangle>
+                                            <Rectangle Width="14" Height="3" HorizontalAlignment="Left" VerticalAlignment="Center" Fill="{DynamicResource TextBrushDarker}">
+                                                <Rectangle.RenderTransform><TranslateTransform /></Rectangle.RenderTransform>
+                                                <Rectangle.Style>
+                                                    <Style TargetType="Rectangle">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard x:Name="ArmLeft">
+                                                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" From="0" To="-5" Duration="0:0:1.4">
+                                                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                                    </DoubleAnimation>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <RemoveStoryboard BeginStoryboardName="ArmLeft" />
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                                </Rectangle.Style>
+                                            </Rectangle>
+                                            <Rectangle Width="14" Height="3" HorizontalAlignment="Right" VerticalAlignment="Center" Fill="{DynamicResource TextBrushDarker}">
+                                                <Rectangle.RenderTransform><TranslateTransform /></Rectangle.RenderTransform>
+                                                <Rectangle.Style>
+                                                    <Style TargetType="Rectangle">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard x:Name="ArmRight">
+                                                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                    <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" From="0" To="5" Duration="0:0:1.4">
+                                                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                                    </DoubleAnimation>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <RemoveStoryboard BeginStoryboardName="ArmRight" />
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                                </Rectangle.Style>
+                                            </Rectangle>
+                                            <Rectangle Width="3" Height="3" Fill="{DynamicResource FocusBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Grid>
+                                        <ContentControl Content="{DynamicResource LOCErrorNoGameSelected}" Focusable="False" IsTabStop="False" HorizontalAlignment="Center" Margin="0,22,0,0">
+                                            <ContentControl.ContentTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}"
+                                                               FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLarge}"
+                                                               FontWeight="SemiBold" Foreground="{DynamicResource HeadingForegroundBrush}" />
+                                                </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                        </ContentControl>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                         </ScrollViewer>
                     </Grid>

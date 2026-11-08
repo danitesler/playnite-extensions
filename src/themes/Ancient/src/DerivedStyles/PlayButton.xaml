@@ -3,9 +3,16 @@
     The PLAY DOTA button ([CSS] play.css .PlayButton): bright green at the top fading dark toward the bottom
     (#5Aa15E to #87d69533 over the dashboard: PrimaryButtonBackgroundBrush with a bottom shade), a 1px light edge on the
     top and left (#ffffff44: BevelLightBrush), a dark edge on the bottom and right (#00000088: BevelShadowBrush), and a
-    bold white uppercase label (28px bold, letter-spacing 3px in the game; bold here at FontSizeLarger). Under the
-    pointer the bottom fills in with the light green ([CSS] :hover to #87d695: PrimaryButtonHoverBackgroundBrush);
-    pressed darkens it and nudges the label down.
+    bold white uppercase label (28px bold, letter-spacing 3px in the game; bold here at FontSizeLarger).
+    Motion from the game's stylesheet: the button transitions box-shadow, background-color, opacity and transform over
+    0.2s ease-in-out; hovered it gets `brightness: 1.2` and the box-shadow glow grows from #002a6644 to #414f4daa
+    (8px blur, 8px spread). Here, animated both ways (nothing the storyboards touch is set by a trigger setter):
+      in  0.2s ease-in-out: the light green fills in from the bottom (Lift, the brightness), the bottom shade thins, and the
+          glow (Bloom, GlowFrameTemplate in PrimaryButtonBackgroundBrush, Images/fx/glow-frame.png) rises from 0 to 0.3.
+      out 0.2s ease-in-out: back again; exit animations use FillBehavior Stop so no clock is left running.
+    Pressed (the game's :active takes the gradient's bottom stop to white): its own layer, the deep green plate
+    (PrimaryButtonPressedBackgroundBrush) fades in over 0.05s, with a 1px label nudge; out over 0.12s.
+    The Lift and Shade masks are the effect layers themselves; no art with an OpacityMask sits behind this button.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -25,6 +32,13 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid x:Name="Grid" Background="Transparent" SnapsToDevicePixels="True">
+                        <!-- Hover glow sits 4px below the plate. -->
+                        <Control x:Name="Bloom" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource PrimaryButtonBackgroundBrush}"
+                                 Margin="-32" Opacity="0" IsHitTestVisible="False">
+                            <Control.RenderTransform>
+                                <TranslateTransform Y="4" />
+                            </Control.RenderTransform>
+                        </Control>
                         <Rectangle x:Name="Plate" Fill="{TemplateBinding Background}" />
                         <!-- Hover: the light green rising from the bottom. -->
                         <Rectangle x:Name="Lift" Fill="{DynamicResource PrimaryButtonHoverBackgroundBrush}" Opacity="0">
@@ -44,6 +58,7 @@
                                 </LinearGradientBrush>
                             </Rectangle.OpacityMask>
                         </Rectangle>
+                        <Rectangle x:Name="PressPlate" Fill="{DynamicResource PrimaryButtonPressedBackgroundBrush}" Opacity="0" />
                         <Rectangle Height="1" VerticalAlignment="Top" Fill="{DynamicResource BevelLightBrush}" />
                         <Rectangle Width="1" HorizontalAlignment="Left" Fill="{DynamicResource BevelLightBrush}" />
                         <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{DynamicResource BevelShadowBrush}" Opacity="0.55" />
@@ -53,6 +68,9 @@
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           RecognizesAccessKey="True">
+                            <ContentPresenter.RenderTransform>
+                                <TranslateTransform x:Name="ContentNudge" Y="0" />
+                            </ContentPresenter.RenderTransform>
                             <ContentPresenter.Resources>
                                 <DataTemplate DataType="{x:Type sys:String}">
                                     <AccessText Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
@@ -62,17 +80,54 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Opacity" Value="1" TargetName="Lift" />
-                            <Setter Property="Opacity" Value="0.25" TargetName="Shade" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Lift" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Shade" Storyboard.TargetProperty="Opacity" To="0.25" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Lift" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Shade" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Fill" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" TargetName="Plate" />
-                            <Setter Property="Opacity" Value="0" TargetName="Lift" />
-                            <Setter Property="RenderTransform" TargetName="Content">
-                                <Setter.Value>
-                                    <TranslateTransform Y="1" />
-                                </Setter.Value>
-                            </Setter>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="ContentNudge" Storyboard.TargetProperty="Y" To="1" Duration="0:0:0.05" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ContentNudge" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

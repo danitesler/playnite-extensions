@@ -61,6 +61,8 @@ These are this theme's own values: there is no published spec to quote.
 
 Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` with the default 340 banner (`x * 100 / 340` details, `x * 72 / 340` grid); with `ActualHeight` 0 it drops to 24 (details) and 48 (grid). Metadata is one card with six collapsing groups separated by 1px yellow rules, with one cut corner. Steam screenshots show a skeleton for Steam games (`SteamScreenshotsSkeletonTemplate`).
 
+Empty state (no game selected): both overviews hide the page and show an empty cut-corner slab (the Play slab's shape) with a scan line running down it and a cyan ghost of the outline that glitches twice every 3.6s, `LOCErrorNoGameSelected` in the heading face and the yellow bar; loops stop when a game is selected. The page root is opaque (`ContentBackgroundBrush`) so the banner fades to it with a plain gradient (no `OpacityMask`, which left dark seams behind the animated Play button); library art no longer shows behind the game page.
+
 ## Components
 
 | Playnite file | Night City component |
@@ -71,8 +73,11 @@ Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` w
 | `ComboBox`, `ListBox`, `TabControl`, `GroupBox` | Square; active tab with a cut corner; cards with a yellow top hairline |
 | `Slider`, `SliderEx`, `ProgressBar`, `ScrollViewer`, `Thumb` | 4px slider rail, 6px progress and scrollbar thumb, yellow fill |
 | `ToolTip`, `ContextMenu`, `Menu`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` | Black popups with a 1px yellow edge, yellow-tinted hover rows |
-| `DetailsViewItemStyle`, `GridViewItemStyle` | Hairline rows, solid yellow selection with black text; cover hover outline |
-| `PlayButton`, `PropertyItemButton`, `WindowBarButton`, `HighlightBorder` | Solid yellow CTA with a cut corner; yellow text links and square chips |
+| `DetailsViewItemStyle` | Hairline rows, solid yellow selection with black text |
+| `GridViewItemStyle` | Selected = static 3px yellow outline. Hover = the glitch-lock, animated: 2px yellow outline flickers on (0.12s), a cyan ghost outline jumps 3 to 4px off it in two stepped frames, yellow chamfer triangles pop in at the top-left and bottom-right corners; everything fades out in 0.15s |
+| `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover controls as 48x40 cut-corner slabs with solid glyphs (`IconPlay` bar and triangle, `IconInfo` cut-corner box with a square-cut i, `IconDownload` block arrow over a cut base, drawn in `Media.xaml`); shade fades in, buttons rise 10px and scale 0.86 to 1, Info 60ms after Play; hover flashes the slab yellow (0.08s, black glyph) with a stepped cyan ghost outline |
+| `PlayButton` | Solid yellow CTA with a cut corner. Hover: brighter plate in 0.1s plus a glitch burst (stepped cyan and red ghosts, a 7px yellow slice, label shake) every 3s while hovered; leaving fades in 0.2s; pressed is its own plate |
+| `PropertyItemButton`, `WindowBarButton`, `HighlightBorder` | Yellow text links and square chips |
 | `FilterPanelView`, `ExplorerPanel` | Hairline rows, yellow section headers |
 
 ## Deviations
@@ -89,6 +94,8 @@ Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` w
 - Menu icons Playnite copies (`AddGameIcon`, ...) stay Playnite's Default icofont ones.
 
 ## Not verified yet
+
+- Interactive layer in Playnite at 125% and 150%: Play glitch burst (ghosts draw outside the button box, check nothing clips them), cover hover (ghost 5px outside the item, clipped when grid spacing is tiny), cover buttons, empty state; ThemeModifier recolour of ghosts and scan line (`HighlightGlyphBrush`, `DangerBrush`, `GlyphBrush`). The in-game timings are not sourced (RESEARCH.md -> Motion).
 
 - **Never loaded in Playnite.** Written and built on Linux: the build and package validation pass and every attribute was checked against Default, but WPF never parsed these files. Check `playnite.log` for `XamlParseException` on first start.
 - Whether `{Binding Game.PluginId}` for the Steam skeleton matches Playnite's view model (if not, the skeleton never shows).

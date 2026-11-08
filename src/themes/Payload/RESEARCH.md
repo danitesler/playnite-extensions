@@ -20,3 +20,28 @@
 - Progress (Battle Pass, challenges) is an orange fill on a thin bar.
 - Team colors: ally blue 00accf, enemy red d91547.
 - Cards: flat fills with 2px corners and no glow. The hero gallery uses 2px light borders.
+
+
+## Motion
+
+Short and partly inferred: Blizzard publishes no motion spec for the Overwatch 2 menus, and the earlier note in Sources already says "the site only brightens on hover".
+
+| Fact | Source / status |
+|------|-----------------|
+| overwatch.blizzard.com's Forge components use named motion tokens: links `transition: all var(--global-motion-duration-medium) var(--global-motion-ease-out)`; the icon button fades an overlay, `transition: opacity var(--global-motion-duration-medium) var(--global-motion-ease-in-out)` with `:host(:hover):after { opacity: 1 }`. The token values were not in the 200 KB of the bundle read | `static.playoverwatch.com/js/forge-components.7f7191ee3da3a76a6c04.js`, first 200,000 of 980,892 characters (WebFetch, 2026-11-08). The value of "medium" is unknown; a web search for the token found only other design systems |
+| Hover = a brightened plate, not a different shape | existing note in Sources (site CSS) |
+| Hero gallery cards: a white 2px border on hover, an orange glow (`ff943c`) when selected | existing note (interfaceingame.com captures); no timing |
+| The slant is the VS-screen plate angle, 15.15 degrees | existing note (measured) |
+| In-game menu hover animation, the PLAY button's idle motion, an empty state | not found anywhere I could read |
+
+What I used (the 0.2s is a stand-in for "medium"; the slash and chevrons are interpretations, flagged as such):
+
+- **Play hover:** the orange-100 plate fades in over 0.2s ease-out (Blizzard's overlay fade) and back over 0.25s. One slanted light slash, at the plate's own 15 degree angle, crosses the plate once on hover (0.5s, 30% white, clipped to the plate): the slanted-plate language of the VS screens. Pressed is its own deep-orange layer (0.06s in, 0.12s out) and a 1px label nudge.
+- **Cover hover:** the gallery's white card border fades in over 0.2s while closing from 0.97 to 1; the same slanted slash (20% white) crosses the cover once. Selected stays the static orange frame. No glow: the game's cards are flat.
+- **Cover buttons:** slanted 15 degree plates, 52 x 40 with 4px overhang and upright glyphs; Play orange, Info on the item plate with the glyph turning cyan. Hover fades the lighter plate in over 0.2s. Entrance is the shared recipe (shade 60%, 10px rise, 0.86 to 1 scale, small overshoot, Info 60ms later).
+- **Empty page:** the tile mark's slanted plate in outline with its three forward chevrons lighting one after the other (0.25s apart, 1.5s loop, only while shown) over "No game selected" in the oblique display face. Invented from the mark; the game has no such screen.
+- **Assets:** none generated. The source is flat; the mark is vector.
+
+Also changed because Play and the cover buttons animate over it: the banner in both overviews and `Views/Library.xaml` lost their `OpacityMask` and `BitmapCache` (reference.md: masked art behind animated controls leaves dark seams on scaled displays). The fades are plain gradients in the page brushes; the banner fades to the scrim brush at 70%, about how far the library art under the page is veiled.
+
+Not verified: the real "medium" duration and easing; any in-game hover behaviour; whether the banner foot is seamless against the library art on a real game.

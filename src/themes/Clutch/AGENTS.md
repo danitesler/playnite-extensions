@@ -43,16 +43,26 @@ Follows the shared skeleton. Differences:
 - Header: name in Bahnschrift bold 35px (`FontSizeLargest`) (Playnite sets its text, so it keeps its case); actions at the **right** of the title in the details view (GO button, then square Options and edit buttons), under the title in the grid panel.
 - Steam screenshots live in the left column above the description (not full width); metadata stays on the right.
 - Section titles (Description, Notes, Steam screenshots) are the game's settings section titles: uppercase Bahnschrift, 40% white, 1px rule under them. Uppercasing goes through a `ContentControl` whose inline `DataTemplate` runs `StringToUpperCaseConverter` on the `LOC` string.
-- Metadata pane on a black 75% panel with 3px corners; in the details view the cover sits above it. Rhythm: 12px around group rules, 6px around fields, caption column 128px (details), caption above value (grid).
+- Metadata pane on a black 75% panel with 3px corners; in the details view the cover sits above it. Rhythm: 12px around group rules, 6px around fields, caption column 128px (details), proportional caption/value columns (grid).
 - Banner scrim: the map tile gradient (`.map-selection-btn__gradient`, black to 70% at the bottom) in `ScrimBrush`.
 - The two views share every block (banner, section titles, metadata groups); change them in pairs.
 
 ## Components
 
-*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`. The interactive layer takes its numbers from the game's Panorama CSS (`RESEARCH.md` -> Motion):
+
+| Playnite file | Game component |
+|---------------|----------------|
+| `PlayButton` | GO button as a FlatButton: hover fades a brighter green plate in over 0.25s ease-in-out, cross-fades the label to white, lifts the end glows and bars; pressed is its own deep-green layer with a short vertical squash (the game flips the button away) |
+| `GridViewItemStyle` | Map tile: selected = static 3px frame (`maptile-selected`); hover = a 2px white-40% edge fading in over 0.25s; inside the item spacing |
+| `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover as the map tile: the cover image zooms 1 to 1.02 (0.25s, clipped), the 50% black tile blur fades in, two IconButtons (40px squares, Material Symbols glyphs `IconPlay` / `IconDownload` / `IconInfo` already in `Media.xaml`) rise 8px, Info 60ms after Play. Hover on a button: white 10% wash, lit edge, glyph washes to `selectedNavColor` (Play: GO greens, glyph to white) |
+| Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | Content hidden; the crosshair with its arms breathing out and in (1.4s) above `LOCErrorNoGameSelected` in uppercase heading face; the loop runs only while it shows |
 
 ## Deviations
 
+- **Banner fades through gradients, not an `OpacityMask`**: the Play button sits over the banner and animates, and a masked image repainted in part leaves dark seams on scaled displays (reference.md). The banner now ends in the scrim colour (opaque) instead of fading to the translucent panel, so its bottom edge is a touch darker than before; the library art under the pane is already near black there (menu vignette).
+- **Map tile zoom** is on the cover image inside the tile (clipped) only for the hovered tile; the old note about skipping it was about scaling whole items.
+- **GO press**: the game flips the button away (`rotateX(100deg)`); WPF has no 3D flip on a Button, so it squashes.
 - **No box-shadow**: the GO glow is a green rectangle faded through an `OpacityMask`, not a blur.
 - **Fonts**: Bahnschrift and Segoe UI stand in for Stratum2 and Noto Sans; Playnite also applies the user's font setting over `FontFamily`.
 - **Map tiles** in the game zoom 2% on hover; WPF tiles get a 40% white edge instead (a scale transform on hundreds of covers costs too much).
@@ -62,6 +72,8 @@ Follows the shared skeleton. Differences:
 ## Not verified yet
 
 Seen running (Playnite 10.60 under Wine, stand-in fonts): details, grid (with side panel), list, main menu. Not yet checked on Windows: settings tabs and group boxes, game edit dialog, top panel dropdowns, filter panel, notifications, progress dialog, the sidebar at top/bottom/right, ThemeModifier edits.
+
+Motion, not checked in Playnite yet: GO hover, press and leave-while-pressed, the tile hover (edge and zoom, no leftovers) and the cover buttons at 125% and 150%, the empty page in both overviews, the dark seam check at the banner bottom, ThemeModifier recolour of the greens, edge and glyph wash.
 
 ## Preview and screenshots
 

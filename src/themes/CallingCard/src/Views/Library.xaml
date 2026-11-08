@@ -1,10 +1,11 @@
 <!--
     Overlay on Playnite Default/Views/Library.xaml.
     The library layer is the ink page (ContentBackgroundBrush). The optional background art (PART_ImageBackground) sits
-    behind the views darkened by ScrimBrush (85% ink) at 75%, and a second pass of it fading in toward the bottom. Over
-    both, the halftone the menus print everywhere: red dots (GlyphBrush through a tiled dot mask, 8px apart) at 22%,
-    fading in toward the bottom-right corner. Everything masked sits in a BitmapCache wrapper. Layout and parts are
-    Playnite's.
+    behind the views darkened by ScrimBrush (85% ink) at 75%, and a second pass fading in toward the bottom (a plain gradient
+    to the page color, no OpacityMask: masked art behind animated covers left dark boxes on scaled displays). Over both,
+    the halftone the menus print everywhere: red dots (GlyphBrush through a tiled dot mask, 8px apart) at 22%, fading in
+    toward the bottom-right corner; this one is a masked solid layer in its own BitmapCache wrapper, not art. Layout and
+    parts are Playnite's.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -17,7 +18,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Library}">
-                    <Grid Background="{TemplateBinding Background}"
+                    <Grid x:Name="LibraryRoot" Background="{TemplateBinding Background}"
                           d:DesignWidth="1500" d:DesignHeight="960"
                           d:DataContext="{x:Static DesignMainViewModel.DesignIntance}">
                         <Grid.RowDefinitions>
@@ -29,22 +30,24 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" ClipToBounds="True">
-                            <Grid.CacheMode>
-                                <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                            </Grid.CacheMode>
                             <FadeImage x:Name="PART_ImageBackground"
                                        HorizontalAlignment="Center" VerticalAlignment="Top" />
                             <Border Background="{DynamicResource ScrimBrush}" Opacity="0.75" />
-                            <Border Background="{DynamicResource ScrimBrush}">
-                                <Border.OpacityMask>
+                            <!-- No OpacityMask on the art: animated covers above it would leave dark boxes on scaled displays (reference.md).
+                                 A plain gradient to the page color fades it in toward the bottom. -->
+                            <Rectangle>
+                                <Rectangle.Fill>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                         <GradientStop Color="#00000000" Offset="0.3" />
-                                        <GradientStop Color="#FF000000" Offset="1" />
+                                        <GradientStop Color="{Binding Background.Color, ElementName=LibraryRoot}" Offset="1" />
                                     </LinearGradientBrush>
-                                </Border.OpacityMask>
-                            </Border>
+                                </Rectangle.Fill>
+                            </Rectangle>
                             <!-- Halftone: red dots 8px apart, fading in toward the bottom-right corner. -->
                             <Grid Opacity="0.22">
+                                <Grid.CacheMode>
+                                    <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
+                                </Grid.CacheMode>
                                 <Grid.OpacityMask>
                                     <LinearGradientBrush StartPoint="0.45,0.35" EndPoint="1,1">
                                         <GradientStop Color="#00000000" Offset="0" />

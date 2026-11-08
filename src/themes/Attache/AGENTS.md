@@ -49,6 +49,10 @@ It follows the skeleton in `../AGENTS.md`. Differences:
 - **Actions:** Play is the always-lit pewter plate; More and Edit are square buttons (44px in details, 40px in the grid panel).
 - **Metadata pane:** no card. Group rules are hairlines.
 
+## Settings and dialog windows
+
+- `DefaultControls/TreeView.xaml`: native section trees with 28px minimum rows, standard 14px body-font labels, wrapped long headings, a smoky pewter selected plate and a narrow side marker. The expanders, hierarchy, scrolling and keyboard selection remain native. Settings and Add-ons navigation widths stay fixed at 240px and 280px when sections expand; separators and their tree containers are non-interactive.
+- `DerivedStyles/StandardWindowStyle.xaml`: 44px draggable title band with the existing original smoke mask, pewter rule and body-font title. The Settings dialog receives Playnite's localized Settings title through its native automation ID. All window caption parts are retained.
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*

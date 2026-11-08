@@ -75,12 +75,16 @@ Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the l
 | ScrollViewer | 6px band-blue thumb, no visible track |
 | TabControl | Profile tab bar: bold labels; the current tab is a cyan fill with black text |
 | GroupBox | Collapsible profile section: header strip with an orange tick, then a framed body |
-| GridViewItemStyle | Hero gallery card: off-white frame on hover, orange glow color when selected |
-| PlayButton | PLAY: orange plate slanted 15 degrees |
+| GridViewItemStyle | Hero gallery card: selected = static orange frame; hover = the off-white frame fading in (0.2s) while closing from 0.97 to 1 |
+| GridViewItemTemplate (+ GridTileButton) | Cover hover: a slanted light slash crosses the cover once, a 60% shade fades in, two slanted 52 x 40 plates (`IconPlay` / `IconInfo` / `IconDownload`; Play orange, Info on the item plate) rise 10px and scale 0.86 to 1, Info 60ms later; hover fades the plate lighter and lights the glyph (0.2s) |
+| PlayButton | PLAY: orange plate slanted 15 degrees; hover fades the lighter orange in (0.2s) and sends one slanted slash across the plate; pressed is its own deep-orange layer with a 1px label nudge |
+| Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | content hidden; the mark's slanted plate with three forward chevrons lighting in turn (1.5s loop, only while shown) above `LOCErrorNoGameSelected` in the oblique display face |
 | PropertyItemButton | Links turn cyan; chips are stat-tile plates |
 
 ## Deviations
 
+- **Motion is partly inferred**: Blizzard's motion tokens were found by name but not by value, and the slash and chevrons are interpretations of the slanted-plate language (`RESEARCH.md` -> Motion).
+- **Banner and library art fade through plain gradients, not `OpacityMask`**: Play and the cover buttons animate over them (reference.md). The banner fades to the scrim brush at 70%, so its foot against the library art is soft but not seamless by construction.
 - **Dark, not light:** the game's menus are light. Payload carries the career profile's dark bands across the whole window. The light f4f5f8 plate only survives as the slider thumb.
 - **Dark dropdowns:** OW2 dropdowns are light with black text, but here they are dark wells. Playnite's unrestyled filter boxes and grids read `TextBrush` (light), and a light field would leave their text unreadable.
 - **Selected list rows:** these use a cyan wash plus an edge instead of the game's solid cyan, so long multi-select lists stay readable. Tabs, the rail and the top bar keep the solid fill.
@@ -94,6 +98,7 @@ Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the l
 
 ## Not verified yet
 
+- Motion in Playnite: Play hover (fade, slash), press and leave-while-pressed, the cover frame and slash, the cover buttons at 125% and 150%, the empty page in both overviews, the banner foot and library art against a real game, ThemeModifier recolour of plates, frame and slash.
 - Nothing has been checked in a real Playnite. Build and validation pass, but the theme was built on Linux with no Windows available.
 - The skewed plates: overhang clipping inside the 40px top bar items and the 44px rail, and the counter-skewed main menu glyph.
 - The Material Symbols 960 grid (negative y origin) shifted with `Canvas.Top` in `IconTemplate`.

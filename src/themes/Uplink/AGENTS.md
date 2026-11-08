@@ -38,7 +38,15 @@ New shared key this theme added to `scripts/data/theme-keys.json`: **`ChamferTem
 
 Follows the shared skeleton. Title in the heading sans (31px), Play 180x40, More and Edit icon-only 40x40 squares. Section headings (`HeadingTextBlock`) are the heading sans in `GlyphBrush` over the lit divider (`DividerTemplate`: a 28x3 bar and a 1px line fading right). The cover in the details header sits in a 1px frame with the lit corner ticks.
 
+Empty state (no game selected): both overviews hide the page and show an empty portrait slot (`IconMainMenu` in lit corner ticks, glow breathing on the menus' 2.4s loop), `LOCErrorNoGameSelected` in the heading sans and a rule with the sub navigation's highlight running along it; loops run only while it shows. The page root is opaque (`ContentBackgroundBrush`) so the banner can fade to it with a plain gradient; the library art no longer shows behind the game page.
+
 ## Components
+
+| Playnite file | Game component |
+|---------------|----------------|
+| `PlayButton` | the lit glue button: hover fades a brighter plate in over 0.4s (the nav's hover fade), the bottom glow breathes on the 2.4s selected-tab loop and a streak runs along the beam while hovered; leaving fades back over 0.4s; pressed is its own plate |
+| `GridViewItemStyle` | selected = static 2px frame, glow and ticks; hover = animated light blue edge and glow fading in over 0.4s, ticks closing in, glow breathing; no setters on animated parts |
+| `GridViewItemTemplate` (+ `GridTileButton`) | cover hover controls as 44x40 chamfered plates (`IconPlay`, `IconInfo`, `IconDownload`, drawn in the theme's angular stroke set, generated in `art/icons.py`); shade fades in, buttons rise 10px and scale 0.86 to 1, Info 60ms after Play; hover lights the plate (0.3s) with the glow and beam |
 
 The rest (TextBox, PasswordBox, ScrollViewer, ProgressBar, TabControl, Expander, ListBox, group styles, property chips, window bar buttons) keeps the square-cut structure from the Default files, colored through the keys above.
 
@@ -52,11 +60,17 @@ The rest (TextBox, PasswordBox, ScrollViewer, ProgressBar, TabControl, Expander,
 - **No hexagon pattern, no 3D scenes**: the bar's animated hex shimmer and the menu backgrounds are game art; the library shows the game's own background art instead.
 - Playnite templates this theme does not replace (DataGrid in List view, DatePicker, TreeView, notification panel, add-on views) take the colors, not the chamfers.
 
+## Motion
+
+Source: [`RESEARCH.md`](RESEARCH.md) -> Motion (hover fades 0.4s, selected glow loop 2.4s, sub navigation line highlight, read from the game's UI data). The cover buttons' rise and scale are the shared recipe, not the game's.
+
 ## Previews
 
 `art/preview-details.html` and `art/preview-settings.html` replicate the XAML (`scripts/take-screenshots.ps1 -Extension uplink`): the 44px rail with the boxed home plate (22px hexagon) and 44x40 items with a lit beam on the current one, the 48px sub navigation strip, 1px-ruled game rows with a glow wash and light blue bar on the current game, chamfered plates (Play 180x40 in the call-to-action blue, icon-only 40x40 More and Edit 10px apart), and the unboxed Game Details column (heading over the lit divider, 120px caption column in the heading sans beside the values, 1px group rules). Icons are the `Media.xaml` strokes (1.5px, miter joins, flat caps). The heading sans is drawn as `Bahnschrift SemiBold` (Barlow stand-in), what most machines resolve, since Eurostile Extended is not bundled; headings show as typed (AllSmallCaps has no effect on it), button labels are uppercase (`StringToUpperCaseConverter`). The details preview uses `GameBannerHeight` 200 (default 320) so the page fits; the spacer above the title scales with it (`x * 100 / 320`).
 
 ## Not verified yet
+
+Hover and empty state in Playnite at 125% and 150% (leftover boxes around the Play glow and the cover glow, masks on the effect layers themselves), ThemeModifier recolour of the new layers (`FrameInnerBrush`, `FocusBrush`, `PrimaryButton*`), the 0.4s fade feel against the game, and the details page now sitting on an opaque `ContentBackgroundBrush`.
 
 Screenshots in `art/` (`screenshot-details.png` and `screenshot-settings.png`) are rendered from `art/preview-details.html` and `art/preview-settings.html` via `take-screenshots.ps1`.
 

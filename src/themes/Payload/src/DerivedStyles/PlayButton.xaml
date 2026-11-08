@@ -4,8 +4,14 @@
     the slant measured on the game's VS plates, with ControlCornerRadius corners; white type (PrimaryButtonForegroundBrush)
     in the display face (HeadingFontFamily, oblique) at 22px, ButtonPadding, at least 40 tall. Only the plate is skewed:
     the label stays upright, and the plate keeps 6px of the button's width clear on each side for its overhang.
-    Hover: orange-100 (PrimaryButtonHoverBackgroundBrush, the site's hovered button); pressed: c04e0c. Keyboard focus:
-    FocusVisual.
+    Motion: Blizzard's site brightens the button on hover and fades a hover overlay by opacity over its "medium" motion
+    token (the value was not found; 0.2s used). The slanted-plate language adds one sweep, an interpretation, not a capture.
+    Animated both ways (the plates carry the colour change, no trigger setters on animated parts):
+      in  0.2s ease-out: the orange-100 plate (PrimaryButtonHoverBackgroundBrush) fades in; one light slash, the plate's own
+          15 degree angle, crosses the plate once (0.5s, cubic ease-out, 36px wide, 30% white), clipped to the slanted plate.
+      out 0.25s ease-in-out: the plate fades back; exit animations use FillBehavior Stop so no clock is left running.
+    Pressed: its own deep orange plate (c04e0c, PrimaryButtonPressedBackgroundBrush) fades in over 0.06s and out over 0.12s,
+    with a 1px label nudge. Keyboard focus: FocusVisual. No OpacityMask, no sprites: the game's plates are flat.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -26,25 +32,82 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid Background="Transparent">
-                        <Border x:Name="Chrome" Margin="6,0,6,0" SnapsToDevicePixels="False"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="{DynamicResource ControlCornerRadius}"
-                                RenderTransformOrigin="0.5,0.5">
-                            <Border.RenderTransform>
+                        <!-- The slanted plate: everything that changes colour or sweeps lives in this skewed, clipped grid. -->
+                        <Grid x:Name="Chrome" Margin="6,0,6,0" ClipToBounds="True" SnapsToDevicePixels="False" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
                                 <SkewTransform AngleX="-15" />
-                            </Border.RenderTransform>
-                        </Border>
-                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                            </Grid.RenderTransform>
+                            <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                            <Border x:Name="HoverPlate" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                    CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" />
+                            <Border x:Name="PressPlate" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                    CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" />
+                            <Canvas IsHitTestVisible="False">
+                                <Rectangle x:Name="Slash" Width="36" Height="160" Canvas.Top="-60" Opacity="0"
+                                           Fill="{DynamicResource PrimaryButtonForegroundBrush}">
+                                    <Rectangle.RenderTransform>
+                                        <TranslateTransform x:Name="SlashShift" X="-60" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Canvas>
+                        </Grid>
+                        <ContentPresenter x:Name="Content" Margin="{TemplateBinding Padding}"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          RecognizesAccessKey="True" />
+                                          RecognizesAccessKey="True">
+                            <ContentPresenter.RenderTransform>
+                                <TranslateTransform x:Name="ContentNudge" Y="0" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SlashShift" Storyboard.TargetProperty="X" From="-60" To="340" Duration="0:0:0.5">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Slash" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="0.3" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="0.3" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.5" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Slash" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="ContentNudge" Storyboard.TargetProperty="Y" To="1" Duration="0:0:0.06" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ContentNudge" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

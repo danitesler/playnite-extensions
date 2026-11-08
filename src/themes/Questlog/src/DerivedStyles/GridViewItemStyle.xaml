@@ -1,7 +1,14 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml.
-    The cover sits on a plain dark bed (GridItemBackgroundBrush). Hover and selection draw a single thin gold line
-    (GridViewItemHoverBorderBrush, GlyphBrush), with no second outline and no glow.
+    The cover sits on a plain dark bed (GridItemBackgroundBrush). Selected = one thin gold line (GlyphBrush), static.
+    Hover is the client's item slot highlight (ButtonHilight-Square, an additive gold glow inside the slot), animated
+    both ways (no setters on the animated parts, so nothing snaps):
+      in  0.18s ease-out: the gold line (GridViewItemHoverBorderBrush) fades in, the inner glow (slot-glow.png, a soft
+          highlight along the inside of the edge) rises to 0.75, and two glints (flare.png) pop into the top left and
+          bottom right corners of the cover, the second 70ms after the first; while hovered they twinkle.
+      out 0.25s: everything fades away; exit animations use FillBehavior Stop so no clock outlives the fade.
+    Drawn inside the item's own spacing margin (the line sits 2px outside the cover like the selected one, the glow and
+    glints inside it). Brushes only; no DropShadowEffect, no OpacityMask on the cover.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -17,13 +24,100 @@
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
-                        <Border x:Name="SelectionBorder" BorderThickness="1" Margin="-2" />
                         <ContentPresenter />
+                        <!-- Selected: static -->
+                        <Border x:Name="SelectionBorder" BorderThickness="1" Margin="-2" IsHitTestVisible="False" />
+                        <!-- Hover: animated -->
+                        <Rectangle x:Name="HoverGlow" Fill="{DynamicResource GlyphBrush}" Opacity="0" Visibility="Hidden" IsHitTestVisible="False">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="{ThemeFile 'Images/fx/slot-glow.png'}" Stretch="Fill" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <Border x:Name="HoverBorder" BorderThickness="1" Margin="-2" IsHitTestVisible="False" Opacity="0"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
+                        <Grid x:Name="Twinkle" IsHitTestVisible="False">
+                            <Rectangle x:Name="GlintA" Width="26" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-5,-5,0,0"
+                                       Fill="{DynamicResource HighlightGlyphBrush}" Opacity="0" Visibility="Hidden" IsHitTestVisible="False"
+                                       RenderTransformOrigin="0.5,0.5">
+                                <Rectangle.RenderTransform><ScaleTransform x:Name="GlintAScale" ScaleX="1" ScaleY="1" /></Rectangle.RenderTransform>
+                                <Rectangle.OpacityMask>
+                                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/flare.png'}" Stretch="Uniform" />
+                                </Rectangle.OpacityMask>
+                            </Rectangle>
+                            <Rectangle x:Name="GlintB" Width="20" Height="20" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-2,-2"
+                                       Fill="{DynamicResource HighlightGlyphBrush}" Opacity="0" Visibility="Hidden" IsHitTestVisible="False"
+                                       RenderTransformOrigin="0.5,0.5">
+                                <Rectangle.RenderTransform><ScaleTransform x:Name="GlintBScale" ScaleX="1" ScaleY="1" /></Rectangle.RenderTransform>
+                                <Rectangle.OpacityMask>
+                                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/flare.png'}" Stretch="Uniform" />
+                                </Rectangle.OpacityMask>
+                            </Rectangle>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="GlintA" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="GlintB" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Opacity" To="0.75" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="GlintA" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="GlintAScale" Storyboard.TargetProperty="ScaleX" From="0.3" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="GlintAScale" Storyboard.TargetProperty="ScaleY" From="0.3" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="GlintB" Storyboard.TargetProperty="Opacity" To="0.85" BeginTime="0:0:0.07" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="GlintBScale" Storyboard.TargetProperty="ScaleX" From="0.3" To="1" BeginTime="0:0:0.07" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="GlintBScale" Storyboard.TargetProperty="ScaleY" From="0.3" To="1" BeginTime="0:0:0.07" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- Twinkle while hovered: the glints breathe on their wrapper's opacity (a separate property from the pop). -->
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.3">
+                                        <DoubleAnimation Storyboard.TargetName="Twinkle" Storyboard.TargetProperty="Opacity" From="1" To="0.5" Duration="0:0:0.9">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlintA" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlintB" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Twinkle" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="GlintA" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="GlintB" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="SelectionBorder" />

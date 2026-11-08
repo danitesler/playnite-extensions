@@ -22,11 +22,11 @@
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
                     <ScrollViewer x:Name="PART_ScrollViewHost"
                                   HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                                  Style="{DynamicResource DetailsScrollViewer}">
-                        <Grid>
+                                  Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible">
+                        <Grid x:Name="PageRoot" Background="{DynamicResource WindowBackgourndBrush}">
 <!-- Banner: the game's background art as a band at the top. Tinted at the top, darkened toward the title by a page-colored scrim, faded into the page. GameBannerHeight sets the height; 0 turns it off. -->
 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
-    <Grid.Style>
+<Grid.Style>
         <Style TargetType="Grid">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
@@ -38,30 +38,30 @@
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <Grid.CacheMode>
-        <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-    </Grid.CacheMode>
-    <Grid.OpacityMask>
-        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-            <GradientStop Color="#A6000000" Offset="0" />
-            <GradientStop Color="Black" Offset="0.3" />
-            <GradientStop Color="Transparent" Offset="1" />
-        </LinearGradientBrush>
-    </Grid.OpacityMask>
-    <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
+<FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                HorizontalAlignment="Center" VerticalAlignment="Center" />
-    <Border Background="{DynamicResource WindowBackgourndBrush}">
-        <Border.OpacityMask>
-            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                <GradientStop Color="Transparent" Offset="0.1" />
-                <GradientStop Color="#A6000000" Offset="0.4" />
-                <GradientStop Color="#CC000000" Offset="0.7" />
-                <GradientStop Color="#E6000000" Offset="1" />
-            </LinearGradientBrush>
-        </Border.OpacityMask>
-    </Border>
+<Border Background="{DynamicResource WindowBackgourndBrush}" Opacity="0.3" />
+<!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark patches on scaled displays.
+     The fade is a plain gradient to the page color, read from the page brush (PageRoot). -->
+<Rectangle>
+<Rectangle.Fill>
+<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+<GradientStop Color="#00000000" Offset="0.25" />
+<GradientStop Color="{Binding Background.Color, ElementName=PageRoot}" Offset="0.95" />
+</LinearGradientBrush>
+</Rectangle.Fill>
+</Rectangle>
 </Grid>
 <Grid>
+<Grid.Style>
+<Style TargetType="Grid">
+<Style.Triggers>
+<DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+<Setter Property="Visibility" Value="Collapsed" />
+</DataTrigger>
+</Style.Triggers>
+</Style>
+</Grid.Style>
 
 <StackPanel Margin="24,16,41,32" MaxWidth="960">
                             <StackPanel.Resources>
@@ -460,6 +460,52 @@
                                 </GroupBox>
                             </Grid>
                         </StackPanel>
+</Grid>
+<!-- Empty state (no game selected), shadcn Empty: a 40px rounded-lg muted tile with a 24px icon over a text-lg medium title, centered in the visible area. It fades in over 150ms (tw-animate fade-in) when it appears; no loop (RemoveStoryboard on exit). -->
+<Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
+<Grid.Style>
+<Style TargetType="Grid">
+<Setter Property="Visibility" Value="Collapsed" />
+<Style.Triggers>
+<DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+<Setter Property="Visibility" Value="Visible" />
+</DataTrigger>
+</Style.Triggers>
+</Style>
+</Grid.Style>
+<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24,0,24,24">
+<StackPanel.Style>
+    <Style TargetType="StackPanel">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="EmptyFadeIn">
+                        <Storyboard>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.150" Value="1" KeySpline="0.4,0,0.2,1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="EmptyFadeIn" />
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</StackPanel.Style>
+<Border Width="40" Height="40" HorizontalAlignment="Center" CornerRadius="{DynamicResource CornerRadiusLarge}" Background="{DynamicResource ButtonBackgroundBrush}">
+<Viewbox Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+<Canvas Width="24" Height="24">
+<!-- lucide: gamepad-2 -->
+<Path Data="M 6 11 L 10 11 M 8 9 L 8 13 M 15 12 L 15.01 12 M 18 10 L 18.01 10 M 17.32 5 H 6.68 a 4 4 0 0 0 -3.978 3.59 c -0.006 0.052 -0.01 0.101 -0.017 0.152 C 2.604 9.416 2 14.456 2 16 a 3 3 0 0 0 3 3 c 1 0 1.5 -0.5 2 -1 l 1.414 -1.414 A 2 2 0 0 1 9.828 16 h 4.344 a 2 2 0 0 1 1.414 0.586 L 17 18 c 0.5 0.5 1 1 2 1 a 3 3 0 0 0 3 -3 c 0 -1.545 -0.604 -6.584 -0.685 -7.258 c -0.007 -0.05 -0.011 -0.1 -0.017 -0.151 A 4 4 0 0 0 17.32 5 Z" Stroke="{DynamicResource TextBrush}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+</Canvas>
+</Viewbox>
+</Border>
+<TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,16,0,0" TextAlignment="Center" TextWrapping="Wrap"
+FontSize="{DynamicResource FontSizeLarge}" FontWeight="Medium" Foreground="{DynamicResource TextBrush}" />
+</StackPanel>
 </Grid>
 </Grid>
                     </ScrollViewer>

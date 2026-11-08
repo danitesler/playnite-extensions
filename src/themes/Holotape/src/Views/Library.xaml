@@ -2,8 +2,9 @@
     Overlay on Playnite Default/Views/Library.xaml.
     The library layer is the warm page (ContentBackgroundBrush). The optional background art (PART_ImageBackground)
     sits behind the views like a picture on a dim CRT: darkened by the page color (ScrimBrush at 75%), faint scanlines
-    (the same brush through a tiled 1-in-3 line mask), and a vignette (the same brush through a radial mask, solid at
-    the edges). All of it sits in a BitmapCache wrapper because it is masked. Layout and parts are Playnite's.
+    (1px lines in the same brush on every third row), and a vignette (a radial gradient from clear to the page color).
+    No OpacityMask and no BitmapCache: animated covers and Play above masked art left dark boxes on scaled displays.
+    Layout and parts are Playnite's.
     Deviation: the Pip-Boy tints everything one color and blooms; WPF has no cheap tint or bloom over live art, so the
     art keeps its own colors under the scrim.
 -->
@@ -18,7 +19,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Library}">
-                    <Grid Background="{TemplateBinding Background}"
+                    <Grid x:Name="LibraryRoot" Background="{TemplateBinding Background}"
                           d:DesignWidth="1500" d:DesignHeight="960"
                           d:DataContext="{x:Static DesignMainViewModel.DesignIntance}">
                         <Grid.RowDefinitions>
@@ -30,36 +31,33 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" ClipToBounds="True">
-                            <Grid.CacheMode>
-                                <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                            </Grid.CacheMode>
                             <FadeImage x:Name="PART_ImageBackground"
                                        HorizontalAlignment="Center" VerticalAlignment="Top" />
                             <Border Background="{DynamicResource ScrimBrush}" Opacity="0.75" />
-                            <!-- Scanlines: every third pixel row a little darker, the Pip-Boy screen at its quietest -->
-                            <Border Background="{DynamicResource ScrimBrush}" Opacity="0.6">
-                                <Border.OpacityMask>
-                                    <DrawingBrush TileMode="Tile" Stretch="None"
-                                                  Viewport="0,0,100,3" ViewportUnits="Absolute"
-                                                  Viewbox="0,0,100,3" ViewboxUnits="Absolute">
+                            <!-- Scanlines: every third pixel row a little darker, drawn as scrim-colored lines on top (no OpacityMask) -->
+                            <Rectangle Opacity="0.6" IsHitTestVisible="False">
+                                <Rectangle.Fill>
+                                    <DrawingBrush TileMode="Tile" Stretch="None" Viewport="0,0,100,3" ViewportUnits="Absolute" Viewbox="0,0,100,3" ViewboxUnits="Absolute">
                                         <DrawingBrush.Drawing>
-                                            <GeometryDrawing Brush="#FF000000">
+                                            <GeometryDrawing Brush="{DynamicResource ScrimBrush}">
                                                 <GeometryDrawing.Geometry>
                                                     <RectangleGeometry Rect="0,2,100,1" />
                                                 </GeometryDrawing.Geometry>
                                             </GeometryDrawing>
                                         </DrawingBrush.Drawing>
                                     </DrawingBrush>
-                                </Border.OpacityMask>
-                            </Border>
-                            <Border Background="{DynamicResource ScrimBrush}">
-                                <Border.OpacityMask>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <!-- Vignette as a plain radial gradient to the page color (no OpacityMask: animated covers above it would leave
+                                 dark boxes on scaled displays, see reference.md). -->
+                            <Rectangle>
+                                <Rectangle.Fill>
                                     <RadialGradientBrush GradientOrigin="0.5,0.4" Center="0.5,0.4" RadiusX="0.75" RadiusY="0.8">
                                         <GradientStop Color="#00000000" Offset="0.35" />
-                                        <GradientStop Color="#FF000000" Offset="1" />
+                                        <GradientStop Color="{Binding Background.Color, ElementName=LibraryRoot}" Offset="1" />
                                     </RadialGradientBrush>
-                                </Border.OpacityMask>
-                            </Border>
+                                </Rectangle.Fill>
+                            </Rectangle>
                         </Grid>
 
                         <TopPanel DockPanel.Dock="Top" Grid.Row="0" />

@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Persona 5 menus** (Persona 5, Royal, and the spin-offs Strikers and Tactica, which keep the same language). Dark only. Three colors: ink plates, paper text, one screaming red for whatever is current, plus the blue sliver Tactica offsets behind the current command. The signature shape is the **slanted plate**: a parallelogram tilted 12 degrees behind the current item, with a second plate dropped behind it. Minimal on purpose: no collage art, no ransom-note lettering, no animated shapes; the plates, edges, halftone and type carry the look.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Persona 5 menus** (Persona 5, Royal, and the spin-offs Strikers and Tactica, which keep the same language). Dark only. Three colors: ink plates, paper text, one screaming red for whatever is current, plus the blue sliver Tactica offsets behind the current command. The signature shape is the **slanted plate**: a parallelogram tilted 12 degrees behind the current item, with a second plate dropped behind it. Minimal on purpose: no collage art, no ransom-note lettering; the plates, edges, halftone and type carry the look, and motion stays small (a pop, a slash, a wobble) and only while the pointer is on something.
 
 **Unofficial fan theme.** Not affiliated with or endorsed by ATLUS or SEGA. No game files, logos, fonts or artwork are included (`info/NOTICE-CallingCard.txt`). The star mark, plates, sawtooth edge and halftone are drawn for this theme.
 
@@ -72,6 +72,8 @@ Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
 - **Info box:** coal (`ExpanderBackgroundBrush`) in a 2px paper edge; group rules 2px ash, so the wrapper's top margin is -34 (2 x 12 + 2 + 8). Captions in heavy capitals, fog.
 - Play 48 tall, 168 min wide (details); Play's plate is inset 6 / 10 / 4 so its corners and sliver stay inside the button.
 
+Empty state (no game selected): both overviews hide the page and show a slanted red plate in a paper edge with the blue sliver wobbling behind it and the star turning on it (9s per turn), `LOCErrorNoGameSelected` in the heading capitals; loops run only while it shows. The page root is opaque (`ContentBackgroundBrush`) so the banner fades to it with a plain gradient (no `OpacityMask`); the library art no longer shows behind the game page.
+
 ## Components
 
 | Playnite file | Menu element |
@@ -84,14 +86,16 @@ Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
 | `CheckBox` / `RadioButton` | 18px square, red fill and paper tick when checked / a 14px diamond with a red inner diamond. |
 | `Slider` / `ProgressBar` | 4px ash rail with red fill and a slanted paper thumb / 6px HP-teal gauge. |
 | `ToolTip` | White name plate: paper, ink semibold text, 2px ink edge. |
-| `PlayButton` | Slanted red plate in a paper edge with the blue sliver, heavy capitals. |
+| `PlayButton` | Slanted red plate in a paper edge with the blue sliver, heavy capitals. Hover pops: plate grows 5% with overshoot, brighter red fades in, sliver thrown 3px out, a paper slash cuts across once, sliver wobbles while hovered; pressed squeezes to 96% and fades a darker red plate in; leaving settles back in 0.15s. |
 | `PropertyItemButton` | Links paper, red on hover; chips are slanted paper labels with ink text, red with sliver on hover. |
-| `GridViewItemStyle` | Hover 3px paper frame; selected 3px red frame with a blue frame echoed 4px down-right. |
+| `GridViewItemStyle` | Selected: static 3px red frame with a blue frame echoed 4px down-right. Hover: 3px paper frame settles in from 6% too large with overshoot and a red slab is thrown out from behind the cover to 6px down-right (0.16s), wobbling while hovered; leaving 0.14s. |
+| `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover controls as slanted 46x40 command plates (ink, 2px paper edge, Play red) with the blue sliver behind and chunky solid glyphs (`IconPlay` cut arrowhead, `IconInfo` slanted plate with the i knocked out, `IconDownload` arrow over a slanted slab; 24 grid in `Media.xaml`); shade fades in, buttons rise 10px and scale 0.8 to 1 with a back-ease overshoot (Info 0.05s later); hover pops the plate, flips it to paper with an ink glyph and throws the sliver out; pressed squeezes it and washes it red |
 
 ## Deviations
 
 - **No ransom-note lettering.** The games mix letters cut from different typefaces and invert some of them; WPF has no per-letter styling of bound text, so titles use one heavy face.
-- **No collage art, stars or moving shapes.** The menus animate constantly and pose characters behind them; the theme keeps the static shapes only.
+- **No collage art or constant motion.** The menus animate constantly and pose characters behind them; the theme moves only on hover and on the empty page (RESEARCH.md -> Motion, timings chosen).
+- **No `OpacityMask` on art:** banner and library art fade through plain gradients to the page color (masked art behind animated controls left dark boxes on scaled displays). The halftone keeps its dot mask, as a masked solid layer in its own `BitmapCache`.
 - **Slant is a skew, not a cut polygon.** The game's plates are irregular quadrilaterals; a `SkewTransform` parallelogram is the closest shape that still sizes with its content.
 - **Tactica's blue sliver** is used on every current plate; mainline Persona 5 draws a black or white drop more often. Blue keeps the current item distinct from plain red accents.
 - **Fonts:** Impact stands in for the custom lettering.
@@ -109,6 +113,8 @@ Fonts: Anton (OFL) stands in for Impact, Selawik (OFL) for Segoe UI; both come f
 Settings preview: Playnite's `TreeView` and standard window are not restyled by this theme, so the section tree is drawn as Playnite's recolored template (a flat red current row, soot on hover, no slant).
 
 ## Not verified yet
+
+Hover and empty state in Playnite at 125% and 150%: Play and cover pops (the sliver and slab draw 4 to 6px outside their item, clipped when grid spacing is small), the halftone's dot mask behind animated covers (if dark boxes appear there, replace it with generated stepped bands), ThemeModifier recolour of the slab, slash and star (`SelectedBrush`, `SelectedBorderBrush`, `PrimaryButtonForegroundBrush`).
 
 Built and validated on Linux only (`build-theme.ps1`, `validate-extension.ps1 -Mode Package`); Playnite was not run. On Windows, check beyond the shared list:
 - The rail's sawtooth `OpacityMask` (tiled `DrawingBrush`) and the library halftone render crisply at 100% and 150% scaling, and the halftone does not cost scrolling performance.

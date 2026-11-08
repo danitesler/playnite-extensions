@@ -2,9 +2,15 @@
     Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml.
     A cover as a card of the dashboard's hero grid ([CSS] hero_card.css DOTAHeroCard #Contents): at rest the card
     sits a little dimmed (the game draws it at saturation 0.7; here a veil in BevelShadowBrush) in a 1px black slot
-    (SlotBorderBrush, [CSS] box-shadow #000000aa). Under the pointer the veil lifts and a 1px light edge frames it
-    (GridViewItemHoverBorderBrush). The current game keeps a 2px light frame (FrameBrush) and the nav's blue glow
-    rising from its bottom edge (SidebarItemSelectedGlowBrush).
+    (SlotBorderBrush, [CSS] box-shadow #000000aa). The current game keeps a static 2px light frame (FrameBrush) and the
+    nav's blue glow rising from its bottom edge (SidebarItemSelectedGlowBrush), set by setters.
+    Hover = the card highlighting, animated both ways. The game transitions transform, box-shadow, opacity, saturation
+    and wash-color over 0.3s ease-in-out and, highlighted, adds a #00ffff44 box-shadow (8px blur, 8px spread):
+      in  0.3s ease-in-out: the veil lifts (saturation 0.7 to 1), a 1px light edge fades in (0.2s) and a soft glow
+          (GlowFrameTemplate in SidebarItemSelectedGlowBrush, Images/fx/glow-frame.png) rises to 0.75 around the card.
+      out 0.3s: all of it fades back; exit animations use FillBehavior Stop. Hover lifts the item (Canvas.ZIndex 90) so
+          the glow overlaps its neighbours; GridViewItemTemplate also zooms the cover 1 to 1.03 inside its frame.
+    Everything is drawn inside the item's own spacing margin except the glow, whose visible part is the first 16px.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -21,8 +27,12 @@
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
+                        <!-- Hover glow, behind the card -->
+                        <Control x:Name="HoverGlow" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource SidebarItemSelectedGlowBrush}"
+                                 Margin="-32" Opacity="0" Visibility="Hidden" IsHitTestVisible="False" />
                         <ContentPresenter />
                         <Rectangle x:Name="Veil" Fill="{DynamicResource BevelShadowBrush}" Opacity="0.22" IsHitTestVisible="False" />
+                        <!-- Selected: static -->
                         <Rectangle x:Name="Glow" Fill="{DynamicResource SidebarItemSelectedGlowBrush}" Opacity="0" IsHitTestVisible="False">
                             <Rectangle.OpacityMask>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -33,15 +43,48 @@
                         </Rectangle>
                         <Border x:Name="SelectionBorder" BorderThickness="1" Margin="-1" IsHitTestVisible="False"
                                 BorderBrush="{DynamicResource SlotBorderBrush}" />
+                        <!-- Hover edge -->
+                        <Border x:Name="HoverBorder" BorderThickness="1" Margin="-1" Opacity="0" IsHitTestVisible="False"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Opacity" Value="0" TargetName="Veil" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Opacity" To="0.75" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Veil" Storyboard.TargetProperty="Opacity" To="0.22" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.3" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Opacity" Value="0" TargetName="Veil" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="Veil" />
                             <Setter Property="Opacity" Value="1" TargetName="Glow" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FrameBrush}" TargetName="SelectionBorder" />
                             <Setter Property="BorderThickness" Value="2" TargetName="SelectionBorder" />

@@ -48,13 +48,22 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
+Interactive layer, on MUI's transition tokens (250ms easeInOut for state, 225 / 195ms enteringScreen / leavingScreen for entrances, 550ms ripple; details in `RESEARCH.md` -> Motion):
+
+| File | What it does |
+|------|--------------|
+| `DerivedStyles/PlayButton.xaml` | Contained button: primary.dark plate fades in 250ms; pressed plays a centered ripple (ellipse inscribed in the button, scaled to 1.5, clipped, 550ms, fades out on release). No elevation change. |
+| `DerivedStyles/GridViewItemStyle.xaml` | Hover = outline layer plus a 4 percent text-colour state layer over the tile (CardActionArea focusHighlight), both fading 250ms; selected stays static. |
+| `DerivedStyles/GridViewItemTemplate.xaml` | Shade fades in 225ms; the 64px IconButtons zoom in like a Fab (scale 0.01 to 1 plus fade, 225 in / 195 out, 50ms apart); each has an action.hover state layer (150ms) and a centered ripple on press. Material glyphs (`IconPlay`, `IconInfo`, `IconDownload`) already existed. |
+| `Views/*GameOverview.xaml` | Hero fade is a flat tint plus a gradient on top (`PageRoot` on `WindowBackgourndBrush`) instead of a mask. Empty state: Material's pattern (the `videogame_asset` icon in `text.secondary`, inline path because the validator allows no new `Icon*` keys, one secondary line), 225ms fade-in. |
+
 ## Uppercase labels
 
 `text-transform: uppercase` has no WPF equivalent. Button and tab templates carry an implicit `DataTemplate` for `sys:String` that renders `AccessText` through Playnite's `StringToUpperCaseConverter`. Only string content hits it; icon or panel content passes through. Do not bind the converter to `Content` directly: it returns an empty string for anything that is not a string, which blanks icon buttons.
 
 ## Deviations from MUI
 
-- No Roboto, no letter-spacing (WPF `TextBlock` has none), no ripple animation (static state layers), no drop shadows (a divider edge on popups instead; elevation shows as the Paper overlay color).
+- No Roboto, no letter-spacing (WPF `TextBlock` has none), no drop shadows (a divider edge on popups instead; elevation shows as the Paper overlay color).
 - No floating labels on text fields (Playnite's forms put labels beside or above them), hence the hidden-label FilledInput metrics.
 - The Card title is h6 instead of CardHeader's default h5, sized for settings sections.
 - The indeterminate LinearProgress slides one segment; MUI runs two bars at different speeds.
@@ -63,13 +72,15 @@ MUI's app bar + mini drawer layout. The app bar (Paper at elevation 4) is the on
 - `CornerRadiusFull` (9999) is used only on true 1:1 squares: the 40x40 IconButtons (main menu, top panel toggles, window buttons, More and Edit in the overview) and the 22x22 `WindowBarButton`. Tracks (Slider, scroll thumb) use `ControlCornerRadius`.
 - The Details List has no leading icons (there are 25 fields and Material Icons for only a few) and no group subheaders: themes cannot ship localization, so groups are told apart by Dividers and spacing.
 
+- Ripple only on Play and the cover IconButtons, and it starts at the center (no pointer position in XAML), as an ellipse inscribed in the button (so an oval on the wide Play button). Other buttons, tabs and list items keep static state layers. No elevation changes on hover or press.
+
 ## Previews
 
 `art/preview-details.html` and `art/preview-settings.html` render `art/screenshot-details.png` and `art/screenshot-settings.png` (1280x720, colors as `var(--mui-*)` tokens, Segoe UI drawn with the bundled Selawik). Motifs: the 44px mini drawer with its header band in the app bar color, the elevated app bar with the translucent search field, the primary dot and error count Badges, uppercase contained and text buttons, FilledInput with a primary underline, Paper cards with six Divider-split metadata groups. Chips are 4px-radius rectangles, as in the XAML.
 
 ## Not verified yet
 
-Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. Also: uppercase labels on dialog buttons (icon-only buttons must still show their icon), access-key underscores in button text, checkbox/radio hover halos near panel edges, slider halos, the Select arrow turning over while open, and the menu icon column alignment.
+Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. The new hover, ripple and empty states are not checked in Playnite at 125% / 150% display scaling (hover and press Play and the cover buttons repeatedly, quick clicks, deselect the game, look for dark patches behind Play) or against a ThemeModifier recolour. Also: uppercase labels on dialog buttons (icon-only buttons must still show their icon), access-key underscores in button text, checkbox/radio hover halos near panel edges, slider halos, the Select arrow turning over while open, and the menu icon column alignment.
 
 Layout checks: the app bar color continuing through the drawer's header band, the search widening on focus, Badges on the filter and notification buttons, full-width drawer rows, the FilledInput underline animation in the game edit dialog.
 

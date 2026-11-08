@@ -57,3 +57,16 @@ Square corners everywhere; the only rounding is the 2px key glyph boxes of the p
 - The font identification (Eurostile, blackletter) is from forum notes and by eye; no font file was compared.
 - The game's textures (grunge, ink splatter, olive/sepia grading of the city) are deliberately not reproduced.
 - The theme ships no fonts; Eurostile and Old English Text MT are used when installed.
+
+## Motion
+
+**No timing source was found.** Searches (modding hubs, TCRF, FNG tooling pages) describe where the frontend lives (the FRONTEND folder, `FrontB.lzc`, custom FNG files) and that a UI overhaul exists, but none documents animation durations or easings; the FNG files themselves were not extracted. TCRF notes that most menus in the early prototypes are unfinished and play almost no UI sounds. What follows is the behavior as it is recalled from footage of the PC game, so every number is **chosen, not measured**:
+
+| Behavior | Recalled | Used for |
+|----------|----------|----------|
+| Selection | The selected item is framed by amber L brackets (already the theme's static selected look); moving the selection moves the frame, fast and hard-edged | Hover = the frame arriving: brackets snap in from 14 to 25% outside (scale to 1 in 0.12s, ease-out, no overshoot), plate fade 0.1s, exit 0.15s |
+| Prompt bars and header bands | Black and amber hazard stripes at 45 degrees | Stripes crawl while the pointer is on Play (one 20px period per 0.6s, the pattern's own period) and on the empty page's title band (0.8s); static elsewhere |
+| Carousel | Main menu items scroll sideways with a short deceleration | Not used (Playnite's grid scrolls itself) |
+| Idle selection | The frame stays lit | Brackets breathe 3 to 4% (0.45s each way) while hovered; the empty page's brackets blink between 1 and 0.25 (0.5s each way) |
+
+Not verified: any real duration or easing, whether the brackets pulse in the game, the transition between screens, sounds. Sources searched: [TCRF, Need for Speed: Most Wanted (2005)](https://tcrf.net/Need_for_Speed:_Most_Wanted_(2005)), [nfsmods.xyz custom FNGs](https://nfsmods.xyz/mod/3772).

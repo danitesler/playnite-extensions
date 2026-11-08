@@ -47,6 +47,15 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
+Interactive layer. Primer is near-instant: 80ms on `cubic-bezier(0.65, 0, 0.35, 1)`, no transforms, no ripple (details in `RESEARCH.md` -> Motion):
+
+| File | What it does |
+|------|--------------|
+| `DerivedStyles/PlayButton.xaml` | Primary button: the hover step fades in over the rest plate in 80ms. No pressed layer (no primary active color is mapped; Primer's `:active` is an instant switch). |
+| `DerivedStyles/GridViewItemStyle.xaml` | Focus-outline-shaped ring on hover is its own layer fading in and out in 80ms; selected stays static. |
+| `DerivedStyles/GridViewItemTemplate.xaml` | New. Shade 0.5 and the two 40px IconButtons (Play primary, Info default with its border) fade in 80ms, 40ms apart. No rise or scale. Octicons glyphs in `Media.xaml`: `IconInfo`, `IconDownload`, and `IconPlay` drawn on the 16px grid in Octicons' style (the set has no play glyph). |
+| `Views/*GameOverview.xaml` | Banner fade is a flat tint plus a gradient on top (`PageRoot` on `WindowBackgourndBrush`) instead of a mask. Empty state: Primer Blankslate (muted Octicons `cursor` as an inline path because the validator allows no new `Icon*` keys, semibold heading), static, as Blankslate has no motion. |
+
 ## Deviations from Primer
 
 - Corner radii: no `CornerRadiusFull` is used by any template (the key exists for completeness); buttons, chips, rows and inputs use `ControlCornerRadius` (`borderRadius-medium`), the slider tracks 4 and knob 6 are explicit numbers.
@@ -70,3 +79,5 @@ Layout checks: the band continuing through the sidebar's top, the right-hand clu
 Known limit: the header band belongs to the library view, so on other views (Statistics, add-on views) only the sidebar's top shows the band color.
 
 Game overview: the two-column page at narrow pane widths (the sidebar is a fixed 296px), topic-tag wrapping, the sidebar sections and the collapse of a section whose fields are hidden (the first visible section starts flush under the heading), long install folders wrapping, the green Play next to More and Edit.
+
+Interactive layer: hover and empty states are not checked in Playnite at 125% / 150% display scaling (hover Play and the cover buttons repeatedly, deselect the game, look for dark patches behind Play) or against a ThemeModifier recolour. Primer's overlay entrance was not researched, so the cover buttons only fade; the 80ms ease may read as instant, which is Primer's intent. `IconPlay` is drawn by hand in Octicons' style.

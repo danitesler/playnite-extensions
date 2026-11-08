@@ -78,7 +78,7 @@ def indent(text, n):
 
 
 def field_xaml(field, label, kind, part, beside):
-    """beside=True: caption column beside the value (details view); False: caption above (grid panel)."""
+    """Details use a fixed caption column; the narrower grid pane uses proportional columns."""
     if beside:
         return (f'<Grid x:Name="PART_Elem{field}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
                 '    <Grid.ColumnDefinitions>\n'
@@ -88,10 +88,18 @@ def field_xaml(field, label, kind, part, beside):
                 f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSize}}" TextWrapping="Wrap" Margin="0,0,12,0" />\n'
                 + indent(value_xaml(kind, part, True), 4) + "\n"
                 '</Grid>')
-    return (f'<StackPanel x:Name="PART_Elem{field}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
-            f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSizeSmall}}" Margin="0,0,0,4" />\n'
-            + indent(value_xaml(kind, part, False), 4) + "\n"
-            '</StackPanel>')
+    grid_value = value_xaml(kind, part, True).replace('Grid.Column="1"', 'Grid.Column="2"')
+    if kind == "score":
+        grid_value = grid_value.replace(' />', ' TextWrapping="Wrap" />')
+    return (f'<Grid x:Name="PART_Elem{field}" Margin="0,{FIELD_GAP},0,{FIELD_GAP}">\n'
+            '    <Grid.ColumnDefinitions>\n'
+            '        <ColumnDefinition Width="2*" />\n'
+            '        <ColumnDefinition Width="12" />\n'
+            '        <ColumnDefinition Width="3*" />\n'
+            '    </Grid.ColumnDefinitions>\n'
+            f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSizeSmall}}" TextWrapping="Wrap" VerticalAlignment="Top" />\n'
+            + indent(grid_value, 4) + "\n"
+            '</Grid>')
 
 
 def group_xaml(name, fields, beside):
@@ -283,7 +291,7 @@ def edit_button(ancestor, margin, size, column=""):
     col = f'Grid.Column="{column}" ' if column else ""
     return f'''<Button x:Name="PART_ButtonEditGame" {col}Margin="{margin}" Height="{size}" Width="{size}" Padding="0" Focusable="False"
         ToolTip="{{DynamicResource LOCEditGame}}">
-    <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
+    <ContentControl Width="24" Height="24" Focusable="False" IsTabStop="False"
                     Content="{{DynamicResource IconEdit}}"
                     ContentTemplate="{{DynamicResource IconTemplate}}" />
 </Button>'''
@@ -362,7 +370,7 @@ def details():
             <Image Name="PART_ImageIcon" MaxHeight="40" MaxWidth="40" Margin="0,0,14,0"
                    VerticalAlignment="Center" RenderOptions.BitmapScalingMode="Fant" />
             <Grid Grid.Column="1" MaxWidth="640">
-{indent(title(38, 3), 16)}
+{indent(title("{DynamicResource FontSizeLargest}", 3), 16)}
             </Grid>
             <Grid Grid.Column="2">
 {indent(splash(18, "12,-6,0,0"), 16)}
@@ -375,7 +383,7 @@ def details():
             </Grid>
             <Button Name="PART_ButtonMoreActions" Width="48" Height="48" Margin="12,0,0,0" Padding="0"
                     ToolTip="{{DynamicResource LOCMoreAction}}">
-                <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
+                <ContentControl Width="24" Height="24" Focusable="False" IsTabStop="False"
                                 Content="{{DynamicResource IconOptions}}"
                                 ContentTemplate="{{DynamicResource IconTemplate}}" />
             </Button>
@@ -394,8 +402,19 @@ def details():
     </StackPanel>
 </DockPanel>'''
 
-    body = f'''<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-              Style="{{DynamicResource DetailsScrollViewer}}" x:Name="PART_ScrollViewHost">
+    body = f'''<Grid Background="{{DynamicResource ContentBackgroundBrush}}">
+    <Grid>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Style.Triggers>
+                    <Trigger Property="DataContext" Value="{{x:Null}}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+              Style="{{DynamicResource DetailsScrollViewer}}" Visibility="Visible" x:Name="PART_ScrollViewHost">
     <Grid>
 {indent(hero("ContentBackgroundBrush"), 8)}
         <Grid HorizontalAlignment="Stretch" Margin="32,0,40,0">
@@ -409,7 +428,23 @@ def details():
 {indent(columns, 12)}
         </Grid>
     </Grid>
-</ScrollViewer>'''
+</ScrollViewer>
+    </Grid>
+    <TextBlock Text="{{DynamicResource LOCErrorNoGameSelected}}" HorizontalAlignment="Center" VerticalAlignment="Center"
+               TextAlignment="Center" TextWrapping="Wrap" Margin="24" Foreground="{{DynamicResource TextBrushDarker}}"
+               FontSize="{{DynamicResource FontSizeLarge}}">
+        <TextBlock.Style>
+            <Style TargetType="TextBlock" BasedOn="{{StaticResource BaseTextBlockStyle}}">
+                <Setter Property="Visibility" Value="Collapsed" />
+                <Style.Triggers>
+                    <Trigger Property="DataContext" Value="{{x:Null}}">
+                        <Setter Property="Visibility" Value="Visible" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </TextBlock.Style>
+    </TextBlock>
+</Grid>'''
     return wrap("DetailsViewGameOverview", f'''    The game page of the Details view, laid out like the title screen: the game's art as a wide banner (the
     panorama), darkened toward the title and at the sides; the title in the pixel font, large and white with the game's
     text shadow, and beside it a yellow splash text rotated -20 degrees (the completion status); a header separator;
@@ -437,7 +472,7 @@ def grid_panel():
     <Button Name="PART_ButtonContextAction" Grid.Column="0" Height="44" />
     <Button Name="PART_ButtonMoreActions" Grid.Column="1" Width="44" Height="44" Margin="10,0,0,0" Padding="0"
             ToolTip="{{DynamicResource LOCMoreAction}}">
-        <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
+        <ContentControl Width="24" Height="24" Focusable="False" IsTabStop="False"
                         Content="{{DynamicResource IconOptions}}"
                         ContentTemplate="{{DynamicResource IconTemplate}}" />
     </Button>
@@ -464,7 +499,7 @@ def grid_panel():
     <Button.Template>
         <ControlTemplate TargetType="{x:Type Button}">
             <Border x:Name="Chrome" Background="Transparent">
-                <ContentPresenter Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                <ContentPresenter Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"
                                   Content="{DynamicResource IconWindowClose}"
                                   ContentTemplate="{DynamicResource IconTemplate}" />
             </Border>
@@ -536,7 +571,7 @@ def grid_panel():
     the grid side: the game's art as a banner at the top, darkened toward the title; the title in the pixel font with
     its shadow, the yellow splash (completion status) under it, a header separator; the green Play button and a stone
     button under it; then two columns: Steam screenshots, description and notes on the left, Game details on the
-    right (the six metadata groups in a list panel, captions above values). A close button sits over the top-right
+    right (the six metadata groups in a list panel, captions beside values). A close button sits over the top-right
     corner.
 {HEADER_NOTE}''', body)
 

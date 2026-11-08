@@ -20,9 +20,20 @@
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto"
-                                  Style="{DynamicResource DetailsScrollViewer}"
+                                  Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible"
                                   x:Name="PART_ScrollViewHost">
-                        <Grid>
+                        <Grid x:Name="PageRoot">
+                            <Border x:Name="PageSwatch" Background="{DynamicResource ContentBackgroundBrush}" Visibility="Collapsed" IsHitTestVisible="False" />
+                            <Grid x:Name="PageContent">
+<Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                 <Grid.Style>
                                     <Style TargetType="Grid">
@@ -36,29 +47,18 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Grid.Style>
-                                <Grid.CacheMode>
-                                    <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                                </Grid.CacheMode>
-                                <Grid.OpacityMask>
-                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                        <GradientStop Color="#A6000000" Offset="0" />
-                                        <GradientStop Color="Black" Offset="0.3" />
-                                        <GradientStop Color="Transparent" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Grid.OpacityMask>
                                 <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <!-- Scrim: page color, clear at the top, darker toward the title so any art stays readable. -->
-                                <Border Background="{DynamicResource ContentBackgroundBrush}">
-                                    <Border.OpacityMask>
+                            <!-- No OpacityMask on the banner: it sits behind the animated Play button, and masked art repainted in part leaves dark seams
+                                     on scaled displays. The fade is a plain gradient to the page color, read from the page's own brush. -->
+                                <Rectangle>
+                                    <Rectangle.Fill>
                                         <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                            <GradientStop Color="Transparent" Offset="0.1" />
-                                            <GradientStop Color="#A6000000" Offset="0.4" />
-                                            <GradientStop Color="#CC000000" Offset="0.7" />
-                                            <GradientStop Color="#E6000000" Offset="1" />
+                                            <GradientStop Color="#00000000" Offset="0.12" />
+                                            <GradientStop Color="{Binding Background.Color, ElementName=PageSwatch}" Offset="0.96" />
                                         </LinearGradientBrush>
-                                    </Border.OpacityMask>
-                                </Border>
+                                    </Rectangle.Fill>
+                                </Rectangle>
                             </Grid>
 <Grid>
                             <!-- Background art, a short band. Cached, cropped, faded at the bottom, dimmed by a veil. -->
@@ -609,6 +609,76 @@
                                 </DockPanel>
                             </Grid>
                         </Grid>
+</Grid>
+<!-- Empty state (no game selected): the theme's mark, a diamond split by a blade. An outer diamond drawn as a marching dotted line,
+                         a gold diamond inside it, a hairline blade through both and a pulsing core, in corner brackets; under it
+                         Playnite's "No game selected" in small caps over the diamond divider. Centered in the visible area. The loops run
+                         only while it shows (RemoveStoryboard on exit). -->
+                    <Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+                            <Grid Width="120" Height="120" HorizontalAlignment="Center">
+                                <Control Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource TextBrushDarker}" Margin="-14" Opacity="0.6" />
+                                <Path Data="M60,2 L118,60 L60,118 L2,60 Z" Stroke="{DynamicResource TextBrushDarker}" StrokeThickness="1" StrokeDashArray="2 4" StrokeDashOffset="0">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard x:Name="DiamondMarch">
+                                                            <Storyboard RepeatBehavior="Forever">
+                                                                <DoubleAnimation Storyboard.TargetProperty="StrokeDashOffset" From="0" To="-6" Duration="0:0:1.2" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                    <DataTrigger.ExitActions>
+                                                        <RemoveStoryboard BeginStoryboardName="DiamondMarch" />
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                                <Path Data="M60,26 L94,60 L60,94 L26,60 Z" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1.5" StrokeMiterLimit="4" />
+                                <Path Data="M60,8 L60,112" Stroke="{DynamicResource TextBrush}" StrokeThickness="1" Opacity="0.45" />
+                                <Path Data="M60,48 L72,60 L60,72 L48,60 Z" Fill="{DynamicResource GlyphBrush}">
+                                    <Path.Style>
+                                        <Style TargetType="Path">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                    <DataTrigger.EnterActions>
+                                                        <BeginStoryboard x:Name="CorePulse">
+                                                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.25" Duration="0:0:1.8">
+                                                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                                </DoubleAnimation>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </DataTrigger.EnterActions>
+                                                    <DataTrigger.ExitActions>
+                                                        <RemoveStoryboard BeginStoryboardName="CorePulse" />
+                                                    </DataTrigger.ExitActions>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Path.Style>
+                                </Path>
+                            </Grid>
+                            <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,30,0,0"
+                                       FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLarge}"
+                                       Typography.Capitals="AllSmallCaps" Foreground="{DynamicResource TextBrushDarker}" />
+                            <Control Template="{DynamicResource DividerTemplate}" Foreground="{DynamicResource GlyphBrush}" Width="160" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </Grid>
 </Grid>
                     </ScrollViewer>
                 </ControlTemplate>

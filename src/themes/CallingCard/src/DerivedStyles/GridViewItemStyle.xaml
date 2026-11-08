@@ -1,8 +1,14 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml: the frame around a cover tile in the grid view.
-    Under the pointer a 3px paper frame (GridViewItemHoverBorderBrush) just outside the tile, square. Selected: a 3px red
-    frame (GridViewItemSelectedBorderBrush) with the blue sliver of the current command echoed 4px down and right behind
-    it (SelectedBorderBrush). The tile itself is Playnite's GridViewItemTemplate, recolored by the palette.
+    Selected (static, setters): a 3px red frame (GridViewItemSelectedBorderBrush) with the blue sliver of the current
+    command echoed 4px down and right behind it (SelectedBorderBrush).
+    Hover is the menus' pop, animated both ways on its own layers (no setters on animated parts):
+      in  0.16s: a 3px paper frame (GridViewItemHoverBorderBrush) just outside the tile fades in while it settles from 6%
+          too large (back-ease overshoot), and a red slab (SelectedBrush) is thrown out from behind the cover to 6px down
+          and right (0.18s, overshoot); while hovered the slab wobbles 1.5px (0.5s each way).
+      out 0.14s: the frame fades away and the slab slides back behind the cover; exit animations use FillBehavior Stop.
+    The slab and frame sit inside the item's spacing margin or just past it (6px), so very small grid spacing clips them
+    at the panel edge. No OpacityMask on anything.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -18,14 +24,64 @@
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
+                        <Grid x:Name="SlabBreath" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="BreathShift" X="0" Y="0" />
+                            </Grid.RenderTransform>
+                            <Border x:Name="HoverSlab" Background="{DynamicResource SelectedBrush}" Margin="0,0,-6,-6" Opacity="0">
+                                <Border.RenderTransform>
+                                    <TransformGroup>
+                                        <TranslateTransform x:Name="SlabPopX" X="-6" />
+                                        <TranslateTransform x:Name="SlabPopY" Y="-6" />
+                                    </TransformGroup>
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
                         <Border x:Name="Echo" BorderThickness="3" Margin="0,0,-8,-8" IsHitTestVisible="False" />
                         <ContentPresenter />
+                        <Border x:Name="HoverFrame" BorderThickness="3" Margin="-4" IsHitTestVisible="False" Opacity="0" RenderTransformOrigin="0.5,0.5"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="FrameScale" ScaleX="1" ScaleY="1" />
+                            </Border.RenderTransform>
+                        </Border>
                         <Border x:Name="SelectionBorder" BorderThickness="3" Margin="-4" IsHitTestVisible="False" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="FrameScale" Storyboard.TargetProperty="ScaleX" From="1.06" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.9" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="FrameScale" Storyboard.TargetProperty="ScaleY" From="1.06" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.9" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverSlab" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.04" />
+                                        <DoubleAnimation Storyboard.TargetName="SlabPopX" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="1.2" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SlabPopY" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="1.2" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True" BeginTime="0:0:0.2">
+                                        <DoubleAnimation Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="X" From="0" To="1.5" Duration="0:0:0.5"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="Y" From="0" To="1.5" Duration="0:0:0.5"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="FrameScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="FrameScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverSlab" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SlabPopX" Storyboard.TargetProperty="X" To="-6" Duration="0:0:0.14" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SlabPopY" Storyboard.TargetProperty="Y" To="-6" Duration="0:0:0.14" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BreathShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />

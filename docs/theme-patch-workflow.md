@@ -61,3 +61,9 @@ Sharing would couple 29 designs to one file: a change for one design
 system would risk all others, and per-theme divergence (plates, rails,
 badges) already exceeds what a shared template could carry. The grep +
 checklist above is the deliberate substitute.
+
+## Sweeping many themes at once (e.g. the interactive-layer retrofit)
+
+- Work in a dedicated worktree and give each helper its own set of theme folders; shared files (`scripts/`, `docs/`, `.claude/skills/`, `src/themes/AGENTS.md`, `src/extensions.json`, root `README.md`) stay with whoever coordinates.
+- Helpers build with `-NoDeploy` and validate; one coordinator deploys, because every deploy closes and restarts the same Playnite.
+- Redeploy all themes at the end (`-Deploy -NoRestart` each, then the active one normally) and read `playnite.log` for XAML errors: `-NoDeploy` builds do not parse the XAML in WPF.

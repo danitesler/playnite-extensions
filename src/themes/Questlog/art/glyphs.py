@@ -155,6 +155,18 @@ GLYPHS = {
     "IconRemove": (rrect(9, 2.3, 6, 2.6, 0.9) + " " + rrect(3.8, 4.8, 16.4, 2.8, 1)
                    + " " + poly([(5.8, 8.6), (18.2, 8.6), (17.2, 21.2), (6.8, 21.2)])
                    + " " + rrect(9.4, 10.8, 1.5, 7.6, 0.5, hole=True) + " " + rrect(13.1, 10.8, 1.5, 7.6, 0.5, hole=True)),
+    # Options (game menu): the same cogwheel as the view settings
+    "IconOptions": gear(12, 12, 8, 10.8, 8.2, 3.7),
+    # Play on a cover: the page arrow of the spellbook, a stout shaft and a head
+    "IconPlay": rrect(3.2, 9.3, 9.4, 5.4, 1.2) + " " + poly([(11, 4.4), (21, 12), (11, 19.6)]),
+    # Info on a cover: a quest scroll, two rolls round a page of text lines
+    "IconInfo": (rrect(4, 2.6, 16, 3.4, 1.7) + " " + rrect(4, 18, 16, 3.4, 1.7)
+                 + " " + poly([(6, 5.6), (18, 5.6), (18, 18.4), (6, 18.4)])
+                 + " " + rrect(8.2, 8.2, 7.6, 1.4, 0.5, hole=True) + " " + rrect(8.2, 11.3, 7.6, 1.4, 0.5, hole=True)
+                 + " " + rrect(8.2, 14.4, 4.8, 1.4, 0.5, hole=True)),
+    # Install on a cover: an arrow dropped into the bag
+    "IconDownload": (poly([(9.8, 2.8), (14.2, 2.8), (14.2, 10), (18.2, 10), (12, 16.6), (5.8, 10), (9.8, 10)])
+                     + " " + rrect(3.6, 18, 16.8, 3.2, 1.2)),
 }
 
 

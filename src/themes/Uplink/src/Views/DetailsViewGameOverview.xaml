@@ -20,9 +20,9 @@
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto"
-                                  Style="{DynamicResource DetailsScrollViewer}"
+                                  Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible"
                                   x:Name="PART_ScrollViewHost">
-                        <Grid>
+                        <Grid x:Name="PageRoot" Background="{DynamicResource ContentBackgroundBrush}">
 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                 <Grid.Style>
                                     <Style TargetType="Grid">
@@ -36,34 +36,30 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Grid.Style>
-                                <Grid.CacheMode>
-                                    <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                                </Grid.CacheMode>
-                                <Grid.OpacityMask>
-                                    <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                        <GradientStop Color="#A6000000" Offset="0" />
-                                        <GradientStop Color="Black" Offset="0.3" />
-                                        <GradientStop Color="Transparent" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Grid.OpacityMask>
                                 <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <!-- Scrim: page color, clear at the top, darker toward the title so any art stays readable. -->
-                                <Border Background="{DynamicResource ContentBackgroundBrush}">
-                                    <Border.OpacityMask>
-                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                            <GradientStop Color="Transparent" Offset="0.1" />
-                                            <GradientStop Color="#A6000000" Offset="0.4" />
-                                            <GradientStop Color="#CC000000" Offset="0.7" />
-                                            <GradientStop Color="#E6000000" Offset="1" />
+                                <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark
+                                     seams on scaled displays. A veil and a plain gradient to the page color fade it toward the title instead. -->
+                                <Border Background="{DynamicResource ContentBackgroundBrush}" Opacity="0.35" />
+                                <Rectangle>
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#00000000" Offset="0.12" />
+                                            <GradientStop Color="{Binding Background.Color, ElementName=PageRoot}" Offset="0.9" />
                                         </LinearGradientBrush>
-                                    </Border.OpacityMask>
-                                </Border>
+                                    </Rectangle.Fill>
+                                </Rectangle>
                             </Grid>
 <Grid>
-                            <!-- Background art, a short band. Cached, cropped, faded at the bottom, dimmed by a veil. -->
-                            
-
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <Grid HorizontalAlignment="Stretch" Margin="24,0,41,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -609,6 +605,100 @@
                                     </Border>
                                 </DockPanel>
                             </Grid>
+                        </Grid>
+                        <!-- Empty state (no game selected): an empty portrait slot in the lit corner ticks, its glow breathing on the menus'
+                             selected-tab loop (2.4s), Playnite's "No game selected" in the heading sans, and a rule with the sub navigation's bottom
+                             line highlight running along it. Centered in the visible area; both loops run only while it shows (RemoveStoryboard on exit). -->
+                        <Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}" IsHitTestVisible="False">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+                                <Grid Width="104" Height="104" HorizontalAlignment="Center">
+                                    <Rectangle Margin="-24" Fill="{DynamicResource FrameInnerBrush}" Opacity="0.3">
+                                        <Rectangle.OpacityMask>
+                                            <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+                                                <GradientStop Color="#A0000000" Offset="0.35" />
+                                                <GradientStop Color="Transparent" Offset="1" />
+                                            </RadialGradientBrush>
+                                        </Rectangle.OpacityMask>
+                                        <Rectangle.Style>
+                                            <Style TargetType="Rectangle">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                        <DataTrigger.EnterActions>
+                                                            <BeginStoryboard x:Name="SlotBreath">
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.3" To="1" Duration="0:0:1.2" AutoReverse="True">
+                                                        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </DataTrigger.EnterActions>
+                                                        <DataTrigger.ExitActions>
+                                                            <RemoveStoryboard BeginStoryboardName="SlotBreath" />
+                                                        </DataTrigger.ExitActions>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Rectangle.Style>
+                                    </Rectangle>
+                                    <Border BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" Background="{DynamicResource GridItemBackgroundBrush}" />
+                                    <Control Margin="-6" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                             Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource FocusBrush}" />
+                                    <ContentControl Content="{DynamicResource IconMainMenu}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                    Width="52" Height="52" Foreground="{DynamicResource NormalBorderBrush}" />
+                                </Grid>
+                                <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,24,0,0"
+                                           FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLarge}" FontWeight="SemiBold"
+                                           Typography.Capitals="AllSmallCaps" Foreground="{DynamicResource TextBrushDarker}" />
+                                <Grid HorizontalAlignment="Center" Margin="0,14,0,0" Width="160" Height="2" ClipToBounds="True">
+                                    <Rectangle Height="1" Fill="{DynamicResource NormalBorderBrush}" />
+                                    <Canvas>
+                                        <Rectangle Width="70" Height="2" Fill="{DynamicResource FocusBrush}">
+                                            <Rectangle.RenderTransform>
+                                                <TranslateTransform X="-70" />
+                                            </Rectangle.RenderTransform>
+                                            <Rectangle.OpacityMask>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                    <GradientStop Color="Transparent" Offset="0" />
+                                                    <GradientStop Color="Black" Offset="0.6" />
+                                                    <GradientStop Color="Transparent" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Rectangle.OpacityMask>
+                                            <Rectangle.Style>
+                                                <Style TargetType="Rectangle">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                            <DataTrigger.EnterActions>
+                                                                <BeginStoryboard x:Name="RuleSweep">
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)">
+                                                        <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-70" />
+                                                        <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="230" />
+                                                        <LinearDoubleKeyFrame KeyTime="0:0:3.2" Value="230" />
+                                                    </DoubleAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                                                </BeginStoryboard>
+                                                            </DataTrigger.EnterActions>
+                                                            <DataTrigger.ExitActions>
+                                                                <RemoveStoryboard BeginStoryboardName="RuleSweep" />
+                                                            </DataTrigger.ExitActions>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Rectangle.Style>
+                                        </Rectangle>
+                                    </Canvas>
+                                </Grid>
+                            </StackPanel>
                         </Grid>
 </Grid>
                     </ScrollViewer>

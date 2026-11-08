@@ -23,11 +23,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
-                    <Grid Background="{DynamicResource GameOverviewBackgroundBrush}"
+                    <Grid x:Name="PageRoot" Background="{DynamicResource GameOverviewBackgroundBrush}"
                           d:DesignWidth="1280" d:DesignHeight="960"
                           d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}">
                         <ScrollViewer x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                                      Style="{DynamicResource DetailsScrollViewer}">
+                                      Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible">
                             <Grid>
                                 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                     <Grid.Style>
@@ -42,29 +42,30 @@
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
-                                    <Grid.CacheMode>
-                                        <BitmapCache EnableClearType="False" RenderAtScale="1" SnapsToDevicePixels="False" />
-                                    </Grid.CacheMode>
-                                    <Grid.OpacityMask>
-                                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                            <GradientStop Color="Black" Offset="0" />
-                                            <GradientStop Color="Black" Offset="0.45" />
-                                            <GradientStop Color="Transparent" Offset="1" />
-                                        </LinearGradientBrush>
-                                    </Grid.OpacityMask>
                                     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <!-- The scene darkens toward the title, as the game's backdrop darkens toward its menus: clear at the top, black at 80% at the bottom. -->
-                                    <Rectangle Fill="{DynamicResource ScrimBrush}">
-                                        <Rectangle.OpacityMask>
-                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <!-- The scene fades into the black page as the game's backdrop fades toward its menus. No OpacityMask or BitmapCache on the banner:
+                                         masked art repainted in part (behind the animated Play button) left dark seams on scaled displays, so the fade is a plain
+                                         gradient to the page color, read from the page brush. -->
+                                    <Rectangle>
+                                        <Rectangle.Fill>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                                 <GradientStop Color="#00000000" Offset="0.2" />
-                                                <GradientStop Color="#CC000000" Offset="1" />
+                                                <GradientStop Color="{Binding Background.Color, ElementName=PageRoot}" Offset="1" />
                                             </LinearGradientBrush>
-                                        </Rectangle.OpacityMask>
+                                        </Rectangle.Fill>
                                     </Rectangle>
                                 </Grid>
                                 <StackPanel Margin="32,0,32,32" MaxWidth="1400">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <Border IsHitTestVisible="False">
                                         <Border.Style>
                                             <Style TargetType="Border">
@@ -576,6 +577,99 @@
                                         </StackPanel>
                                     </DockPanel>
                                 </StackPanel>
+                                <Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <!-- Empty state (no game selected): the medallion in the double frame, trembling now and then the way the game's medallion
+                                         does near something, and the frame kindling to the orange of the tracked quest while it shakes. Then the journal's
+                                         category header and its brown rule. Centered in the visible area; the loops run only while it shows. -->
+                                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
+                                        <Grid Width="112" Height="112" HorizontalAlignment="Center">
+                                            <Control Template="{DynamicResource DoubleFrameTemplate}" BorderBrush="{DynamicResource FrameBrush}" Focusable="False" IsTabStop="False" />
+                                            <Control Template="{DynamicResource DoubleFrameTemplate}" BorderBrush="{DynamicResource GlyphBrush}" Focusable="False" IsTabStop="False" Opacity="0">
+                                                <Control.Style>
+                                                    <Style TargetType="Control">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                                <DataTrigger.EnterActions>
+                                                                    <BeginStoryboard x:Name="FrameKindle">
+                                                                        <Storyboard RepeatBehavior="Forever">
+                                                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:3.6">
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.4" Value="0" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.6" Value="1" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:3.1" Value="1" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                                                            </DoubleAnimationUsingKeyFrames>
+                                                                        </Storyboard>
+                                                                    </BeginStoryboard>
+                                                                </DataTrigger.EnterActions>
+                                                                <DataTrigger.ExitActions>
+                                                                    <RemoveStoryboard BeginStoryboardName="FrameKindle" />
+                                                                </DataTrigger.ExitActions>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Control.Style>
+                                            </Control>
+                                            <ContentControl Width="64" Height="64" HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="False" IsTabStop="False"
+                                                            Content="{DynamicResource IconMainMenu}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                            Foreground="{DynamicResource HeadingForegroundBrush}" RenderTransformOrigin="0.5,0.5">
+                                                <ContentControl.RenderTransform>
+                                                    <RotateTransform Angle="0" />
+                                                </ContentControl.RenderTransform>
+                                                <ContentControl.Style>
+                                                    <Style TargetType="ContentControl">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                                                                <DataTrigger.EnterActions>
+                                                                    <BeginStoryboard x:Name="MedallionTremble">
+                                                                        <Storyboard RepeatBehavior="Forever">
+                                                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:3.6">
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.4" Value="0" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.45" Value="3" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.5" Value="-3" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.55" Value="2.5" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.6" Value="-2.5" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.67" Value="1.6" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.74" Value="-1.4" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.82" Value="0.7" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:2.9" Value="0" />
+                                                                                <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                                                            </DoubleAnimationUsingKeyFrames>
+                                                                        </Storyboard>
+                                                                    </BeginStoryboard>
+                                                                </DataTrigger.EnterActions>
+                                                                <DataTrigger.ExitActions>
+                                                                    <RemoveStoryboard BeginStoryboardName="MedallionTremble" />
+                                                                </DataTrigger.ExitActions>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ContentControl.Style>
+                                            </ContentControl>
+                                        </Grid>
+                                        <ContentControl Content="{DynamicResource LOCErrorNoGameSelected}" Focusable="False" IsTabStop="False" HorizontalAlignment="Center" Margin="0,24,0,0">
+                                            <ContentControl.ContentTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}"
+                                                               FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLarge}"
+                                                               Foreground="{DynamicResource HeadingForegroundBrush}" />
+                                                </DataTemplate>
+                                            </ContentControl.ContentTemplate>
+                                        </ContentControl>
+                                        <Rectangle Width="160" Height="1" HorizontalAlignment="Center" Margin="0,12,0,0" Fill="{DynamicResource WindowPanelSeparatorBrush}" />
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                         </ScrollViewer>
                     </Grid>

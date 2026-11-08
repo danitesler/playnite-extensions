@@ -1,8 +1,12 @@
 <!--
     Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml.
-    Covers as the Fortnite Discover tiles: 12px rounded corners (the cover is masked to them, inside a bitmap cache), a
-    2px pale-cyan ring at 45% under the pointer and, for the selected cover, the game's focus ring: 3px of #ceefff,
-    2px off the tile, following its corners. The rings sit just outside the cover so nothing gets clipped.
+    Covers as the Fortnite Discover tiles: 12px rounded corners (the cover is masked to them, inside a bitmap cache), the
+    game's focus ring for the selected cover (3px of #ceefff, 2px off the tile, following its corners, static, set by
+    setters) and, under the pointer, a hover ring that pops in (animated both ways, no setters on the animated parts):
+      in  0.15s: a 2px pale-cyan ring at 45% (GridViewItemHoverBorderBrush) fades in while it grows from 0.96 to 1 with a
+          small overshoot (BackEase), the game's pop; the cover inside also zooms 1.04 and flashes (GridViewItemTemplate).
+      out 0.2s: it fades away; exit animations use FillBehavior Stop so no clock is left running.
+    The rings sit just outside the cover so nothing gets clipped. Structure: Playnite Default 10.60.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -34,11 +38,38 @@
                         </Grid>
                         <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-3" IsHitTestVisible="False"
                                 CornerRadius="15" />
+                        <Border x:Name="HoverRing" BorderThickness="2" Margin="-3" IsHitTestVisible="False" Opacity="0"
+                                CornerRadius="15" BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="HoverRingScale" ScaleX="0.96" ScaleY="0.96" />
+                            </Border.RenderTransform>
+                        </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverRingScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverRingScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverRingScale" Storyboard.TargetProperty="ScaleX" To="0.98" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverRingScale" Storyboard.TargetProperty="ScaleY" To="0.98" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />

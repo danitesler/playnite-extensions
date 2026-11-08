@@ -11,3 +11,19 @@ Blizzard publishes no design system. Where a value could be sourced it was, and 
 | `[eye]` | Surfaces between those values, the Play button blue, the veils | Chosen by eye. Screenshots of the game could not be fetched from the build environment (image hosts were blocked), so none of the layout is measured against a capture. |
 | Icons | Original angular line artwork, 24 grid, 1.5 stroke | `art/icons.py` (path data) → `icons/*.svg` → `src/Media.xaml` geometries and `src/Images/Icons/*.png` (`art/render-png.mjs`, Chromium). MIT with the repo. |
 | Playnite | Every file starts from the Playnite 10.60 Default theme (MIT, `info/LICENSE-Playnite.txt`); the game page and side panels follow the shared skeleton. | |
+
+## Motion
+
+How the menus move, read from the game's own UI data (SC2Mapster/SC2GameData, `mods/core.sc2mod/base.sc2data/UI/Layout/Common/StandardNavigationTemplates.SC2Layout` and `StandardTemplates.SC2Layout`; values only, nothing shipped). Animation keys there are in 0 to 255 alpha and seconds; `Fast` and `Slow` are the engine's curve names.
+
+| What | Found | Used for |
+|------|-------|----------|
+| Top nav button hover (`HoverFrameImage`, `Hovered`) | Fade 0 to 255 over 0.4s (`out="Fast"`, `in="Fast"`), `OnMouseExit` plays the same animation reversed | Hover fades everywhere: 0.4s ease in-out in, 0.4s out. Small cover buttons use 0.3s |
+| Top nav selected (`SelectedFrameImage`, `UnderlineImage`, `GlowImage`) | 0.5s fades, `Slow` ending, reversed when the tab is left | Selected states stay static in the theme (setters); only hover animates |
+| Selected glow (`SelectedGlowImage`, `Glow2Image`, `BlendMode Add`) | Loop: 0 to 150 (or 255) at 1.2s, back to 0 at 2.4s, `Slow` curves | The hover "breathing": glow 0.7 to 1 and back on a 2.4s loop (Play), cover glow 1 to 0.65 (1.2s each way) |
+| Sub nav bottom line (`BottomLineHighlightAnim`) | A highlight on the bottom rule, alpha 0 / 100 / 175 / 150 / 0 over a 10s loop, anchor moving along the line | The streak running along Play's bottom beam, and along the empty page's rule (one pass per 2.4s and 3.2s) |
+| Sub nav background (`FadeNav`) | Fade in over 0.95s on show | Not used (no show animation on the strip) |
+| Standard buttons (`StandardButtonTemplate`) | Normal and Hover are state images swapped by the engine; no animation is defined in the layout | No source timing for Play: it reuses the nav hover (0.4s fade) and the glow loop. Marked as an inference |
+| Pressed | `PressedState` toggles a border glow in 0,102,255; no timing | Own plate, 0.08s in, 0.2s out (chosen) |
+
+Not verified: the real feel of the 0.4s fade (the engine's `Fast` is not a documented easing; sine in-out is an approximation), the tile list hover (not read), sounds. The cover buttons' rise and scale come from the shared interactive layer recipe, not from the game (the menus do not move buttons).

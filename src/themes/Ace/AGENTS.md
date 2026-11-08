@@ -72,7 +72,10 @@ Skeleton as in `../AGENTS.md`. Black page, amber bold title, gold captions over 
 | `TabControl` | VGUI property sheet: raised selected tab, gold text, 2px amber line |
 | `GroupBox` | etched 1px frame, gold bold title |
 | `Menu`, `ContextMenu`, `ToolTip` | black popup with lit olive edge, pale selection bar; olive-deep tooltip |
-| `PlayButton` | the only amber fill, black ink |
+| `PlayButton` | the only amber fill, black ink; hover is a stepped frame swap (hover plate 0, 0.5, 1 in two 50ms frames, no fade: VGUI states do not ease), pressed the instant sunken bevel |
+| `GridViewItemStyle` | selected = static 2px frame; hover = the amber frame popping on as two 1px rings 50ms apart, leaving the same way |
+| `GridViewItemTemplate` (+ `GridTileButton`) | cover hover controls as 36px bevelled VGUI plates with the pixel glyphs `IconPlay` / `IconInfo` / `IconDownload`; the shade pops in at half then full strength, the buttons step up 8, 4, 0px in 40ms frames, no scaling (it would blur the pixel glyphs); hover and press swap the plate in steps like Play |
+| Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | content hidden; the GoldSrc console prompt (`]`, `LOCErrorNoGameSelected`, a block cursor blinking in whole frames) in a sunken box |
 | `PropertyItemButton` | amber link; square chip when the list has `Tag="Chip"` |
 
 ## Previews
@@ -84,10 +87,13 @@ Skeleton as in `../AGENTS.md`. Black page, amber bold title, gold captions over 
 - WPF has no per-side border colors, so bevels are stacked 1px rectangles (`BevelTemplate`), not borders.
 - Selected-but-unfocused list rows are not dimmed (`Selector.IsSelectionActive` is not used by any Default file).
 - Scheme translucency (`WindowBG` alpha 227) is flattened to opaque brushes; popups do not show the game behind them.
+- Motion is frame swaps, not fades, because VGUI has no transitions (`RESEARCH.md` -> Motion). The 0.5 steps blend the plate colour, they are not pixel-pure.
+- The banner no longer uses an `OpacityMask` or `BitmapCache`: the Play button animates over it, and masked art repainted in part left dark seams on scaled displays (reference.md). Scrim and fade into the black page are plain gradients ending in the page brush.
 - Radio buttons are true circles (1:1); everything else is square.
 
 ## Not verified yet
 
 - **Nothing has been loaded in Playnite.** The theme was built and validated on Linux (`build-theme.ps1`, `validate-extension.ps1`), which checks keys and XML but not property names or runtime behavior. First run needs the full list in `../AGENTS.md` plus: sidebar icon of an add-on is visible, dotted focus on buttons, caption buttons hover, ThemeModifier recolors.
+- Motion in Playnite: Play hover and press, the stepped cover frame and cover buttons at 125% and 150%, the console empty page in both overviews (blink stops once a game is selected), banner bottom edge against the page, ThemeModifier recolour.
 - Steam olive digits (`RESEARCH.md`) are from memory.
 - `SelectionBrush` / `SelectionOpacity` on text inputs are standard `TextBoxBase` members but are not in any Default file: if Playnite logs `unknown member`, drop them.

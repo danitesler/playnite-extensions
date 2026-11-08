@@ -45,6 +45,15 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
 
+Interactive layer, on Chakra's `moderate` (200ms) transition (details and unverified bits in `RESEARCH.md` -> Motion):
+
+| File | What it does |
+|------|--------------|
+| `DerivedStyles/PlayButton.xaml` | Solid button: plate dims to 90 percent on hover (hover brush is the color at alpha). No pressed layer (the solid recipe has no active rule). |
+| `DerivedStyles/GridViewItemStyle.xaml` | Ring on hover is its own layer fading in and out; selected stays static. |
+| `DerivedStyles/GridViewItemTemplate.xaml` | New. Shade 0.5 fades in; 40px IconButtons (Play solid, Info subtle) enter like Chakra's popover, scale-fade-in (0.95 to 1, 150ms in, 100ms out), 30ms apart. No rise or zoom. Lucide glyphs in `Media.xaml` (`IconPlay`, `IconInfo`, `IconDownload`). |
+| `Views/*GameOverview.xaml` | Banner fade is a gradient on top (`PageRoot` on `WindowBackgourndBrush`) instead of a mask; the grid panel's rounded banner corners are two page-colour pieces. Empty state: Chakra `EmptyState` (36px gamepad indicator in `fg.subtle`, inline path because the validator allows no new `Icon*` keys, semibold lg title), 200ms fade-in. |
+
 ## Deviations from Chakra
 
 - Inputs, selects and the search box use the `subtle` variant (Chakra's default is `outline`), so fields have no visible edge; checkbox and radio edges use `border.emphasized` so they stay visible on black.
@@ -55,9 +64,11 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 - The notification Badge (`TopPanelNotificationsToggle`) is not a 1:1 square (`MinWidth` 16, grows with the count), so it uses `CornerRadiusSmall` (radii.l1) instead of `CornerRadiusFull` (repo rule: no pill radius on non-square elements). Chakra's Badge is radius l2; the preview draws the same l1.
 - The DataList has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
 
+- No glow, lift, zoom or pressed state: Chakra's button and card recipes draw none. The hover controls and the banner sit over art, so no `OpacityMask` is behind them (the banner fades with a plain gradient).
+
 ## Not verified yet
 
-Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`.
+Built and statically checked on Linux; **not yet loaded in Playnite**. First run checklist: follow standard list in `../AGENTS.md`. The new hover and empty states are not checked in Playnite at 125% / 150% display scaling (hover Play, covers and both cover buttons repeatedly; deselect the game; look for dark patches behind Play) or against a ThemeModifier recolour; the transition easing and the scale-fade values are assumptions (`RESEARCH.md`).
 
 Layout checks: the SegmentGroup with many or few top bar items, the teal logo and selection in the sidebar, the subtle search input and selects (fill visible, no edge), window buttons centered on the 64px bar, the slider's outlined thumb, the 20px checkboxes and radios in settings, the select's check indicator, and the red notification badge.
 

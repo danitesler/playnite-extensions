@@ -4,8 +4,15 @@
     <!--
         Cold Seat PLAY plate: the game's gold call-to-action plate. Gold fill (PrimaryButton brushes), void text,
         1px rim, lit top and dark bottom bevel (same as SecondaryButton), ControlCornerRadius (never a pill). 220x48 is set by the
-        game page. Hover lifts the fill to light gold, pressed darkens it.
-        The disabled dimming comes from BaseStyle.
+        game page. The disabled dimming comes from BaseStyle.
+        Hover is the game's highlight texture (alpha-blended light over the plate edge), animated both ways and kept in
+        layers so nothing snaps:
+          in  0.18s ease-out: the light gold plate (PrimaryButtonHoverBackgroundBrush) fades in, highlight.png (the plate's
+              lit top) fades in at 0.45, a gold bloom (glow-frame.png) rises to 0.5, and a frost glint twinkles once at the
+              top right corner (grows from 0.4, fades, 0.55s).
+          out 0.3s: everything fades back (FillBehavior Stop, so no clock outlives the fade).
+        Pressed is its own layer: the dark gold plate fades in and the label is pushed 1px down and right (the FDF
+        ButtonPushedTextOffset). No DropShadowEffect, no OpacityMask on art.
     -->
     <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
@@ -22,30 +29,111 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid x:Name="Grid" SnapsToDevicePixels="True">
+                        <Control x:Name="Bloom" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource PrimaryButtonBackgroundBrush}"
+                                 Margin="-24" Opacity="0" />
                         <Border x:Name="DefaultBorder" BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="HoverPlate" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" />
+                        <Border x:Name="PressPlate" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" />
+                        <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BevelLightBrush}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}">
-                            <Border BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BevelLightBrush}"
-                                    CornerRadius="{DynamicResource ControlCornerRadius}">
-                                <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BevelShadowBrush}"
-                                        CornerRadius="{DynamicResource ControlCornerRadius}" />
-                            </Border>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BevelShadowBrush}"
+                                    CornerRadius="{DynamicResource ControlCornerRadius}" />
                         </Border>
-                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        <Rectangle x:Name="Highlight" Fill="{DynamicResource TextBrush}" Opacity="0" IsHitTestVisible="False" Margin="1">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="{ThemeFile 'Images/fx/highlight.png'}" Stretch="Fill" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <ContentPresenter x:Name="Content" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           Margin="{TemplateBinding Padding}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                          RecognizesAccessKey="True" />
+                                          RecognizesAccessKey="True">
+                            <ContentPresenter.RenderTransform>
+                                <TranslateTransform x:Name="PushShift" X="0" Y="0" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
+                        <!-- Frost glint at the top right corner: twinkles once per hover. -->
+                        <Rectangle x:Name="Glint" Width="34" Height="34" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-14,-10,0"
+                                   Fill="{DynamicResource TextBrush}" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="GlintScale" ScaleX="1" ScaleY="1" />
+                            </Rectangle.RenderTransform>
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="{ThemeFile 'Images/fx/glint.png'}" Stretch="Fill" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Highlight" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.5" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Glint" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.12" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.55" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlintScale" Storyboard.TargetProperty="ScaleX" From="0.4" To="1" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlintScale" Storyboard.TargetProperty="ScaleY" From="0.4" To="1" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Highlight" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="1" Duration="0:0:0.06" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.1" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 </ResourceDictionary>
