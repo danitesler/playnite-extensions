@@ -43,8 +43,8 @@ Radii: `ControlCornerRadius` 2px, `CornerRadiusSmall` and the rest 0; the look i
 | `TooltipPadding` | 10,6 | Tooltips |
 | `IconSize` | 16 | Phosphor bold at 16px |
 | `GameBannerHeight` | 340 | Default banner; the spacer ratio is `x * 100 / 340` (details) and `x * 72 / 340` (grid) |
-| `GameDetailsPaneWidth` | 320 | Details column on the game page (details view). ThemeModifier edits it. |
-| `GridDetailsPaneWidth` | 280 | Details column in the grid view side panel. ThemeModifier edits it. |
+| `GameDetailsPaneWidth` | 300 | Details column on the game page (details view). ThemeModifier edits it. |
+| `GridDetailsPaneWidth` | 300 | Details column in the grid view side panel. ThemeModifier edits it. |
 
 These are this theme's own values: there is no published spec to quote.
 

@@ -1,4 +1,4 @@
-﻿# Cloudbank: theme notes
+# Cloudbank: theme notes
 
 ## What this is
 
@@ -44,7 +44,7 @@ Radii: `ControlCornerRadius` 2 (`tr-radius`), small 1, large 3, XL 4, full 9999 
 | `TooltipPadding` | 10,6 | |
 | `IconSize` | 16 | |
 | `GameBannerHeight` | 340 | spacer `x * 150 / 340` (details), `x * 120 / 340` (grid) |
-| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 300 / 220 | |
+| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 300 / 300 | |
 
 ## Shell
 
@@ -79,7 +79,7 @@ Empty state (no game selected): content hidden; a 96x84 slot hexagon in the sele
 
 | Playnite file | Game component |
 |---------------|----------------|
-| `Button`, `ToggleButton`, `RepeatButton` | Confirm button: cell, mint edge; default = aqua plate; 41px ThemeModifier trigger |
+| `Button`, `ToggleButton`, `RepeatButton` | Confirm button: cell, mint edge; default = aqua plate; Width=41 ThemeModifier detection, uniformly scaled to 32x32 with proportional content |
 | `PlayButton` | lit Turn() remainder with bloom; hover animates both ways: mint plate, bloom and arcs fade in over 0.22s, the arcs crawl and flicker while hovered, all fade out over 0.35s; pressed fades in its own teal plate |
 | `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox` | sunken Turn() cells; aqua focus; ComboBox reserves 32px for the chevron |
 | `CheckBox`, `RadioButton` | square slot pip; upgrade-slot hexagon |

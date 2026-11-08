@@ -200,6 +200,10 @@ $sharedBlock = $sharedLines -join "`n"
     <FontFamily x:Key="FontFamily">Segoe UI</FontFamily>
     <FontFamily x:Key="MonospaceFontFamily">Consolas</FontFamily>
 
+    <!-- Usable metadata content width; apply inside the pane's horizontal padding and frame. -->
+    <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
+    <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+
     <!-- Shape (Playnite keys). ControlCornerRadius is the medium step of the radius scale. -->
     <Thickness x:Key="PopupBorderThickness">1</Thickness>
     <Thickness x:Key="ControlBorderThickness">1</Thickness>
@@ -299,6 +303,8 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 
 Both game overview files must include a designed empty state using ``LOCErrorNoGameSelected``. Keep the details ``PART_ScrollViewHost`` explicitly ``Visibility="Visible"`` so the inherited ``DetailsScrollViewer`` style cannot hide it on a null DataContext. Verify an initially empty selection, selected game -> grid -> details with selection cleared, and selecting a game again. See the theme-development reference's Interactive layer.
 
+``GameDetailsPaneWidth`` and ``GridDetailsPaneWidth`` both default to 300px of usable metadata content. Apply them inside horizontal padding and borders so the outer frame can size to content without shrinking the labels and properties. Preserve the exterior column gap and dynamic resizing through ThemeModifier.
+
 | Playnite file | $DesignSystem component |
 |---------------|-------------------------|
 | TODO | |
@@ -330,6 +336,72 @@ foreach ($previewName in @("details", "settings")) {
     Set-Content -Path (Join-Path $repoRoot "$artRel/preview-$previewName.html") -Value $previewHtml -Encoding utf8
 }
 
+# Playnite hard-codes 24px on these controls and no theme template reaches them: each overlay gives them the shared
+# field height (ControlHeight in Common.xaml; root AGENTS.md -> Form field height).
+function New-FieldOverlay([string]$Relative, [string]$What, [string[]]$Types, [string[]]$Setters) {
+    $styles = foreach ($type in $Types) {
+        $body = ($Setters | ForEach-Object { "        $_" }) -join "`n"
+        "    <Style TargetType=`"{x:Type $type}`" BasedOn=`"{StaticResource {x:Type $type}}`">`n$body`n    </Style>"
+    }
+    $text = @"
+<!--
+    $Name`: gives Playnite's $What the shared field height (ControlHeight), so it lines up with text boxes and buttons.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+$($styles -join "`n")
+</ResourceDictionary>
+"@
+    $target = Join-Path $repoRoot "$sourceRel/$Relative"
+    New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
+    Set-Content -Path $target -Value $text -Encoding utf8
+}
+$fieldHeight = '<Setter Property="Height" Value="{DynamicResource ControlHeight}" />'
+$fieldMinHeight = '<Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />'
+$centerContent = '<Setter Property="VerticalContentAlignment" Value="Center" />'
+New-FieldOverlay "CustomControls/ComboBoxList.xaml" "multi-select dropdowns" @("ComboBoxList", "DdItemListSelectionBox") @($fieldHeight)
+New-FieldOverlay "CustomControls/FilterSelectionBox.xaml" "filter dropdowns" @("FilterEnumSelectionBox", "FilterStringSelectionBox", "FilterSelectionBox") @($fieldHeight)
+New-FieldOverlay "CustomControls/NumericBoxes.xaml" "number boxes" @("LongNumericBox", "UlongNumericBox", "NullIntNumericBox", "DoubleNumericBox") @($fieldMinHeight, $centerContent)
+New-FieldOverlay "CustomControls/PathSelectionBox.xaml" "path boxes" @("PathSelectionBox") @($fieldMinHeight, $centerContent)
+New-Item -ItemType Directory -Path (Join-Path $repoRoot "$sourceRel/DefaultControls") -Force | Out-Null
+@"
+<!--
+    $Name`: gives Playnite's date picker the shared field height (ControlHeight), so it lines up with text boxes and buttons.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- The calendar button has its own flat style: this file loads before ToggleButton's, so it cannot be BasedOn one. -->
+    <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource {x:Type DatePicker}}">
+        <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+        <Setter Property="Padding" Value="3,0" />
+        <Style.Resources>
+            <Style TargetType="ToggleButton">
+                <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToggleButton">
+                            <Border x:Name="Plate" Background="{TemplateBinding Background}" Padding="6,0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Plate" Property="Background" Value="{DynamicResource HoverBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style TargetType="DatePickerTextBox" BasedOn="{StaticResource {x:Type DatePickerTextBox}}">
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+        </Style.Resources>
+    </Style>
+</ResourceDictionary>
+"@ | Set-Content -Path (Join-Path $repoRoot "$sourceRel/DefaultControls/DatePicker.xaml") -Encoding utf8
+
 $index.extensions += $newProfile
 Save-ExtensionIndex -Index $index
 
@@ -340,7 +412,7 @@ Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own nam
 Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
 Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
 Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
-Write-Host "     In DefaultControls/Button.xaml add the ThemeModifier icon-button trigger: Width == 41 -> Padding 0, content Center, MinHeight 41, FontSize 16 (AGENTS.md ThemeModifier Icon Buttons; validate-extension.ps1 enforces it)."
+Write-Host "     In DefaultControls/Button.xaml add the ThemeModifier icon-button trigger: Width == 41 -> internal Height/MinWidth/MinHeight/MaxWidth/MaxHeight 41, Padding 0, content Center, FontSize 16, uniform LayoutTransform ScaleX/ScaleY 0.7804878048780488 (32/41) for 32x32 with proportional content (AGENTS.md ThemeModifier Icon Buttons; validate-extension.ps1 enforces it)."
 Write-Host "  5. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key -Deploy and restart Playnite."
 Write-Host "  6. Rewrite art/preview-details.html and art/preview-settings.html from the research, with var(--token) colors from src/tokens.css"
 Write-Host "     (they are generic placeholders), then .\scripts\take-screenshots.ps1 -Extension $Key. After token changes: .\scripts\validate-extension.ps1 lists preview colors that drifted."

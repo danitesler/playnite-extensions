@@ -39,7 +39,7 @@ Radii: `CornerRadiusSmall` and `ControlCornerRadius` 2, `Large` 4, `XLarge` 6, `
 
 ## Component spacing (`src/Common.xaml`)
 
-1080p capture sizes scaled by 2/3: `ButtonPadding` 18,8 (36 tall), `InputPadding` 10,7 (34), menu and dropdown rows 30, `ListBoxItemPadding` 10,6 (32), `GroupBoxPadding` 12,10,12,12 with a 12,6 header band, `GroupBoxHeaderFontSize` 20, `IconSize` 18, `GameBannerHeight` 360, `GameDetailsPaneWidth` 320, `GridDetailsPaneWidth` 270.
+1080p capture sizes scaled by 2/3: `ButtonPadding` 18,8 (36 tall), `InputPadding` 10,7 (34), menu and dropdown rows 30, `ListBoxItemPadding` 10,6 (32), `GroupBoxPadding` 12,10,12,12 with a 12,6 header band, `GroupBoxHeaderFontSize` 20, `IconSize` 18, `GameBannerHeight` 360, `GameDetailsPaneWidth` 300, `GridDetailsPaneWidth` 300.
 
 ## Shell
 

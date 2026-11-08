@@ -53,7 +53,7 @@ Radii: `CornerRadiusSmall` 3, `ControlCornerRadius` 6, `CornerRadiusLarge` 10, `
 | `TooltipPadding` | 12,8 | Parchment card |
 | `IconSize` | 18 | |
 | `GameBannerHeight` | 340 | |
-| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 320 / 270 | |
+| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 300 / 300 | |
 
 ## Shell
 

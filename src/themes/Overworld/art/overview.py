@@ -135,9 +135,10 @@ def pane_xaml(beside):
     top = -(2 * GROUP_GAP + 1 + FIELD_GAP)
     groups = "\n".join(group_xaml(n, f, beside) for n, f in GROUPS)
     # The pane is a list panel of the game's menus (ExpanderBackgroundBrush) in the 1px black widget outline.
+    width_key = "GameDetailsPaneWidth" if beside else "GridDetailsPaneWidth"
     return ('<Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource SlotBorderBrush}"\n'
             '        BorderThickness="1" Padding="16,4,16,4">\n'
-            '    <Border ClipToBounds="True">\n'
+            f'    <Border ClipToBounds="True" Width="{{DynamicResource {width_key}}}">\n'
             f'        <StackPanel Margin="0,{top},0,-{FIELD_GAP}">\n'
             + indent(groups, 12) + "\n"
             '        </StackPanel>\n'
@@ -393,7 +394,7 @@ def details():
 </DockPanel>'''
 
     columns = f'''<DockPanel MaxWidth="1100" Grid.Row="2">
-    <StackPanel DockPanel.Dock="Right" Width="{{DynamicResource GameDetailsPaneWidth}}" Margin="32,0,0,24">
+    <StackPanel DockPanel.Dock="Right" Margin="32,0,0,24">
 {indent(heading("LOCGameDetails"), 8)}
 {indent(pane_xaml(True), 8)}
     </StackPanel>
@@ -484,7 +485,7 @@ def grid_panel():
         <ColumnDefinition Width="24" />
         <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
-    <StackPanel Grid.Column="2" Width="{{DynamicResource GridDetailsPaneWidth}}" Margin="0,0,0,24" VerticalAlignment="Top">
+    <StackPanel Grid.Column="2" Margin="0,0,0,24" VerticalAlignment="Top">
 {indent(heading("LOCGameDetails"), 8)}
 {indent(pane_xaml(False), 8)}
     </StackPanel>

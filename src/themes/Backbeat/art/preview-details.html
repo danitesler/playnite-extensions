@@ -1,0 +1,240 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Backbeat details preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--bb-night); color: var(--bb-paper);
+         font-family: "Segoe UI"; font-size: 14px; display: flex; }
+  svg { display: block; }
+  .glyph { width: 16px; height: 16px; fill: currentColor; }
+
+  .rail { width: 47px; flex: none; background: var(--bb-ink); border-right: 3px solid var(--bb-paper); position: relative; }
+  .rail .dots { position: absolute; left: 0; bottom: 0; width: 44px; height: 150px; background: var(--bb-cyan); opacity: .7;
+                -webkit-mask: url(../src/Images/fx/halftone-rail.png) 0 0 / 100% 100%; }
+  .menu { width: 44px; height: 52px; margin-bottom: 4px; display: grid; place-items: center; position: relative; }
+  .menu > svg:first-child { width: 40px; height: 40px; fill: var(--bb-orange); }
+  .menu .glyph { position: absolute; color: var(--bb-ink); }
+  .rail-item { width: 44px; height: 40px; display: grid; place-items: center; color: var(--bb-lilac); position: relative; }
+  .rail-item.on { color: var(--bb-paper); }
+  .rail-item.on::before { content: ""; position: absolute; width: 32px; height: 32px; left: 9px; top: 7px; background: var(--bb-yellow); transform: skewX(-9deg); }
+  .rail-item.on::after { content: ""; position: absolute; width: 32px; height: 32px; left: 6px; top: 4px; background: var(--bb-blue); border: 2px solid var(--bb-paper); transform: skewX(-9deg); }
+  .rail-item .glyph { position: relative; z-index: 1; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .top { height: 56px; flex: none; background: var(--bb-night); border-bottom: 3px solid var(--bb-paper); position: relative; display: flex; align-items: center; padding: 0 132px 0 12px; }
+  .tabs { position: absolute; left: 0; bottom: 0; display: flex; }
+  .tabs i { height: 6px; transform: skewX(-45deg); margin-right: -1px; display: block; }
+  .search { width: 260px; height: 32px; background: var(--bb-ink); border: 2px solid var(--bb-lilac); transform: skewX(-9deg); margin-right: 9px; flex: none; }
+  .search div { transform: skewX(9deg); display: flex; align-items: center; gap: 9px; height: 100%; padding: 0 10px; color: var(--bb-lilac); font-size: 14px; }
+  .items { display: flex; gap: 5px; }
+  .tool { width: 34px; height: 32px; position: relative; color: var(--bb-lilac); display: grid; place-items: center; flex: none; }
+  .tool::before { content: ""; position: absolute; inset: 0; background: var(--bb-panel); border: 2px solid var(--bb-lilac-dim); transform: skewX(-9deg); }
+  .tool.on { color: var(--bb-ink); }
+  .tool.on::before { background: var(--bb-yellow); border-color: var(--bb-ink); box-shadow: 3px 3px 0 var(--bb-ink); }
+  .tool .glyph { position: relative; }
+  .gap { margin-left: 10px; }
+  .badge { position: absolute; top: -5px; right: -5px; width: 17px; height: 17px; border-radius: 50%; background: var(--bb-red); border: 2px solid var(--bb-paper); font-size: 9px; line-height: 13px; text-align: center; color: var(--bb-paper); transform: rotate(-10deg); }
+  .caption { position: absolute; top: 0; right: 0; display: flex; }
+  .caption div { width: 40px; height: 32px; display: grid; place-items: center; color: var(--bb-lilac); }
+  .caption .glyph { width: 12px; height: 12px; }
+
+  .body { flex: 1; display: flex; min-height: 0; background: var(--bb-plum); }
+  .list { width: 236px; flex: none; padding: 8px 0; }
+  .row { height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 14px; position: relative; color: var(--bb-paper); white-space: nowrap; }
+  .row.off { color: var(--bb-lilac); }
+  .row.sel { color: var(--bb-ink); }
+  .row.sel::before { content: ""; position: absolute; left: 5px; right: 7px; top: 1px; bottom: 3px; background: var(--bb-yellow); border: 2px solid var(--bb-ink); box-shadow: 3px 3px 0 var(--bb-ink); transform: skewX(-9deg); }
+  .row i, .row span { position: relative; }
+  .row i { width: 20px; height: 20px; flex: none; border: 2px solid var(--bb-ink); }
+
+  .page { flex: 1; position: relative; overflow: hidden; min-width: 0; background: var(--bb-plum); }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 340px; overflow: hidden;
+          background: linear-gradient(180deg, #0868e8 0%, #28a8f0 58%, #f8b0c8 100%); }
+  .hero .sun { position: absolute; right: 440px; top: 26px; width: 110px; height: 110px; border-radius: 50%; background: #f8d828; }
+  .hero .city { position: absolute; left: 0; right: 0; bottom: 0; height: 210px; }
+  .hero .fade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(43,22,72,0) 12%, var(--bb-plum) 100%); }
+  .hero .dots { position: absolute; right: 0; top: 0; width: 420px; height: 102px; background: var(--bb-yellow); opacity: .85;
+                -webkit-mask: url(../src/Images/fx/halftone-wide.png) 0 0 / 100% 100%; }
+  .cut { position: absolute; left: 30px; top: 222px; height: 14px; width: calc(100% - 64px); overflow: visible; }
+
+  .head { position: absolute; left: 30px; right: 34px; top: 162px; display: flex; align-items: center; justify-content: space-between; }
+  h1 { font-family: var(--bb-font-heading); font-weight: 400; font-style: italic; font-size: 34px; line-height: 44px; color: var(--bb-paper); text-shadow: 3px 3px 0 var(--bb-ink); white-space: nowrap; }
+  .actions { display: flex; align-items: center; gap: 10px; flex: none; }
+  .play { width: 150px; height: 40px; position: relative; display: grid; place-items: center; font-family: var(--bb-font-heading); font-style: italic; font-size: 20px; color: var(--bb-ink); }
+  .play .star { position: absolute; left: -26px; top: -24px; width: 202px; height: 88px; fill: var(--bb-cyan); stroke: var(--bb-ink); stroke-width: 3; vector-effect: non-scaling-stroke; overflow: visible; }
+  .play::after { content: ""; position: absolute; inset: 0; background: var(--bb-yellow); border: 3px solid var(--bb-ink); box-shadow: 3px 3px 0 var(--bb-ink); transform: skewX(-9deg); }
+  .play span { position: relative; z-index: 1; }
+  .play .lines { position: absolute; z-index: 1; left: 8px; right: 8px; top: 5px; bottom: 5px; background: var(--bb-orange); opacity: .75;
+                 -webkit-mask: url(../src/Images/fx/speedlines.png) 0 0 / 512px 40px; }
+  .square { width: 40px; height: 40px; position: relative; display: grid; place-items: center; color: var(--bb-paper); }
+  .square::before { content: ""; position: absolute; inset: 0; background: var(--bb-panel); border: 2px solid var(--bb-paper); box-shadow: 3px 3px 0 var(--bb-ink); transform: skewX(-9deg); }
+  .square .glyph { position: relative; }
+
+  .columns { position: absolute; left: 30px; right: 34px; top: 252px; display: flex; gap: 28px; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .shot { height: 96px; border: 3px solid var(--bb-paper); box-shadow: 4px 4px 0 var(--bb-ink); }
+  .shot.a { background: linear-gradient(135deg, #f87808 0 42%, #2b1648 42% 58%, #28d8e8 58%); }
+  .shot.b { background: linear-gradient(60deg, #0868e8 0 50%, #f8d828 50% 72%, #e84848 72%); }
+  .label { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .sticker { position: relative; padding: 3px 12px; font-family: var(--bb-font-heading); font-style: italic; font-size: 16px; color: var(--bb-ink); flex: none; }
+  .sticker::before { content: ""; position: absolute; inset: 0; background: var(--bb-yellow); border: 2px solid var(--bb-ink); box-shadow: 3px 3px 0 var(--bb-ink); transform: skewX(-9deg); }
+  .sticker.o::before { background: var(--bb-orange); }
+  .sticker span { position: relative; }
+  .rule { flex: 1; height: 3px; background: var(--bb-lilac-dim); }
+  .ticks { display: flex; gap: 4px; align-items: center; }
+  .ticks i { width: 4px; height: 8px; background: var(--bb-lilac-dim); display: block; }
+  .ticks i:first-child { height: 14px; }
+  p { line-height: 21px; color: var(--bb-paper); }
+
+  .card { width: 342px; flex: none; position: relative; padding: 16px 18px 22px; }
+  .card::after { content: ""; position: absolute; left: 7px; right: 7px; top: 7px; bottom: 7px; }
+  .plate, .plate-shadow { position: absolute; left: 4px; right: 8px; top: 6px; bottom: 10px; transform: skewY(-1.4deg); }
+  .plate-shadow { background: var(--bb-orange); transform: translate(6px, 6px) skewY(-1.4deg); }
+  .plate { background: var(--bb-panel); border: 3px solid var(--bb-paper); }
+  .card .dots { position: absolute; right: 10px; top: 8px; width: 180px; height: 100px; background: var(--bb-cyan); opacity: .6;
+                -webkit-mask: url(../src/Images/fx/halftone-card.png) 0 0 / 100% 100%; }
+  .card .in { position: relative; padding: 4px 8px 0; }
+  .grp { border-top: 2px solid var(--bb-lilac-dim); padding: 6px 0; }
+  .grp:first-of-type { border-top: 0; }
+  .f { display: flex; padding: 3px 0; align-items: flex-start; }
+  .f b { width: 104px; font-size: 12px; font-weight: 600; color: var(--bb-lilac); padding-top: 2px; flex: none; }
+  .f span { color: var(--bb-paper); }
+  .link { color: var(--bb-cyan) !important; }
+  .score { color: var(--bb-green) !important; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px 6px; }
+  .chip { position: relative; font-size: 12px; padding: 2px 10px; color: var(--bb-paper); }
+  .chip::before { content: ""; position: absolute; inset: 0; background: var(--bb-ink); border: 2px solid var(--bb-cyan); transform: skewX(-9deg); }
+  .chip u { position: relative; text-decoration: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <path id="burst" d="M129.1,5.3 L146.7,52.8 179.6,17.0 177.2,61.8 221.3,56.7 197.7,93.2 241.7,100.0 208.2,128.0 245.4,159.1 203.3,165.1 218.2,197.0 174.9,187.8 182.6,232.6 146.7,209.2 126.9,246.0 110.7,203.7 82.1,232.3 79.0,187.8 41.4,198.4 58.0,159.8 9.0,157.2 45.3,127.9 10.5,100.0 54.8,95.3 32.3,51.6 77.1,65.5 74.3,24.7 110.0,53.3Z"/>
+    <symbol id="i-menu" viewBox="0 0 256 256"><path d="M40,44 L236,44 224,88 28,88Z M32,106 L228,106 216,150 20,150Z M24,168 L220,168 208,212 12,212Z"/></symbol>
+    <symbol id="i-lib" viewBox="0 0 256 256"><path d="M32,36 L88,36 88,220 32,220Z M104,36 L160,36 160,220 104,220Z M178,44 L226,30 246,206 198,220Z"/></symbol>
+    <symbol id="i-stat" viewBox="0 0 256 256"><path d="M24,148 L80,148 74,232 18,232Z M104,88 L160,88 154,232 98,232Z M184,24 L240,24 234,232 178,232Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 256 256"><path fill-rule="evenodd" d="M108,24 A84,84 0 1 0 108,192 A84,84 0 1 0 108,24Z M108,64 A44,44 0 1 1 108,152 A44,44 0 1 1 108,64Z M170,152 L238,212 210,240 150,172Z"/></symbol>
+    <symbol id="i-details" viewBox="0 0 256 256"><path d="M24,36 L96,36 92,76 20,76Z M24,108 L96,108 92,148 20,148Z M24,180 L96,180 92,220 20,220Z M124,36 L236,36 228,220 116,220Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 256 256"><path d="M36,28 L120,28 112,116 28,116Z M148,28 L232,28 224,116 140,116Z M28,140 L112,140 104,228 20,228Z M140,140 L224,140 216,228 132,228Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 256 256"><path d="M32,32 L236,32 228,84 24,84Z M32,102 L236,102 228,154 24,154Z M32,172 L236,172 228,224 24,224Z"/></symbol>
+    <symbol id="i-group" viewBox="0 0 256 256"><path d="M36,32 L232,32 224,76 28,76Z M72,104 L232,104 224,144 64,144Z M72,172 L232,172 224,212 64,212Z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 256 256"><path d="M28,36 L144,36 138,72 22,72Z M28,110 L112,110 106,146 22,146Z M28,184 L80,184 74,220 22,220Z M168,32 L212,32 212,150 240,150 190,232 140,150 168,150Z"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 256 256"><path d="M20,32 L236,32 156,128 150,224 100,196 100,128Z"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 256 256"><path d="M128,18 L170,56 186,158 222,194 34,194 70,158 86,56Z M98,208 L158,208 128,242Z"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 256 256"><path d="M30,102 L82,102 74,154 22,154Z M102,102 L154,102 146,154 94,154Z M174,102 L226,102 218,154 166,154Z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 256 256"><path d="M176,20 L236,80 94,222 20,236 34,162Z"/></symbol>
+    <symbol id="i-min" viewBox="0 0 256 256"><path d="M36,176 L220,176 220,222 36,222Z"/></symbol>
+    <symbol id="i-max" viewBox="0 0 256 256"><path fill-rule="evenodd" d="M32,32 L224,32 224,224 32,224Z M76,76 L76,180 180,180 180,76Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 256 256"><path d="M58,22 L128,92 198,22 234,58 164,128 234,198 198,234 128,164 58,234 22,198 92,128 22,58Z"/></symbol>
+  </defs>
+</svg>
+
+<nav class="rail" data-part="sidebar">
+  <div class="dots"></div>
+  <div class="menu" data-part="PART_ElemMainMenu"><svg viewBox="0 0 256 256"><use href="#burst"/></svg><svg class="glyph"><use href="#i-menu"/></svg></div>
+  <div class="rail-item on"><svg class="glyph"><use href="#i-lib"/></svg></div>
+  <div class="rail-item"><svg class="glyph"><use href="#i-stat"/></svg></div>
+</nav>
+
+<div class="main">
+  <header class="top" data-part="top-panel">
+    <div class="tabs"><i style="width:48px;background:var(--bb-orange)"></i><i style="width:30px;background:var(--bb-yellow)"></i><i style="width:18px;background:var(--bb-cyan)"></i></div>
+    <div class="search" data-part="PART_TextMainSearch"><div><svg class="glyph"><use href="#i-search"/></svg>Search library</div></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool on"><svg class="glyph"><use href="#i-details"/></svg></div>
+      <div class="tool"><svg class="glyph"><use href="#i-grid"/></svg></div>
+      <div class="tool"><svg class="glyph"><use href="#i-list"/></svg></div>
+      <div class="tool"><svg class="glyph"><use href="#i-group"/></svg></div>
+      <div class="tool"><svg class="glyph"><use href="#i-sort"/></svg></div>
+    </div>
+    <div class="tool gap" data-part="PART_ToggleFilter"><svg class="glyph"><use href="#i-filter"/></svg></div>
+    <div class="tool" style="margin-left:5px;color:var(--bb-yellow)" data-part="PART_ToggleNotifications"><svg class="glyph"><use href="#i-bell"/></svg><div class="badge">3</div></div>
+    <div class="caption"><div><svg class="glyph"><use href="#i-min"/></svg></div><div><svg class="glyph"><use href="#i-max"/></svg></div><div><svg class="glyph"><use href="#i-x"/></svg></div></div>
+  </header>
+
+  <div class="body">
+    <aside class="list" data-part="game-list">
+      <div class="row"><i style="background:#28d8e8"></i><span>Arcade Overdrive</span></div>
+      <div class="row off"><i style="background:#52307f"></i><span>Bassline Bandits</span></div>
+      <div class="row"><i style="background:#e84848"></i><span>Chrome Choir</span></div>
+      <div class="row sel"><i style="background:#f87808"></i><span>Static Encore</span></div>
+      <div class="row"><i style="background:#0868e8"></i><span>Drumline Drift</span></div>
+      <div class="row off"><i style="background:#3a2060"></i><span>Echo Factory</span></div>
+      <div class="row"><i style="background:#f8d828"></i><span>Feedback Loop</span></div>
+      <div class="row"><i style="background:#7ed957"></i><span>Groove Rail</span></div>
+      <div class="row off"><i style="background:#8a66b0"></i><span>Hook Line Zero</span></div>
+      <div class="row"><i style="background:#18a8b8"></i><span>Interlude City</span></div>
+      <div class="row"><i style="background:#e25500"></i><span>Jam Session 99</span></div>
+      <div class="row off"><i style="background:#52307f"></i><span>Kick Drum Kids</span></div>
+      <div class="row"><i style="background:#0848c0"></i><span>Loudness War</span></div>
+      <div class="row"><i style="background:#c7a6e6"></i><span>Mixtape Mayhem</span></div>
+      <div class="row off"><i style="background:#3a2060"></i><span>Night Shift Radio</span></div>
+      <div class="row"><i style="background:#f8d828"></i><span>Offbeat Heroes</span></div>
+      <div class="row"><i style="background:#28d8e8"></i><span>Power Chord Panic</span></div>
+      <div class="row off"><i style="background:#52307f"></i><span>Quarter Note Quest</span></div>
+    </aside>
+
+    <main class="page" data-part="game-page">
+      <div class="hero">
+        <div class="sun"></div>
+        <svg class="city" viewBox="0 0 1000 210" preserveAspectRatio="none">
+          <path fill="#52307f" d="M0,210 L0,110 60,110 60,70 130,80 130,130 210,120 210,40 290,52 290,140 380,128 380,90 470,100 470,150 560,140 560,60 650,72 650,130 740,120 740,30 830,44 830,140 920,130 920,90 1000,100 1000,210Z"/>
+          <path fill="#120821" d="M0,210 L0,170 90,160 90,190 200,178 200,150 310,164 310,196 430,182 430,160 540,172 540,194 660,180 660,156 780,170 780,196 900,182 900,164 1000,174 1000,210Z"/>
+        </svg>
+        <div class="fade"></div>
+        <div class="dots"></div>
+      </div>
+      <svg class="cut" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,100 L100,0" stroke="var(--bb-paper)" stroke-width="3" vector-effect="non-scaling-stroke" fill="none"/></svg>
+
+      <div class="head">
+        <h1>Static Encore</h1>
+        <div class="actions">
+          <div class="play"><svg class="star" viewBox="0 0 256 256" preserveAspectRatio="none"><use href="#burst"/></svg><div class="lines"></div><span>Play</span></div>
+          <div class="square"><svg class="glyph"><use href="#i-dots"/></svg></div>
+          <div class="square"><svg class="glyph"><use href="#i-edit"/></svg></div>
+        </div>
+      </div>
+
+      <div class="columns">
+        <div class="left">
+          <div class="shots"><div class="shot a"></div><div class="shot b"></div></div>
+          <div class="label"><div class="sticker"><span>Description</span></div><div class="rule"></div><div class="ticks"><i></i><i></i><i></i><i></i></div></div>
+          <p>A rhythm brawler about a garage band that hijacks the city's emergency broadcast. Every punch lands on the snare, every dodge rides the hi-hat, and the skyline nods along.</p>
+          <p style="margin-top:9px">Build a set list, wreck the corporate jingle machine, and keep the crowd on your side.</p>
+        </div>
+        <aside class="card" data-part="metadata">
+          <div class="plate-shadow"></div>
+          <div class="plate"></div>
+          <div class="dots"></div>
+          <div class="in">
+            <div class="label" style="margin-bottom:4px"><div class="sticker o"><span>Game details</span></div><div class="rule"></div><div class="ticks"><i></i><i></i><i></i><i></i></div></div>
+            <div class="grp">
+              <div class="f"><b>Completion</b><span class="link">Playing</span></div>
+              <div class="f"><b>Time played</b><span>18h 42m</span></div>
+              <div class="f"><b>Last played</b><span>Yesterday</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><b>Community score</b><span class="score">92</span></div>
+              <div class="f"><b>Critic score</b><span class="score">88</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><b>Developer</b><span class="link">Offbeat Works</span></div>
+              <div class="f"><b>Release date</b><span class="link">14 March 2024</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><b>Platform</b><div class="chips"><div class="chip"><u>PC (Windows)</u></div></div></div>
+              <div class="f"><b>Genres</b><div class="chips"><div class="chip"><u>Action</u></div><div class="chip"><u>Rhythm</u></div></div></div>
+              <div class="f"><b>Tags</b><div class="chips"><div class="chip"><u>Stylized</u></div><div class="chip"><u>Great soundtrack</u></div></div></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

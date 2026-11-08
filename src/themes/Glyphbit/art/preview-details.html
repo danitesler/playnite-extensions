@@ -1,0 +1,215 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Glyphbit details preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--gb-void); color: var(--gb-white);
+    font: 14px/1.35 Bahnschrift, 'Segoe UI'; }
+  svg { display: block; fill: currentColor; shape-rendering: crispEdges; }
+  .app { display: flex; width: 1280px; height: 720px; }
+
+  .rail { width: 44px; background: var(--gb-void); border-right: 1px solid var(--gb-slate); flex: none; }
+  .menu { height: 52px; margin-bottom: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gb-mint); position: relative; }
+  .menu i { position: absolute; bottom: 5px; width: 24px; height: 2px; background: linear-gradient(90deg, var(--gb-mint), var(--gb-magenta)); }
+  .item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--gb-ash); position: relative; padding-bottom: 3px; }
+  .item.on { color: var(--gb-mint); }
+  .item.on::before { content: ''; position: absolute; inset: 2px 5px; background: var(--gb-mint);
+    clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0 calc(100% - 2px), 0 2px); }
+  .item.on::after { content: ''; position: absolute; inset: 3px 6px; background: var(--gb-void);
+    clip-path: polygon(1px 0, calc(100% - 1px) 0, 100% 1px, 100% calc(100% - 1px), calc(100% - 1px) 100%, 1px 100%, 0 calc(100% - 1px), 0 1px); }
+  .item > span { position: relative; z-index: 1; }
+  .item .n { position: absolute; z-index: 1; bottom: 5px; display: flex; gap: 2px; }
+  .item .n b { width: 2px; height: 2px; background: var(--gb-mint); }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--gb-ink); }
+  .top { height: 52px; flex: none; display: flex; align-items: center; padding: 0 132px 2px 0; position: relative; background: var(--gb-void); }
+  .top .rule { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; display: flex; }
+  .top .rule b { flex: 1; }
+  .search { width: 240px; height: 32px; margin-left: 10px; background: var(--gb-slot); border: 1px solid var(--gb-edge); display: flex; align-items: center; gap: 8px; padding: 0 9px; color: var(--gb-ash); }
+  .cells { display: flex; margin-left: 6px; }
+  .cell { width: 32px; height: 32px; margin-left: 6px; display: flex; align-items: center; justify-content: center; color: var(--gb-ash); }
+  .cell.on { background: var(--gb-white); color: var(--gb-void);
+    clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0 calc(100% - 2px), 0 2px); }
+  .caps { position: absolute; top: 0; right: 0; display: flex; }
+  .caps span { width: 40px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--gb-ash); }
+
+  .body { flex: 1; display: flex; min-height: 0; }
+  .list { width: 228px; flex: none; padding-top: 4px; border-right: 1px solid var(--gb-slate); background: var(--gb-ink); }
+  .row { height: 31px; display: flex; align-items: center; gap: 9px; padding: 0 10px; color: var(--gb-ash); white-space: nowrap; overflow: hidden; }
+  .row i { width: 18px; height: 18px; flex: none; }
+  .row.on { background: var(--gb-magenta-deep); color: var(--gb-white); }
+
+  .page { flex: 1; position: relative; overflow: hidden; background: var(--gb-ink); min-width: 0; }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 320px; overflow: hidden; }
+  .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .hero .scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(6,4,8,.3) 0 1px, transparent 1px 3px); }
+  .hero .fade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, var(--gb-ink) 96%); }
+  .hero .edge { position: absolute; left: 0; bottom: 0; color: var(--gb-ink); }
+  .content { position: absolute; left: 28px; right: 28px; top: 170px; }
+  .head { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 20px; }
+  .head h1 { font: 600 30px/1.15 'Bahnschrift SemiCondensed', Bahnschrift; display: flex; align-items: center; gap: 12px; }
+  .icon { width: 32px; height: 32px; background: var(--gb-magenta); }
+  .acts { display: flex; gap: 8px; align-items: center; }
+  .play { position: relative; width: 160px; height: 40px; background: var(--gb-mint); color: var(--gb-void);
+    font: 600 20px/40px 'Bahnschrift SemiCondensed', Bahnschrift; padding-left: 16px;
+    clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0 calc(100% - 2px), 0 2px); }
+  .play .ramp { position: absolute; right: 0; top: 2px; bottom: 2px; width: 60px; display: flex; }
+  .play .ramp b { flex: 1; background: var(--gb-magenta); }
+  .sq { width: 40px; height: 40px; background: var(--gb-slot); box-shadow: inset 0 0 0 1px var(--gb-edge); display: flex; align-items: center; justify-content: center; }
+  .cols { display: flex; gap: 24px; align-items: flex-start; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 8px; margin-bottom: 18px; }
+  .shots div { flex: 1; min-width: 0; height: 92px; position: relative; overflow: hidden; }
+  .ramp2 { width: 96px; height: 4px; display: flex; margin-bottom: 12px; }
+  .ramp2 b { flex: 1; background: var(--gb-magenta); }
+  .desc { color: var(--gb-ash); line-height: 1.5; }
+
+  .meta { width: 332px; flex: none; position: relative; background: var(--gb-void); border: 2px solid var(--gb-magenta-deep); padding: 6px 16px 8px; }
+  .meta .pip { position: absolute; right: -2px; top: -2px; width: 6px; height: 6px; background: var(--gb-white); }
+  .meta .runes { position: absolute; left: 6px; top: 6px; color: var(--gb-magenta); }
+  .g { padding: 7px 0; border-top: 1px solid var(--gb-edge); }
+  .g:first-of-type { border-top: 0; }
+  .f { display: grid; grid-template-columns: 2fr 3fr; gap: 12px; padding: 4px 0; align-items: start; }
+  .f small { font-size: 12px; color: var(--gb-ash); padding-top: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chips span { font-size: 12px; padding: 3px 8px; background: var(--gb-slot); box-shadow: inset 0 0 0 1px var(--gb-edge); }
+  .good { color: var(--gb-mint); }
+  .note { position: absolute; right: 8px; bottom: 4px; font-size: 11px; color: var(--gb-mauve); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="rail" data-part="sidebar">
+    <div class="menu" data-part="PART_ElemMainMenu"><span data-g="MainMenu"></span><i></i></div>
+    <div class="item on"><span data-g="Library"></span><div class="n"><b></b><b></b><b></b></div></div>
+    <div class="item"><span data-g="Statistics"></span></div>
+    <div class="item"><span data-g="Explorer"></span></div>
+    <div class="item"><span data-g="Random"></span></div>
+  </div>
+  <div class="main">
+    <div class="top" data-part="top-panel">
+      <div class="search" data-part="PART_TextMainSearch"><span data-g="Search"></span></div>
+      <div class="cells" data-part="PART_PanelMainItems">
+        <div class="cell"><span data-g="ViewSettings"></span></div>
+        <div class="cell"><span data-g="Group"></span></div>
+        <div class="cell"><span data-g="Sort"></span></div>
+        <div class="cell on"><span data-g="DetailsView"></span></div>
+        <div class="cell"><span data-g="GridView"></span></div>
+        <div class="cell"><span data-g="ListView"></span></div>
+      </div>
+      <div class="cell" data-part="PART_ToggleFilter"><span data-g="Filter"></span></div>
+      <div class="cell" data-part="PART_ToggleNotifications" style="color:var(--gb-magenta)"><span data-g="Notifications"></span></div>
+      <div class="caps"><span data-g="WindowMinimize"></span><span data-g="WindowMaximize"></span><span data-g="WindowClose"></span></div>
+      <div class="rule" id="rule"></div>
+    </div>
+    <div class="body">
+      <div class="list" data-part="game-list" id="list"></div>
+      <div class="page" data-part="game-page">
+        <div class="hero">
+          <div id="hero" style="position:absolute;inset:0;overflow:hidden"></div>
+          <div class="scan"></div><div class="fade"></div>
+          <svg class="edge" width="2880" height="40" viewBox="0 0 2880 40"><path id="edge"/></svg>
+        </div>
+        <div class="content">
+          <div class="head">
+            <h1><span class="icon"></span>Ember Vault</h1>
+            <div class="acts">
+              <div class="play">Play<span class="ramp" id="ramp"></span></div>
+              <div class="sq"><span data-g="Options"></span></div>
+              <div class="sq"><span data-g="Edit"></span></div>
+            </div>
+          </div>
+          <div class="cols">
+            <div class="left">
+              <div class="shots"><div></div><div></div><div></div></div>
+              <div class="ramp2" id="ramp2"></div>
+              <p class="desc">A lone courier crosses a drowned city to relight the beacons at its core. Sparse, quiet and fast: every room is a puzzle of timing, and nothing explains itself.</p>
+            </div>
+            <div class="meta" data-part="metadata">
+              <i class="pip"></i>
+              <span class="runes" data-chrome="IconGlyphColumn" data-w="10" data-h="52"></span>
+              <div class="g">
+                <div class="f"><small>Completion Status</small><span>Playing</span></div>
+                <div class="f"><small>Time Played</small><span>41h 12m</span></div>
+              </div>
+              <div class="g">
+                <div class="f"><small>Critic Score</small><span class="good">92</span></div>
+              </div>
+              <div class="g">
+                <div class="f"><small>Developer</small><span>Lantern Works</span></div>
+                <div class="f"><small>Release Date</small><span>2024-03-31</span></div>
+              </div>
+              <div class="g">
+                <div class="f"><small>Platform</small><div class="chips"><span>PC</span></div></div>
+                <div class="f"><small>Genre</small><div class="chips"><span>Action</span><span>Adventure</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="note">Unofficial fan theme. Sample art is procedural.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="glyphs.js"></script>
+<script>
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  document.querySelectorAll('[data-g]').forEach(el => {
+    el.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16"><path d="${GLYPHS[el.dataset.g]}"/></svg>`;
+  });
+  document.querySelectorAll('[data-chrome]').forEach(el => {
+    const {chrome, w, h} = el.dataset;
+    el.innerHTML = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${GLYPHS[chrome]}"/></svg>`;
+  });
+  document.getElementById('edge').setAttribute('d', GLYPHS.IconCrumbleEdge);
+
+  const ramp = (host, n, fromVar) => { for (let i = 0; i < n; i++) { const b = document.createElement('b'); b.style.opacity = i / (n - 1); if (fromVar) b.style.background = fromVar; host.appendChild(b); } };
+  ramp(document.getElementById('ramp'), 12);
+  ramp(document.getElementById('ramp2'), 12);
+  // Tokens are injected after this script runs, so everything below stays in var() and resolves at paint time.
+  const ruleHost = document.getElementById('rule');
+  for (let i = 0; i < 24; i++) {
+    const [to, from, t] = i < 12 ? ['--gb-cyan', '--gb-magenta', i / 11] : ['--gb-mint', '--gb-cyan', (i - 12) / 11];
+    const b = document.createElement('b');
+    b.style.background = `color-mix(in srgb, var(${to}) ${Math.round(t * 100)}%, var(${from}))`;
+    ruleHost.appendChild(b);
+  }
+
+  const list = document.getElementById('list');
+  const names = ['Afterglow Protocol', 'Bone Harvest', 'Cinder Run', 'Deep Static', 'Ember Vault', 'Foundry Nine', 'Glasswater', 'Hollow Crown', 'Ion Saint', 'Kestrel Line', 'Low Orbit Choir', 'Mirrorfield', 'Night Garden', 'Outer Margin', 'Pale Engine', 'Quiet Reactor', 'Rust Psalm', 'Salt Meridian', 'Tide Archive', 'Umbra Works'];
+  const hues = ['--gb-magenta', '--gb-cyan', '--gb-mint', '--gb-amber', '--gb-violet', '--gb-red'];
+  names.forEach((n, i) => {
+    const r = document.createElement('div'); r.className = 'row' + (n === 'Ember Vault' ? ' on' : '');
+    r.innerHTML = `<i style="background:var(${hues[i % hues.length]})"></i>${n}`; list.appendChild(r);
+  });
+
+  function rng(seed) { return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296; }
+  function block(host, x, y, w, h, color) {
+    const d = document.createElement('i');
+    d.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:var(${color})`;
+    host.appendChild(d);
+  }
+  // Procedural placeholder art for a fictional game: floor tiles, a stepped pillar of light, mint plus sparks.
+  function paint(host, seed, W, H, cell) {
+    const r = rng(seed), pal = ['--gb-night', '--gb-violet', '--gb-magenta-dark', '--gb-teal', '--gb-slate'];
+    host.style.background = 'var(--gb-void)';
+    for (let i = 0; i < 110; i++) {
+      const w = cell * (2 + Math.floor(r() * 12)), h = cell * (1 + Math.floor(r() * 8));
+      block(host, Math.floor(r() * W / cell) * cell, Math.floor(r() * H / cell) * cell, w, h, pal[Math.floor(r() * pal.length)]);
+    }
+    const cx = Math.floor(W * .62 / cell) * cell;
+    for (let s = 0; s < 9; s++) {
+      block(host, cx - cell * (9 - s) * 2, cell * s * 2 + cell * 2, cell * (9 - s) * 4, cell * 2, s % 2 ? '--gb-magenta-deep' : '--gb-magenta');
+    }
+    for (let i = 0; i < 26; i++) {
+      const x = Math.floor(r() * W / cell) * cell, y = Math.floor(r() * H / cell) * cell, c = i % 5 ? '--gb-mint' : '--gb-cyan', u = Math.max(2, cell / 2);
+      block(host, x - u, y, u * 3, u, c); block(host, x, y - u, u, u * 3, c);
+    }
+  }
+  paint(document.getElementById('hero'), 42, 1008, 320, 8);
+  document.querySelectorAll('.shots div').forEach((c, i) => paint(c, [3, 7, 11][i], 196, 92, 4));
+</script>
+</body>
+</html>

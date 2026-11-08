@@ -36,7 +36,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 ## Component spacing (`src/Common.xaml`)
 
-Options rows on a 53px pitch at 1080p become 34-35 here (`ButtonPadding` 16,7; `InputPadding` 8,7); menu and list rows 30 tall; `GroupBoxHeaderFontSize` 22; `IconSize` 18; `GameBannerHeight` 360, `GameDetailsPaneWidth` 320, `GridDetailsPaneWidth` 270.
+Options rows on a 53px pitch at 1080p become 34-35 here (`ButtonPadding` 16,7; `InputPadding` 8,7); menu and list rows 30 tall; `GroupBoxHeaderFontSize` 22; `IconSize` 18; `GameBannerHeight` 360, `GameDetailsPaneWidth` 300, `GridDetailsPaneWidth` 300.
 
 ## Shell
 

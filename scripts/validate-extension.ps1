@@ -430,15 +430,168 @@ function Test-GameActionButtons {
     return @($errors | Select-Object -Unique)
 }
 
+function Test-StyleTriggerComplexAnimation {
+    <#
+        Crashes Playnite when game details open: a storyboard in an element's Style that animates through a sub-object, such
+        as (UIElement.RenderTransform).(ScaleTransform.ScaleY). The game page is built with no game bound, so the Game = null
+        trigger fires during template creation while that object is read-only. Build and load both succeed; the exception
+        ("Cannot animate '(0).(1)' on an immutable object instance") only comes when the page opens.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "*.xaml") {
+        $doc = Read-XamlDocument $file.FullName
+        if (-not $doc) { continue }
+        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        foreach ($node in $doc.SelectNodes("//*[local-name()='Style.Triggers']//*[@*[local-name()='Storyboard.TargetProperty']]")) {
+            $path = $node.GetAttribute("Storyboard.TargetProperty")
+            if ($path -notmatch "\)\.\(" -or $node.GetAttribute("Storyboard.TargetName")) { continue }
+            $errors.Add("${where}: a Style trigger animates '$path', which crashes Playnite when game details open (the transform is read-only while the page is built). Animate a plain property (Opacity, Margin, Height in a fixed-size host), or move the storyboard to the page's ControlTemplate.Triggers with an x:Name'd transform and Storyboard.TargetName (playnite-theme-dev reference.md, Hard rules).") | Out-Null
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}
+
+function Test-PathDataSyntax {
+    <#
+        Path data is parsed only when its template is built, so a malformed string passes the build and crashes Playnite when
+        that page opens ("Unexpected token 'F1MM...'"). Catches the ways a pasted geometry breaks: no leading move command, or
+        a command with no coordinates before the next letter. Z/z take no coordinates, and bindings and resources are skipped.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "*.xaml") {
+        $doc = Read-XamlDocument $file.FullName
+        if (-not $doc) { continue }
+        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        foreach ($node in $doc.SelectNodes("//@Data | //@Geometry | //@Figures | //*[local-name()='Geometry']/text() | //*[local-name()='Setter'][@Property='Data']/@Value")) {
+            $data = "$($node.Value)".Trim()
+            if (-not $data -or $data.StartsWith("{")) { continue }
+            $body = $data -replace "^[Ff]\s*[01]\s*", ""
+            $problem = $null
+            if ($body -notmatch "^[Mm]") { $problem = "it must start with a move (M) command" }
+            elseif ($body -match "[MmLlHhVvCcQqSsTtAa]\s*[A-Za-z]") { $problem = "'$($Matches[0])' is a command with no coordinates" }
+            if ($problem) {
+                $shown = $data.Substring(0, [Math]::Min(32, $data.Length))
+                $errors.Add("${where}: path data '$shown...' is malformed: $problem. It passes the build but crashes Playnite when this page opens.") | Out-Null
+            }
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}
+
+function Test-FormControlHeight {
+    <#
+        AGENTS.md "Form field height": every form field and button is the same height in every theme, ControlHeight (32).
+        Text boxes, dropdowns, Playnite's list dropdowns, date pickers, number and path boxes and buttons line up on one row.
+        A padding applied twice (on PART_ContentHost or the Border around it) makes text boxes taller than their neighbours.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $value = "{DynamicResource ControlHeight}"
+    $read = {
+        param($relative)
+        $path = Join-Path $Directory $relative
+        if (Test-Path $path) { Read-XamlDocument $path } else { $null }
+    }
+    $common = & $read "Common.xaml"
+    $height = if ($common) { $common.SelectSingleNode("//*[@*[local-name()='Key']='ControlHeight']") } else { $null }
+    if (-not $height -or $height.InnerText.Trim() -ne "32") {
+        $errors.Add("Common.xaml: ControlHeight must be 32, the shared form field height (AGENTS.md Form field height).") | Out-Null
+    }
+    foreach ($item in @(@("DefaultControls/TextBox.xaml", "TextBox"), @("DefaultControls/PasswordBox.xaml", "PasswordBox"), @("DefaultControls/ComboBox.xaml", "ComboBox"), @("DefaultControls/Button.xaml", "Button"))) {
+        $doc = & $read $item[0]
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $item[0]
+        if (-not $doc) { $errors.Add("${where}: missing; every theme restyles $($item[1]) so it can take ControlHeight (AGENTS.md Form field height).") | Out-Null; continue }
+        $style = $null
+        foreach ($candidate in $doc.SelectNodes("//*[local-name()='Style']")) {
+            if ($candidate.GetAttribute("TargetType") -match "^(\{x:Type $($item[1])\}|$($item[1]))$" -and -not $candidate.GetAttribute("Key", "http://schemas.microsoft.com/winfx/2006/xaml")) { $style = $candidate; break }
+        }
+        if (-not $style) { continue }
+        if (-not $style.SelectSingleNode(".//*[local-name()='Setter'][@Property='MinHeight' and @Value='$value']")) {
+            $errors.Add("${where}: the base $($item[1]) style needs MinHeight = ControlHeight, so it matches the other fields (AGENTS.md Form field height).") | Out-Null
+        }
+        foreach ($setter in $style.SelectNodes("./*[local-name()='Setter'][(@Property='MinHeight' or @Property='Height') and @Value!='$value']")) {
+            $errors.Add("${where}: the base $($item[1]) style sets $($setter.GetAttribute('Property')) to $($setter.GetAttribute('Value')); use ControlHeight only (AGENTS.md Form field height).") | Out-Null
+        }
+        $host_ = $style.SelectSingleNode(".//*[@*[local-name()='Name']='PART_ContentHost']")
+        if ($host_) {
+            $parent = $host_.ParentNode
+            if ($host_.GetAttribute("Margin") -match "TemplateBinding Padding" -or $parent.GetAttribute("Padding") -match "TemplateBinding Padding") {
+                $errors.Add("${where}: Padding is applied twice. WPF already applies it to PART_ContentHost, so remove it from the host's Margin and from the Border around it (AGENTS.md Form field height).") | Out-Null
+            }
+        }
+    }
+    foreach ($relative in "CustomControls/ComboBoxList.xaml", "CustomControls/FilterSelectionBox.xaml", "CustomControls/NumericBoxes.xaml", "CustomControls/PathSelectionBox.xaml", "DefaultControls/DatePicker.xaml") {
+        $path = Join-Path $Directory $relative
+        if (-not (Test-Path $path) -or -not ((Get-Content -Raw $path) -match "ControlHeight")) {
+            $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+            $errors.Add("${where}: must set ControlHeight on Playnite's control (it defaults to 24). new-theme.ps1 scaffolds this file (AGENTS.md Form field height).") | Out-Null
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}
+
+function Test-TabItemColors {
+    <#
+        AGENTS.md "Tab colours": the game edit dialog's labels are TextBlocks with no colour, so they inherit the selected
+        TabItem's Foreground, and its tab headers bind Foreground to an ancestor TextBlock. A selected tab that recolours
+        itself therefore recolours the whole page (dark text for a bright plate made Backbeat's labels unreadable), and a
+        header with no TextBlock around it renders black.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $relative = "DefaultControls/TabControl.xaml"
+    $path = Join-Path $Directory $relative
+    if (-not (Test-Path $path)) { return @() }
+    $doc = Read-XamlDocument $path
+    if (-not $doc) { return @() }
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+    $style = $null
+    foreach ($candidate in $doc.SelectNodes("//*[local-name()='Style']")) {
+        if ($candidate.GetAttribute("TargetType") -match "^(\{x:Type TabItem\}|TabItem)$" -and -not $candidate.GetAttribute("Key", "http://schemas.microsoft.com/winfx/2006/xaml")) { $style = $candidate; break }
+    }
+    if (-not $style) { return @() }
+
+    $normal = "{DynamicResource TextBrush}"
+    $selectedSetsIt = $false
+    foreach ($setter in $style.SelectNodes(".//*[contains(local-name(), 'Triggers')]//*[local-name()='Setter'][@Property='Foreground' and not(@TargetName)]")) {
+        $trigger = $setter.ParentNode
+        if ($trigger.LocalName -eq "MultiTrigger.Setters") { $trigger = $trigger.ParentNode }
+        $unselected = ($trigger.GetAttribute("Property") -eq "IsSelected" -and $trigger.GetAttribute("Value") -eq "False") -or
+            $trigger.SelectSingleNode(".//*[local-name()='Condition'][@Property='IsSelected' and @Value='False']")
+        if ($unselected) { continue }
+        if ($trigger.GetAttribute("Property") -eq "IsSelected") { $selectedSetsIt = $true }
+        if ($setter.GetAttribute("Value") -ne $normal) {
+            $errors.Add("${where}: a TabItem trigger sets the tab's own Foreground to $($setter.GetAttribute('Value')). The tab page inherits it, so labels in the game edit dialog change colour. Set it on the header TextBlock with TargetName (AGENTS.md Tab colours).") | Out-Null
+        }
+    }
+    if (-not $selectedSetsIt) {
+        $base = $style.SelectSingleNode("./*[local-name()='Setter'][@Property='Foreground']")
+        if ($base -and $base.GetAttribute("Value") -ne $normal) {
+            $errors.Add("${where}: the TabItem style's Foreground is $($base.GetAttribute('Value')), but the selected tab's page inherits it. Keep TextBrush on the TabItem and put the header colour on its TextBlock (AGENTS.md Tab colours).") | Out-Null
+        }
+    }
+    $presenter = $style.SelectSingleNode(".//*[local-name()='ContentPresenter'][@ContentSource='Header']")
+    if ($presenter -and -not $presenter.SelectSingleNode("ancestor::*[local-name()='TextBlock']")) {
+        $errors.Add("${where}: the tab header ContentPresenter needs a TextBlock around it. The game edit dialog binds its header colour to an ancestor TextBlock, and without one the text is black (AGENTS.md Tab colours).") | Out-Null
+    }
+    return @($errors | Select-Object -Unique)
+}
+
 function Test-ThemeModifierIconButtons {
     <#
         AGENTS.md "ThemeModifier icon buttons": ThemeModifier hardcodes its pick (pencil) and restore (X) buttons at
         Width=41 (editor XAML and constants code), inside two fixed 41px columns, with no Height. A Width=41 style
-        trigger lets a theme draw them as a small square icon button and never clip the glyph, while every auto-width
-        button keeps its own padding: Padding 0, both content alignments Center, MinWidth 41 and MinHeight 41 (square,
-        since the plugin's width is 41 — a theme's own MinWidth, e.g. MUI's 64, would coerce them wider), and a small
-        glyph FontSize around 16. Missing the trigger, the buttons fall back to the theme's body padding and the glyph
-        is clipped to a sliver.
+        trigger pins an internal 41x41 square and uniformly layout-scales it by 32/41. The resulting button and its
+        content occupy 32x32px, including explicitly sized child glyphs and theme decoration. Auto-width buttons keep
+        their own padding. RenderTransform is insufficient because it leaves the old desired layout size.
     #>
     param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
 
@@ -455,7 +608,7 @@ function Test-ThemeModifierIconButtons {
 
         $trigger = $style.SelectSingleNode("*[local-name()='Style.Triggers']/*[local-name()='Trigger'][@Property='Width'][@Value='41']")
         if (-not $trigger) {
-            $errors.Add("${where}: no Width=41 trigger for ThemeModifier's icon buttons. Add it to the base Button style so the plugin's pencil / restore buttons are a 41x41 square with a small, centred glyph (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            $errors.Add("${where}: no Width=41 trigger for ThemeModifier's icon buttons. Add it to the base Button style with a uniform 32/41 LayoutTransform for a rendered 32x32 square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
             continue
         }
 
@@ -485,8 +638,8 @@ function Test-ThemeModifierIconButtons {
             $minHeightShown = $setter.GetAttribute("Value")
             [void][double]::TryParse($minHeightShown, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$minHeight)
         }
-        if ($minHeight -lt 41) {
-            $errors.Add("${where}: the Width=41 trigger sets MinHeight '$minHeightShown', below the 41px that makes ThemeModifier's buttons square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+        if ($minHeight -ne 41) {
+            $errors.Add("${where}: the Width=41 trigger must pin internal MinHeight to 41 before scaling to 32px; got '$minHeightShown' (AGENTS.md ThemeModifier icon buttons).") | Out-Null
         }
 
         $minWidth = 0.0
@@ -498,6 +651,21 @@ function Test-ThemeModifierIconButtons {
         }
         if ($minWidth -ne 41) {
             $errors.Add("${where}: the Width=41 trigger sets MinWidth '$minWidthShown'; pin it to 41. A theme's own MinWidth (MUI-style buttons use 64) coerces the plugin's 41px buttons wider and the two overlap in Edit constants (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+        }
+
+        foreach ($property in @("Height", "MaxWidth", "MaxHeight")) {
+            $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='$property']")
+            if (-not $setter -or $setter.GetAttribute("Value") -ne "41") {
+                $errors.Add("${where}: the Width=41 trigger must pin internal $property to 41 so uniform 32/41 layout scaling produces a 32x32 square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            }
+        }
+        $scale = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='LayoutTransform']/*[local-name()='Setter.Value']/*[local-name()='ScaleTransform']")
+        foreach ($axis in @("ScaleX", "ScaleY")) {
+            $value = 0.0
+            if ($scale) { [void][double]::TryParse($scale.GetAttribute($axis), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$value) }
+            if ([Math]::Abs($value - 32.0 / 41.0) -gt 0.000000001) {
+                $errors.Add("${where}: the Width=41 trigger must set LayoutTransform ScaleTransform $axis to 0.7804878048780488 (32/41), scaling the button and its content proportionally to 32px (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            }
         }
 
         $fontSize = 0.0
@@ -631,7 +799,7 @@ if ($isTheme) {
                 $errors.Add("Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')")
             }
             $themeSourceRoot = "$($profile.dir)/src"
-            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot)) {
+            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot)) {
                 $errors.Add($ruleError)
             }
         }

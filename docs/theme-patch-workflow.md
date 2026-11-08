@@ -13,10 +13,13 @@ individually. This checklist keeps the 29 copies in sync.
 | Game-page skeleton pieces | `GameBannerHeight` in `Common.xaml`, `MathConverter` spacer + `ActualHeight == 0` trigger, `Meta*` groups, `PropertyItemButton` chip trigger |
 | Sidebar rail | 44px rail, 44x40 items, 16px glyphs; exactly one of fixed plate padding or `{Binding IconPadding}` (`SidebarIconPadding` validator rule) |
 | Corner radii | `ControlCornerRadius` on base controls / PlayButton / chips / tracks; `CornerRadiusFull` only on 1:1 squares (validator rule) |
-| ThemeModifier buttons | `DefaultControls/Button.xaml`: a `Width == 41` trigger (`Padding="0"`, content centered, `MinWidth` 41, `MinHeight` 41, `FontSize` 16) that renders the plugin's fixed-width pencil / restore buttons as small 41x41 squares (`ThemeModifierIconButtons` validator rule) |
+| ThemeModifier buttons | `DefaultControls/Button.xaml`: retain `Width == 41` detection, pin internal height and width/height min/max to 41, zero padding and centered content, then uniformly layout-scale by 32/41 for a 32x32 button with proportional glyphs and decoration (`ThemeModifierIconButtons` validator rule) |
 | Statistics page | `DefaultControls/GroupBox.xaml`: content-sized — no child reports a large desired width (no Path/Line over ~200px, no fixed `Width`/`MinWidth` ≥ 200); spanning art goes in a clipped `Canvas` so the sections wrap as cards (`GroupBoxContentSized` validator rule) |
 | ComboBox chevron | `DefaultControls/ComboBox.xaml`: `ContentSite` reserves ≥12px on its right (right margin or its own grid column) so a short value never runs under the dropdown arrow (`ComboBoxChevronRoom` validator rule) |
 | Game action buttons | `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml`: More and Edit are icon-only, the same fixed square, each with a `ToolTip`, Edit always visible (`GameActionButtons` validator rule) |
+| Tab colours | `DefaultControls/TabControl.xaml`: the `TabItem` keeps `TextBrush` because the tab page inherits it; header colours go on the `TextBlock` around the header with `TargetName` (`TabItemColors` validator rule) |
+| Form field height | `Common.xaml` `ControlHeight` = 32, base `TextBox` / `PasswordBox` / `ComboBox` / `Button` styles, and the overlays `ComboBoxList`, `FilterSelectionBox`, `NumericBoxes`, `PathSelectionBox`, `DatePicker`: every field and button is 32px, and text box padding is applied once (`FormControlHeight` validator rule) |
+| Game page crash guards | Every theme XAML: no storyboard in a `Style` trigger that animates through a sub-object such as `RenderTransform` (`StyleTriggerComplexAnimation` validator rule), and well-formed path data (`PathDataSyntax` validator rule). Both pass the build and crash Playnite when game details open |
 
 Per-theme `AGENTS.md` records only what differs from the skeleton.
 

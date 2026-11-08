@@ -1,0 +1,124 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Backbeat settings preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--bb-plum); color: var(--bb-paper); font-family: "Segoe UI"; font-size: 14px; display: grid; place-items: center; position: relative; }
+  .backdrop { position: absolute; right: 0; top: 0; width: 420px; height: 120px; background: var(--bb-panel-hi);
+              -webkit-mask: url(../src/Images/fx/halftone-wide.png) 0 0 / 100% 100%; }
+  .win { width: 920px; height: 680px; background: var(--bb-night); border: 2px solid var(--bb-paper); box-shadow: 8px 8px 0 var(--bb-ink); display: flex; flex-direction: column; position: relative; }
+  .bar { height: 40px; flex: none; background: var(--bb-ink); border-bottom: 3px solid var(--bb-paper); display: flex; align-items: center; justify-content: space-between; padding-left: 14px; }
+  .title { position: relative; padding: 2px 12px; font-family: var(--bb-font-heading); font-style: italic; font-size: 14px; color: var(--bb-ink); }
+  .title::before { content: ""; position: absolute; inset: 0; background: var(--bb-yellow); border: 2px solid var(--bb-ink); transform: skewX(-9deg); }
+  .title span { position: relative; }
+  .close { width: 40px; height: 32px; display: grid; place-items: center; color: var(--bb-lilac); align-self: flex-start; margin-top: 1px; }
+  .close svg { width: 12px; height: 12px; fill: currentColor; }
+  .mid { flex: 1; display: flex; min-height: 0; }
+  .tree { width: 224px; flex: none; padding: 6px 0; border-right: 2px solid var(--bb-lilac-dim); font-size: 13.5px; }
+  .node { padding: 4px 8px 4px 10px; color: var(--bb-lilac); border-left: 4px solid transparent; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .node.sub { padding-left: 32px; }
+  .node.sel { background: var(--bb-blue); border-left-color: var(--bb-yellow); color: var(--bb-paper); }
+  .node em { font-style: normal; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid var(--bb-yellow); flex: none; }
+  .content { flex: 1; padding: 20px 26px; min-width: 0; }
+  .label { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .sticker { position: relative; padding: 3px 12px; font-family: var(--bb-font-heading); font-style: italic; font-size: 16px; color: var(--bb-ink); flex: none; }
+  .sticker::before { content: ""; position: absolute; inset: 0; background: var(--bb-yellow); border: 2px solid var(--bb-ink); box-shadow: 3px 3px 0 var(--bb-ink); transform: skewX(-9deg); }
+  .sticker span { position: relative; }
+  .rule { flex: 1; height: 3px; background: var(--bb-lilac-dim); }
+  .ticks { display: flex; gap: 4px; align-items: center; }
+  .ticks i { width: 4px; height: 8px; background: var(--bb-lilac-dim); display: block; }
+  .ticks i:first-child { height: 14px; }
+  .opt { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .box { width: 20px; height: 20px; background: var(--bb-ink); border: 2px solid var(--bb-paper); position: relative; flex: none; }
+  .box svg { position: absolute; left: -2px; top: -2px; overflow: visible; }
+  .radio { width: 20px; height: 20px; border-radius: 50%; background: var(--bb-ink); border: 2px solid var(--bb-paper); display: grid; place-items: center; flex: none; }
+  .radio svg { width: 15px; height: 15px; fill: var(--bb-yellow); }
+  .sep { height: 2px; background: var(--bb-lilac-dim); margin: 18px 0; }
+  .field { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .field > b { font-weight: 400; width: 150px; color: var(--bb-paper); flex: none; }
+  .input, .combo { height: 32px; width: 300px; background: var(--bb-ink); border: 2px solid var(--bb-lilac); padding: 0 8px; display: flex; align-items: center; justify-content: space-between; }
+  .input.focus { border-color: var(--bb-yellow); }
+  .combo i { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid var(--bb-yellow); margin-right: 1px; }
+  .slider { width: 300px; height: 22px; position: relative; }
+  .slider .t { position: absolute; left: 0; right: 0; top: 7px; height: 8px; background: var(--bb-ink); border: 2px solid var(--bb-lilac-dim); }
+  .slider .f { position: absolute; left: 2px; top: 9px; height: 4px; width: 192px; background: var(--bb-yellow); }
+  .slider svg { position: absolute; left: 186px; top: 0; }
+  .progress { width: 300px; height: 18px; background: var(--bb-ink); border: 2px solid var(--bb-lilac-dim); padding: 2px; }
+  .progress div { height: 100%; width: 62%; background: repeating-linear-gradient(107deg, var(--bb-yellow) 0 9px, transparent 9px 13px); }
+  .btns { display: flex; gap: 14px; margin-top: 22px; }
+  .btn { position: relative; height: 32px; padding: 0 18px; display: grid; place-items: center; color: var(--bb-paper); }
+  .btn::before { content: ""; position: absolute; inset: 0; background: var(--bb-panel); border: 2px solid var(--bb-paper); box-shadow: 3px 3px 0 var(--bb-ink); transform: skewX(-9deg); }
+  .btn.p { color: var(--bb-ink); }
+  .btn.p::before { background: var(--bb-orange); border-color: var(--bb-ink); }
+  .btn.h::before { background: var(--bb-blue); }
+  .btn span { position: relative; }
+  .foot { height: 54px; flex: none; border-top: 3px solid var(--bb-lilac-dim); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .foot small { color: var(--bb-lilac); font-size: 13px; }
+  .foot .btns { margin: 0; gap: 12px; }
+  /* Form fields and buttons: 32px, the theme's ControlHeight. */
+  div.combo, div.input.focus { height: 32px; min-height: 32px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="backdrop"></div>
+<section class="win" data-part="settings-window">
+  <div class="bar"><div class="title"><span>Settings</span></div><div class="close"><svg viewBox="0 0 256 256"><path d="M58,22 L128,92 198,22 234,58 164,128 234,198 198,234 128,164 58,234 22,198 92,128 22,58Z"/></svg></div></div>
+  <div class="mid">
+    <nav class="tree" data-part="settings-nav">
+      <div class="node">General</div>
+      <div class="node"><em></em>Appearance</div>
+      <div class="node sub sel">General</div>
+      <div class="node sub">Advanced</div>
+      <div class="node sub">Details View</div>
+      <div class="node sub">Grid View</div>
+      <div class="node sub">List View</div>
+      <div class="node sub">Layout</div>
+      <div class="node sub">Top panel</div>
+      <div class="node">Search</div>
+      <div class="node">Updating</div>
+      <div class="node">Metadata</div>
+      <div class="node">Sorting</div>
+      <div class="node">Scripts</div>
+      <div class="node">Auto Close Clients</div>
+      <div class="node">Import Exclusion List</div>
+      <div class="node">Backup</div>
+      <div class="node">For developers</div>
+      <div class="node">Input</div>
+      <div class="node">Advanced</div>
+      <div class="node">Performance</div>
+    </nav>
+    <div class="content" data-part="settings-content">
+      <div class="label"><div class="sticker"><span>Appearance</span></div><div class="rule"></div><div class="ticks"><i></i><i></i><i></i><i></i></div></div>
+
+      <div class="opt"><div class="box"><svg width="20" height="20"><path d="M4,10 L9,15 20,-2" stroke="var(--bb-ink)" stroke-width="7" fill="none"/><path d="M4,10 L9,15 20,-2" stroke="var(--bb-yellow)" stroke-width="3.5" fill="none"/></svg></div>Show game details on hover</div>
+      <div class="opt"><div class="box"></div>Show background image on main screen</div>
+      <div class="opt"><div class="radio"><svg viewBox="0 0 256 256"><path d="M129.1,5.3 L146.7,52.8 179.6,17.0 177.2,61.8 221.3,56.7 197.7,93.2 241.7,100.0 208.2,128.0 245.4,159.1 203.3,165.1 218.2,197.0 174.9,187.8 182.6,232.6 146.7,209.2 126.9,246.0 110.7,203.7 82.1,232.3 79.0,187.8 41.4,198.4 58.0,159.8 9.0,157.2 45.3,127.9 10.5,100.0 54.8,95.3 32.3,51.6 77.1,65.5 74.3,24.7 110.0,53.3Z"/></svg></div>Dark background blur</div>
+      <div class="opt"><div class="radio"></div>No background blur</div>
+
+      <div class="sep"></div>
+
+      <div class="field"><b>Language</b><div class="combo"><span>English</span><i></i></div></div>
+      <div class="field"><b>Theme</b><div class="input focus">Backbeat</div></div>
+      <div class="field"><b>Cover art zoom</b>
+        <div class="slider"><div class="t"></div><div class="f"></div>
+          <svg width="18" height="22"><path d="M9,21 C5,16 1,9 1,5 C1,2 4,1 9,1 C14,1 17,2 17,5 C17,9 13,16 9,21Z" fill="var(--bb-orange)" stroke="var(--bb-ink)" stroke-width="2"/></svg>
+        </div>
+      </div>
+      <div class="field"><b>Library update</b><div class="progress"><div></div></div></div>
+
+      <div class="btns">
+        <div class="btn p"><span>Apply</span></div>
+        <div class="btn"><span>Browse</span></div>
+        <div class="btn h"><span>Hovered</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot" data-part="settings-buttons">
+    <small>* Requires restart to apply</small>
+    <div class="btns"><div class="btn p"><span>Save</span></div><div class="btn"><span>Cancel</span></div></div>
+  </div>
+</section>
+</body>
+</html>

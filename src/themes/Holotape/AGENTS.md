@@ -49,7 +49,7 @@ Fonts: `FontFamily` Bahnschrift, Segoe UI (body); `HeadingFontFamily` Monofonto,
 
 ## Component spacing (`src/Common.xaml`)
 
-Rows 32px (`ButtonPadding` 14,6.5; `InputPadding` 10,6.5); menu and list rows 28 (`MenuItemPadding` 10,4.5,16,4.5); `MenuPadding` 4; `IconSize` 18; focus box 2px outside the control. `GameBannerHeight` 340, `GameDetailsPaneWidth` 320, `GridDetailsPaneWidth` 260.
+Rows 32px (`ButtonPadding` 14,6.5; `InputPadding` 10,6.5); menu and list rows 28 (`MenuItemPadding` 10,4.5,16,4.5); `MenuPadding` 4; `IconSize` 18; focus box 2px outside the control. `GameBannerHeight` 340, `GameDetailsPaneWidth` 300, `GridDetailsPaneWidth` 300.
 
 ## Shell
 

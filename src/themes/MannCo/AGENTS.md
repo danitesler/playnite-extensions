@@ -65,7 +65,7 @@ Radii: `ControlCornerRadius` 2, `CornerRadiusSmall` 1, Large 4, XLarge 6; `Corne
 | `TooltipPadding` | 10,6 | |
 | `IconSize` | 18 | |
 | `GameBannerHeight` | 340 | Spacer 180 of 340 on the details view, 80 of 340 on the grid panel |
-| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 340 / 280 | Metadata pane beside the text (both defined in `Constants.template.xaml`, ThemeModifier edits them) |
+| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 300 / 300 | Metadata pane beside the text (both defined in `Constants.template.xaml`, ThemeModifier edits them) |
 
 ## Shell
 
@@ -78,7 +78,7 @@ Radii: `ControlCornerRadius` 2, `CornerRadiusSmall` 1, Large 4, XLarge 6; `Corne
 
 ## Game page
 
-Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fading into the page, spacer `x * 180 / 340` (24 when the banner is off), header with a 28px bold title, a RED Play button and the cover on the right with a 2px ink frame, then the left column (Steam screenshots with the 12 s pulsing skeleton, notes, description) and a 340px metadata pane on the right. Grid panel: spacer `x * 80 / 340` (40 when off), 20px side padding, two columns like the details view with a `GridDetailsPaneWidth` (280) pane on the right and a 24px gap, captions beside values, close button over the top right. The pane is an `ExpanderBackgroundBrush` card with a 1px edge, 16px side padding, groups separated by a 1px `WindowPanelSeparatorBrush` rule (the first rule is clipped by a `-1` top margin), captions in bold 11px `HeadingFontFamily` at 120px (details) and tags as 2px-radius chips. A caption is a `TextBlock` with `Tag="Caption"`; a trigger in the pane's resources styles it, so no extra keys are defined. The description `HtmlTextView` takes brushes (`TextBrush`, `GlyphBrush`) and reads their `Color` through bindings.
+Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fading into the page, spacer `x * 180 / 340` (24 when the banner is off), header with a 28px bold title, a RED Play button and the cover on the right with a 2px ink frame, then the left column (Steam screenshots with the 12 s pulsing skeleton, notes, description) and a metadata pane with 300px of usable content on the right. Grid panel: spacer `x * 80 / 340` (40 when off), 20px side padding, two columns like the details view with a `GridDetailsPaneWidth` (280) pane on the right and a 24px gap, captions beside values, close button over the top right. The pane is an `ExpanderBackgroundBrush` card with a 1px edge, 16px side padding, groups separated by a 1px `WindowPanelSeparatorBrush` rule (the first rule is clipped by a `-1` top margin), captions in bold 11px `HeadingFontFamily` at 120px (details) and tags as 2px-radius chips. A caption is a `TextBlock` with `Tag="Caption"`; a trigger in the pane's resources styles it, so no extra keys are defined. The description `HtmlTextView` takes brushes (`TextBrush`, `GlyphBrush`) and reads their `Color` through bindings.
 
 ## Components
 
