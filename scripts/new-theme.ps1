@@ -297,6 +297,8 @@ Which $DesignSystem token plays each key (Playnite palette first, then shared ke
 
 ## Components
 
+Both game overview files must include a designed empty state using ``LOCErrorNoGameSelected``. Keep the details ``PART_ScrollViewHost`` explicitly ``Visibility="Visible"`` so the inherited ``DetailsScrollViewer`` style cannot hide it on a null DataContext. Verify an initially empty selection, selected game -> grid -> details with selection cleared, and selecting a game again. See the theme-development reference's Interactive layer.
+
 | Playnite file | $DesignSystem component |
 |---------------|-------------------------|
 | TODO | |
