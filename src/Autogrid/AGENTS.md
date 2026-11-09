@@ -6,7 +6,7 @@
 
 ## Product arc
 
-1. **Core behavior** — Hook main window `SizeChanged` / `LayoutUpdated` / `StateChanged`, debounce ~50ms, read/write settings via reflection on the same `AppSettings` object Playnite binds to (`GridItemWidth`, `GridItemSpacing`).
+1. **Core behavior** — Hook main window `SizeChanged` / `StateChanged` / `LayoutUpdated` (the last only when the games list's measured size changed; see Debounce), debounce ~50ms, read/write settings via reflection on the same `AppSettings` object Playnite binds to (`GridItemWidth`, `GridItemSpacing`).
 2. **Column / gutter issues** — Viewport was initially guessed from window width / `ScrollViewer`; themes with max-width columns or margins caused wrong wrap width and side gutters.
 3. **Gutter fix** — `GridLayoutService` picks a games `ScrollViewer` and uses its **viewport width** as the wrap target (not `ItemsPresenter` ActualWidth, which follows the tiles and locks side gutters). Presenter `MaxWidth` / margin still constrain. `ViewportAdjustPx` remains the theme-escape hatch.
 4. **Settings** — `Enabled`, `SizingMode` (Columns / Rows), `TargetColumns` (1-20), `TargetRows` (1-10), `KeepGridWhileDetailsOpen` (default on), `ViewportAdjustPx` (-200..200).
@@ -20,6 +20,7 @@
   - **Pause** — `ApplyAutogrid` returns early (no width write, no snapshot) while the flag is true, since the narrowed `ScrollViewer` would otherwise shrink covers.
   - **Tile size cache** — `VirtualizingWrapPanel` 2.5.4 caches the first tile's size in private `sizeOfFirstItem` and refreshes it only when item 0 is realized (scrolled to top); rows and every tile's measure use it. After any cover width write, `ApplyAutogrid` clears it (`GridLayoutService.ResetWrapPanelItemSize`, all panels under `PART_ListGames`, tiles skipped) before the layout pass. Without it, one large width jump (window resized while the panel was open, then closed) leaves missing or clipped covers. Missing field after a Playnite upgrade: one warning, no reset.
   - Trade-off: tiles under the panel are hidden until it closes. Panel already open at launch: nothing to pin; closing it reflows once. Missing flag after a Playnite upgrade: log one warning and keep the old behavior.
+- **Debounce** — `LayoutUpdated` fires for every layout pass in the app. Something can re-lay out every frame (240 passes/s logged after using a filter, source not identified, Autogrid made no writes during it), and restarting the 50ms timer on each pass starved it so nothing re-fit. Only a changed `GridLayoutSignature` of the picked `ScrollViewer` restarts it; `SizeChanged`/`StateChanged` always do; before a list is tracked, a pass arms the timer without pushing it back. Cover size changes don't alter that signature, so `AppSettings` `PropertyChanged` for `GridItemWidth`/`GridItemSpacing` requests the apply instead (confirmation pass after Autogrid's own write, zoom slider re-fit).
 - **Leftover gutter** — Column mode sizes covers from the scroll viewport and snapshotted user spacing (`spacing/2` per side). Leftover pixels go into **cover width**, not `GridItemSpacing` (spacing bumps add left/right tile margin). `SafetyPadding` is 0 so offset 0 stays flush; `ViewportAdjustPx` is for theme chrome that still measures wrong. Row mode does not change spacing.
 
 ## Key files

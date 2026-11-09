@@ -113,6 +113,86 @@ namespace PlayniteExtensions.Tests
             Assert.True(settings.KeepGridWhileDetailsOpen);
         }
 
+        [Fact]
+        public void LayoutPass_WithUnchangedGridSize_DoesNotRestartTheDebounce()
+        {
+            // A theme or panel re-laying out every frame (240 passes/s seen after using a filter)
+            // restarted the 50ms timer forever, so Autogrid never applied.
+            RunSta(() =>
+            {
+                var h = CreateLayoutHarness(); var plugin = h.Plugin; var timer = h.Timer; var scroll = h.Scroll;
+                Lay(scroll, 800);
+
+                Invoke(plugin, "OnWindowLayoutHint", null, EventArgs.Empty);
+                timer.Stop();
+                Invoke(plugin, "OnWindowLayoutHint", null, EventArgs.Empty);
+
+                Assert.False(timer.IsEnabled);
+            });
+        }
+
+        [Fact]
+        public void LayoutPass_WithChangedGridSize_RequestsApply()
+        {
+            RunSta(() =>
+            {
+                var h = CreateLayoutHarness(); var plugin = h.Plugin; var timer = h.Timer; var scroll = h.Scroll;
+                Lay(scroll, 800);
+                Invoke(plugin, "OnWindowLayoutHint", null, EventArgs.Empty);
+                timer.Stop();
+
+                Lay(scroll, 580); // the filter panel took 220px
+
+                Invoke(plugin, "OnWindowLayoutHint", null, EventArgs.Empty);
+                Assert.True(timer.IsEnabled);
+                timer.Stop();
+            });
+        }
+
+        [Fact]
+        public void LayoutPass_BeforeGridIsKnown_StillRequestsApply()
+        {
+            RunSta(() =>
+            {
+                var h = CreateLayoutHarness(); var plugin = h.Plugin; var timer = h.Timer;
+                SetField(plugin, "trackedScrollViewer", null);
+
+                Invoke(plugin, "OnWindowLayoutHint", null, EventArgs.Empty);
+
+                Assert.True(timer.IsEnabled);
+                timer.Stop();
+            });
+        }
+
+        private static LayoutHarness CreateLayoutHarness()
+        {
+            var plugin = CreatePlugin(new AutogridSettings(), new AppSettings());
+            var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(1) };
+            var scroll = new System.Windows.Controls.ScrollViewer();
+            SetField(plugin, "debounceTimer", timer);
+            SetField(plugin, "startupApplyComplete", true);
+            SetField(plugin, "trackedScrollViewer", scroll);
+            return new LayoutHarness { Plugin = plugin, Timer = timer, Scroll = scroll };
+        }
+
+        private sealed class LayoutHarness
+        {
+            public AutogridPlugin Plugin;
+            public System.Windows.Threading.DispatcherTimer Timer;
+            public System.Windows.Controls.ScrollViewer Scroll;
+        }
+
+        private static void SetField(AutogridPlugin plugin, string name, object value)
+        {
+            typeof(AutogridPlugin).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(plugin, value);
+        }
+
+        private static void Lay(FrameworkElement element, double width)
+        {
+            element.Measure(new Size(width, 600));
+            element.Arrange(new Rect(0, 0, width, 600));
+        }
+
         private static bool InvokeBool(AutogridPlugin plugin, string method, params object[] args)
         {
             return (bool)typeof(AutogridPlugin).GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)

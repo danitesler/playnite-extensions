@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 using Playnite.SDK;
 using Playnite.SDK.Events;
@@ -12,6 +13,8 @@ namespace Autogrid
     {
         private static readonly Guid PluginId = Guid.Parse("7F3E9B82-4D1C-4E8A-9F2B-6C5A891D0E2F");
         private static readonly ILogger Logger = LogManager.GetLogger();
+        private const string GridItemWidthProperty = "GridItemWidth";
+        private const string GridItemSpacingProperty = "GridItemSpacing";
 
         private readonly AutogridSettings settings;
         private Window hookedWindow;
@@ -29,6 +32,8 @@ namespace Autogrid
         private readonly GridWidthPin gridPin = new GridWidthPin();
         private bool gridPinMissingLogged;
         private bool wrapPanelResetBroken;
+        private ScrollViewer trackedScrollViewer;
+        private GridLayoutSignature? lastGridLayout;
 
         public override Guid Id => PluginId;
 
@@ -173,10 +178,10 @@ namespace Autogrid
             };
             debounceTimer.Tick += DebounceTimerOnTick;
 
-            window.SizeChanged += OnWindowLayoutHint;
+            window.SizeChanged += OnWindowSizeHint;
             window.SizeChanged += OnWindowSizeChanged;
             window.LayoutUpdated += OnWindowLayoutHint;
-            window.StateChanged += OnWindowLayoutHint;
+            window.StateChanged += OnWindowSizeHint;
             window.Loaded += WindowOnLoadedOnce;
             window.ContentRendered += WindowOnContentRenderedOnce;
             window.Closed += MainWindowOnClosed;
@@ -271,19 +276,60 @@ namespace Autogrid
             DetachWindowHooks();
         }
 
+        private void OnWindowSizeHint(object sender, EventArgs e)
+        {
+            if (!HandledByStartupApply())
+            {
+                RequestDebouncedApply();
+            }
+        }
+
+        /// <summary>
+        /// LayoutUpdated fires for any layout pass in the app, and something can re-lay out every
+        /// frame (240 passes/s seen after using a filter). Restarting the debounce on each pass
+        /// would starve it forever, so only a real change in the games list's size restarts it.
+        /// </summary>
         private void OnWindowLayoutHint(object sender, EventArgs e)
         {
-            if (!startupApplyComplete)
+            if (HandledByStartupApply())
             {
-                if (TryApplyOnce())
+                return;
+            }
+
+            if (trackedScrollViewer == null)
+            {
+                // Grid not measured yet: arm the timer once, never push it back.
+                if (!reflectionBroken && debounceTimer?.IsEnabled == false)
                 {
-                    startupApplyComplete = true;
+                    debounceTimer.Start();
                 }
 
                 return;
             }
 
+            var current = GridLayoutSignature.Capture(trackedScrollViewer);
+            if (lastGridLayout.HasValue && lastGridLayout.Value.Matches(current))
+            {
+                return;
+            }
+
+            lastGridLayout = current;
             RequestDebouncedApply();
+        }
+
+        private bool HandledByStartupApply()
+        {
+            if (startupApplyComplete)
+            {
+                return false;
+            }
+
+            if (TryApplyOnce())
+            {
+                startupApplyComplete = true;
+            }
+
+            return true;
         }
 
         private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
@@ -355,6 +401,12 @@ namespace Autogrid
             CaptureUserLayoutIfNeeded(currentWidth, currentSpacing);
 
             var metrics = GridLayoutService.ResolveViewportMetrics(window, PlayniteApi, settings.ViewportAdjustPx);
+            if (metrics.PickedScrollViewer != null)
+            {
+                trackedScrollViewer = metrics.PickedScrollViewer;
+                lastGridLayout = GridLayoutSignature.Capture(trackedScrollViewer);
+            }
+
             double targetWidth;
             var targetSpacing = settings.HasSavedUserLayout
                 ? settings.SavedUserGridItemSpacing
@@ -494,6 +546,16 @@ namespace Autogrid
 
         private void OnAppSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            // Cover size changes don't move the list's size, so layout passes can't report them:
+            // this is the confirmation pass after Autogrid's own write and what re-fits the zoom slider.
+            if (e.PropertyName == GridItemWidthProperty || e.PropertyName == GridItemSpacingProperty)
+            {
+                PlayniteApi.MainView.UIDispatcher.BeginInvoke(
+                    new Action(RequestDebouncedApply),
+                    DispatcherPriority.Send);
+                return;
+            }
+
             if (!string.IsNullOrEmpty(e.PropertyName) &&
                 e.PropertyName != GridLayoutService.GridDetailsPanelProperty)
             {
@@ -711,10 +773,10 @@ namespace Autogrid
 
             if (hookedWindow != null && handlersAttached)
             {
-                hookedWindow.SizeChanged -= OnWindowLayoutHint;
+                hookedWindow.SizeChanged -= OnWindowSizeHint;
                 hookedWindow.SizeChanged -= OnWindowSizeChanged;
                 hookedWindow.LayoutUpdated -= OnWindowLayoutHint;
-                hookedWindow.StateChanged -= OnWindowLayoutHint;
+                hookedWindow.StateChanged -= OnWindowSizeHint;
                 hookedWindow.Loaded -= WindowOnLoadedOnce;
                 hookedWindow.ContentRendered -= WindowOnContentRenderedOnce;
                 hookedWindow.Closed -= MainWindowOnClosed;
@@ -722,6 +784,8 @@ namespace Autogrid
 
             hookedWindow = null;
             handlersAttached = false;
+            trackedScrollViewer = null;
+            lastGridLayout = null;
             startupApplyComplete = false;
 
             try

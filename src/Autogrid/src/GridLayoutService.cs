@@ -24,6 +24,37 @@ namespace Autogrid
         public double CoverHeight;
     }
 
+    /// <summary>The games list's measured size, compared on every layout pass (cheap: no tree walk).</summary>
+    public struct GridLayoutSignature
+    {
+        private double actualWidth;
+        private double actualHeight;
+        private double viewportWidth;
+        private double viewportHeight;
+        private bool isVisible;
+
+        public static GridLayoutSignature Capture(ScrollViewer scrollViewer)
+        {
+            return new GridLayoutSignature
+            {
+                actualWidth = scrollViewer.ActualWidth,
+                actualHeight = scrollViewer.ActualHeight,
+                viewportWidth = scrollViewer.ViewportWidth,
+                viewportHeight = scrollViewer.ViewportHeight,
+                isVisible = scrollViewer.IsVisible
+            };
+        }
+
+        public bool Matches(GridLayoutSignature other)
+        {
+            return actualWidth == other.actualWidth &&
+                   actualHeight == other.actualHeight &&
+                   viewportWidth == other.viewportWidth &&
+                   viewportHeight == other.viewportHeight &&
+                   isVisible == other.isVisible;
+        }
+    }
+
     public static class GridLayoutService
     {
         private struct ScrollViewerDepth
