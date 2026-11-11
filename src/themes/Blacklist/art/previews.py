@@ -142,11 +142,12 @@ p{line-height:1.5;color:var(--mw-text)}
 
 
 def settings():
-    node = lambda t, lvl=0, sel=False, ex=None: (
-        '<div class="node%s%s"><span class="tw">%s</span>%s</div>'
-        % (" l2" if lvl else "", " sel" if sel else "", ic("DropDown" if ex else "Submenu", 10) if ex is not None else "", t))
+    node = lambda t, lvl=0, sel=False, ex=None, hov=False: (
+        '<div class="node%s%s%s"><span class="tw">%s</span>%s%s</div>'
+        % (" l2" if lvl else "", " sel" if sel else "", " hov" if hov else "", ic("DropDown" if ex else "Submenu", 10) if ex is not None else "", t,
+           '<div class="br"><i></i></div>' if sel else ""))
     tree = "".join([
-        node("General"), node("Appearance", ex=True), node("General", 1, True), node("Advanced", 1), node("Details View", 1),
+        node("General"), node("Appearance", ex=True), node("General", 1, True), node("Advanced", 1, hov=True), node("Details View", 1),
         node("Grid View", 1), node("List View", 1), node("Layout", 1), node("Top panel", 1),
         node("Search"), node("Updating"), node("Metadata"), node("Sorting"), node("Scripts"), node("Auto Close Clients"),
         node("Import Exclusion List"), node("Backup"), node("For developers"), node("Input"), node("Advanced", ex=True),
@@ -154,13 +155,18 @@ def settings():
     css = """<style>
 .dim{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,#1f180c 0%,var(--mw-page) 70%)}
 .dlg{position:absolute;left:180px;top:20px;width:920px;height:680px;background:var(--mw-page);border:1px solid var(--mw-edge);display:flex;flex-direction:column}
-.dt{height:30px;flex:none;position:relative}.dt span{position:absolute;left:0;top:0;bottom:0;background:var(--mw-bar);padding:0 14px 0 12px;display:flex;align-items:center;color:var(--mw-amber);font-weight:700}
+.dt{height:36px;flex:none;position:relative;border-bottom:1px solid var(--mw-edge)}.dt span{position:absolute;left:0;top:0;bottom:0;background:var(--mw-bar);padding:0 16px 0 14px;display:flex;align-items:center;color:var(--mw-amber);font-weight:700;font-size:16px}
 .dt .x{left:auto;right:0;width:44px;padding:0;justify-content:center;color:var(--mw-text-dim)}
 .body{flex:1;min-height:0;display:flex}
-.tabs{width:236px;flex:none;border-right:1px solid var(--mw-rule);padding:6px 4px;overflow:hidden}
-.node{height:25px;display:flex;align-items:center;padding-left:6px;color:var(--mw-text);white-space:nowrap}
-.node.l2{padding-left:22px}.node.sel{background:var(--mw-select);color:var(--mw-text-bright)}
-.node .tw{width:14px;display:flex;color:var(--mw-text-dim)}
+.tabs{width:256px;flex:none;border-right:1px solid var(--mw-edge);background:var(--mw-shell);padding:8px 0;overflow:hidden}
+.node{position:relative;height:28px;margin:1px 6px;display:flex;align-items:center;padding:0 28px 0 12px;color:var(--mw-text-dim);white-space:nowrap}
+.node.l2{margin-left:28px}.node.l2:before{content:"";position:absolute;left:-7px;top:-1px;bottom:-1px;width:1px;background:var(--mw-edge)}
+.node.hov{background:var(--mw-panel);color:var(--mw-text-bright)}
+.node.sel{background:var(--mw-select);color:var(--mw-amber)}
+.node.hov:after,.node.sel:after{content:"";position:absolute;right:14px;top:10px;width:8px;height:8px;background:var(--mw-amber);opacity:.45}
+.node.sel:after{opacity:1}
+.node .br{inset:0}
+.node .tw{width:16px;display:flex;color:var(--mw-text-dim)}
 .content{flex:1;min-width:0;padding:14px;overflow:hidden}
 .gb{border:1px solid var(--mw-rule);background:var(--mw-panel);margin-bottom:12px}
 .gbh{height:31px;position:relative}.gbh span{position:absolute;left:0;top:0;bottom:0;background:var(--mw-bar);padding:0 10px;display:flex;align-items:center;color:var(--mw-amber);font-weight:700}

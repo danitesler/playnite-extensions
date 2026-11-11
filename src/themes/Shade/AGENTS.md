@@ -44,6 +44,8 @@ shadcn's inset layout (blocks `sidebar-07` / `dashboard-01`):
 
 The top bar's right padding (132px = 16px + 108px of window buttons + an 8px gap) keeps it clear of the window buttons; keep it in step with `MainWindowStyle.xaml`.
 
+**Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is shadcn's SidebarMenuButton on the sidebar color, 30px rows in the body face with rounded-md plates inset 8px. Hover is `accent/50`; selected is the sidebar-accent plate plus a 1px input ring (a second named part). Children sit under SidebarMenuSub's 1px left border; the expander chevrons are Lucide's chevron-right and chevron-down drawn inline through `IconTemplate` (no new `Icon*` keys). The title band is the inset layout (sidebar-07) for dialogs: a 44px header row on the sidebar color with a muted Lucide gear and the semibold title, and two 12px frame-colored corner masks round the top corners of the page card below; caption buttons are the 32px ghost icon buttons. No rule and no ornament, as shadcn draws none.
+
 ## Components
 
 Everything else (DataGrid, DatePicker, TreeView, Expander, game details) is Playnite's template recolored through the palette keys.

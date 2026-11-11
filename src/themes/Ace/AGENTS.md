@@ -58,7 +58,7 @@ Radii: the whole scale (`ControlCornerRadius`, `CornerRadiusSmall`..`Full`) is *
 
 ## Game page
 
-Skeleton as in `../AGENTS.md`. Black page, amber bold title, gold captions over 1px rules, black metadata box with a 1px edge, dim beige captions and amber values. Grid panel has no `PART_ElemRecentActivity` (the Default grid file has none). Link color in descriptions is gold (`Tag`), because the accent equals the text color.
+Skeleton as in `../AGENTS.md`. Black page, amber bold title, gold captions over 1px rules, black metadata box with a 1px edge, dim beige captions and amber values. Both views keep a 20px minimum top gutter when banners are short, off or hidden. Metadata rows use 4px top/bottom margins; sections use 8px top margin and padding, with the first divider trimmed by 21px. Grid panel has no `PART_ElemRecentActivity` (the Default grid file has none). Link color in descriptions is gold (`Tag`), because the accent equals the text color.
 
 ## Components
 

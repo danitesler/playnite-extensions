@@ -93,8 +93,8 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Grid.Style>
-                                <ScrollViewer x:Name="PART_ScrollViewHost" HorizontalAlignment="Stretch"
-                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                                <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalAlignment="Stretch"
+                                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible"
                                           Style="{DynamicResource DetailsScrollViewer}">
                                 <Grid>
                                     <Border x:Name="HeroArt" VerticalAlignment="Top" ClipToBounds="True"
@@ -139,21 +139,32 @@
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
-                                        <Border x:Name="BannerSpacer" Grid.Row="0">
+                                        <Border x:Name="GridBannerSpacer" Grid.Row="0" MinHeight="20">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='x * 80 / 340'}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding ActualHeight, ElementName=HeroArt}" Value="0">
-                                                            <Setter Property="Height" Value="40" />
+                                                            <Setter Property="Height" Value="20" />
                                                         </DataTrigger>
-                                                    </Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed">
+    <Setter Property="Height" Value="20" />
+</DataTrigger>
+</Style.Triggers>
                                                 </Style>
                                             </Border.Style>
                                         </Border>
 
-                                        <DockPanel Grid.Row="1" Margin="0,0,0,16">
-                                            <DockPanel DockPanel.Dock="Top">
+                                        <DockPanel Panel.ZIndex="2" Grid.Row="1" Margin="0,0,0,16">
+                                            <DockPanel Panel.ZIndex="2" DockPanel.Dock="Top">
+                                                <Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="28" Height="28" Padding="0"
+                                                    Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
+                                                    Template="{Binding Template, ElementName=SidePanelCloseButton}"
+                                                    Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}">
+                                                        <Button.RenderTransform>
+                                                            <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
+                                                        </Button.RenderTransform>
+                                                </Button>
                                                 <Image Name="PART_ImageIcon" DockPanel.Dock="Left" MaxHeight="32" MaxWidth="32"
                                                        RenderOptions.BitmapScalingMode="Fant" Margin="0,0,10,0" />
                                                 <TextBlock Name="PART_TextDisplayName" DockPanel.Dock="Left" TextWrapping="Wrap" VerticalAlignment="Center"
@@ -180,8 +191,30 @@
                                         </DockPanel>
 
                                         <!-- Two columns: screenshots, notes and description on the left, the narrower metadata pane on the right -->
-                                        <DockPanel Grid.Row="2">
-                                            <Border DockPanel.Dock="Right" Margin="24,0,0,0" Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}"
+                                        <Grid Grid.Row="2" x:Name="GridOverviewBody">
+<Grid.Tag>
+    <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + 24 + 400">
+        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" />
+        <Binding Path="Tag" ElementName="GridMetadataContent" />
+    </MultiBinding>
+</Grid.Tag>
+<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+
+                                            <Grid x:Name="GridMetadataColumn" VerticalAlignment="Top">
+<Grid.Style><Style TargetType="Grid">
+    <Setter Property="Grid.Column" Value="1" />
+    <Setter Property="Grid.Row" Value="0" />
+    <Setter Property="Grid.ColumnSpan" Value="1" />
+    <Setter Property="Margin" Value="24,0,0,0" />
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
+        <Setter Property="Grid.Column" Value="0" />
+        <Setter Property="Grid.Row" Value="1" />
+        <Setter Property="Grid.ColumnSpan" Value="2" />
+        <Setter Property="Margin" Value="0,24,0,0" />
+    </DataTrigger></Style.Triggers>
+</Style></Grid.Style>
+<Border Margin="0,0,0,0" Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}"
                                                     BorderThickness="{DynamicResource ControlBorderThickness}" CornerRadius="{DynamicResource ControlCornerRadius}"
                                                     Padding="16,4,16,4" VerticalAlignment="Top">
                                                 <Border.Resources>
@@ -203,15 +236,25 @@
                                                         <Setter Property="VerticalAlignment" Value="Center" />
                                                     </Style>
                                                 </Border.Resources>
-                                                <Border ClipToBounds="True" Width="{DynamicResource GridDetailsPaneWidth}">
-                                                    <StackPanel Margin="0,-1,0,0">
-                                                        <Border x:Name="MetaProgress">
+                                                <Border ClipToBounds="True" Tag="{DynamicResource GridDetailsPaneWidth}" x:Name="GridMetadataContent" HorizontalAlignment="Stretch">
+<Border.Style>
+    <Style TargetType="Border">
+        <Setter Property="Width" Value="{DynamicResource GridDetailsPaneWidth}" />
+        <Setter Property="MaxWidth" Value="{DynamicResource GridDetailsPaneWidth}" /><Style.Triggers>
+            <DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /></DataTrigger>
+        <DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="MaxWidth" Value="Infinity" /></DataTrigger></Style.Triggers>
+    </Style>
+</Border.Style>
+                                                    <WrapPanel x:Name="GridMetadataGroups" UseLayoutRounding="False">
+<WrapPanel.Style><Style TargetType="WrapPanel"><Setter Property="Margin" Value="0,-1,0,0" /><Style.Triggers><DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True"><Setter Property="Margin" Value="0,-1,-24,0" /></DataTrigger></Style.Triggers></Style></WrapPanel.Style>
+<WrapPanel.Tag><Binding Path="ActualWidth" ElementName="GridMetadataContent" Converter="{StaticResource MathConverter}" ConverterParameter="x &gt;= 560" /></WrapPanel.Tag>
+                                                        <Border x:Name="MetaProgress"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderThickness" Value="0,1,0,0" />
                                                                     <Setter Property="BorderBrush" Value="{DynamicResource WindowPanelSeparatorBrush}" />
                                                                     <Setter Property="Padding" Value="0,8,0,8" />
-                                                                    <Style.Triggers>
+                                                                    <Setter Property="Margin" Value="0,0,0,0" /><Style.Triggers>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding Visibility, ElementName=PART_ElemCompletionStatus}" Value="Collapsed" />
@@ -222,7 +265,7 @@
                                                                             </MultiDataTrigger.Conditions>
                                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                                         </MultiDataTrigger>
-                                                                    </Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,0,24,0" /></DataTrigger></Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
                                                             <StackPanel>
@@ -273,13 +316,13 @@
                                                                 </Grid>
                                                             </StackPanel>
                                                         </Border>
-                                                        <Border x:Name="MetaScores">
+                                                        <Border x:Name="MetaScores"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderThickness" Value="0,1,0,0" />
                                                                     <Setter Property="BorderBrush" Value="{DynamicResource WindowPanelSeparatorBrush}" />
                                                                     <Setter Property="Padding" Value="0,8,0,8" />
-                                                                    <Style.Triggers>
+                                                                    <Setter Property="Margin" Value="0,0,0,0" /><Style.Triggers>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding Visibility, ElementName=PART_ElemCommunityScore}" Value="Collapsed" />
@@ -288,7 +331,7 @@
                                                                             </MultiDataTrigger.Conditions>
                                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                                         </MultiDataTrigger>
-                                                                    </Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,0,24,0" /></DataTrigger></Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
                                                             <StackPanel>
@@ -321,13 +364,13 @@
                                                                 </Grid>
                                                             </StackPanel>
                                                         </Border>
-                                                        <Border x:Name="MetaAbout">
+                                                        <Border x:Name="MetaAbout"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderThickness" Value="0,1,0,0" />
                                                                     <Setter Property="BorderBrush" Value="{DynamicResource WindowPanelSeparatorBrush}" />
                                                                     <Setter Property="Padding" Value="0,8,0,8" />
-                                                                    <Style.Triggers>
+                                                                    <Setter Property="Margin" Value="0,0,0,0" /><Style.Triggers>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding Visibility, ElementName=PART_ElemDevelopers}" Value="Collapsed" />
@@ -339,7 +382,7 @@
                                                                             </MultiDataTrigger.Conditions>
                                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                                         </MultiDataTrigger>
-                                                                    </Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,0,24,0" /></DataTrigger></Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
                                                             <StackPanel>
@@ -399,13 +442,13 @@
                                                                 </Grid>
                                                             </StackPanel>
                                                         </Border>
-                                                        <Border x:Name="MetaTags">
+                                                        <Border x:Name="MetaTags"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderThickness" Value="0,1,0,0" />
                                                                     <Setter Property="BorderBrush" Value="{DynamicResource WindowPanelSeparatorBrush}" />
                                                                     <Setter Property="Padding" Value="0,8,0,8" />
-                                                                    <Style.Triggers>
+                                                                    <Setter Property="Margin" Value="0,0,0,0" /><Style.Triggers>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding Visibility, ElementName=PART_ElemPlatform}" Value="Collapsed" />
@@ -416,7 +459,7 @@
                                                                             </MultiDataTrigger.Conditions>
                                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                                         </MultiDataTrigger>
-                                                                    </Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,0,24,0" /></DataTrigger></Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
                                                             <StackPanel>
@@ -497,13 +540,13 @@
                                                                 </Grid>
                                                             </StackPanel>
                                                         </Border>
-                                                        <Border x:Name="MetaLibrary">
+                                                        <Border x:Name="MetaLibrary"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderThickness" Value="0,1,0,0" />
                                                                     <Setter Property="BorderBrush" Value="{DynamicResource WindowPanelSeparatorBrush}" />
                                                                     <Setter Property="Padding" Value="0,8,0,8" />
-                                                                    <Style.Triggers>
+                                                                    <Setter Property="Margin" Value="0,0,0,0" /><Style.Triggers>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding Visibility, ElementName=PART_ElemLibrary}" Value="Collapsed" />
@@ -514,7 +557,7 @@
                                                                             </MultiDataTrigger.Conditions>
                                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                                         </MultiDataTrigger>
-                                                                    </Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,0,24,0" /></DataTrigger></Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
                                                             <StackPanel>
@@ -565,17 +608,17 @@
                                                                 </Grid>
                                                             </StackPanel>
                                                         </Border>
-                                                        <Border x:Name="MetaLinks">
+                                                        <Border x:Name="MetaLinks"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                             <Border.Style>
                                                                 <Style TargetType="Border">
                                                                     <Setter Property="BorderThickness" Value="0,1,0,0" />
                                                                     <Setter Property="BorderBrush" Value="{DynamicResource WindowPanelSeparatorBrush}" />
                                                                     <Setter Property="Padding" Value="0,8,0,8" />
-                                                                    <Style.Triggers>
+                                                                    <Setter Property="Margin" Value="0,0,0,0" /><Style.Triggers>
                                                                         <DataTrigger Binding="{Binding Visibility, ElementName=PART_ElemLinks}" Value="Collapsed">
                                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                                         </DataTrigger>
-                                                                    </Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,0,24,0" /></DataTrigger></Style.Triggers>
                                                                 </Style>
                                                             </Border.Style>
                                                             <StackPanel>
@@ -590,10 +633,44 @@
                                                                 </Grid>
                                                             </StackPanel>
                                                         </Border>
-                                                    </StackPanel>
+                                                    </WrapPanel>
                                                 </Border>
                                             </Border>
-                                            <StackPanel DockPanel.Dock="Left">
+</Grid>
+                                            <Grid x:Name="GridMainColumn" VerticalAlignment="Top">
+<Grid.Style><Style TargetType="Grid">
+    <Setter Property="Grid.Column" Value="0" />
+    <Setter Property="Grid.Row" Value="0" />
+    <Setter Property="Grid.ColumnSpan" Value="1" />
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
+        <Setter Property="Grid.Column" Value="0" />
+        <Setter Property="Grid.Row" Value="0" />
+        <Setter Property="Grid.ColumnSpan" Value="2" />
+    </DataTrigger></Style.Triggers>
+</Style></Grid.Style>
+<Grid.MaxWidth>
+    <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - 24)">
+        <Binding Path="ActualWidth" ElementName="GridOverviewBody" />
+        <Binding Path="ActualWidth" ElementName="GridMetadataColumn" />
+        <Binding Path="Tag" ElementName="GridOverviewBody" />
+    </MultiBinding>
+</Grid.MaxWidth>
+<StackPanel>
+                                                <Grid x:Name="SteamScreenshotsGameScope">
+                                                    <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
                                                 <Grid>
                                                     <Grid.Style>
                                                         <Style TargetType="Grid">
@@ -644,6 +721,7 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Grid>
+                                                </Grid>
                                                 <StackPanel Name="PART_ElemNotes" Margin="0,0,0,16">
                                                     <TextBlock Text="{DynamicResource LOCNotesLabel}" Style="{DynamicResource HeadingTextBlock}" />
                                                     <TextBox Name="PART_TextNotes" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap"
@@ -663,17 +741,58 @@
                                                                   pbeh:FocusBahaviors.BlockBringIntoViewRequest="True" />
                                                 </StackPanel>
                                             </StackPanel>
-                                        </DockPanel>
+</Grid>
+                                        </Grid>
                                     </Grid>
                                 </Grid>
                             </ScrollViewer>
                             </Grid>
 
-                            <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                    Content="r" FontFamily="Marlett"
-                                    Style="{DynamicResource SimpleButton}"
-                                    Command="{MainViewModel CloseGameSideBarCommand}"
-                                    Margin="0,10,15,0" />
+                            <Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
+                                    Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}"
+                                    Command="{MainViewModel CloseGameSideBarCommand}">
+<Button.Style>
+    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Collapsed` : `Visible`'}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</Button.Style>
+                                <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
+                                <Button.Template>
+                                    <ControlTemplate TargetType="{x:Type Button}">
+                                        <Grid Background="Transparent">
+                                            <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource ButtonBackgroundBrush}"
+                                                    BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                                            <Border x:Name="HoverPlate" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource DangerBrush}" Opacity="0" IsHitTestVisible="False" />
+                                            <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                            Content="{DynamicResource IconWindowClose}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                            Foreground="{DynamicResource TextBrush}" />
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard><Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                                    </Storyboard></BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard><Storyboard>
+                                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                                    </Storyboard></BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsPressed" Value="True">
+                                                <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
                         </Grid>
                     </Border>
                 </ControlTemplate>

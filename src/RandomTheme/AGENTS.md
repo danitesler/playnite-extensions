@@ -69,8 +69,8 @@ Playnite loads its theme before any extension runs, so a theme picked in session
 ## Build & deployment commands
 
 ```powershell
-# Build and deploy directly to Playnite (close Playnite first: the DLL is locked while it runs)
-.\scripts\build-plugin.ps1 -Extension randomtheme -Deploy
+# Build and deploy; the script closes and restores any running Playnite sessions automatically
+.\scripts\build-plugin.ps1 -Extension randomtheme
 
 # Validate extension metadata
 .\scripts\validate-extension.ps1 -Extension randomtheme

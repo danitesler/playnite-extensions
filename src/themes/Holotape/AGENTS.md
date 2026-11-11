@@ -61,6 +61,8 @@ Rows 32px (`ButtonPadding` 14,6.5; `InputPadding` 10,6.5); menu and list rows 28
 | `Views/Library.xaml` | Library art under a 75% page scrim, a 1-in-3 scanline mask and a vignette |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Page-colored side panels with a 1px edge |
 
+**Settings chrome.** `DefaultControls/TreeView.xaml`: a RobCo menu, 30px square rows in the body face with a `>` prompt cell; hover is the row fill with the prompt at 45%, selected is the 1px green outline over the green wash with the full green prompt; children under a 1px guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 40px terminal status bar, a green `>` before the amber title, a tick ruler (1px tick every 8px, a dashed `Line` in a `Canvas`) above the closing 1px rule; `WindowBarButton` is 40x30, square.
+
 ## Game page
 
 Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left column above the description, banner spacer scaled with `HeroArt` through `MathConverter` (100/340 details, 72/340 grid). Differences: the banner carries the same faint scanlines as the library; the title is amber over a 48 x 2 green mark; section headings are amber at `FontSizeLarge` over the tick rule; the metadata pane is `pb-panel` inside a 1px rule, 18px inside.
@@ -90,7 +92,7 @@ Empty state (no game selected): both overviews hide the page and show a RobCo te
 - No bloom, blur or color tint over images: WPF has no cheap equivalent over live art; the scanlines are the only screen effect.
 - Fonts are fallbacks unless Monofonto / Fixedsys Excelsior are installed (not redistributable / not shipped).
 - Add-on sidebar icons are 16 x 16 (plate padding), not sized by `IconPadding`: stacking both collapses the icon to 0px.
-- TreeView (Settings section tree), DataGrid and the edit dialog are not restyled; they take the palette keys, so the preview's tree selection is the list selection look, not a verified capture.
+- DataGrid and the edit dialog are not restyled; they take the palette keys.
 - Header rules have a tick at both ends; the Pip-Boy often breaks the line around the active tab label, which Playnite's dynamic tab strips cannot follow.
 
 ## Previews
@@ -110,4 +112,4 @@ Stand-in fonts (`scripts/data/fonts.json`): Monofonto and Fixedsys Excelsior 3.0
 - Bahnschrift SemiCondensed resolving as a family name in WPF (the chain falls back to Bahnschrift if not).
 - Sidebar at Top, Bottom and Right.
 - Add-on sidebar icons (not only Library / Statistics) render visibly at 16px with the current `SidebarItem.xaml`.
-- The Settings window tree selection and title bar, which the theme does not restyle.
+- The Settings window tree and title band (`TreeView.xaml`, `StandardWindowStyle.xaml`) in Playnite.

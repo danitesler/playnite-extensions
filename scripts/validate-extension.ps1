@@ -585,6 +585,232 @@ function Test-TabItemColors {
     return @($errors | Select-Object -Unique)
 }
 
+function Test-SettingsChrome {
+    <#
+        AGENTS.md "Settings screen": every theme restyles the two parts that carry the Settings window's identity.
+        DefaultControls/TreeView.xaml: the section list, full-width plates with separate hover and selected states and a
+        fixed width in the Settings and Add-ons windows. DerivedStyles/StandardWindowStyle.xaml: the title band, with the
+        caption height equal to the content offset and Playnite's PART_ names kept. Missing files, missing hover or
+        selected triggers and a wrong content offset are errors; width, row height (28-32px, body font), band height (>= 36px)
+        and the two-part selected mark come back as advisories when -Advisory is set.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot, [switch]$Advisory)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $notes = [System.Collections.Generic.List[string]]::new()
+    $xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml"
+
+    $treeRel = "DefaultControls/TreeView.xaml"
+    $treePath = Join-Path $Directory $treeRel
+    $treeWhere = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $treeRel
+    if (-not (Test-Path $treePath)) {
+        $errors.Add("${treeWhere}: missing. The Settings section list must be restyled (full-width plates, hover and selected states, fixed width in the Settings window): .claude/skills/playnite-theme-dev/settings-screens.md.") | Out-Null
+    }
+    else {
+        $doc = Read-XamlDocument $treePath
+        if ($doc) {
+            $itemStyle = $null
+            foreach ($candidate in $doc.SelectNodes("//*[local-name()='Style']")) {
+                if ($candidate.GetAttribute("TargetType") -match "TreeViewItem" -and -not $candidate.GetAttribute("Key", $xamlNs)) { $itemStyle = $candidate; break }
+            }
+            if (-not $itemStyle) {
+                $errors.Add("${treeWhere}: no TreeViewItem style.") | Out-Null
+            }
+            else {
+                $hover = $itemStyle.SelectSingleNode(".//*[local-name()='Trigger'][@Property='IsMouseOver']")
+                $selected = $itemStyle.SelectSingleNode(".//*[local-name()='Trigger'][@Property='IsSelected' and @Value='True']")
+                if (-not $hover) { $errors.Add("${treeWhere}: the TreeViewItem template has no IsMouseOver trigger, so rows give no hover cue.") | Out-Null }
+                if (-not $selected) { $errors.Add("${treeWhere}: the TreeViewItem template has no IsSelected trigger, so the current section is not marked.") | Out-Null }
+                if ($selected -and $hover) {
+                    $cues = @($selected.SelectNodes("./*[local-name()='Setter'][@TargetName]")).Count
+                    if ($cues -lt 2) { $notes.Add("settings chrome: $treeWhere the IsSelected trigger changes fewer than 2 named parts. Mark the current row with a plate plus a bar, notch or glyph, not a text colour alone.") | Out-Null }
+                }
+                $minHeights = @($itemStyle.SelectNodes(".//@MinHeight") | ForEach-Object { $n = 0.0; if ([double]::TryParse($_.Value, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$n)) { $n } })
+                if ($minHeights.Count -gt 0 -and ($minHeights | Where-Object { $_ -ge 28 -and $_ -le 32 }).Count -eq 0) {
+                    $notes.Add("settings chrome: $treeWhere rows are not 28-32px (MinHeight on the row grid). Settings rows are 28-32px plates in the body font.") | Out-Null
+                }
+                if (($itemStyle.SelectNodes(".//@Typography.Capitals") | Measure-Object).Count -gt 0 -or $itemStyle.OuterXml -match "HeadingFontFamily") {
+                    $notes.Add("settings chrome: $treeWhere row labels use the heading face or small caps. Use the normal body font.") | Out-Null
+                }
+            }
+            $widthOk = $false
+            foreach ($trigger in $doc.SelectNodes("//*[local-name()='DataTrigger'][@Value='WindowSettings']")) {
+                foreach ($setter in $trigger.SelectNodes("./*[local-name()='Setter'][@Property='Width']")) {
+                    $n = 0.0
+                    if ([double]::TryParse($setter.GetAttribute("Value"), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$n) -and $n -ge 220) { $widthOk = $true }
+                }
+            }
+            $expander = $doc.SelectSingleNode("//*[@*[local-name()='Name' and namespace-uri()='$xamlNs' and .='Expander']]")
+            if ($expander -and -not $expander.GetAttribute("Width")) {
+                $errors.Add("${treeWhere}: the Expander ToggleButton has no Width. In a fixed-width tree an unsized glyph Viewbox scales to fill the row (giant arrows, no labels); give it a width of 14-16.") | Out-Null
+            }
+            $laneOk = $false
+            foreach ($trigger in $doc.SelectNodes("//*[local-name()='DataTrigger'][@Value='WindowSettings' or @Value='WindowExtensions']")) {
+                if ($trigger.SelectSingleNode("./*[local-name()='Setter'][@Property='ScrollViewer.VerticalScrollBarVisibility' and @Value='Visible']")) { $laneOk = $true }
+            }
+            if ($widthOk -and -not $laneOk) {
+                $notes.Add("settings chrome: $treeWhere the WindowSettings / WindowExtensions triggers do not set ScrollViewer.VerticalScrollBarVisibility to Visible. With Auto, expanding a node past the window height makes the scroll bar appear and the window reflows; reserve the lane.") | Out-Null
+            }
+            if (-not $widthOk) {
+                $notes.Add("settings chrome: $treeWhere has no DataTrigger on the ancestor Window's AutomationId 'WindowSettings' that sets the tree Width (>= 220). Without it the Settings section list sizes to its longest label.") | Out-Null
+            }
+        }
+    }
+
+    $winRel = "DerivedStyles/StandardWindowStyle.xaml"
+    $winPath = Join-Path $Directory $winRel
+    $winWhere = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $winRel
+    if (-not (Test-Path $winPath)) {
+        $errors.Add("${winWhere}: missing. Dialog windows (Settings, game editor, add-ons) need the theme's own title band: .claude/skills/playnite-theme-dev/settings-screens.md.") | Out-Null
+    }
+    else {
+        $doc = Read-XamlDocument $winPath
+        if ($doc) {
+            foreach ($part in "PART_TextTitle", "PART_ButtonMinimize", "PART_ButtonMaximize", "PART_ButtonClose") {
+                if (-not $doc.SelectSingleNode("//*[@*[local-name()='Name' and namespace-uri()='$xamlNs' and .='$part']]")) {
+                    $errors.Add("${winWhere}: missing $part. Playnite binds the dialog's title and caption buttons by these names.") | Out-Null
+                }
+            }
+            $chrome = $doc.SelectSingleNode("//*[local-name()='WindowChrome' and @CaptionHeight]")
+            if ($chrome) {
+                $caption = 0.0
+                [void][double]::TryParse($chrome.GetAttribute("CaptionHeight"), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$caption)
+                if ($caption -lt 36) { $notes.Add("settings chrome: $winWhere title band is $caption px; use 36-48 so the band can carry the theme's motif.") | Out-Null }
+                $offset = $doc.SelectSingleNode("//*[local-name()='ContentPresenter' and @Margin and not(@ContentSource)]")
+                if ($offset) {
+                    $top = ($offset.GetAttribute("Margin") -split ",")
+                    $topValue = 0.0
+                    if ($top.Count -ge 2 -and [double]::TryParse($top[1].Trim(), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$topValue) -and ($topValue -lt ($caption - 0.5) -or $topValue -gt ($caption + 8))) {
+                        $errors.Add("${winWhere}: content offset ($topValue) is not within 0-8px below WindowChrome CaptionHeight ($caption); the dialog body would overlap the band or leave a gap under it.") | Out-Null
+                    }
+                }
+            }
+        }
+    }
+
+    if ($Advisory) { return @($notes) }
+    return @($errors | Select-Object -Unique)
+}
+
+function Test-TileButtonHitArea {
+    <#
+        AGENTS.md "Whole-button hit area": a Button template whose root has no Background only reacts over the glyph
+        (hit testing ignores empty space), so the cover hover buttons light up only on their icon. The root of the
+        GridTileButton template needs Background="Transparent" (or a brush).
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $relative = "DerivedStyles/GridViewItemTemplate.xaml"
+    $path = Join-Path $Directory $relative
+    if (-not (Test-Path $path)) { return @() }
+    $doc = Read-XamlDocument $path
+    if (-not $doc) { return @() }
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+    $xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml"
+    foreach ($style in $doc.SelectNodes("//*[local-name()='Style']")) {
+        if ($style.GetAttribute("Key", $xamlNs) -ne "GridTileButton") { continue }
+        $template = $style.SelectSingleNode(".//*[local-name()='ControlTemplate']")
+        if (-not $template) { return @() }
+        $root = $template.SelectSingleNode("./*[1]")
+        if ($root -and -not $root.GetAttribute("Background")) {
+            return @("${where}: the GridTileButton template's root ($($root.LocalName)) has no Background, so only the glyph is hoverable and clickable. Set Background=`"Transparent`" on it (AGENTS.md Whole-button hit area).")
+        }
+    }
+    return @()
+}
+
+function Test-SidePanelCloseButton {
+    <#
+        AGENTS.md "Side panel close button": the grid view's side panel close button (CloseGameSideBarCommand) is a
+        28x28 plate in the panel's top-left corner, or left of the game icon when GameBannerHeight < 120.
+        Both placements share the same template. It reads at rest (a plate, a rim, a bright glyph) and has a clear
+        hover state (an IsMouseOver trigger). A bare glyph on the art, or a button under 28px, disappears into the banner.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $relative = "Views/GridViewGameOverview.xaml"
+    $path = Join-Path $Directory $relative
+    if (-not (Test-Path $path)) { return @() }
+    $doc = Read-XamlDocument $path
+    if (-not $doc) { return @() }
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+    $button = $doc.SelectSingleNode("//*[local-name()='Button'][@*[local-name()='Name']='SidePanelCloseButton'][contains(@Command, 'CloseGameSideBarCommand')]")
+    if (-not $button) {
+        return @("${where}: no named SidePanelCloseButton bound to CloseGameSideBarCommand.")
+    }
+    $errors = [System.Collections.Generic.List[string]]::new()
+    if ($button.GetAttribute("Width") -ne "28" -or $button.GetAttribute("Height") -ne "28") {
+        $errors.Add("${where}: the close button is $($button.GetAttribute('Width'))x$($button.GetAttribute('Height')); it must be 28x28 (AGENTS.md Side panel close button).") | Out-Null
+    }
+    if ($button.GetAttribute("HorizontalAlignment") -ne "Left" -or $button.GetAttribute("VerticalAlignment") -ne "Top") {
+        $errors.Add("${where}: the close button must sit in the panel's top-left corner (HorizontalAlignment Left, VerticalAlignment Top).") | Out-Null
+    }
+    if (-not $button.SelectSingleNode(".//*[local-name()='Trigger'][@Property='IsMouseOver']")) {
+        $errors.Add("${where}: the close button has no IsMouseOver trigger, so hovering it shows nothing.") | Out-Null
+    }
+    $inline = $doc.SelectSingleNode("//*[local-name()='Button'][@*[local-name()='Name']='InlineSidePanelCloseButton'][contains(@Command, 'CloseGameSideBarCommand')]")
+    if (-not $inline -or $inline.GetAttribute('DockPanel.Dock') -ne 'Left' -or
+        $inline.GetAttribute('VerticalAlignment') -ne 'Center' -or
+        $inline.GetAttribute('Width') -ne '28' -or $inline.GetAttribute('Height') -ne '28' -or
+        $inline.GetAttribute('Template') -ne '{Binding Template, ElementName=SidePanelCloseButton}') {
+        $errors.Add("${where}: provide a 28x28 InlineSidePanelCloseButton left-docked beside the game icon, vertically centered and sharing SidePanelCloseButton.Template.") | Out-Null
+    }
+    if ($inline) {
+        $scroll = $inline.SelectSingleNode("ancestor::*[local-name()='ScrollViewer'][1]")
+        $transform = $inline.SelectSingleNode("./*[local-name()='Button.RenderTransform']/*[local-name()='TranslateTransform']")
+        if (-not $scroll -or $scroll.GetAttribute('CanContentScroll') -ne 'False' -or -not $transform -or
+            $transform.GetAttribute('Y') -ne '{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}') {
+            $errors.Add("${where}: pin the inline close using the physical content offset of PART_ScrollViewHost.") | Out-Null
+        }
+    }
+    $visibilitySetter = $button.SelectSingleNode("./*[local-name()='Button.Style']/*[local-name()='Style']/*[local-name()='Setter'][@Property='Visibility']")
+    $emptyTrigger = $button.SelectSingleNode("./*[local-name()='Button.Style']/*[local-name()='Style']/*[local-name()='Style.Triggers']/*[local-name()='DataTrigger'][contains(@Binding, 'Game') and contains(@Binding, 'FallbackValue={x:Null}')][@Value='{x:Null}']/*[local-name()='Setter'][@Property='Visibility' and @Value='Visible']")
+    if ($button.HasAttribute('Visibility') -or -not $emptyTrigger) {
+        $errors.Add("${where}: the corner close must stay visible for Game=null and null DataContext, independent of banner height. Put its normal visibility binding in a style setter so the empty-state trigger can override it.") | Out-Null
+    }
+    if ($button.GetAttribute('Tag') -ne '{DynamicResource GameBannerHeight}' -or -not $visibilitySetter -or
+        $visibilitySetter.GetAttribute('Value') -notmatch 'x\s*<\s*120\s*\?\s*`Collapsed`\s*:\s*`Visible`' -or
+        ($inline -and $inline.GetAttribute('Visibility') -notmatch 'x\s*<\s*120\s*\?\s*`Visible`\s*:\s*`Collapsed`')) {
+        $errors.Add("${where}: use configured GameBannerHeight to show only the inline close below 120px and only the corner close at 120px and above.") | Out-Null
+    }
+    return @($errors)
+}
+
+function Test-FilterActiveIndicator {
+    <#
+        AGENTS.md "Active-state indicators": the top panel's filter toggle never prints a word ("Filter Active") when a
+        filter applies. A small mark (dot, square, diamond, slant: the theme's own shape) filled with the notification
+        accent DataChangeNotifBrush sits on the icon's top-right corner and is shown while Playnite sets the toggle's
+        Tag to True.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $relative = "Views/TopPanel.xaml"
+    $path = Join-Path $Directory $relative
+    if (-not (Test-Path $path)) { return @() }
+    $doc = Read-XamlDocument $path
+    if (-not $doc) { return @() }
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+    $xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml"
+    $style = $null
+    foreach ($candidate in $doc.SelectNodes("//*[local-name()='Style']")) {
+        if ($candidate.GetAttribute("Key", $xamlNs) -eq "TopPanelFilterToggle") { $style = $candidate; break }
+    }
+    if (-not $style) { return @() }
+    $errors = [System.Collections.Generic.List[string]]::new()
+    if ($style.OuterXml -match "LOCFilterActiveLabel") {
+        $errors.Add("${where}: the filter toggle prints the 'Filter Active' label. Show a small mark in the top-right corner of the icon instead (AGENTS.md Active-state indicators).") | Out-Null
+    }
+    $mark = $style.SelectSingleNode(".//*[@Fill='{DynamicResource DataChangeNotifBrush}']")
+    if (-not $mark) {
+        $errors.Add("${where}: the filter toggle has no active mark filled with {DynamicResource DataChangeNotifBrush} (a dot, square or the theme's own shape on the icon's top-right corner, visible while Tag is True).") | Out-Null
+    }
+    elseif (-not $style.SelectSingleNode(".//*[local-name()='Trigger'][@Property='Tag' and @Value='{StaticResource True}']/*[local-name()='Setter'][@Property='Visibility' and @Value='Visible']")) {
+        $errors.Add("${where}: nothing shows the filter mark while Tag is True (Trigger Property=Tag Value={StaticResource True} setting Visibility Visible on the mark).") | Out-Null
+    }
+    return @($errors)
+}
+
 function Test-ThemeModifierIconButtons {
     <#
         AGENTS.md "ThemeModifier icon buttons": ThemeModifier hardcodes its pick (pencil) and restore (X) buttons at
@@ -799,8 +1025,11 @@ if ($isTheme) {
                 $errors.Add("Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')")
             }
             $themeSourceRoot = "$($profile.dir)/src"
-            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot)) {
+            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $scratch -SourceRoot $themeSourceRoot)) {
                 $errors.Add($ruleError)
+            }
+            foreach ($ruleError in @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot -Advisory)) {
+                $previewNotes.Add($ruleError)
             }
         }
         catch {

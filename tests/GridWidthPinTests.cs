@@ -1,7 +1,9 @@
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Autogrid;
 using Xunit;
 
@@ -86,10 +88,74 @@ namespace PlayniteExtensions.Tests
 
                 pin.TryPin(content, panelOnLeft: false);
                 pin.Grow(240);
+                WaitForResize();
                 Assert.Equal(1240, content.Width);
                 pin.Grow(-300);
+                WaitForResize();
                 Assert.Equal(940, content.Width);
+                pin.Release();
             });
+        }
+
+        [Fact]
+        public void Grow_CoalescesResizeBurstInsteadOfReflowingEveryEvent()
+        {
+            RunSta(() =>
+            {
+                var content = Laid(new Border(), 1200);
+                var pin = new GridWidthPin();
+                pin.TryPin(content, panelOnLeft: false);
+                var changes = 0;
+                var widthProperty = DependencyPropertyDescriptor.FromProperty(FrameworkElement.WidthProperty, typeof(Border));
+                EventHandler changed = (_, __) => changes++;
+                widthProperty.AddValueChanged(content, changed);
+
+                for (var i = 0; i < 300; i++)
+                {
+                    pin.Grow(-1);
+                    // Let WPF process layout between resize messages, as a real drag does.
+                    Laid(content, 500);
+                    Assert.Equal(1200, content.Width);
+                }
+
+                WaitForResize();
+                Assert.Equal(900, content.Width);
+                Assert.Equal(1, changes);
+                widthProperty.RemoveValueChanged(content, changed);
+                pin.Release();
+            });
+        }
+
+        [Fact]
+        public void Release_CancelsPendingResizeBeforeAnotherGameDetailsPanelOpens()
+        {
+            RunSta(() =>
+            {
+                var content = Laid(new Border(), 1200);
+                var pin = new GridWidthPin();
+                pin.TryPin(content, panelOnLeft: true);
+                pin.Grow(-400);
+                pin.Release();
+
+                Laid(content, 600);
+                pin.TryPin(content, panelOnLeft: false);
+                WaitForResize();
+                Assert.Equal(600, content.Width);
+                Assert.Equal(HorizontalAlignment.Stretch, content.HorizontalAlignment);
+                pin.Release();
+            });
+        }
+
+        private static void WaitForResize()
+        {
+            var frame = new DispatcherFrame();
+            var timer = new DispatcherTimer(DispatcherPriority.Background)
+            {
+                Interval = TimeSpan.FromMilliseconds(120)
+            };
+            timer.Tick += (_, __) => { timer.Stop(); frame.Continue = false; };
+            timer.Start();
+            Dispatcher.PushFrame(frame);
         }
 
         [Theory]

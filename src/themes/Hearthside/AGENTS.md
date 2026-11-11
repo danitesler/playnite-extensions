@@ -65,6 +65,8 @@ Radii: `CornerRadiusSmall` 3, `ControlCornerRadius` 6, `CornerRadiusLarge` 10, `
 | `Views/Library.xaml` | Library art under the page wood at 62%, plus a grain vignette |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Raised wood boards with a brass-deep edge; filter labels are small gold Belwe |
 
+**Settings chrome.** `DefaultControls/TreeView.xaml`: Collection Manager planks, 30px rows with 6px corners in the body face; hover is a mid-wood plank with the mana crystal half-lit, selected is the lit plank in a 1px gold frame with the gold label and the full crystal (a `Path` diamond); children under a brass-deep guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 44px wood band, a mana crystal at the left, the title on a mid-wood ribbon with brass edges and swallowtail ends (sized by its title), closed by the carved edge (grain line over brass); `WindowBarButton` is 38x30 with 6px corners.
+
 ## Game page
 
 The skeleton and metadata pane follow `../AGENTS.md`. Steam screenshots sit in the left column above the description. The banner spacer scales with `HeroArt` through `MathConverter`: 110/340 in the details view, 76/340 in the grid panel.

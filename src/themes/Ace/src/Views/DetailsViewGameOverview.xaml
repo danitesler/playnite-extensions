@@ -53,7 +53,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type DetailsViewGameOverview}">
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Visible"
                                   Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible"
                                   d:DesignWidth="1280"
                                   d:DesignHeight="1280"
@@ -113,15 +113,18 @@
                                 </Grid.RowDefinitions>
 
                                 <!-- Room above the title: scales with the banner (x * 180 / 320 at the default banner height), 0 or the fallback when the banner is off. -->
-                                <Border Grid.Row="0">
+                                <Border Grid.Row="0" x:Name="DetailsBannerSpacer" MinHeight="20">
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='x * 180 / 320'}" />
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding ActualHeight, ElementName=HeroArt}" Value="0">
-                                                    <Setter Property="Height" Value="24" />
+                                                    <Setter Property="Height" Value="20" />
                                                 </DataTrigger>
-                                            </Style.Triggers>
+                                            <DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed">
+    <Setter Property="Height" Value="20" />
+</DataTrigger>
+</Style.Triggers>
                                         </Style>
                                     </Border.Style>
                                 </Border>
@@ -160,24 +163,31 @@
                                 </DockPanel>
 
                                 <!-- Two columns: screenshots, description and notes on the left, the metadata pane on the right -->
-                                <DockPanel MaxWidth="1024" Grid.Row="2">
-                                    <Border DockPanel.Dock="Right" VerticalAlignment="Top"
+                                <Grid MaxWidth="1024" Grid.Row="2" x:Name="DetailsOverviewBody">
+
+<Grid.Tag><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + 24 + 400"><Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" /><Binding Path="Tag" ElementName="DetailsMetadataViewport" /></MultiBinding></Grid.Tag>
+<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+<Grid x:Name="DetailsMetadataColumn" VerticalAlignment="Top"><Grid.Style><Style TargetType="Grid"><Setter Property="Grid.Column" Value="1" /><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.ColumnSpan" Value="1" /><Setter Property="Margin" Value="24,0,0,0" /><Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=DetailsOverviewBody}" Value="True"><Setter Property="Grid.Column" Value="0" /><Setter Property="Grid.Row" Value="1" /><Setter Property="Grid.ColumnSpan" Value="2" /><Setter Property="Margin" Value="0,24,0,0" /></DataTrigger></Style.Triggers></Style></Grid.Style>
+<Border VerticalAlignment="Top"
                                             Background="{DynamicResource ExpanderBackgroundBrush}"
-                                            BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="1" Padding="14,12">
+                                            BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="1" Padding="14,12" Margin="0,0,0,0" HorizontalAlignment="Stretch">
                                         <Border.Resources>
                                             <Style TargetType="ItemsControl">
                                                 <Setter Property="VerticalAlignment" Value="Top" />
                                             </Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource PropertyItemButton}" />
                                         </Border.Resources>
-                                        <!-- Groups draw a 1px rule on top; the wrapper pulls the first one out of view. Margins: -(2 x 12 + 1 + 8) top, -8 bottom. -->
-                                        <Border ClipToBounds="True" Width="{DynamicResource GameDetailsPaneWidth}">
-                                            <StackPanel Margin="0,-33,0,-8">
-                                                <Border x:Name="MetaProgress" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
-                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}">
+                                        <!-- Groups draw a 1px rule on top; the wrapper pulls the first one out of view. Margins: -(2 x 8 + 1 + 4) top, -4 bottom. -->
+                                        <Border ClipToBounds="True" x:Name="DetailsMetadataViewport" Tag="{DynamicResource GameDetailsPaneWidth}" HorizontalAlignment="Stretch">
+<Border.Style><Style TargetType="Border"><Setter Property="Width" Value="{DynamicResource GameDetailsPaneWidth}" /><Setter Property="MaxWidth" Value="{DynamicResource GameDetailsPaneWidth}" /><Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=DetailsOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /><Setter Property="MaxWidth" Value="Infinity" /></DataTrigger></Style.Triggers></Style></Border.Style>
+                                            <WrapPanel x:Name="DetailsMetadataGroups" UseLayoutRounding="False">
+<WrapPanel.Style><Style TargetType="WrapPanel"><Setter Property="Margin" Value="0,-21,0,-4" /><Style.Triggers><DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True"><Setter Property="Margin" Value="0,-21,-24,-4" /></DataTrigger></Style.Triggers></Style></WrapPanel.Style>
+<WrapPanel.Tag><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" Converter="{StaticResource MathConverter}" ConverterParameter="x &gt;= 560" /></WrapPanel.Tag>
+                                                <Border x:Name="MetaProgress" Padding="0,8,0,0" BorderThickness="0,1,0,0"
+                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" /><Binding Path="Tag" ElementName="DetailsMetadataGroups" /></MultiBinding></Border.Width>
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Style.Triggers>
+                                                            <Setter Property="Margin" Value="0,8,0,0" /><Style.Triggers>
                                                                 <MultiDataTrigger>
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemCompletionStatus}" Value="Collapsed" />
@@ -188,11 +198,11 @@
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </MultiDataTrigger>
-                                                            </Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Tag, ElementName=DetailsMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,0" /></DataTrigger></Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <Grid x:Name="PART_ElemCompletionStatus" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemCompletionStatus" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -201,7 +211,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <Button Name="PART_ButtonCompletionStatus" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemPlayTime" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemPlayTime" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -210,7 +220,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <TextBlock Name="PART_TextPlayTime" Grid.Column="1" VerticalAlignment="Top" TextWrapping="Wrap" Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrush}" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemLastPlayed" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemLastPlayed" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -219,7 +229,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <TextBlock Name="PART_TextLastActivity" Grid.Column="1" VerticalAlignment="Top" TextWrapping="Wrap" Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrush}" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemRecentActivity" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemRecentActivity" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -228,7 +238,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <TextBlock Name="PART_TextRecentActivity" Grid.Column="1" VerticalAlignment="Top" TextWrapping="Wrap" Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrush}" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemAdded" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemAdded" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -239,11 +249,11 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Border>
-                                                <Border x:Name="MetaScores" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
-                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}">
+                                                <Border x:Name="MetaScores" Padding="0,8,0,0" BorderThickness="0,1,0,0"
+                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" /><Binding Path="Tag" ElementName="DetailsMetadataGroups" /></MultiBinding></Border.Width>
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Style.Triggers>
+                                                            <Setter Property="Margin" Value="0,8,0,0" /><Style.Triggers>
                                                                 <MultiDataTrigger>
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemCommunityScore}" Value="Collapsed" />
@@ -252,11 +262,11 @@
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </MultiDataTrigger>
-                                                            </Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Tag, ElementName=DetailsMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,0" /></DataTrigger></Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <Grid x:Name="PART_ElemCommunityScore" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemCommunityScore" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -265,7 +275,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <TextBlock Name="PART_TextCommunityScore" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" Style="{DynamicResource TextBlockGameScore}" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemCriticScore" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemCriticScore" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -274,7 +284,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <TextBlock Name="PART_TextCriticScore" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" Style="{DynamicResource TextBlockGameScore}" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemUserScore" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemUserScore" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -285,11 +295,11 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Border>
-                                                <Border x:Name="MetaAbout" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
-                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}">
+                                                <Border x:Name="MetaAbout" Padding="0,8,0,0" BorderThickness="0,1,0,0"
+                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" /><Binding Path="Tag" ElementName="DetailsMetadataGroups" /></MultiBinding></Border.Width>
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Style.Triggers>
+                                                            <Setter Property="Margin" Value="0,8,0,0" /><Style.Triggers>
                                                                 <MultiDataTrigger>
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemDevelopers}" Value="Collapsed" />
@@ -301,11 +311,11 @@
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </MultiDataTrigger>
-                                                            </Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Tag, ElementName=DetailsMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,0" /></DataTrigger></Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <Grid x:Name="PART_ElemDevelopers" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemDevelopers" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -314,7 +324,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <ItemsControl Name="PART_ItemsDevelopers" Grid.Column="1" VerticalAlignment="Top" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemPublishers" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemPublishers" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -323,7 +333,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <ItemsControl Name="PART_ItemsPublishers" Grid.Column="1" VerticalAlignment="Top" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemReleaseDate" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemReleaseDate" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -332,7 +342,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <Button Name="PART_ButtonReleaseDate" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemSeries" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemSeries" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -341,7 +351,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <ItemsControl Name="PART_ItemsSeries" Grid.Column="1" VerticalAlignment="Top" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemAgeRating" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemAgeRating" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -350,7 +360,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <ItemsControl Name="PART_ItemsAgeRatings" Grid.Column="1" VerticalAlignment="Top" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemRegion" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemRegion" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -361,11 +371,11 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Border>
-                                                <Border x:Name="MetaTags" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
-                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}">
+                                                <Border x:Name="MetaTags" Padding="0,8,0,0" BorderThickness="0,1,0,0"
+                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" /><Binding Path="Tag" ElementName="DetailsMetadataGroups" /></MultiBinding></Border.Width>
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Style.Triggers>
+                                                            <Setter Property="Margin" Value="0,8,0,0" /><Style.Triggers>
                                                                 <MultiDataTrigger>
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemPlatform}" Value="Collapsed" />
@@ -376,11 +386,11 @@
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </MultiDataTrigger>
-                                                            </Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Tag, ElementName=DetailsMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,0" /></DataTrigger></Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <Grid x:Name="PART_ElemPlatform" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemPlatform" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -395,7 +405,7 @@
                                                                 </ItemsControl.ItemsPanel>
                                                             </ItemsControl>
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemGenres" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemGenres" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -410,7 +420,7 @@
                                                                 </ItemsControl.ItemsPanel>
                                                             </ItemsControl>
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemCategories" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemCategories" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -425,7 +435,7 @@
                                                                 </ItemsControl.ItemsPanel>
                                                             </ItemsControl>
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemFeatures" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemFeatures" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -440,7 +450,7 @@
                                                                 </ItemsControl.ItemsPanel>
                                                             </ItemsControl>
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemTags" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemTags" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -457,11 +467,11 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Border>
-                                                <Border x:Name="MetaLibrary" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
-                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}">
+                                                <Border x:Name="MetaLibrary" Padding="0,8,0,0" BorderThickness="0,1,0,0"
+                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" /><Binding Path="Tag" ElementName="DetailsMetadataGroups" /></MultiBinding></Border.Width>
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Style.Triggers>
+                                                            <Setter Property="Margin" Value="0,8,0,0" /><Style.Triggers>
                                                                 <MultiDataTrigger>
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemLibrary}" Value="Collapsed" />
@@ -472,11 +482,11 @@
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </MultiDataTrigger>
-                                                            </Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Tag, ElementName=DetailsMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,0" /></DataTrigger></Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <Grid x:Name="PART_ElemLibrary" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemLibrary" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -485,7 +495,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <Button Name="PART_ButtonLibrary" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemSource" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemSource" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -494,7 +504,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <Button Name="PART_ButtonSource" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemVersion" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemVersion" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -503,7 +513,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <Button Name="PART_ButtonVersion" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemInstallSize" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemInstallSize" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -512,7 +522,7 @@
                                                                        Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrushDarker}" />
                                                             <TextBlock Name="PART_TextInstallSize" Grid.Column="1" VerticalAlignment="Top" TextWrapping="Wrap" Style="{DynamicResource BaseTextBlockStyle}" Foreground="{DynamicResource TextBrush}" />
                                                         </Grid>
-                                                        <Grid x:Name="PART_ElemInstallDirectory" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemInstallDirectory" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -523,19 +533,19 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Border>
-                                                <Border x:Name="MetaLinks" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0"
-                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}">
+                                                <Border x:Name="MetaLinks" Padding="0,8,0,0" BorderThickness="0,1,0,0"
+                                                        BorderBrush="{DynamicResource MenuSeparatorBrush}"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="DetailsMetadataViewport" /><Binding Path="Tag" ElementName="DetailsMetadataGroups" /></MultiBinding></Border.Width>
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Style.Triggers>
+                                                            <Setter Property="Margin" Value="0,8,0,0" /><Style.Triggers>
                                                                 <DataTrigger Binding="{Binding Visibility, ElementName=PART_ElemLinks}" Value="Collapsed">
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                 </DataTrigger>
-                                                            </Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Tag, ElementName=DetailsMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,0" /></DataTrigger></Style.Triggers>
                                                         </Style>
                                                     </Border.Style>
                                                     <StackPanel>
-                                                        <Grid x:Name="PART_ElemLinks" Margin="0,8,0,8">
+                                                        <Grid x:Name="PART_ElemLinks" Margin="0,4,0,4">
                                                             <Grid.ColumnDefinitions>
                                                                 <ColumnDefinition Width="96" />
                                                                 <ColumnDefinition Width="*" />
@@ -546,11 +556,27 @@
                                                         </Grid>
                                                     </StackPanel>
                                                 </Border>
-                                            </StackPanel>
+                                            </WrapPanel>
                                         </Border>
                                     </Border>
-
-                                    <StackPanel Margin="0,0,24,0">
+</Grid>
+<Grid x:Name="DetailsMainColumn" VerticalAlignment="Top"><Grid.Style><Style TargetType="Grid"><Setter Property="Grid.Column" Value="0" /><Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=DetailsOverviewBody}" Value="True"><Setter Property="Grid.ColumnSpan" Value="2" /></DataTrigger></Style.Triggers></Style></Grid.Style><Grid.MaxWidth><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - 24)"><Binding Path="ActualWidth" ElementName="DetailsOverviewBody" /><Binding Path="ActualWidth" ElementName="DetailsMetadataColumn" /><Binding Path="Tag" ElementName="DetailsOverviewBody" /></MultiBinding></Grid.MaxWidth>
+<StackPanel Margin="0,0,24,0">
+                                        <Grid x:Name="SteamScreenshotsGameScope">
+                                            <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
                                         <Grid>
                                             <Grid.Style>
                                                 <Style TargetType="Grid">
@@ -603,6 +629,7 @@
                                                 </Grid>
                                             </StackPanel>
                                         </Grid>
+                                        </Grid>
                                         <StackPanel Name="PART_ElemDescription" Margin="0,0,0,24">
                                             <TextBlock Text="{DynamicResource LOCGameDescriptionTitle}" Margin="0" Style="{DynamicResource HeadingTextBlock}" />
                                             <Border Height="1" Margin="0,6,0,10" Background="{DynamicResource MenuSeparatorBrush}" />
@@ -625,7 +652,8 @@
                                                      AcceptsReturn="True" TextWrapping="Wrap" Margin="-1,0,-1,0" Padding="0" />
                                         </StackPanel>
                                     </StackPanel>
-                                </DockPanel>
+</Grid>
+</Grid>
                             </Grid>
                             <!-- Empty state (no game selected): the GoldSrc console prompt, "]" then Playnite's "No game selected" and a block cursor that blinks
                                  in whole frames (0.5s on, 0.5s off, no fade), in a sunken VGUI box. Centered in the visible area; the blink runs only while this shows. -->

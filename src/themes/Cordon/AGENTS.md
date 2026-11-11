@@ -66,6 +66,8 @@ Vocabulary added for this theme (`scripts/data/theme-keys.json`): `ButtonHoverFo
 | `Views/Library.xaml` | Panel color with the grain overlay; library art darkened and vignetted behind it |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Inset wells with the grey hairline |
 
+**Settings chrome.** The Options frame as a 44px band of worn steel (`BevelTemplate`: rust, lit top edge, dark bottom edge); the title sits on the lit plate of the current tab with a square amber lamp before it, the Library trefoil is ghosted at 9% into the right end and the game's broken line (dashed, in a `Canvas`) closes the band; 40x32 caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows on the inset well, dim caption grey; hover = the worn steel plate with brighter type and the lamp housing, selected = the lit tab plate, heading cream type and the square amber lamp burning on the right; children under a 1px hairline; width 256 (Settings), 280 (Add-ons).
+
 ## Game page
 
 Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left column above the description, banner spacer scaled with `HeroArt` through `MathConverter` (100/340 details, 72/340 grid). Differences: section headings are cream over the game's broken line (dashed 1px `InputBorderBrush`), no box; the title is cream with 240px of broken line; the metadata pane and notes are inset wells inside the grey hairline; Play is the lit plate with an amber lamp left of its label.

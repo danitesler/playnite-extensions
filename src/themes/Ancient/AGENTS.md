@@ -34,6 +34,8 @@ Keys this theme added to `scripts/data/theme-keys.json`: **`BevelLightBrush`**, 
 | `Views/Library.xaml` | The game's background art fills the whole library layer, the strip included (like the dashboard scene behind its bars), faded left and down, dimmed, and a radial vignette in the layer's brush. |
 | `DerivedStyles/MainWindowStyle.xaml` | Caption buttons 46x40 in the gear grey, centred on the 52px strip (12px from the top in the top-bar fallback), red close hover. |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Playnite's panels on the chat-panel slate so they read over the art. |
+| `DefaultControls/TreeView.xaml` | The Settings and Add-ons section list as the dashboard's tab list laid vertically: 260px (Settings) / 280px (Add-ons) wide, 30px full-width plate rows in the body face. Hover: a veil plate, white label, the blue bar at 50%. Selected: the bevelled slate plate under the blue nav wash, white label, a full 3px blue bar. Children under a 1px guide, caret expanders (blue when open). |
+| `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml` | Dialog title band, 44px: slate shaded toward the top, keystone mark before the title in small caps, the keystone outline ghosted into the right end at 7%, the game's paired rule (black over faint light) with a 220px blue glow segment lit under the title. Caption buttons 46x44. |
 
 ## Game page
 
@@ -65,7 +67,7 @@ Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and 
 - **Not the game's fonts** unless Radiance and Reaver are installed.
 - **No textures, no hero renders, no 3D scene:** the top bar image, the PLAY button texture and the dashboard scene are game art; the library shows each game's own background art instead.
 - **Focus:** the game has no keyboard focus visual; this theme draws a 1px pale teal outline.
-- Playnite templates this theme does not replace (DataGrid, DatePicker, TreeView, notification panel, add-on views) take the colors only.
+- Playnite templates this theme does not replace (DataGrid, DatePicker, notification panel, add-on views) take the colors only.
 
 ## Not verified yet
 

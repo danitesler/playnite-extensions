@@ -41,6 +41,8 @@ One flat surface (`bg`) for the window, sidebar and top bar; no borders or panel
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml`, `Views/Library.xaml` | Playnite's panels on the 4px spacing scale without separators; background art under the top bar, feathered on every edge. |
 | `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | Chakra dashboard page: cover clipped to radius l3, Heading 3xl (bold), solid Play, subtle More and IconButton Edit; description and notes under Heading lg titles next to a 380px Details Card that holds every metadata field Playnite can show, as one horizontal DataList (120px `fg.muted` labels, values beside them) in the six shared groups (progress, scores, about, tags as Badges, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by `border` Separators. A group whose fields are all hidden collapses with its Separator. No art. The grid panel uses the same two columns (description left, a 280px Details Card right) with a vertical DataList (label over value); no tabs. Fields left out are parts Playnite skips. |
 
+**Settings chrome.** Chakra dialog header as a flat 48px band: teal status dot before the title (semibold, body face), a faint dot grid in the right end (tiled `OpacityMask`), a 1px border line; 36x32 ghost caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows, radius-l2 plates inset 8px; hover = `bg.emphasized/60` with a gray 2px line hint, selected = teal subtle fill, teal fg and the Tabs "line" indicator (2px solid-teal bar on the trailing edge); children under a 1px border line; width 256 (Settings), 280 (Add-ons).
+
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*

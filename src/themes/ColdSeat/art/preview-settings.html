@@ -8,8 +8,12 @@
 <style>
   :root {
     --font: var(--wc3-font-body), serif;
-    --bevel: inset 1px 1px 0 rgba(191,230,255,.45), inset -1px -1px 0 rgba(5,8,15,.8);
-    --ice-sel: rgba(95,180,232,.28);
+    --bevel: inset 1px 1px 0 var(--wc3-stone-border), inset -1px -1px 0 var(--wc3-groove);
+    /* FramedPlateTemplate: groove, lit/dark iron bevel, iron band, groove, then the lit top/left line of the blue plate */
+    --frame: inset 0 0 0 1px var(--wc3-groove), inset 2px 2px 0 var(--wc3-stone-border), inset -2px -2px 0 var(--wc3-groove), inset 0 0 0 3px var(--wc3-stone), inset 0 0 0 4px var(--wc3-groove), inset 5px 5px 0 var(--wc3-blue-lit);
+    --frame-lit: inset 0 0 0 1px var(--wc3-groove), inset 2px 2px 0 var(--wc3-stone-border), inset -2px -2px 0 var(--wc3-groove), inset 0 0 0 3px var(--wc3-stone), inset 0 0 0 4px var(--wc3-groove), inset 5px 5px 0 var(--wc3-blue-glint);
+    --plate: linear-gradient(to bottom, color-mix(in srgb, var(--wc3-blue-lit) 85%, transparent), color-mix(in srgb, var(--wc3-blue-lit) 35%, transparent) 22%, transparent 55%), var(--wc3-blue);
+    --plate-lit: linear-gradient(to bottom, color-mix(in srgb, var(--wc3-blue-glint) 85%, transparent), color-mix(in srgb, var(--wc3-blue-glint) 35%, transparent) 22%, transparent 55%), var(--wc3-blue-hover);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -19,57 +23,80 @@
   }
   svg { fill: currentColor; display: block; }
 
-  .window { width: 920px; height: 672px; background: var(--wc3-void); border: 1px solid var(--wc3-stone-border); border-radius: 2px; box-shadow: 0 0 0 1px #000, 0 20px 50px rgba(0,0,0,.7); display: flex; flex-direction: column; overflow: hidden; }
-  .titlebar { height: 40px; flex: none; background: var(--wc3-night); border-bottom: 1px solid var(--wc3-stone-border); display: flex; align-items: center; padding-left: 16px; color: var(--wc3-gold); font-size: 15px; }
-  .titlebar .x { margin-left: auto; width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; }
+  /* Window: 2px iron rim. Title band: 44px forged iron with the lit/dark bevel, a black groove over a lit iron line below,
+     a rivet at each end, gold title between the two barbed iron spikes of the menu buttons. */
+  .window { width: 920px; height: 672px; background: var(--wc3-void); border: 2px solid var(--wc3-stone); border-radius: 0; box-shadow: 0 0 0 1px var(--wc3-groove), 0 20px 50px color-mix(in srgb, var(--wc3-groove) 70%, transparent); display: flex; flex-direction: column; overflow: hidden; }
+  .titlebar { height: 44px; flex: none; position: relative; background: var(--wc3-stone); box-shadow: var(--bevel); display: flex; align-items: center; justify-content: center; color: var(--wc3-gold); font-size: 20px; }
+  .titlebar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(to bottom, var(--wc3-groove) 0 2px, color-mix(in srgb, var(--wc3-stone-border) 60%, transparent) 2px 3px); }
+  .titlebar .tt { display: flex; align-items: center; gap: 12px; margin-bottom: 2px; }
+  .titlebar .tt i { width: 17px; height: 16px; background: var(--wc3-stone-light); clip-path: polygon(100% 0, 100% 100%, 65% 88%, 70% 69%, 0 50%, 70% 31%, 65% 12%); }
+  .titlebar .tt i:last-child { transform: scaleX(-1); }
+  .titlebar .rv { position: absolute; top: 19px; width: 6px; height: 6px; border-radius: 50%; background: var(--wc3-stone-border); box-shadow: 0 0 0 1px var(--wc3-groove); }
+  .titlebar .x { position: absolute; right: 4px; top: 5px; display: flex; color: var(--wc3-gold); }
+  .titlebar .x span { width: 40px; height: 32px; display: flex; align-items: center; justify-content: center; }
   .titlebar svg { width: 14px; height: 14px; }
+
   .body { flex: 1; min-height: 0; display: flex; }
 
-  .tree { width: 210px; flex: none; background: var(--wc3-night); border-right: 1px solid var(--wc3-stone-edge); padding: 8px 0; overflow: hidden; }
-  .n { position: relative; height: 26px; padding: 0 14px; display: flex; align-items: center; color: var(--wc3-gold); font-size: 14px; }
-  .n.c { padding-left: 34px; }
+  /* TreeView: 30px rows (28 + 1px gaps), the menu button column. Hover = the blue plate in its iron frame, white label,
+     dim gold diamond; selected = the plate lit, white label, full gold diamond. */
+  .tree { width: 256px; flex: none; background: var(--wc3-night); border-right: 1px solid var(--wc3-groove); box-shadow: inset -2px 0 0 var(--wc3-stone); padding: 8px 0; overflow: hidden; }
+  .n { position: relative; height: 28px; margin: 1px 6px; padding: 0 26px 0 12px; display: flex; align-items: center; color: var(--wc3-gold); font-size: 14px; border-radius: 2px; }
   .n .ar { width: 10px; height: 10px; margin-right: 6px; flex: none; }
-  .n.sel { background: var(--ice-sel); color: var(--wc3-white); }
-  .n.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--wc3-ice); }
+  .n.hov { background: var(--plate); box-shadow: var(--frame); color: var(--wc3-white); }
+  .n.sel { background: var(--plate-lit); box-shadow: var(--frame-lit); color: var(--wc3-white); }
+  .n.hov::after, .n.sel::after { content: ""; position: absolute; right: 12px; top: 10px; width: 8px; height: 8px; background: var(--wc3-gold); transform: rotate(45deg) scale(.9); opacity: .45; }
+  .n.sel::after { opacity: 1; }
+  .tg { margin-left: 22px; border-left: 1px solid var(--wc3-stone-light); }
+  .tg .n { margin-left: 5px; }
 
   .page { flex: 1; min-width: 0; padding: 20px 28px; overflow: hidden; }
-  .pt { font-size: 20px; color: var(--wc3-gold); padding-bottom: 8px; border-bottom: 1px solid var(--wc3-stone-edge); margin-bottom: 10px; }
+  .pt { font-size: 20px; color: var(--wc3-gold); padding-bottom: 8px; border-bottom: 1px solid var(--wc3-stone-light); margin-bottom: 10px; }
   .r { display: flex; align-items: center; gap: 16px; min-height: 42px; }
   .r > label { width: 190px; flex: none; font-size: 14px; }
-  .field { width: 270px; height: 32px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; background: var(--wc3-stone-dark); border: 1px solid var(--wc3-stone-border); border-radius: 2px; box-shadow: inset 1px 1px 0 rgba(0,0,0,.6); }
-  .field svg { width: 12px; height: 12px; color: var(--wc3-gold); }
+  /* edit box: black well, iron rim, dark top/left inner edge */
+  .field { width: 270px; height: 32px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; background: var(--wc3-stone-dark); border: 1px solid var(--wc3-stone-light); border-radius: 2px; box-shadow: inset 1px 1px 0 var(--wc3-groove); }
+  /* popup menu button: the blue plate in its iron frame, white value, solid gold triangle */
+  .field.combo { background: var(--plate); border: 0; box-shadow: var(--frame); padding: 0 11px 0 12px; }
+  .field.combo::after { content: ""; width: 11px; height: 7px; background: var(--wc3-gold); clip-path: polygon(0 0, 100% 0, 50% 100%); }
   .cb { display: flex; align-items: center; gap: 8px; }
-  .box { width: 18px; height: 18px; background: var(--wc3-stone-dark); border: 1px solid var(--wc3-stone-border); box-shadow: inset 1px 1px 0 rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; color: var(--wc3-gold); flex: none; }
-  .box svg { width: 14px; height: 14px; }
-  .ring { width: 18px; height: 18px; border-radius: 50%; background: var(--wc3-stone-dark); border: 1px solid var(--wc3-stone-border); box-shadow: inset 1px 1px 0 rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; flex: none; }
-  .ring.on::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--wc3-gold); }
+  /* check box: 20px iron bezel around a black well, heavy gold tick leaning out of it */
+  .box { position: relative; width: 20px; height: 20px; background: var(--wc3-stone-dark); border-radius: 2px; box-shadow: inset 0 0 0 1px var(--wc3-groove), inset 2px 2px 0 var(--wc3-stone-border), inset -2px -2px 0 var(--wc3-groove), inset 0 0 0 3px var(--wc3-stone), inset 0 0 0 4px var(--wc3-groove); flex: none; }
+  .box svg { position: absolute; left: 4px; top: 3px; width: 14px; height: 13px; overflow: visible; fill: none; stroke: var(--wc3-gold); stroke-width: 2.4; }
+  /* radio: 20px iron ring between grooves around a black well, gold stud with a dark gold underside */
+  .ring { width: 20px; height: 20px; border-radius: 50%; background: var(--wc3-stone-dark); box-shadow: inset 0 0 0 1px var(--wc3-groove), inset 0 0 0 2px var(--wc3-stone-border), inset 0 0 0 3px var(--wc3-stone), inset 0 0 0 4px var(--wc3-groove); display: flex; align-items: center; justify-content: center; flex: none; }
+  .ring.on::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--wc3-gold); box-shadow: 0 1px 0 var(--wc3-gold-dark); }
   .radios { display: flex; gap: 24px; }
-  .track { position: relative; width: 270px; height: 6px; border-radius: 2px; background: var(--wc3-stone-dark); border: 1px solid var(--wc3-stone-border); }
-  .track i { position: absolute; left: 0; top: 0; height: 4px; width: 62%; border-radius: 2px; background: var(--wc3-ice); }
-  .track b { position: absolute; left: 62%; top: -6px; width: 14px; height: 14px; margin-left: -7px; background: var(--wc3-stone); border: 1px solid var(--wc3-stone-border); box-shadow: var(--bevel); }
-  .btn { height: 34px; min-width: 96px; padding: 0 16px; display: flex; align-items: center; justify-content: center; background: var(--wc3-stone); color: var(--wc3-gold); border: 1px solid var(--wc3-stone-border); border-radius: 2px; box-shadow: var(--bevel); font-size: 14px; }
-  .btn.p { background: var(--wc3-gold); color: var(--wc3-void); border-color: var(--wc3-gold-light); }
+  /* slider: 10px black channel in an iron rail, faint blue fill, 18px blue gem in an iron ring */
+  .track { position: relative; width: 270px; height: 10px; border-radius: 3px; background: var(--wc3-stone-dark); border: 1px solid var(--wc3-stone-light); box-shadow: inset 1px 1px 0 var(--wc3-groove); }
+  .track i { position: absolute; left: 3px; top: 2px; height: 4px; width: 60%; border-radius: 2px; background: var(--wc3-blue-lit); }
+  .track b { position: absolute; left: 62%; top: -5px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: radial-gradient(circle at 44% 42%, var(--wc3-white) 0 1.2px, var(--wc3-blue-glint) 1.6px 4.6px, var(--wc3-groove) 5px 5.6px, var(--wc3-stone) 6px 7px, var(--wc3-stone-border) 7.4px 8px, var(--wc3-groove) 8.4px); }
+  /* glue button: blue plate in a forged iron frame, gold label */
+  .btn { height: 32px; min-width: 96px; padding: 0 16px; display: flex; align-items: center; justify-content: center; background: var(--plate); color: var(--wc3-gold); border-radius: 2px; box-shadow: var(--frame); font-size: 14px; }
+  .btn.p { background: var(--plate-lit); box-shadow: var(--frame-lit); color: var(--wc3-white); }
 
-  .bottom { height: 54px; flex: none; background: var(--wc3-night); border-top: 1px solid var(--wc3-stone-border); display: flex; align-items: center; padding: 0 16px; gap: 10px; }
+  .bottom { height: 54px; flex: none; background: var(--wc3-stone); border-top: 1px solid var(--wc3-groove); box-shadow: inset 0 1px 0 var(--wc3-stone-border); display: flex; align-items: center; padding: 0 16px; gap: 10px; }
   .bottom .nt { margin-right: auto; font-size: 12px; color: var(--wc3-muted); }
-  /* Form fields and buttons: 32px, the theme's ControlHeight. */
+  /* Form fields and buttons: 32px, the theme ControlHeight. */
   div.btn, div.btn.p, div.field { height: 32px; min-height: 32px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; }
 </style>
 </head>
 <body>
 <div class="window" data-part="settings-window">
-  <div class="titlebar">Settings<span class="x"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span></div>
+  <div class="titlebar"><i class="rv" style="left:12px"></i><span class="tt"><i></i>Settings<i></i></span><i class="rv" style="right:130px"></i><div class="x"><span><svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14z"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5V7zm2 2v10h10V7z" fill-rule="evenodd"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></span></div></div>
   <div class="body">
     <div class="tree" data-part="settings-nav">
       <div class="n">General</div>
       <div class="n"><svg class="ar" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Appearance</div>
-      <div class="n c sel">General</div>
-      <div class="n c">Advanced</div>
-      <div class="n c">Details View</div>
-      <div class="n c">Grid View</div>
-      <div class="n c">List View</div>
-      <div class="n c">Layout</div>
-      <div class="n c">Top panel</div>
+      <div class="tg">
+      <div class="n sel">General</div>
+      <div class="n hov">Advanced</div>
+      <div class="n">Details View</div>
+      <div class="n">Grid View</div>
+      <div class="n">List View</div>
+      <div class="n">Layout</div>
+      <div class="n">Top panel</div>
+      </div>
       <div class="n">Search</div>
       <div class="n">Updating</div>
       <div class="n">Metadata</div>
@@ -81,22 +108,22 @@
       <div class="n">For developers</div>
       <div class="n">Input</div>
       <div class="n"><svg class="ar" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>Advanced</div>
-      <div class="n c">Performance</div>
+      <div class="tg"><div class="n">Performance</div></div>
     </div>
     <div class="page" data-part="settings-content">
       <div class="pt">Appearance</div>
-      <div class="r"><label>Show notification panel</label><div class="cb"><div class="box"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg></div></div></div>
+      <div class="r"><label>Show notification panel</label><div class="cb"><div class="box"><svg viewBox="0 0 14 13"><path d="M1 7.5 L4.8 11.5 L12.5 1.5"/></svg></div></div></div>
       <div class="r"><label>Show names under covers</label><div class="cb"><div class="box"></div></div></div>
       <div class="r"><label>Animations</label><div class="radios"><div class="cb"><div class="ring on"></div>Standard</div><div class="cb"><div class="ring"></div>Reduced motion</div></div></div>
       <div class="r"><label>Font size</label><div class="track"><i></i><b></b></div></div>
       <div class="r"><label>Library folder</label><div class="field">D:\Games</div></div>
-      <div class="r"><label>Desktop theme</label><div class="field">Cold Seat<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg></div></div>
+      <div class="r"><label>Desktop theme</label><div class="field combo">Cold Seat</div></div>
       <div class="r"><label>Backup</label><div style="display:flex;gap:10px"><div class="btn p">Browse...</div><div class="btn">Clear</div></div></div>
     </div>
   </div>
   <div class="bottom" data-part="settings-buttons">
     <span class="nt">* Requires restart to apply</span>
-    <div class="btn p">Save</div>
+    <div class="btn">Save</div>
     <div class="btn">Cancel</div>
   </div>
 </div>

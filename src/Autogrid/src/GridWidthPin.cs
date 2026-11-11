@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Autogrid
 {
@@ -17,6 +18,8 @@ namespace Autogrid
     {
         private FrameworkElement pinned;
         private bool alignmentChanged;
+        private DispatcherTimer resizeTimer;
+        private double pendingWidth;
 
         public bool IsPinned => pinned != null;
 
@@ -50,10 +53,11 @@ namespace Autogrid
             }
 
             pinned = content;
+            pendingWidth = content.Width;
             return true;
         }
 
-        /// <summary>Follows a main window resize so the grid's full width tracks the window.</summary>
+        /// <summary>Follows a window resize once it pauses, avoiding a cover reflow for every pixel.</summary>
         public void Grow(double delta)
         {
             if (pinned == null || Math.Abs(delta) < 0.5)
@@ -61,11 +65,32 @@ namespace Autogrid
                 return;
             }
 
-            pinned.Width = Math.Max(1, pinned.Width + delta);
+            pendingWidth = Math.Max(1, pendingWidth + delta);
+            if (resizeTimer == null)
+            {
+                resizeTimer = new DispatcherTimer(DispatcherPriority.Background, pinned.Dispatcher)
+                {
+                    Interval = TimeSpan.FromMilliseconds(50)
+                };
+                resizeTimer.Tick += ApplyResize;
+            }
+
+            resizeTimer.Stop();
+            resizeTimer.Start();
+        }
+
+        private void ApplyResize(object sender, EventArgs e)
+        {
+            resizeTimer.Stop();
+            if (pinned != null)
+            {
+                pinned.Width = pendingWidth;
+            }
         }
 
         public void Release()
         {
+            resizeTimer?.Stop();
             if (pinned == null)
             {
                 return;

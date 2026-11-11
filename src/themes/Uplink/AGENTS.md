@@ -34,6 +34,8 @@ New shared key this theme added to `scripts/data/theme-keys.json`: **`ChamferTem
 | `DerivedStyles/MainWindowStyle.xaml` | Caption buttons 46x40, 8px from the top with the sidebar at the top (centered on the 56px bar), 4px otherwise; red close hover. |
 | `Views/Library.xaml`, `FilterPanelView.xaml`, `ExplorerPanel.xaml`, `SearchView.xaml` | Library layer on `deck`, the game's background art feathered in; side panels on `hull`. |
 
+**Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the glue menus' sub navigation list, 30px rows in the body face, each a `ChamferTemplate` plate (the game's cut corners). Hover is the veil plate on the blue panel edge with a quarter-strength beam; selected is the glow-wash plate on the lit edge with the full 2px beam (`TabItemIndicatorBrush`) lit under it, fading out at both ends, and a white label. Children sit under a 1px blue guide. The title band is 40px: the navigation gradient lifted by a blue glow from its lower edge, the title on a chamfered sub navigation plate with the lit beam under it, a status tick ruler and the ghosted hex mark at the right end, and a blue panel edge closing the band; caption buttons are 44x40.
+
 ## Game page
 
 Follows the shared skeleton. Title in the heading sans (31px), Play 180x40, More and Edit icon-only 40x40 squares. Section headings (`HeadingTextBlock`) are the heading sans in `GlyphBrush` over the lit divider (`DividerTemplate`: a 28x3 bar and a 1px line fading right). The cover in the details header sits in a 1px frame with the lit corner ticks.

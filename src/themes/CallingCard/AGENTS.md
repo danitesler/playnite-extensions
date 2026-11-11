@@ -63,6 +63,8 @@ Measured at 1080p and scaled by 2/3 (Playnite's 14px body against the menus' 21p
 | `Views/Library.xaml` | Ink layer; background art under `ScrimBrush` (85% ink) at 75% plus a bottom fade; a red halftone (`GlyphBrush` through an 8px dot mask) at 22% fading in toward the bottom-right corner. All in a `BitmapCache` wrapper. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Ink panels with a 1px ash edge; filter captions in heavy capitals. |
 
+**Settings chrome.** The 44px ink band carries the title in Impact on the slanted red plate with the blue sliver dropped behind it, closed by the rail's paper sawtooth along the bottom edge (tiled triangle `OpacityMask`); 40x32 caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows in the body face on the ink rail; hover = soot `SlantPlateTemplate` plate and a half-lit paper chevron, selected = the red plate with the blue sliver behind it and the chevron at full strength; children under a 2px smoke line; width 256 (Settings), 280 (Add-ons).
+
 ## Game page
 
 Skeleton and metadata pane as in `../AGENTS.md`, dressed as a status screen:
@@ -110,7 +112,7 @@ Signature motifs drawn: (1) the slanted red plate with the blue sliver on the cu
 
 Fonts: Anton (OFL) stands in for Impact, Selawik (OFL) for Segoe UI; both come from `scripts/data/fonts.json`. Haettenschweiler and Arial Black are in the XAML stack only as Windows fallbacks and are not drawn.
 
-Settings preview: Playnite's `TreeView` and standard window are not restyled by this theme, so the section tree is drawn as Playnite's recolored template (a flat red current row, soot on hover, no slant).
+Settings preview: the title band and the section list as `DefaultControls/TreeView.xaml` and `DerivedStyles/StandardWindowStyle.xaml` draw them (slanted plates, sawtooth).
 
 ## Not verified yet
 
@@ -122,4 +124,4 @@ Built and validated on Linux only (`build-theme.ps1`, `validate-extension.ps1 -M
 - The name plate on the game page with long, wrapping titles and with an icon.
 - Play / context action alignment (Play is 48 tall, the context action 40, top-aligned).
 - Add-on sidebar icons (Tumbleweed, ...) render 16 x 16 in the fixed-padding `SidebarItem` (the old template stacked `14,12` with `IconPadding` and collapsed them); check one in Playnite.
-- The Settings tree's current row (Playnite's `TreeViewItem` recolored: red row, paper text) as drawn in the preview.
+- The Settings tree and title band (`TreeView.xaml`, `StandardWindowStyle.xaml`) as drawn in the preview; the skewed plates' corners must not clip at the column edges.

@@ -1,7 +1,8 @@
 <!--
-    Cold Seat ComboBox: stone-dark input well (InputBackgroundBrush, InputBorderBrush rim, dark top/left inner edge, ControlCornerRadius)
-    with a gold Marlett arrow. Hover InputHoverBorderBrush, focus or open FocusBrush. Popup uses PopupBorder (night fill, 1px stone rim).
-    Items: gold text at rest, white with MenuItemHoverBrush on hover and SelectedBrush when selected. Padding ComboBoxItemPadding.
+    Cold Seat ComboBox: the popup menu button of the options and lobby screens. The blue glue plate in its iron frame
+    (FramedPlateTemplate), white value, a solid gold triangle pointing down. Hover lights the plate (ButtonHoverBackgroundBrush),
+    focus or open draws a FocusBrush line around the frame; disabled turns the plate black like the locked lobby slots.
+    Popup: PopupBorder (black dialog body, iron rim). Items: gold at rest, white on the royal blue selection bar. Padding ComboBoxItemPadding.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -11,36 +12,51 @@
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource FrameInnerBrush}" />
         <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBox}">
-                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
+                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="Transparent"
                             BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <Border BorderThickness="1,1,0,0" BorderBrush="{DynamicResource BevelShadowBrush}"
-                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                        <Border Margin="-1">
                             <Grid>
+                                <Control x:Name="Plate" Template="{DynamicResource FramedPlateTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                         Background="{TemplateBinding Background}" BorderBrush="{DynamicResource SelectedSheenBrush}" />
+                                <Border x:Name="HoverPlate" Margin="4" IsHitTestVisible="False" Opacity="0" Background="{DynamicResource ButtonHoverBackgroundBrush}">
+                                    <Border BorderThickness="1,1,0,0" BorderBrush="{DynamicResource SelectedBorderBrush}" />
+                                </Border>
                                 <ToggleButton x:Name="ToggleButton" Focusable="False" ClickMode="Press" Margin="0,0,2,0"
                                               IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="{x:Type ToggleButton}">
                                             <DockPanel LastChildFill="False" Background="Transparent">
-                                                <Viewbox DockPanel.Dock="Right" Width="20">
-                                                    <TextBlock Text="6" FontFamily="Marlett" Foreground="{DynamicResource GlyphBrush}"
-                                                               VerticalAlignment="Center" />
-                                                </Viewbox>
+                                                <ToggleButton x:Name="FilterGroupIndicator" DockPanel.Dock="Right" HorizontalAlignment="Right"
+                                                              Margin="0,0,-5,0" Background="Transparent" BorderThickness="0" Padding="0" Width="30" Height="28" VerticalAlignment="Center" Visibility="Collapsed"
+                                                              IsHitTestVisible="False" Focusable="False" IsChecked="True"
+                                                              Style="{DynamicResource ExpanderDownHeaderStyle}" />
+                                                <Grid x:Name="FilterOriginalArrowHost" DockPanel.Dock="Right" Width="20" Margin="0,0,5,0">
+                                                    <Path x:Name="FilterOriginalArrow" Data="M0,0 L11,0 L5.5,7 Z" Width="11" Height="7" Stretch="None"
+                                                          Fill="{DynamicResource GlyphBrush}" Stroke="{DynamicResource FrameInnerBrush}" StrokeThickness="0.5"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Grid>
                                             </DockPanel>
+                                            <ControlTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsVisible, RelativeSource={RelativeSource AncestorType={x:Type FilterPanel}}, FallbackValue=False}" Value="True">
+                                                    <Setter TargetName="FilterOriginalArrowHost" Property="Visibility" Value="Collapsed" />
+                                                    <Setter TargetName="FilterGroupIndicator" Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </ToggleButton.Template>
                                 </ToggleButton>
                                 <ContentPresenter x:Name="ContentSite" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                  Margin="8,5,25,5" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}"
+                                                  Margin="12,5,33,5" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}"
                                                   ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                                   ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
                                 <TextBox MinHeight="0" x:Name="PART_EditableTextBox" Visibility="Hidden" VerticalAlignment="Center"
-                                         HorizontalAlignment="Stretch" Margin="0,0,25,0" Focusable="True"
+                                         HorizontalAlignment="Stretch" Margin="4,0,33,0" Focusable="True"
                                          Style="{DynamicResource BareTextBox}"
                                          IsReadOnly="{TemplateBinding IsReadOnly}" Foreground="{DynamicResource TextBrush}" />
                                 <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -59,8 +75,15 @@
                         </Border>
                     </Border>
                     <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsVisible, RelativeSource={RelativeSource AncestorType={x:Type FilterPanel}}, FallbackValue=False}" Value="True">
+                            <Setter TargetName="ContentSite" Property="Margin" Value="10,2,36,2" />
+                        </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
+                            <Setter Property="Opacity" Value="1" TargetName="HoverPlate" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" TargetName="Plate" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource FrameHoverBrush}" TargetName="Plate" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
@@ -88,7 +111,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
                     <Grid>
-                        <Rectangle x:Name="HoverRectangle" IsHitTestVisible="False" Visibility="Collapsed" Fill="{DynamicResource MenuItemHoverBrush}" />
+                        <Rectangle x:Name="HoverRectangle" IsHitTestVisible="False" Visibility="Collapsed" Fill="{DynamicResource ListItemHoverBrush}" />
                         <Rectangle x:Name="SelectedRectangle" IsHitTestVisible="False" Visibility="Collapsed" Fill="{DynamicResource SelectedBrush}" />
                         <Border Background="Transparent" Padding="{TemplateBinding Padding}">
                             <ContentPresenter VerticalAlignment="Center" />

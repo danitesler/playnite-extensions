@@ -132,17 +132,26 @@
                         <Control Template="{DynamicResource BevelInsetTemplate}" Background="Transparent" />
                         <Border x:Name="FocusEdge" BorderThickness="1" BorderBrush="Transparent"
                                 CornerRadius="0" IsHitTestVisible="False" />
-                        <ContentControl x:Name="PART_SeachIcon"
+                        <ContentControl x:Name="Glyph"
                                         ContentTemplate="{DynamicResource SearchTextIconTemplate}"
                                         VerticalAlignment="Center" HorizontalAlignment="Left" Margin="6,0,0,0"
-                                        Foreground="{DynamicResource TextBrushDarker}" />
+                                        Foreground="{DynamicResource GlyphBrush}" Panel.ZIndex="1" IsHitTestVisible="False" />
+                            <Grid x:Name="PART_SeachIcon" IsHitTestVisible="False" />
                         <TextBox x:Name="PART_TextInpuText" Style="{DynamicResource BareTextBox}"
                                  Foreground="{DynamicResource TextBrush}"
-                                 VerticalContentAlignment="Center" Padding="6,0,24,0" />
+                                 VerticalContentAlignment="Center" Padding="26,0,24,0" />
                         <ContentControl x:Name="PART_ClearTextIcon"
                                         ContentTemplate="{DynamicResource ClearTextIconTemplate}"
                                         VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,6,0"
-                                        Foreground="{DynamicResource TextBrushDarker}" />
+                                        Foreground="{DynamicResource TextBrushDarker}">
+                            <ContentControl.Template>
+                                <ControlTemplate TargetType="ContentControl">
+                                    <Border Background="Transparent">
+                                        <ContentPresenter ContentSource="Content" />
+                                    </Border>
+                                </ControlTemplate>
+                            </ContentControl.Template>
+                        </ContentControl>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -151,6 +160,17 @@
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="FocusEdge" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
                         </Trigger>
+
+                        <!-- Keep the magnifier visible while Playnite hides its placeholder. -->
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+                        </Trigger>
+                        <Trigger Property="ShowImage" Value="False">
+                            <Setter TargetName="Glyph" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -158,6 +178,7 @@
     </Style>
 
     <!-- Filter toggle: 28px bevelled olive button; with an active filter it is sunken with an amber glyph and the label. -->
+    <!-- Filter active: a small square in the notification accent (DataChangeNotifBrush) on the icon's top-right corner, no text. -->
     <Style x:Key="TopPanelFilterToggle" TargetType="CheckBox">
         <Setter Property="MinWidth" Value="28" />
         <Setter Property="Height" Value="28" />
@@ -181,11 +202,7 @@
                                               TextElement.Foreground="{TemplateBinding Foreground}"
                                               Content="{DynamicResource IconFilter}"
                                               ContentTemplate="{DynamicResource IconTemplate}" />
-                            <TextBlock Text="{DynamicResource LOCFilterActiveLabel}"
-                                       Style="{DynamicResource BaseTextBlockStyle}"
-                                       Foreground="{TemplateBinding Foreground}"
-                                       Margin="5,0,0,0" VerticalAlignment="Center"
-                                       Name="TextFilter" />
+                            <Rectangle x:Name="TextFilter" Visibility="Collapsed" IsHitTestVisible="False" Margin="-4,-18,-4,0" VerticalAlignment="Center" Width="7" Height="7" Fill="{DynamicResource DataChangeNotifBrush}" />
                         </StackPanel>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -295,8 +312,76 @@
                                 </Grid>
                             </Border>
 
-                            <SearchBox x:Name="PART_TextMainSearch" Style="{DynamicResource TopPanelSearchBox}" DockPanel.Dock="Left"
-                                       Width="180" Height="24" VerticalAlignment="Center" Margin="6,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True" />
+                            <SearchBox x:Name="PART_TextMainSearch" Style="{DynamicResource TopPanelSearchBox}"
+                                       Width="180" Height="24" VerticalAlignment="Center" Margin="6,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True" DockPanel.Dock="Left" HorizontalAlignment="Left" />
+
+                            <CheckBox x:Name="PART_ToggleFilter" Style="{DynamicResource TopPanelFilterToggle}" ToolTip="{DynamicResource LOCFilters}" DockPanel.Dock="Left" />
+
+                            <!-- Keep sorting first even though Playnite inserts it after view settings and grouping. -->
+                            <Grid x:Name="PART_PanelMainItems" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4,0,0,0" Height="28">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.Resources>
+                                    <Style TargetType="{x:Type TopPanelItem}" BasedOn="{StaticResource {x:Type TopPanelItem}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelSortSettingsTemplate}">
+                                                <Setter Property="Grid.Column" Value="0" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelSearchButtonTemplate}">
+                                                <Setter Property="Grid.Column" Value="1" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelGeneralViewSettingsTemplate}">
+                                                <Setter Property="Grid.Column" Value="2" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelFilterPresetsSelectionTemplate}">
+                                                <Setter Property="Grid.Column" Value="3" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelGroupSettingsTemplate}">
+                                                <Setter Property="Grid.Column" Value="4" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelSwitchDetailsViewTemplate}">
+                                                <Setter Property="Grid.Column" Value="6" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelSwitchGridViewTemplate}">
+                                                <Setter Property="Grid.Column" Value="7" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelSwitchListViewTemplate}">
+                                                <Setter Property="Grid.Column" Value="8" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelUpdateButtonTemplate}">
+                                                <Setter Property="Grid.Column" Value="9" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelSelectRandomGameButtonTemplate}">
+                                                <Setter Property="Grid.Column" Value="10" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelViewSelectRandomGameButtonTemplate}">
+                                                <Setter Property="Grid.Column" Value="11" />
+                                            </Trigger>
+                                            <Trigger Property="ContentTemplate" Value="{StaticResource TopPanelExplorerSwitchTemplate}">
+                                                <Setter Property="Grid.Column" Value="12" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                    <Style TargetType="Canvas">
+                                        <Setter Property="Grid.Column" Value="5" />
+                                    </Style>
+                                </Grid.Resources>
+                            </Grid>
+
+
                             <!-- A light track keeps dark text readable over both the track and the amber fill. -->
                             <DockPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0,6,0" Visibility="{Binding Visibility, ElementName=PART_ProgressGlobal}">
                                 <Button Name="PART_ButtonProgressCancel" DockPanel.Dock="Right" Content="{DynamicResource LOCCancelLabel}" Height="28" Margin="6,0,0,0" WindowChrome.IsHitTestVisibleInChrome="True" />
@@ -316,8 +401,8 @@
                                     </Style>
                                 </ScrollViewer.Resources>
                                 <DockPanel LastChildFill="False">
-                                    <StackPanel x:Name="PART_PanelMainItems" Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" />
-                                    <CheckBox x:Name="PART_ToggleFilter" Style="{DynamicResource TopPanelFilterToggle}" DockPanel.Dock="Left" ToolTip="{DynamicResource LOCFilters}" />
+
+
                                     <CheckBox x:Name="PART_ToggleNotifications" Style="{DynamicResource TopPanelNotificationsToggle}" DockPanel.Dock="Left" />
                                     <StackPanel x:Name="PART_PanelMainPluginItems" Orientation="Horizontal" Margin="6,0,0,0" VerticalAlignment="Center" DockPanel.Dock="{Settings PluginTopPanelAlignment}" />
                                 </DockPanel>

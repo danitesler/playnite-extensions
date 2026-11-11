@@ -33,6 +33,8 @@ Type: 12 / 14 / 16 / 19 / 33, title case, normal weight everywhere (the game's 1
 | `Views/Library.xaml` | Background art over both rows, darkened like the pause menu: black 55% over all, 80% at the left edge fading out by 55% of the width (where the list sits), shades along top and bottom. The library has no fill. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons with thin glyphs, rust close hover, 64px caption height. |
 
+**Settings chrome.** `DefaultControls/TreeView.xaml`: the options menu's list, 30px square rows in the body serif; hover is the smudge at half strength, selected is the full feathered smudge (radial `OpacityMask`, as the game list uses) with the ivory label moved 8px in and a hairline under the row; children under a hairline guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 40px band on the menu black, the title in ivory serif lit by the same smudge, the compass mark ghosted at the right, closed by the hairline the game draws under "Paused"; `WindowBarButton` is 44x40, flat.
+
 ## Game page
 
 Follows the shared skeleton. Differences:

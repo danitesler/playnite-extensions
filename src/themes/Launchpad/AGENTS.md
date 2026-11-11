@@ -37,6 +37,8 @@ Font: Segoe UI at 12 / 14 / 16 / 20 / 37. The client's own typeface is not bundl
 | `Views/GridViewGameOverview.xaml` | The same page in the cover-grid side panel: the same 290px background band behind the header (96px of it above the title, same tint and scrim), rail color, blue Play, gear Options, screenshots, description and notes on the left, Game details on the right (280px): the same pane and groups as the details page. |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Side panels on the rail color; preset buttons use theme icons. |
 
+**Settings chrome.** `DefaultControls/TreeView.xaml`: the launcher's tab underline laid on rows, 30px plates with 3px corners in the body face; hover is the card-hover plate with a 20px stub of the blue underline, selected is the active card plate with the full-width blue underline along the row's foot and the white label; children under a 1px guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 40px band on the frame color, the orbit mark in blue before the title, the title as the active tab (2px blue underline along the band's foot), the mark ghosted at the right, 1px divider; `WindowBarButton` is 46x40, flat.
+
 ## Components
 
 Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`. The interactive layer (motion notes and their honesty caveat: `RESEARCH.md` -> Motion):

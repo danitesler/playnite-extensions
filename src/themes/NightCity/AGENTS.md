@@ -57,6 +57,8 @@ These are this theme's own values: there is no published spec to quote.
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 52px black strip, icon-only view switches (current = solid yellow plate, black glyph, one 8px cut corner), search box on the right (`TopPanelSearchBox`), 128px kept clear for the window buttons |
 | `Views/Library.xaml` | Library art at 0.18 opacity, not feathered |
 
+**Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the game's menu list as cut-corner slabs, 30px rows in the body face. Hover is a yellow hairline plate with the label in yellow and a half-lit cyan ghost lip; selected is the solid yellow slab with its top-left and bottom-right corners cut (8px triangles in the rail brush), black label, and the cyan lip fully lit 2px off the slab. The title band is 40px: the title sits on a yellow slab with two 12px cut corners (heading face, black), a cyan sliver continues it along the band foot, yellow slashes are ghosted left of the 44x40 caption buttons and a yellow hairline closes the band.
+
 ## Game page
 
 Follows the skeleton in `../AGENTS.md`. The banner spacer uses `MathConverter` with the default 340 banner (`x * 100 / 340` details, `x * 72 / 340` grid); with `ActualHeight` 0 it drops to 24 (details) and 48 (grid). Metadata is one card with six collapsing groups separated by 1px yellow rules, with one cut corner. Steam screenshots show a skeleton for Steam games (`SteamScreenshotsSkeletonTemplate`).

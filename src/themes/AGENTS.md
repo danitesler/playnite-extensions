@@ -4,7 +4,7 @@ Every theme here is **standalone** (it never reads another theme's files) but th
 
 Rules that make Playnite load a theme (overlays, `DynamicResource`, brushes only, placeholders, build checks) are in **`.claude/skills/playnite-theme-dev/reference.md`**; the step-by-step for a new theme is skill **`playnite-theme-dev`**.
 
-Multi-theme fix (shell, game page, sidebar across all 29 themes): **`docs/theme-patch-workflow.md`**.
+Multi-theme fix (shell, game page, sidebar across all registered themes): **`docs/theme-patch-workflow.md`**.
 
 ## Folder layout
 
@@ -25,7 +25,7 @@ Multi-theme fix (shell, game page, sidebar across all 29 themes): **`docs/theme-
 
 ## The files every theme ships
 
-All themes restyle the same set; a few add more (Expander, ListView, group styles, `SearchView`, `StandardWindowStyle`, `NotificationMessage`).
+All themes restyle the same set; a few add more (Expander, ListView, group styles, `SearchView`, `NotificationMessage`). `TreeView` and `StandardWindowStyle` (with `WindowBarButton`) are required in every theme: they are the Settings window's section list and title band, see `.claude/skills/playnite-theme-dev/settings-screens.md`.
 
 | File | Role | Shared keys it defines |
 |------|------|------------------------|
@@ -41,12 +41,19 @@ All themes restyle the same set; a few add more (Expander, ListView, group style
 | `DerivedStyles/GridViewItemTemplate.xaml` | Cover content: the Play / Info hover controls, themed and animated (required for new themes; Cloudbank first) | `GridTileButton` |
 | `DerivedStyles/PlayButton.xaml`, `PropertyItemButton.xaml`, `WindowBarButton.xaml`, `HighlightBorder.xaml` | Play, metadata values and chips, dialog caption buttons, input chrome for Default templates | |
 
-Everything a theme does not restyle (DataGrid, DatePicker, TreeView, the edit dialog, ...) is Playnite's template, recolored through the palette keys.
+Everything a theme does not restyle (DataGrid, the edit dialog, ...) is Playnite's template, recolored through the palette keys. DatePicker is a required overlay to keep form fields at the standard height.
 
 ## Shell
 
+- **Grid details width**: `Views/LibraryGridView.xaml` preserves Playnite's configured `GrdiDetailsWitdh` as the preferred width and caps `PART_ControlGameView.MaxWidth` at the templated library view's `ActualWidth`. Narrowing the window (or opening filters) must shrink the outer panel; widening it restores the configured width. Keep this separate from the responsive content inside `GridViewGameOverview.xaml`. Run `pwsh -STA -File tests/GridDetailsPanelWidthRegressionTests.ps1`.
+- **Top bar order**: search, filter toggle, then sorting at the top left in every theme. `PART_PanelMainItems` is a content-sized Grid: template-based column triggers put sorting first despite Playnite's insertion order. Keep the host and button heights explicit and equal to the theme's toolbar button height, including filter/notification plates and active states. Run `pwsh -STA -File tests/TopPanelLayoutRegressionTests.ps1` after shell changes.
+- **Persistent search magnifier**: keep the glyph outside `PART_SeachIcon`, which Playnite hides on focus or nonempty text. Empty/unfocused uses `TextBrushDarker`; focused or nonempty uses `GlyphBrush`. Retain `ShowImage=False` behavior for fields that explicitly disable the image, and reserve icon space while typing. Cover overrides in `Views/TopPanel.xaml` and MannCo's keyed template too. Run `pwsh -STA -File tests/SearchGlyphRegressionTests.ps1`.
+- **Search clear hit area**: `PART_ClearTextIcon` keeps an explicit ContentControl template with a transparent Border around its ContentPresenter. Playnite handles MouseUp on this part; the glyph alone may reject hits or only respond on its strokes. Run `pwsh -STA -File tests/SearchClearRegressionTests.ps1`.
+
 Each theme lays the shell out its own way; the mechanics are the same:
 
+- **Side panel close button**: 28x28 plate in the grid panel's top-left corner (`ButtonBackgroundBrush` plate, `NormalBorderBrush` rim, 14px `TextBrush` glyph), `DangerBrush` hover fade 0.12s with a `DangerForegroundBrush` glyph. Below a configured `GameBannerHeight` of 120px, show the same button inline left of the game icon instead (10px gap, vertically centered). Keep the compact X at its initial position as the content scrolls. Bind its render translation to the physical scroll offset and stack its header above the scrolling content. At 120px and above keep the corner button. Empty grid views always show the corner button, even with a short/zero banner or null DataContext. Run `pwsh -STA -File tests/SidePanelCloseButtonRegressionTests.ps1`. Root `AGENTS.md` -> Side panel close button.
+- **Filter active mark**: `TopPanelFilterToggle` (`Views/TopPanel.xaml`) has no label. While a filter applies (Playnite sets the toggle's `Tag` to True) a small mark sits on the icon's top-right corner, in the theme's own shape (dot, square, diamond, slant, chamfer) filled with `DataChangeNotifBrush`. Named `TextFilter` (kept from Default so the Tag triggers stay) or `Dot`.
 - **Window buttons** are drawn by `MainWindowStyle.xaml` (`MainWindowButton`). The top bar keeps their width clear on its right (plus a gap), and a sidebar docked at the top or bottom does the same. Change one, change the other.
 - **Main menu**: `PART_ElemMainMenu` uses `MainMenuButton`, in the sidebar; the top bar shows it only when the sidebar is hidden.
 - **Sidebar** is designed for the **left** (Playnite's default; repo rule in `AGENTS.md`): a compact vertical rail at the window's left edge with the main menu button at its top — 44px wide, items 44x40 with 16px glyphs (32px plates where the design uses plates), main menu button 44 wide. Right mirrors it; top and bottom are fallbacks drawn as a strip. No theme asks users to move the sidebar.
@@ -63,7 +70,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Fluence | Windows 11: base layer with a 48px title-bar row and compact nav rail, library on a lighter content layer |
 | Launchpad | Frame-colored icon rail and top app bar; game list beside a full-width-art game page |
 | Codex | Icon rail, a tab strip along the top, layered charcoal |
-| Questlog | Gold window frame, stone sidebar strip, transparent top bar |
+| Questlog | Three-line frame (black, metal, black); 44px sunken black rail with gold glyphs, the current item a gold-lined glowing slot; 48px warm title strip as the top bar with red frame buttons; charcoal library layer |
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
 | Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered icon view buttons between thin rules, 44px compact icon rail, translucent panels over the library art |
@@ -78,7 +85,7 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Tumbleweed | 44px compact black rail with red pause-stack glyphs (white when current) and a maroon paint splash behind the main menu button; transparent 56px top bar closed by a flat 2px grey rule; library and banner art under a red duotone wash |
 | Hearthside | 44px dark wood rail closed by a carved edge (brass over grain), the main menu a mana-blue medallion in a brass ring, 32px plates with a wood/gold current item; 56px wood top bar with the same carved edge and a sunken search well; library art under the page wood at 62% with a grain vignette |
 | Payload | 44px compact tab-bar navy rail with an orange slanted main menu button and cyan slanted plates (black glyph) for the current item; 56px translucent navy top bar with a 1px rule, slanted cyan plates on toggled view buttons; medium blue panels on the neutral dark blue page |
-| Cold Seat | 44px void rail that merges into the library (no edge divider), gold icons with an ice glow on the current item; night top strip with icon view switches and a search box; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush` |
+| Cold Seat | 44px void rail that merges into the library (no edge divider), gold icons with a royal blue glow on the current item; forged iron top band with icon view switches (current = blue plate) and a black search well; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush` |
 | Ace | 44px compact olive-dark rail with a raised edge, the current item a sunken plate with an amber glyph; 40px olive top bar with 28px bevelled buttons and a sunken black search box; black content layer, amber text, pale selection bar |
 | Cordon | 44px compact rusted steel rail (rivet, seam, lit plate and amber lamp on the current item), 52px steel caption band over a grainy olive-black panel |
 | Calling Card | 44px compact ink rail with a paper sawtooth edge and a red star block on top; the current item, tab, row and view button sit on a slanted red plate with a blue sliver behind it; 52px transparent top bar on a hard ash rule; red halftone fading into the library corner |
@@ -95,14 +102,14 @@ Each theme lays the shell out its own way; the mechanics are the same:
    ```xaml
    <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='x * <DefaultSpacer> / <DefaultBanner>'}" />
    ```
-   accompanied by an `ActualHeight == 0` DataTrigger that drops the height to `0` (or fallback top padding where required, e.g. `24` or `52`).
+   In both details and grid views, floor the spacer so the visible header retains the content’s side gutter at low or zero banner heights; account for the header’s own top margin. The zero-height and collapsed-art triggers use the same floor (collapsed art retains its prior ActualHeight). Materia’s in-flow media uses a separate gutter spacer. Each view uses its own side inset and existing header margin to determine the minimum, while keeping its proportional expression unchanged.
    This ensures:
    - **Exact default alignment**: At default `GameBannerHeight`, the ratio `x * <DefaultSpacer> / <DefaultBanner>` produces exactly `<DefaultSpacer>`. The title and header sit in their designed position over the darkened gradient scrim of the banner rather than being pushed down into empty solid background.
-   - **Dynamic scaling with ThemeModifier**: When the user adjusts "Banner height (0 = off)" in ThemeModifier, decreasing the value shifts top elements closer to the top (and to 0 when banner is turned off), and increasing it shifts them further down proportionally. Never bind spacer height directly to `{DynamicResource GameBannerHeight}`.
-3. **Header**: `PART_ImageIcon` and `PART_TextDisplayName`, then the actions (`PART_ButtonPlayAction` and `PART_ButtonContextAction` stacked in one cell, `PART_ButtonMoreActions`, `PART_ButtonEditGame`). Details view: actions beside the title. Grid panel: actions under it, and a close button (`CloseGameSideBarCommand`) over the top-right corner.
-4. **Two columns**: **Steam screenshots**, then description (`PART_HtmlDescription`) and notes on the **left**; the **metadata pane** on the **right** (details view: fixed width beside the text; grid panel: a narrower column). Screenshots never span the full page over the metadata pane. They sit in the left column, above the description, in both the details view and the grid side panel. Host is `SteamScreenshots_SteamScreenshotsViewControl`, shown while `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}` is true, plus a 12 s skeleton for Steam games (the plugin hides its control on every game change and needs about a second). The bindings use `FallbackValue=PluginUnavailable` (not `False`), so with the plugin missing or disabled neither the control nor the skeleton shows.
+   - **Dynamic scaling with ThemeModifier**: When the user adjusts "Banner height (0 = off)" in ThemeModifier, decreasing the value shifts top elements closer to the top (down to the minimum gutter in each view), and increasing it shifts them further down proportionally. Never bind spacer height directly to `{DynamicResource GameBannerHeight}`.
+3. **Header**: `PART_ImageIcon` and `PART_TextDisplayName`, then the actions (`PART_ButtonPlayAction` and `PART_ButtonContextAction` stacked in one cell, `PART_ButtonMoreActions`, `PART_ButtonEditGame`). Details view: actions beside the title. Grid panel: actions under it, and a close button (`CloseGameSideBarCommand`) over the top-left corner, or inline left of the icon when configured banner height is below 120px.
+4. **Responsive content**: Steam screenshots, description (`PART_HtmlDescription`) and notes form the main column. In both views metadata sits beside it at the preferred width when the body fits that width, the theme gap and 400px for content. Below that, metadata fills the space underneath, with two columns at 560px of usable inner width and one column below 560px. See `.claude/skills/playnite-theme-dev/reference.md` -> Responsive game pages. The entire section is enclosed in an independent `SteamScreenshotsGameScope` parent that defaults to Collapsed and allows only the current `Game.PluginId` = `cb91dfc9-b977-43bf-8e70-55f46e410fab` OR `Game.Source.Name` = `Steam`. This parent stays outside loading animations: the plugin flag can complete late for a previously selected Steam game, and animation clocks outrank setters. Host is `SteamScreenshots_SteamScreenshotsViewControl`, shown inside that gate while `{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible}` is true, plus a 12 s skeleton for Steam games (the plugin hides its control on every game change and needs about a second). The bindings use `FallbackValue=PluginUnavailable` (not `False`), so with the plugin missing or disabled neither the section nor the skeleton shows. Name trigger timers and remove them on exit, or reset per-game timers from `Game.Id` target updates (ColdSeat). Preserve the gate in art generators. Run `pwsh -STA -File tests/SteamScreenshotsRegressionTests.ps1` and verify Steam loading -> non-Steam -> late completion plus details/grid switching.
 
-5. **Empty state in both views**: `GridViewGameOverview.xaml` and `DetailsViewGameOverview.xaml` must hide game content and show a designed `LOCErrorNoGameSelected` empty state, centred in the viewport, when `{Binding Game, FallbackValue={x:Null}}` is null. On the details `PART_ScrollViewHost`, set `Visibility="Visible"` explicitly so the inherited `DetailsScrollViewer` style cannot collapse the empty state on a null DataContext. Check both an initially empty selection and selected game -> grid -> details with selection cleared, then select a game again. Preserve this behavior in overview generators. Required for new themes; recipe in `.claude/skills/playnite-theme-dev/reference.md` -> Interactive layer.
+5. **Empty state in both views**: `GridViewGameOverview.xaml` and `DetailsViewGameOverview.xaml` must hide game content and show a designed `LOCErrorNoGameSelected` empty state, centred in the viewport, when `{Binding Game, FallbackValue={x:Null}}` is null. On the details `PART_ScrollViewHost`, set `Visibility="Visible"` explicitly so the inherited `DetailsScrollViewer` style cannot collapse the empty state on a null DataContext. Check both an initially empty selection and selected game -> grid -> details with selection cleared, then select a game again. Grid empty states always retain the top-left CloseGameSideBarCommand button, outside the selected-content gate and independent of the banner setting. Preserve this behavior in overview generators. Required for new themes; recipe in `.claude/skills/playnite-theme-dev/reference.md` -> Interactive layer.
 
 ### Metadata pane
 
@@ -155,7 +162,7 @@ The value (`ContentSite`) and the chevron overlap in one cell, and a ComboBox sh
 
 ## Form field height
 
-Every form field and button is 32px (`ControlHeight`): text boxes, password boxes, dropdowns, Playnite's list dropdowns and filter boxes, date pickers, number and path boxes, and buttons. The rule, the reasons and the required overlay files are in the root `AGENTS.md` -> Form field height; `validate-extension.ps1` (`Test-FormControlHeight`) enforces it. To check a theme, open a game's edit dialog: every field in a row should line up.
+Form fields and buttons are 32px (`ControlHeight`), with a 28px exception for the filter sidebar. The full sidebar rules are in `.claude/skills/playnite-theme-dev/reference.md` -> Hard rules. The base sizing and required overlay files are in the root `AGENTS.md` -> Form field height; `validate-extension.ps1` (`Test-FormControlHeight`) enforces the base styles. Check the sidebar and a game's edit dialog.
 
 ## Game page action buttons
 

@@ -305,6 +305,8 @@ Both game overview files must include a designed empty state using ``LOCErrorNoG
 
 ``GameDetailsPaneWidth`` and ``GridDetailsPaneWidth`` both default to 300px of usable metadata content. Apply them inside horizontal padding and borders so the outer frame can size to content without shrinking the labels and properties. Preserve the exterior column gap and dynamic resizing through ThemeModifier.
 
+Apply the responsive game-page breakpoints in both overview files. Keep metadata at the side when the body fits the preferred pane width, the theme's gap and 400px for content. Below that, use the full width under the content with two metadata columns at 560px of usable inner width and one below 560px. See the theme-development reference's Responsive game pages section.
+
 | Playnite file | $DesignSystem component |
 |---------------|-------------------------|
 | TODO | |

@@ -2,7 +2,7 @@
     Cordon: cover content (GameListItem in the grid), an inventory cell. Structure and parts from Playnite Default 10.60:
     PART_PanelHost, PART_ImageCover, PART_ButtonPlay, PART_ButtonInfo; the empty-cover name and darken-uninstalled rules are
     kept. Cover on the inset well (ExpanderBackgroundBrush); the shades are the panel color (ScrimBrush).
-    Hover, animated both ways and kept small like the game's UI: the shade fades in over 0.15s; the two steel plates rise
+    Hover, animated both ways and kept small like the game's UI (the buttons flicker on like a PDA screen, a lamp strip lights along their bottom edge on hover, and the whole plate is the hover target): the shade fades in over 0.15s; the two steel plates rise
     6px and scale 0.92 to 1 into place with no overshoot (0.15s, Info 0.05s after Play); leaving reverses it in 0.14s.
     Exit animations use FillBehavior Stop. Controls are GridTileButton: 40px worn steel plates (BevelTemplate) with stencil
     glyphs (IconPlay, IconDownload for uninstalled games, IconInfo, cut like ammo-crate stencils, in Media.xaml). No
@@ -30,7 +30,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid SnapsToDevicePixels="True">
+                    <Grid SnapsToDevicePixels="True" Background="Transparent">
                         <Grid.RenderTransform>
                             <TranslateTransform x:Name="PushShift" X="0" Y="0" />
                         </Grid.RenderTransform>
@@ -40,6 +40,13 @@
                                  Background="{TemplateBinding Tag}" BorderBrush="{TemplateBinding BorderBrush}" />
                         <Control x:Name="PressPlate" Template="{DynamicResource BevelTemplate}" Focusable="False" IsTabStop="False" Opacity="0"
                                  Background="{DynamicResource ButtonPressedBackgroundBrush}" BorderBrush="{TemplateBinding BorderBrush}" />
+                        <!-- The lamp: a 2px strip along the bottom edge that lights from the middle outward on hover, like a PDA indicator. -->
+                        <Rectangle x:Name="Lamp" Height="2" VerticalAlignment="Bottom" Margin="4,0,4,3" IsHitTestVisible="False"
+                                   Fill="{TemplateBinding Foreground}" RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="LampScale" ScaleX="0" ScaleY="1" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
                         <ContentPresenter Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center"
                                           Content="{TemplateBinding Content}"
                                           ContentTemplate="{DynamicResource IconTemplate}" />
@@ -49,13 +56,24 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
+                                        <!-- The plate catches like a PDA screen: on, dip, on (0.14s), then holds. -->
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.04" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.07" Value="0.65" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.11" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="LampScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LampScale" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:0.1" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -188,7 +206,14 @@
                                             <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
                                         </ObjectAnimationUsingKeyFrames>
                                         <DoubleAnimation Storyboard.TargetName="BorderMouseOver" Storyboard.TargetProperty="Opacity" To="0.66" Duration="0:0:0.15" />
-                                        <DoubleAnimation Storyboard.TargetName="PART_ButtonPlay" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_ButtonPlay" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.03" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.06" Value="0.35" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.10" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.13" Value="0.8" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.16" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
                                         <DoubleAnimation Storyboard.TargetName="PlayRise" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.15">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
@@ -198,7 +223,14 @@
                                         <DoubleAnimation Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="PART_ButtonInfo" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.05" Duration="0:0:0.14" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PART_ButtonInfo" Storyboard.TargetProperty="Opacity" BeginTime="0:0:0.05">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.03" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.06" Value="0.35" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.10" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.13" Value="0.8" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.16" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
                                         <DoubleAnimation Storyboard.TargetName="InfoRise" Storyboard.TargetProperty="Y" To="0" BeginTime="0:0:0.05" Duration="0:0:0.15">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>

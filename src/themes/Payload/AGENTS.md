@@ -51,6 +51,8 @@ Radii: `CornerRadiusSmall` and `ControlCornerRadius` 2, `Large` 4, `XLarge` 6, `
 | `Views/Library.xaml` | Library art under the site's navy wash (45%), the page blue (45%) and a vignette. |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Medium blue side panels. Filter labels use the oblique display face. |
 
+**Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list takes the rail's slanted plates, 30px rows in the body face. Hover is a faint 15-degree plate with a 40% orange tick; selected is the solid cyan slanted plate with a black label and the orange tick fully lit. The title band is 40px on the tab-bar navy: the orange slanted plate of the main menu button leads into the oblique display title, three slanted stripes (cyan, orange, cyan) are ghosted into the right end, and a 1px edge closes the band with a 120px cyan segment under the title; caption buttons are 44x40.
+
 ## Game page
 
 Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the left column above the description, and the banner spacer scales with `HeroArt` through `MathConverter` (110/360 details, 76/360 grid). Differences from the skeleton:

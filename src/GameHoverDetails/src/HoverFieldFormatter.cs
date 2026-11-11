@@ -98,6 +98,12 @@ namespace GameHoverDetails
 
         private static string FormatLibrary(Game game, IPlayniteAPI api)
         {
+            // Playnite's built-in library is not included in the SDK add-on list.
+            if (game.PluginId == Guid.Empty)
+            {
+                return "Playnite";
+            }
+
             try
             {
                 var plugins = api?.Addons?.Plugins;
@@ -216,13 +222,7 @@ namespace GameHoverDetails
                 return HoverLoc.Empty;
             }
 
-            var local = lastActivityUtc.Value.ToLocalTime();
-            if (local > DateTime.Now)
-            {
-                return HoverLoc.Empty;
-            }
-
-            return FormatPlayniteDate(api, "DateTimeFormatLastPlayed", local);
+            return FormatPlayniteDate(api, "DateTimeFormatLastPlayed", lastActivityUtc.Value.ToLocalTime());
         }
 
         private static string FormatLinks(Game game)
@@ -257,12 +257,12 @@ namespace GameHoverDetails
 
         private static string FormatNullableScore(int? score)
         {
-            return score == null || score.Value <= 0 ? HoverLoc.Empty : score.Value.ToString(CultureInfo.CurrentCulture);
+            return score == null || score.Value < 0 ? HoverLoc.Empty : score.Value.ToString(CultureInfo.CurrentCulture);
         }
 
         private static string FormatInstallSize(ulong? bytes)
         {
-            if (bytes == null || bytes.Value == 0UL)
+            if (bytes == null)
             {
                 return HoverLoc.Empty;
             }
@@ -306,23 +306,25 @@ namespace GameHoverDetails
         /// </summary>
         internal static string FormatPlaytimeText(ulong playtimeSeconds, bool useDays)
         {
-            var ts = TimeSpan.FromSeconds(playtimeSeconds);
-            if (ts.TotalSeconds < 60)
+            // Like Playnite's converter, use integer arithmetic: SDK values can exceed TimeSpan's range.
+            if (playtimeSeconds < 60)
             {
-                return HoverLoc.Format("LOCPlayedSeconds", "{0} seconds", ts.Seconds);
+                return HoverLoc.Format("LOCPlayedSeconds", "{0} seconds", playtimeSeconds);
             }
 
-            if (ts.TotalMinutes < 60)
+            var minutes = playtimeSeconds / 60;
+            if (minutes < 60)
             {
-                return HoverLoc.Format("LOCPlayedMinutes", "{0} minutes", ts.Minutes);
+                return HoverLoc.Format("LOCPlayedMinutes", "{0} minutes", minutes);
             }
 
-            if (useDays && ts.TotalDays >= 1)
+            var hours = minutes / 60;
+            if (useDays && hours >= 24)
             {
-                return HoverLoc.Format("LOCPlayedDays", "{0}d {1}h {2}min", (int)ts.TotalDays, ts.Hours, ts.Minutes);
+                return HoverLoc.Format("LOCPlayedDays", "{0}d {1}h {2}min", hours / 24, hours % 24, minutes % 60);
             }
 
-            return HoverLoc.Format("LOCPlayedHours", "{0}h {1}min", (long)ts.TotalHours, ts.Minutes);
+            return HoverLoc.Format("LOCPlayedHours", "{0}h {1}min", hours, minutes % 60);
         }
 
         private static string JoinNames(IEnumerable<object> items)

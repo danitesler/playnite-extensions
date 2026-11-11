@@ -36,6 +36,8 @@ Pixel icons are drawn aliased (`IconTemplate`) and only at 24px or 12px (whole o
 | `CustomControls/TopPanelItem.xaml` | No plate; muted, gold on hover or toggled. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, 24px pixel glyphs, hover panel with gold edge, red close; black window edge; caption height 64. |
 
+**Settings chrome.** The title screen as a 44px band: night-sky window color with the horizon blue rising to the bottom edge, ten pixel stars, the title in the character-select "Select Player" panel (blue plate, 2px black edge, 6px corners, Patrick Hand), closed by the separator blue over a 2px black line; 38x32 caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows, body font, no outline text; hover = panel blue with a black edge and a half-lit stepped pixel cursor, selected = lighter blue with the gold edge, gold word and the cursor at full strength; children under a 2px separator line; width 256 (Settings), 280 (Add-ons).
+
 ## Game page
 
 Follows the shared skeleton. Differences: the page sits on the list panel blue; the name is outlined (35px heading font, `FontSizeLargest`); Play is the title panel blue with the gold edge and an outlined gold label; Options and edit are 48px square menu buttons; section titles are outlined bold words over a 2px separator rule; the metadata pane is a menu panel (blue at 70%, 2px black edge, 6px corners) with 1px separator rules between groups (12px around rules, 6px around fields, caption column 128px in the details view). The banner fades into the sky color.

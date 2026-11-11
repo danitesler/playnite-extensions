@@ -4,7 +4,7 @@
 
 <img src="info/icon.png" alt="Questlog" width="64" height="64" />
 
-**A dark fantasy desktop theme with gold frames, red leather buttons and a quest-log game page. Inspired by the World of Warcraft Vanilla interface.**
+**A dark fantasy desktop theme with charcoal panels in thin metal frames, red panel buttons and gold text. Inspired by the World of Warcraft Classic interface.**
 
 **[Download Questlog 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/questlog-v1.0.0)**
 
@@ -16,7 +16,7 @@
 
 ## About
 
-A dark fantasy look inspired by the World of Warcraft Vanilla interface: gold frames, red leather buttons and a quest-log game page. All artwork is original.
+A dark fantasy look inspired by the World of Warcraft Classic interface: charcoal panels in thin metal frames, deep red buttons with gold text, a gold glow under the current entry and a Settings window drawn like the game's options panel. All artwork is original.
 
 Unofficial; not affiliated with Blizzard Entertainment. World of Warcraft is a trademark of Blizzard Entertainment.
 

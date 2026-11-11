@@ -8,7 +8,7 @@
     <!--
         Cold Seat game page (grid side panel). Same skeleton as the details view, narrower:
         HeroArt banner behind the panel, MathConverter spacer (x * 150 / 320), gold title, actions under it
-        (PLAY gold plate, More, Edit stone plates, 40 high), a close button over the top-right corner.
+        (PLAY gold plate, More, Edit stone plates, 40 high), a close button over the top-left corner.
         Two columns with a 24px gap: Steam screenshots, description and notes left; the double framed
         metadata pane right, captions beside their values (12px gap), six collapsing groups.
     -->
@@ -32,20 +32,18 @@
                             </Style>
                         </Border.Style>
                         <Grid>
-                            <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}"
-                                       Margin="0,20,0,0"
-                                       HorizontalAlignment="Center" VerticalAlignment="Top">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <Trigger Property="DataContext" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </Trigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                            <Control Template="{DynamicResource EmptyGameTemplate}" Focusable="False" IsTabStop="False">
+                            <Control.Style>
+                                <Style TargetType="Control">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <Trigger Property="DataContext" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Control.Style>
+                        </Control>
 
                             <Grid>
                                 <Grid.Style>
@@ -91,8 +89,8 @@
                                         </Rectangle>
                                     </Grid>
                                 </Grid>
-                                <ScrollViewer HorizontalAlignment="Stretch"
-                                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                                <ScrollViewer CanContentScroll="False" HorizontalAlignment="Stretch"
+                                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible"
                                               x:Name="PART_ScrollViewHost">
                                     <Grid Margin="22,0,22,24">
                                         <Grid.RowDefinitions>
@@ -101,22 +99,33 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
-                                        <Border Grid.Row="0">
+                                        <Border Grid.Row="0" MinHeight="22" x:Name="GridBannerSpacer">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='x * 150 / 320'}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding ActualHeight, ElementName=HeroArt}" Value="0">
-                                                            <Setter Property="Height" Value="24" />
+                                                            <Setter Property="Height" Value="22" />
                                                         </DataTrigger>
-                                                    </Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed">
+    <Setter Property="Height" Value="22" />
+</DataTrigger>
+</Style.Triggers>
                                                 </Style>
                                             </Border.Style>
                                         </Border>
-                                        <DockPanel Grid.Row="1" Margin="0,0,34,0">
+                                        <DockPanel Panel.ZIndex="2" Grid.Row="1" Margin="0,0,34,0">
+                                            <Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="28" Height="28" Padding="0"
+                                                Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
+                                                Template="{Binding Template, ElementName=SidePanelCloseButton}"
+                                                Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}">
+                                                    <Button.RenderTransform>
+                                                        <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
+                                                    </Button.RenderTransform>
+                                            </Button>
                                             <Image Name="PART_ImageIcon" DockPanel.Dock="Left" MaxHeight="32" MaxWidth="32"
                                                    RenderOptions.BitmapScalingMode="Fant" Margin="0,0,10,0" VerticalAlignment="Center" />
-                                            <TextBlock Name="PART_TextDisplayName" FontFamily="{DynamicResource HeadingFontFamily}"
+                                            <TextBlock Name="PART_TextDisplayName" FontFamily="{DynamicResource HeadingFontFamily}" FontWeight="Bold"
                                                        DockPanel.Dock="Left" FontSize="{DynamicResource FontSizeLargest}" Margin="0,0,10,0" TextWrapping="Wrap"
                                                        VerticalAlignment="Center" Foreground="{DynamicResource HeadingForegroundBrush}">
                                                 <TextBlock.Effect>
@@ -142,52 +151,130 @@
                                                     Style="{DynamicResource SecondaryButton}"
                                                     Content="&#xeded;" FontFamily="{DynamicResource FontIcoFont}" ToolTip="{DynamicResource LOCEditGame}" />
                                         </Grid>
-                                        <Grid Grid.Row="3">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0">
-                                                <Grid Margin="0,0,0,18">
-                                                    <ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Focusable="False">
-                                                        <ContentControl.Style>
-                                                            <Style TargetType="ContentControl">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </ContentControl.Style>
-                                                    </ContentControl>
-                                                    <ContentControl x:Name="SteamScreenshotsSkeleton" Focusable="False" IsHitTestVisible="False"
-                                                                    Foreground="{DynamicResource SelectedBorderBrush}"
-                                                                    Template="{DynamicResource SteamScreenshotsSkeletonTemplate}">
-                                                        <ContentControl.Style>
-                                                            <Style TargetType="ContentControl">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <MultiDataTrigger>
-                                                                        <MultiDataTrigger.Conditions>
-                                                                            <Condition Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab" />
-                                                                            <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
-                                                                        </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                        <MultiDataTrigger.EnterActions>
-                                                                            <BeginStoryboard>
-                                                                                <Storyboard>
-                                                                                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
-                                                                                        <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
-                                                                                    </ObjectAnimationUsingKeyFrames>
-                                                                                </Storyboard>
-                                                                            </BeginStoryboard>
-                                                                        </MultiDataTrigger.EnterActions>
-                                                                    </MultiDataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </ContentControl.Style>
-                                                    </ContentControl>
+                                        <Grid Grid.Row="3" x:Name="GridOverviewBody">
+<Grid.Tag>
+    <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + 24 + 400">
+        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" />
+        <Binding Path="Tag" ElementName="GridMetadataContent" />
+    </MultiBinding>
+</Grid.Tag>
+<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+
+
+                                            <Grid x:Name="GridMainColumn" VerticalAlignment="Top">
+<Grid.Style><Style TargetType="Grid">
+    <Setter Property="Grid.Column" Value="0" />
+    <Setter Property="Grid.Row" Value="0" />
+    <Setter Property="Grid.ColumnSpan" Value="1" />
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
+        <Setter Property="Grid.Column" Value="0" />
+        <Setter Property="Grid.Row" Value="0" />
+        <Setter Property="Grid.ColumnSpan" Value="2" />
+    </DataTrigger></Style.Triggers>
+</Style></Grid.Style>
+<Grid.MaxWidth>
+    <MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - 24)">
+        <Binding Path="ActualWidth" ElementName="GridOverviewBody" />
+        <Binding Path="ActualWidth" ElementName="GridMetadataColumn" />
+        <Binding Path="Tag" ElementName="GridOverviewBody" />
+    </MultiBinding>
+</Grid.MaxWidth>
+<StackPanel>
+                                                <Grid x:Name="SteamScreenshotsGameScope">
+                                                    <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
+                                                <GroupBox Header="{DynamicResource LOC_SteamScreenshots_SteamScreenshotsLabel}" Margin="0,0,0,18">
+                                                    <GroupBox.Style>
+                                                        <Style TargetType="GroupBox" BasedOn="{StaticResource {x:Type GroupBox}}">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </GroupBox.Style>
+                                                    <Grid>
+                                                        <ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Focusable="False">
+                                                            <ContentControl.Style>
+                                                                <Style TargetType="ContentControl">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ContentControl.Style>
+                                                        </ContentControl>
+                                                        <Grid>
+                                                            <Grid.Style>
+                                                                <Style TargetType="Grid">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Grid.Style>
+                                                            <!-- Restart the timeout for each selected game, including Steam-to-Steam changes. -->
+                                                            <Border x:Name="SteamScreenshotsSkeleton" Tag="{Binding Game.Id, NotifyOnTargetUpdated=True}" IsHitTestVisible="False">
+                                                                <Border.Triggers>
+                                                                    <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                                                                        <BeginStoryboard>
+                                                                            <Storyboard>
+                                                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility" Duration="0:0:12">
+                                                                                    <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                                                                    <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
+                                                                                </ObjectAnimationUsingKeyFrames>
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </EventTrigger>
+                                                                </Border.Triggers>
+                                                                <ContentControl Focusable="False" IsHitTestVisible="False" Foreground="{DynamicResource SelectedBorderBrush}"
+                                                                                Template="{DynamicResource SteamScreenshotsSkeletonTemplate}" />
+                                                            </Border>
+                                                            <Border Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource NormalBorderBrush}"
+                                                                    BorderThickness="1" Padding="24" CornerRadius="{DynamicResource ControlCornerRadius}">
+                                                                <Border.Style>
+                                                                    <Style TargetType="Border">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Visibility, ElementName=SteamScreenshotsSkeleton}" Value="Collapsed">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Border.Style>
+                                                                <StackPanel HorizontalAlignment="Center">
+                                                                    <Border Width="14" Height="14" BorderBrush="{DynamicResource SelectedBorderBrush}" BorderThickness="1"
+                                                                            Margin="0,0,0,12" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                                                        <Border.RenderTransform><RotateTransform Angle="45" /></Border.RenderTransform>
+                                                                    </Border>
+                                                                    <TextBlock Text="{DynamicResource LOCNoItemsFound}" Foreground="{DynamicResource TextBrushDarker}"
+                                                                               TextAlignment="Center" TextWrapping="Wrap" />
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </Grid>
+                                                    </Grid>
+                                                </GroupBox>
                                                 </Grid>
                                                 <StackPanel Name="PART_ElemDescription" Margin="0,0,0,18">
                                                     <TextBlock Text="{DynamicResource LOCGameDescriptionTitle}" Margin="0,0,0,6" FontFamily="{DynamicResource HeadingFontFamily}"
@@ -215,22 +302,47 @@
                                                              Margin="-1,0,-1,0" Padding="0"/>
                                                 </StackPanel>
                                             </StackPanel>
-                                            <Grid Grid.Column="1" Margin="24,0,0,0" VerticalAlignment="Top">
-                                                <Border VerticalAlignment="Top" BorderThickness="1" BorderBrush="{DynamicResource PopupBorderBrush}" Background="{DynamicResource ExpanderBackgroundBrush}" Padding="3" CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True">
-                                                    <Border BorderThickness="1" BorderBrush="{DynamicResource ShellBackgroundBrush}" Padding="12,12,12,4" CornerRadius="{DynamicResource CornerRadiusSmall}">
-                                                        <Grid ClipToBounds="True" Width="{DynamicResource GridDetailsPaneWidth}">
-                                                            <StackPanel Margin="0,-33,0,-8">
-                                                                <StackPanel.Resources>
+</Grid>
+                                            <Grid x:Name="GridMetadataColumn" VerticalAlignment="Top">
+<Grid.Style><Style TargetType="Grid">
+    <Setter Property="Grid.Column" Value="1" />
+    <Setter Property="Grid.Row" Value="0" />
+    <Setter Property="Grid.ColumnSpan" Value="1" />
+    <Setter Property="Margin" Value="24,0,0,0" />
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
+        <Setter Property="Grid.Column" Value="0" />
+        <Setter Property="Grid.Row" Value="1" />
+        <Setter Property="Grid.ColumnSpan" Value="2" />
+        <Setter Property="Margin" Value="0,24,0,0" />
+    </DataTrigger></Style.Triggers>
+</Style></Grid.Style>
+<Grid Margin="0,0,0,0" VerticalAlignment="Top">
+                                                <Control Template="{DynamicResource RivetsTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" Panel.ZIndex="1" />
+                                                <Border VerticalAlignment="Top" BorderThickness="1" BorderBrush="{DynamicResource FrameInnerBrush}" Background="{DynamicResource FrameBrush}" Padding="8" CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True">
+                                                    <Border BorderThickness="1" BorderBrush="{DynamicResource FrameInnerBrush}" Background="{DynamicResource ExpanderBackgroundBrush}" Padding="12,12,12,4">
+                                                        <Grid ClipToBounds="True" Tag="{DynamicResource GridDetailsPaneWidth}" x:Name="GridMetadataContent" HorizontalAlignment="Stretch">
+<Grid.Style>
+    <Style TargetType="Grid">
+        <Setter Property="Width" Value="{DynamicResource GridDetailsPaneWidth}" />
+        <Setter Property="MaxWidth" Value="{DynamicResource GridDetailsPaneWidth}" /><Style.Triggers>
+            <DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /></DataTrigger>
+        <DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="MaxWidth" Value="Infinity" /></DataTrigger></Style.Triggers>
+    </Style>
+</Grid.Style>
+                                                            <WrapPanel x:Name="GridMetadataGroups" UseLayoutRounding="False">
+<WrapPanel.Style><Style TargetType="WrapPanel"><Setter Property="Margin" Value="0,-21,0,-4" /><Style.Triggers><DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True"><Setter Property="Margin" Value="0,-21,-24,-4" /></DataTrigger></Style.Triggers></Style></WrapPanel.Style>
+<WrapPanel.Tag><Binding Path="ActualWidth" ElementName="GridMetadataContent" Converter="{StaticResource MathConverter}" ConverterParameter="x &gt;= 560" /></WrapPanel.Tag>
+                                                                <WrapPanel.Resources>
                                                                     <Style TargetType="ItemsControl">
                                                                         <Setter Property="VerticalAlignment" Value="Center" />
                                                                     </Style>
                                                                     <Style TargetType="Button" BasedOn="{StaticResource PropertyItemButton}" />
                                                                     <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}" />
-                                                                </StackPanel.Resources>
-                                                                <Border x:Name="MetaProgress" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Margin="0,12,0,12" Padding="0,12,0,0">
+                                                                </WrapPanel.Resources>
+                                                                <Border x:Name="MetaProgress" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Padding="0,8,0,0"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
-                                                                            <Style.Triggers>
+                                                                            <Setter Property="Margin" Value="0,8,0,8" /><Style.Triggers>
                                                                                 <MultiDataTrigger>
                                                                                     <MultiDataTrigger.Conditions>
                                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemCompletionStatus}" Value="Collapsed" />
@@ -241,61 +353,61 @@
                                                                                     </MultiDataTrigger.Conditions>
                                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                                 </MultiDataTrigger>
-                                                                            </Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,8" /></DataTrigger></Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel>
-                                                                        <Grid Name="PART_ElemCompletionStatus" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemCompletionStatus" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCCompletionStatus}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCCompletionStatus}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <Button Grid.Column="2" Name="PART_ButtonCompletionStatus" VerticalAlignment="Center" HorizontalAlignment="Left" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemPlayTime" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemPlayTime" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCTimePlayed}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCTimePlayed}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextPlayTime" VerticalAlignment="Center" TextWrapping="Wrap" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemLastPlayed" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemLastPlayed" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCLastPlayed}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCLastPlayed}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextLastActivity" VerticalAlignment="Center" TextWrapping="Wrap" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemRecentActivity" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemRecentActivity" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCRecentActivityLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCRecentActivityLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextRecentActivity" VerticalAlignment="Center" TextWrapping="Wrap" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemAdded" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemAdded" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCDateAddedLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCDateAddedLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextAdded" VerticalAlignment="Center" TextWrapping="Wrap" />
                                                                         </Grid>
                                                                     </StackPanel>
                                                                 </Border>
-                                                                <Border x:Name="MetaScores" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Margin="0,12,0,12" Padding="0,12,0,0">
+                                                                <Border x:Name="MetaScores" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Padding="0,8,0,0"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
-                                                                            <Style.Triggers>
+                                                                            <Setter Property="Margin" Value="0,8,0,8" /><Style.Triggers>
                                                                                 <MultiDataTrigger>
                                                                                     <MultiDataTrigger.Conditions>
                                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemCommunityScore}" Value="Collapsed" />
@@ -304,43 +416,43 @@
                                                                                     </MultiDataTrigger.Conditions>
                                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                                 </MultiDataTrigger>
-                                                                            </Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,8" /></DataTrigger></Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel>
-                                                                        <Grid Name="PART_ElemCommunityScore" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemCommunityScore" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCCommunityScore}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCCommunityScore}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextCommunityScore" VerticalAlignment="Center" Style="{DynamicResource TextBlockGameScore}" TextWrapping="Wrap" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemCriticScore" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemCriticScore" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCCriticScore}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCCriticScore}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextCriticScore" VerticalAlignment="Center" Style="{DynamicResource TextBlockGameScore}" TextWrapping="Wrap" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemUserScore" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemUserScore" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCUserScore}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCUserScore}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextUserScore" VerticalAlignment="Center" Style="{DynamicResource TextBlockGameScore}" TextWrapping="Wrap" />
                                                                         </Grid>
                                                                     </StackPanel>
                                                                 </Border>
-                                                                <Border x:Name="MetaAbout" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Margin="0,12,0,12" Padding="0,12,0,0">
+                                                                <Border x:Name="MetaAbout" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Padding="0,8,0,0"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
-                                                                            <Style.Triggers>
+                                                                            <Setter Property="Margin" Value="0,8,0,8" /><Style.Triggers>
                                                                                 <MultiDataTrigger>
                                                                                     <MultiDataTrigger.Conditions>
                                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemDevelopers}" Value="Collapsed" />
@@ -352,70 +464,70 @@
                                                                                     </MultiDataTrigger.Conditions>
                                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                                 </MultiDataTrigger>
-                                                                            </Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,8" /></DataTrigger></Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel>
-                                                                        <Grid Name="PART_ElemDevelopers" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemDevelopers" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCDeveloperLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCDeveloperLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsDevelopers" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemPublishers" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemPublishers" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCPublisherLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCPublisherLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsPublishers" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemReleaseDate" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemReleaseDate" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCGameReleaseDateTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCGameReleaseDateTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <Button Grid.Column="2" Name="PART_ButtonReleaseDate" VerticalAlignment="Center" HorizontalAlignment="Left" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemSeries" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemSeries" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCSeriesLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCSeriesLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsSeries" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemAgeRating" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemAgeRating" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCAgeRatingLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCAgeRatingLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsAgeRatings" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemRegion" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemRegion" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCRegionLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCRegionLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsRegions" />
                                                                         </Grid>
                                                                     </StackPanel>
                                                                 </Border>
-                                                                <Border x:Name="MetaTags" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Margin="0,12,0,12" Padding="0,12,0,0">
+                                                                <Border x:Name="MetaTags" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Padding="0,8,0,0"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
-                                                                            <Style.Triggers>
+                                                                            <Setter Property="Margin" Value="0,8,0,8" /><Style.Triggers>
                                                                                 <MultiDataTrigger>
                                                                                     <MultiDataTrigger.Conditions>
                                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemPlatform}" Value="Collapsed" />
@@ -426,17 +538,17 @@
                                                                                     </MultiDataTrigger.Conditions>
                                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                                 </MultiDataTrigger>
-                                                                            </Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,8" /></DataTrigger></Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel>
-                                                                        <Grid Name="PART_ElemPlatform" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemPlatform" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCPlatformTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCPlatformTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsPlatforms" Tag="Chip">
                                                                                 <ItemsControl.ItemsPanel>
                                                                                     <ItemsPanelTemplate>
@@ -445,13 +557,13 @@
                                                                                 </ItemsControl.ItemsPanel>
                                                                             </ItemsControl>
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemGenres" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemGenres" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCGenreLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCGenreLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsGenres" Tag="Chip">
                                                                                 <ItemsControl.ItemsPanel>
                                                                                     <ItemsPanelTemplate>
@@ -460,13 +572,13 @@
                                                                                 </ItemsControl.ItemsPanel>
                                                                             </ItemsControl>
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemCategories" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemCategories" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCGameCategoriesTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCGameCategoriesTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsCategories" Tag="Chip">
                                                                                 <ItemsControl.ItemsPanel>
                                                                                     <ItemsPanelTemplate>
@@ -475,13 +587,13 @@
                                                                                 </ItemsControl.ItemsPanel>
                                                                             </ItemsControl>
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemFeatures" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemFeatures" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCFeaturesLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCFeaturesLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsFeatures" Tag="Chip">
                                                                                 <ItemsControl.ItemsPanel>
                                                                                     <ItemsPanelTemplate>
@@ -490,13 +602,13 @@
                                                                                 </ItemsControl.ItemsPanel>
                                                                             </ItemsControl>
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemTags" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemTags" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCTagsLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCTagsLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsTags" Tag="Chip">
                                                                                 <ItemsControl.ItemsPanel>
                                                                                     <ItemsPanelTemplate>
@@ -507,10 +619,10 @@
                                                                         </Grid>
                                                                     </StackPanel>
                                                                 </Border>
-                                                                <Border x:Name="MetaLibrary" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Margin="0,12,0,12" Padding="0,12,0,0">
+                                                                <Border x:Name="MetaLibrary" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Padding="0,8,0,0"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
-                                                                            <Style.Triggers>
+                                                                            <Setter Property="Margin" Value="0,8,0,8" /><Style.Triggers>
                                                                                 <MultiDataTrigger>
                                                                                     <MultiDataTrigger.Conditions>
                                                                                         <Condition Binding="{Binding Visibility, ElementName=PART_ElemLibrary}" Value="Collapsed" />
@@ -521,94 +633,135 @@
                                                                                     </MultiDataTrigger.Conditions>
                                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                                 </MultiDataTrigger>
-                                                                            </Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,8" /></DataTrigger></Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel>
-                                                                        <Grid Name="PART_ElemLibrary" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemLibrary" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCGameProviderTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCGameProviderTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <Button Grid.Column="2" Name="PART_ButtonLibrary" VerticalAlignment="Center" HorizontalAlignment="Left" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemSource" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemSource" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCSourceLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCSourceLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <Button Grid.Column="2" Name="PART_ButtonSource" VerticalAlignment="Center" HorizontalAlignment="Left" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemVersion" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemVersion" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCVersionLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCVersionLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <Button Grid.Column="2" Name="PART_ButtonVersion" VerticalAlignment="Center" HorizontalAlignment="Left" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemInstallSize" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemInstallSize" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCInstallSizeLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCInstallSizeLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <TextBlock Grid.Column="2" Name="PART_TextInstallSize" VerticalAlignment="Center" TextWrapping="Wrap" />
                                                                         </Grid>
-                                                                        <Grid Name="PART_ElemInstallDirectory" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemInstallDirectory" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCGameInstallDirTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCGameInstallDirTitle}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <Button Grid.Column="2" Name="PART_ButtonInstallDirectory" VerticalAlignment="Center" HorizontalAlignment="Left" />
                                                                         </Grid>
                                                                     </StackPanel>
                                                                 </Border>
-                                                                <Border x:Name="MetaLinks" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Margin="0,12,0,12" Padding="0,12,0,0">
+                                                                <Border x:Name="MetaLinks" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource MenuSeparatorBrush}" Padding="0,8,0,0"><Border.Width><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="y == true ? Max(0, (x - 24) / 2) : x"><Binding Path="ActualWidth" ElementName="GridMetadataContent" /><Binding Path="Tag" ElementName="GridMetadataGroups" /></MultiBinding></Border.Width>
                                                                     <Border.Style>
                                                                         <Style TargetType="Border">
-                                                                            <Style.Triggers>
+                                                                            <Setter Property="Margin" Value="0,8,0,8" /><Style.Triggers>
                                                                                 <DataTrigger Binding="{Binding Visibility, ElementName=PART_ElemLinks}" Value="Collapsed">
                                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                                 </DataTrigger>
-                                                                            </Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding Tag, ElementName=GridMetadataGroups}" Value="True"><Setter Property="Margin" Value="0,8,24,8" /></DataTrigger></Style.Triggers>
                                                                         </Style>
                                                                     </Border.Style>
                                                                     <StackPanel>
-                                                                        <Grid Name="PART_ElemLinks" Margin="0,8,0,8">
+                                                                        <Grid Name="PART_ElemLinks" Margin="0,4,0,4">
                                                                             <Grid.ColumnDefinitions>
                                                                                 <ColumnDefinition Width="2*" />
                                                                                 <ColumnDefinition Width="12" />
                                                                                 <ColumnDefinition Width="3*" />
                                                                             </Grid.ColumnDefinitions>
-                                                                            <TextBlock Text="{DynamicResource LOCLinksLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource HighlightGlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
+                                                                            <TextBlock Text="{DynamicResource LOCLinksLabel}" TextWrapping="Wrap" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource GlyphBrush}" Margin="0,0,0,0" VerticalAlignment="Top" />
                                                                             <ItemsControl Grid.Column="2" Name="PART_ItemsLinks" />
                                                                         </Grid>
                                                                     </StackPanel>
                                                                 </Border>
-                                                            </StackPanel>
+                                                            </WrapPanel>
                                                         </Grid>
                                                     </Border>
                                                 </Border>
                                             </Grid>
+</Grid>
                                         </Grid>
                                     </Grid>
                                 </ScrollViewer>
-                                <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                                        Content="r" FontFamily="Marlett"
-                                        Style="{DynamicResource SimpleButton}"
-                                        Command="{MainViewModel CloseGameSideBarCommand}"
-                                        Margin="0,10,15,5" />
                             </Grid>
-                        </Grid>
+                                                        <Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
+                                        Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}"
+                                        Command="{MainViewModel CloseGameSideBarCommand}">
+<Button.Style>
+    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Collapsed` : `Visible`'}" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                <Setter Property="Visibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</Button.Style>
+                                    <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="{x:Type Button}">
+                                            <Grid Background="Transparent">
+                                                <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource ButtonBackgroundBrush}"
+                                                        BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                                                <Border x:Name="HoverPlate" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource DangerBrush}" Opacity="0" IsHitTestVisible="False" />
+                                                <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                                Content="{DynamicResource IconWindowClose}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                                Foreground="{DynamicResource TextBrush}" />
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                                                    <Trigger.EnterActions>
+                                                        <BeginStoryboard><Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                                        </Storyboard></BeginStoryboard>
+                                                    </Trigger.EnterActions>
+                                                    <Trigger.ExitActions>
+                                                        <BeginStoryboard><Storyboard>
+                                                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                                        </Storyboard></BeginStoryboard>
+                                                    </Trigger.ExitActions>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

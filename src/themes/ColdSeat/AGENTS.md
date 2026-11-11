@@ -2,11 +2,11 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Warcraft III: The Frozen Throne main menu**: near-black blue void, stone button plates with a lit top/left and dark bottom/right bevel, gold labels that turn white on hover, frozen-ice blue for glow and selection. Dark only. Unofficial and standalone: no Blizzard asset is in it (`info/NOTICE-ColdSeat.txt`). Resource keys are the shared vocabulary; the game's look lives in `tokens.css` under this theme's own `--wc3-*` names.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the **Warcraft III: The Frozen Throne menus** (main menu, options, game lobby, LAN list): forged iron frames between black grooves with rivets, deep blue button plates lit along the top, gold labels that turn white on hover, black edit wells, a royal blue selection bar. Dark only. Unofficial and standalone: no Blizzard asset is in it (`info/NOTICE-ColdSeat.txt`). Resource keys are the shared vocabulary; the game's look lives in `tokens.css` under this theme's own `--wc3-*` names.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
-**Intended layout: the sidebar on the left** (repo rule): a 44px compact stone rail. Right mirrors it; top and bottom draw a strip as a fallback.
+**Intended layout: the sidebar on the left** (repo rule): a 44px compact rail. Right mirrors it; top and bottom draw a strip as a fallback.
 
 ## Sources
 
@@ -14,45 +14,79 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 ## Tokens
 
-Type: body and headings `Friz Quadrata TT, Palatino Linotype, Book Antiqua, Georgia`; sizes 12 / 14 / 15 / 20 / 29. `ControlCornerRadius` 2, small 1, large 4, x-large 6.
+Type: body and headings `Friz Quadrata TT, Palatino Linotype, Book Antiqua, Georgia`; sizes 12 / 14 / 15 / 20 / 32. `ControlCornerRadius` 2, small 1, large 3, x-large 4.
 
 | Token | Key |
 |-------|-----|
-| `--wc3-gold` | `GlyphBrush`, `ButtonForegroundBrush`, `FocusBrush`, `HeadingForegroundBrush`, sidebar glyphs |
-| `--wc3-white` | `TextBrush`, hover text, `TooltipForegroundBrush` |
+| `--wc3-gold` | `GlyphBrush`, `ButtonForegroundBrush`, `PrimaryButtonForegroundBrush`, `FocusBrush`, `HeadingForegroundBrush`, sidebar glyphs, check marks, dropdown arrows |
+| `--wc3-white` | `TextBrush`, `ButtonHoverForegroundBrush`, `SelectedForegroundBrush`, `TooltipForegroundBrush` |
 | `--wc3-muted` | `TextBrushDarker` |
-| `--wc3-void` | `WindowBackgourndBrush`, `ShellBackgroundBrush`, `TextBrushDark` (text on gold) |
-| `--wc3-night` | `NormalBrushDark`, `PopupBackgroundBrush`, `TooltipBackgroundBrush`, `ExpanderBackgroundBrush` |
-| `--wc3-stone` / `-light` / `-dark` | `ButtonBackgroundBrush` / `HoverBrush`, `ButtonHoverBackgroundBrush` / `InputBackgroundBrush`, `ButtonPressedBackgroundBrush` |
-| `--wc3-stone-border` | `NormalBorderBrush`, `PopupBorderBrush`, `InputBorderBrush`, `ScrollBarThumbBrush` |
-| `--wc3-ice` | `SelectedBrush` (28%), `SidebarItemSelectedGlowBrush` (45%), `ProgressBarForegroundBrush`, `ArtTintBrush` (10%) |
+| `--wc3-void` | `WindowBackgourndBrush`, `ShellBackgroundBrush`, `ContentBackgroundBrush`, `TextBrushDark` |
+| `--wc3-night` | `NormalBrushDark`, `ExpanderBackgroundBrush` (panel glass) |
+| `--wc3-dialog` | `PopupBackgroundBrush`, `TooltipBackgroundBrush`, `InputHoverBackgroundBrush` |
+| `--wc3-stone` (iron band) / `-light` / `-border` (lit edge) | `FrameBrush`, `ButtonBorderBrush`, `TopPanelBackgroundBrush`, `WindowTitleBackgroundBrush` / `FrameHoverBrush`, `InputBorderBrush`, `MenuSeparatorBrush` / `BevelLightBrush`, `NormalBorderBrush`, `PopupBorderBrush` |
+| `--wc3-groove` | `FrameInnerBrush`, `BevelShadowBrush` (85%), `CheckBoxBorderBrush` |
+| `--wc3-stone-dark` | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush` |
+| `--wc3-blue` / `-hover` / `-deep` | `ButtonBackgroundBrush`, `PrimaryButtonBackgroundBrush`, `PropertyItemBackgroundBrush` / `ButtonHoverBackgroundBrush`, `HoverBrush` / `ButtonPressedBackgroundBrush` |
+| `--wc3-blue-lit` / `-glint` | `SelectedSheenBrush`, `PrimaryButtonBorderBrush` (lit plate line) / `SelectedBorderBrush`, `SliderThumbBackgroundBrush`, `PrimaryButtonGlowBrush` |
+| `--wc3-royal` | `SelectedBrush`, `ListItemSelectedBrush`, `MenuItemHoverBrush`, `ListItemHoverBrush` (30%), `SidebarItemSelectedGlowBrush` (55%) |
+| `--wc3-ice` | `ProgressBarForegroundBrush`, `ArtTintBrush` (8%) |
 
 ## Component spacing (`src/Common.xaml`)
 
-`ButtonPadding` 14,6; `InputPadding` and item paddings 8,5; menu surface 3; group box 12; tooltip 10,6; `IconSize` 16; `GameBannerHeight` 320; `GameDetailsPaneWidth` 300; `GridDetailsPaneWidth` 300. `BevelTemplate` (lit top/left, dark bottom/right) is defined there too.
+`ButtonPadding` 14,4; `InputPadding` 8,4; item paddings 8,5; menu surface 3; group box 12; tooltip 10,6; `IconSize` 16; `GameBannerHeight` 320; `GameDetailsPaneWidth` 300; `GridDetailsPaneWidth` 300.
+
+Shared templates defined there:
+
+- `FramedPlateTemplate`: the glue button. Groove, 3px iron band (lit top/left, dark bottom/right), groove, then the host's `Background` as the plate with the host's `BorderBrush` as its lit top/left line and sheen. The plate starts 4px inside the bounds; hosts lay hover and pressed layers at `Margin="4"`.
+- `RivetsTemplate`: bevel plus six rivets, laid over a panel's 8px iron band. No desired size.
+- `BevelTemplate`: plain iron plate (title band).
 
 ## Shell
 
-Left 44px void rail that merges into the library (no divider on its edge), icon-only items (gold, white on hover, ice glow when current); a night top strip with icon view switches and a search box, 146px clear for the caption buttons; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush`; caption buttons 46x40 with a red close hover.
+Left 44px void rail that merges into the library (no divider on its edge), icon-only items (gold, white on hover, royal blue glow when current); the top panel is a forged iron band with icon view switches (current = blue plate with a lit blue rim) and a black search well, 146px clear for the caption buttons; library art cooled and dimmed under `ScrimBrush` and `ArtTintBrush`; caption buttons 46x40 with a red close hover (dialog caption buttons: 40x32 Marlett cells).
+
+**Settings chrome.** A 2px iron window rim and a 44px forged iron title band (`BevelTemplate`) closed by a black groove over a lit iron line, a rivet at each end, the title in menu gold between two barbed iron spikes (the ones beside the menu buttons); 40x32 Marlett caption cells. Section list (`DefaultControls/TreeView.xaml`): the main menu's button column, 30px rows in the body face, menu-gold labels; hover = the blue plate in its iron frame (white label, dim gold diamond), selected = the plate lit (white label, full gold diamond); children under a 1px iron line; width 256 (Settings), 280 (Add-ons).
 
 ## Game page
 
-Shared skeleton. Gold title, Esc-menu style double frame (stone rim plus inner dark line) around the metadata pane, gold PLAY plate beside stone More and Edit buttons (`SecondaryButton`, stone palette with gold glyphs).
+Shared skeleton. Gold title; the metadata pane sits in a riveted iron frame (8px band between grooves, `RivetsTemplate` as a sibling overlay in the same cell) around panel glass. Play is the menu button: blue plate in its iron frame with a barbed iron spike at each end (15px reserved per side), gold label with the black text shadow, white on hover. More and Edit are square glue buttons (`SecondaryButton` is the base Button).
+
+Steam screenshots use a framed section behind the shared current-game eligibility gate in both views. Each Game.Id update restarts the 12-second skeleton; a timed-out Steam result shows an ice diamond and localized LOCNoItemsFound. Loaded content, non-Steam games and an unavailable plugin hide the placeholder/empty result. WPF regression coverage: `tests/SteamScreenshotsRegressionTests.ps1` (timing-sensitive: run it while Playnite is not starting up).
 
 ## Components
 
-Every control is a stone plate: Button, ToggleButton, RepeatButton, TextBox, ComboBox, CheckBox, RadioButton, Slider, ScrollBar, TabControl, GroupBox, ListBox, menus, tooltip. Gold labels, white on hover, gold dashed focus.
+| File | Source component |
+|------|------------------|
+| `Button`, `SecondaryButton`, `PlayButton` | Glue button: blue plate, iron frame, gold label; hover lights the plate and whitens the label; pressed darkens and pushes the label 1px; disabled = black plate (locked lobby slots) |
+| `ComboBox` | Popup menu button: the same plate, white value, solid gold triangle |
+| `CheckBox` | 20px iron bezel, black well, heavy gold tick with a dark gold underside |
+| `Slider` | 10px black channel in an iron rail, faint blue fill, 18px blue gem in an iron ring |
+| `TextBox`, `PasswordBox`, search | Black edit well, iron rim, dark top/left inner edge |
+| `GroupBox`, metadata pane | Riveted iron panel frame around panel glass |
+| `TreeView` | Menu button column (see Settings chrome) |
+| `ListBox`, library rows, combo and menu items | Royal blue selection bar, white label |
+| `ToggleButton` | Glue button; checked stays lit with a white label |
+| `TabControl` | Channel / Friends / Clan tabs: black plate in a thin iron bevel at rest, the blue plate on hover, the lit plate when selected; no indicator line |
+| `RadioButton` | 20px iron ring, black well, gold stud |
+| `ProgressBar` | Loading bar: black channel in an iron rim, steel blue fill (`--wc3-steel`) with a sheen |
+| `GridViewItemTemplate` (`GridTileButton`) | Cover Play / Info as 40px glue buttons with gold glyphs |
+| `FilterSelectionBox` | Filter dropdowns as the popup menu plate, lit on hover |
+| `ScrollViewer` | Iron thumb with a lit/dark bevel, lighter iron on hover |
+| `PropertyItemButton`, menus, tooltip | Earlier templates, recolored through the tokens (blue chips, iron rims, black popups) |
 
 ## Deviations
 
-- **No textures:** the game's stone, ice and Arthas/Frozen Throne scene are BLP art; the theme draws flat plates with a one-pixel bevel and shows each game's own art under a cold wash.
-- **Text shadow on the game title only:** the game shadows every label with black at 90%; the theme draws it only on the game page title (a 2px `DropShadowEffect`), nowhere else.
+- **No textures:** the game's iron, ice and scene are BLP art; frames here are flat bands with a one-pixel bevel and vector rivets, and each game's own art shows under a cold wash. No chains, no ice crust on the frames.
+- **Rivets at six points only** (corners and rail middles), not every few centimetres along the band: a tiled rivet strip needs a brush that ThemeModifier cannot recolor.
+- **Spikes on Play and the dialog title only.** In the game every menu button has one; on 32px form buttons they would eat the label.
+- **Text shadow on the game title and the Play label only.**
 - **Not the game's font** unless Friz Quadrata TT is installed.
-- **Hover:** the game alpha-blends a highlight texture; the theme swaps fills.
+- **Hover:** the game alpha-blends a highlight texture; the theme fades a lit plate in.
 
 ## Not verified yet
 
-- Stone, ice and void hexes are estimates; compare with a capture of the Frozen Throne menu.
-- Builds and passes `validate-extension.ps1`, but nothing has been loaded in Playnite: it was authored on a Linux server, where Playnite is never run. Run `build-theme.ps1 -Deploy -Restart` on Windows and check `playnite.log` for XAML errors.
-- The Steam screenshots skeleton binds `Game.PluginId` to the Steam library GUID; confirm it shows.
+- The overhaul builds, passes `validate-extension.ps1`, deploys and loads in Playnite without XAML errors in `playnite.log`, but the screens have not been looked at by eye in Playnite: Settings, a game's edit dialog, ThemeModifier (pencil buttons, recoloring), Statistics (GroupBox cards must still wrap), filter sidebar dropdowns at 28px, disabled buttons and dropdowns.
+- Tabs in a game's edit dialog (labels must stay readable on the tab page), the filter sidebar dropdowns while typing a filter, cover hover buttons and a progress dialog have not been looked at since they were redrawn.
+- `tests/SteamScreenshotsRegressionTests.ps1` fails intermittently on "ColdSeat next Steam game restarts loading" (expects the skeleton back 100ms after a game change). The test loads only the `SteamScreenshotsGameScope` node, which the iron/blue overhaul did not touch; whether the restart is slow or broken in Playnite is open.
 - Friz Quadrata fallbacks and sizes at 1080p.

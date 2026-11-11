@@ -1,6 +1,6 @@
 # Batch validation for every theme: the local equivalent of the CI "Validate and build themes" job.
-# A shell, game-page, or sidebar fix touches all 29 copies (docs/theme-patch-workflow.md);
-# this runs validate-extension.ps1 per theme and reports a summary instead of 29 manual calls.
+# A shell, game-page, or sidebar fix touches every theme (docs/theme-patch-workflow.md);
+# this runs validate-extension.ps1 per theme and reports a summary instead of manual calls.
 [CmdletBinding()]
 param(
     [ValidateSet("Ci", "Package")]

@@ -1,74 +1,117 @@
 <!doctype html>
-<!-- Questlog: HTML replica of Playnite's Game Details view (1280x720): gold/bronze frame, stone rail, bare gold icon buttons,
-     the game list with the gold quest-log highlight, then the quest page (ink on paper, screenshots + description) beside an item-tooltip metadata pane.
-     Order of the top panel follows src/Views/TopPanel.xaml: search, main items, filter, notifications. Rules: .claude/skills/playnite-theme-dev/previews.md -->
+<!-- Questlog: HTML replica of Playnite's Game Details view (1280x720). A client frame: thin metal line between two black lines,
+     sunken black rail, the warm title strip as the top bar with red frame buttons, the game list with the gold underglow on the
+     current entry, then the game page: red Play button, charcoal plates, info panels in the tooltip frame, the notes as a letter.
+     Order of the top panel follows src/Views/TopPanel.xaml: search, main items, filter, notifications. Rules: .claude/skills/playnite-theme-dev/previews.md
+     Unofficial fan theme: no game logos or assets; the banner is a painted placeholder. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Questlog - Details Preview</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 1280px; height: 720px; overflow: hidden; position: relative; background: linear-gradient(var(--DIALOG_BG_TOP), var(--DIALOG_BG_DARK));
+  body { width: 1280px; height: 720px; overflow: hidden; position: relative; background: var(--PANEL_BG_DEEP);
     color: var(--HIGHLIGHT_FONT_COLOR); font-family: "Friz Quadrata TT", Constantia, "Palatino Linotype", Georgia, "Segoe UI", serif; font-size: 15px; }
   svg { fill: currentColor; display: block; }
-  /* Window frame (MainWindowStyle): a 3px dark brown ring (literal gradient) with a 1px line just inside it; content starts 4px in. */
-  .frame { position: absolute; inset: 0; border: 3px solid; border-image: linear-gradient(135deg, #2b1e12, #1a110a 50%, #2b1e12) 1; box-shadow: inset 0 0 0 1px #4a3218; z-index: 30; pointer-events: none; }
-  .win { position: absolute; right: 12px; top: 9px; display: flex; z-index: 31; }
-  .win b { width: 24px; height: 22px; color: var(--NORMAL_FONT_COLOR); display: flex; align-items: center; justify-content: center; }
+  /* Window frame (MainWindowStyle): black, metal (FrameBrush), black; content starts 3px in. */
+  .frame { position: absolute; inset: 0; border: 1px solid var(--FRAME_INK); z-index: 30; pointer-events: none; }
+  .frame::before { content: ""; position: absolute; inset: 0; border: 1px solid; border-image: linear-gradient(135deg, var(--FRAME_METAL_LIGHT), var(--FRAME_METAL) 50%, var(--FRAME_METAL_LIGHT)) 1; }
+  .frame::after { content: ""; position: absolute; inset: 1px; border: 1px solid var(--FRAME_INK); }
+  /* Panel button face (Button.xaml): red, darkening into its rim on every side, gray bezel inside a black line. */
+  .red { border: 1px solid var(--PLATE_EDGE); border-radius: var(--RADIUS_MEDIUM); box-shadow: inset 0 0 0 1px var(--BUTTON_BEZEL); color: var(--NORMAL_FONT_COLOR); text-shadow: 1px 1px 0 var(--QUEST_FONT_COLOR);
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(90deg, rgba(0,0,0,.69), transparent 7px, transparent calc(100% - 7px), rgba(0,0,0,.69)),
+      linear-gradient(var(--BUTTON_RED_RIM), var(--BUTTON_RED_DEEP) 10%, var(--BUTTON_RED) 30%, var(--BUTTON_RED) 62%, var(--BUTTON_RED_DEEP) 86%, var(--BUTTON_RED_SHADE)); }
+  /* Charcoal plate (SecondaryButton): lit along the top, gray rim inside a black line, gold glyph. */
+  .plate { border: 1px solid var(--PLATE_EDGE); border-radius: var(--RADIUS_MEDIUM); box-shadow: inset 0 0 0 1px var(--PLATE_RIM); color: var(--NORMAL_FONT_COLOR);
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(var(--PLATE_HIGHLIGHT), var(--PLATE_HIGHLIGHT)) 2px 1px / calc(100% - 4px) 1px no-repeat,
+      linear-gradient(var(--PLATE_TOP), var(--PLATE) 50%, var(--PLATE_BOTTOM)); }
+  /* Window buttons (MainWindowButton): red plates 28x24, 12px gold glyphs, 3px apart, centred on the 48px strip. */
+  .win { position: absolute; right: 13px; top: 15px; display: flex; gap: 3px; z-index: 31; }
+  .win b { width: 28px; height: 24px; }
   .win svg { width: 12px; height: 12px; }
-  /* Sidebar: stone strip, 44px rail, 44x40 items, gold glyphs. */
-  .rail { position: absolute; left: 4px; top: 4px; bottom: 4px; width: 44px; background: linear-gradient(90deg, var(--STONE_LIGHT), var(--STONE_DARK)); }
-  .it { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); border-radius: var(--RADIUS_LARGE); }
-  .it svg { width: 16px; height: 16px; }
-  .it.cur { background: color-mix(in srgb, var(--NORMAL_FONT_COLOR) 45%, transparent); }
-  .main { position: absolute; left: 48px; right: 4px; top: 4px; bottom: 4px; }
-  /* Top panel: 50px band, transparent. Search 300x30 single-edge box, 32px bare icon buttons, 6px gaps. */
-  .top { height: 50px; position: relative; display: flex; align-items: center; padding-left: 12px; padding-right: 110px; }
-  .search { width: 300px; height: 30px; background: var(--FIELD_BACKGROUND); border-bottom: 1px solid var(--FIELD_BORDER); display: flex; align-items: center; gap: 8px; padding: 0 8px; color: var(--DISABLED_FONT_COLOR); font-size: 13px; margin-right: 6px; }
+  /* Sidebar: sunken black band, 44px rail closed by a hairline, 44x40 items with a 36x32 slot, 16px gold glyphs. */
+  .rail { position: absolute; left: 3px; top: 3px; bottom: 3px; width: 45px; background: var(--PANEL_BAND); border-right: 1px solid var(--PANEL_RULE); }
+  .menu { width: 36px; height: 32px; margin: 8px 3px 4px 4px; display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); }
+  .it { width: 44px; height: 40px; padding: 4px; color: var(--NORMAL_FONT_COLOR); }
+  .it div { width: 36px; height: 32px; border: 1px solid transparent; border-radius: var(--RADIUS_SMALL); display: flex; align-items: center; justify-content: center; }
+  .it svg, .menu svg { width: 16px; height: 16px; }
+  .it.cur { color: var(--HIGHLIGHT_FONT_COLOR); }
+  .it.cur div { background: color-mix(in srgb, var(--NORMAL_FONT_COLOR) 22%, transparent); border-color: var(--SELECT_LINE); }
+  .main { position: absolute; left: 48px; right: 3px; top: 3px; bottom: 3px; }
+  /* Top panel: the 48px title strip closed by black, metal, black. Search 280x30 edit box, 30px icon buttons 4px apart. */
+  .top { height: 48px; position: relative; display: flex; align-items: center; padding: 0 116px 3px 10px;
+    background: linear-gradient(var(--FRAME_INK), var(--FRAME_INK)) bottom / 100% 1px no-repeat, linear-gradient(var(--FRAME_METAL), var(--FRAME_METAL)) 0 calc(100% - 1px) / 100% 1px no-repeat,
+      linear-gradient(var(--FRAME_INK), var(--FRAME_INK)) 0 calc(100% - 2px) / 100% 1px no-repeat, linear-gradient(var(--TITLE_BAR_EDGE), var(--TITLE_BAR) 50%, var(--TITLE_BAR_SHADE)); }
+  .search { width: 280px; height: 30px; background: var(--FIELD_BACKGROUND); border: 1px solid var(--FIELD_BORDER); border-radius: var(--RADIUS_MEDIUM); display: flex; align-items: center; gap: 6px; padding: 0 8px; color: var(--POOR_GRAY_COLOR); margin-right: 6px; }
   .search svg { width: 16px; height: 16px; color: var(--NORMAL_FONT_COLOR); }
   .items { display: flex; }
-  .tool { width: 32px; height: 32px; margin-left: 6px; border-radius: var(--RADIUS_LARGE); display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); position: relative; }
+  .tool { width: 30px; height: 30px; margin-left: 4px; border: 1px solid transparent; border-radius: var(--RADIUS_SMALL); display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); position: relative; }
   .tool svg { width: 20px; height: 20px; }
-  .tool.on { background: color-mix(in srgb, var(--NORMAL_FONT_COLOR) 40%, transparent); }
-  .badge { position: absolute; right: -4px; top: -6px; min-width: 16px; height: 16px; background: var(--BUTTON_HOVER_TOP); color: var(--HIGHLIGHT_FONT_COLOR); font-size: 11px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
-  .view { position: absolute; left: 0; right: 0; top: 50px; bottom: 0; display: flex; }
-  /* Game list: DetailsViewItemStyle, 16px text, gold fading highlight on the selected row. */
-  .game-list { width: 300px; flex: none; padding: 4px 0; overflow: hidden; }
-  .row { height: 32px; margin: 0 2px; display: flex; align-items: center; gap: 10px; padding: 0 10px; font-size: 17px; color: var(--DARKGRAY_FONT_COLOR); border-radius: var(--RADIUS_SMALL); white-space: nowrap; }
-  .row i { width: 20px; height: 20px; flex: none; background: var(--SLOT_FILL_BOTTOM); border: 1px solid var(--SLOT_EDGE); }
-  .row.in { color: var(--POOR_GRAY_COLOR); }
-  .row.sel { background: linear-gradient(90deg, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 52%, transparent), color-mix(in srgb, var(--NORMAL_FONT_COLOR) 14%, transparent)); color: var(--HIGHLIGHT_FONT_COLOR); }
+  .tool.on { background: var(--PANEL_BAND); border-color: var(--SELECT_LINE); }
+  .badge { position: absolute; right: -6px; top: -6px; min-width: 16px; height: 16px; background: var(--BUTTON_RED_HOVER); color: var(--HIGHLIGHT_FONT_COLOR); font-size: 11px; display: flex; align-items: center; justify-content: center; border-radius: var(--RADIUS_LARGE); }
+  .view { position: absolute; left: 0; right: 0; top: 48px; bottom: 0; display: flex; }
+  /* Game list (DetailsViewItemStyle): gold entries, gray when not installed, white on the gold underglow when current. */
+  .game-list { width: 286px; flex: none; padding: 6px 0; overflow: hidden; border-right: 1px solid var(--PANEL_RULE); background: var(--PANEL_NAV); }
+  .row { height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 12px; color: var(--POOR_GRAY_COLOR); white-space: nowrap; }
+  .row i { width: 20px; height: 20px; flex: none; background: var(--SLOT_FILL); border: 1px solid var(--SLOT_EDGE); border-radius: var(--RADIUS_SMALL); }
+  .row.in { color: var(--NORMAL_FONT_COLOR); }
+  .row.hov { color: var(--HIGHLIGHT_FONT_COLOR); background: linear-gradient(90deg, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 3%, transparent), color-mix(in srgb, var(--NORMAL_FONT_COLOR) 11%, transparent) 45%, transparent); }
+  .row.sel { color: var(--HIGHLIGHT_FONT_COLOR);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--SELECT_LINE) 69%, transparent) 40%, transparent 95%) top / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent, var(--SELECT_LINE) 40%, transparent 95%) bottom / 100% 1px no-repeat,
+      linear-gradient(90deg, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 6%, transparent), color-mix(in srgb, var(--NORMAL_FONT_COLOR) 24%, transparent) 45%, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 2%, transparent)); }
   .page { flex: 1; min-width: 0; position: relative; overflow: hidden; }
-  /* HeroArt: GameBannerHeight set to 200 (ThemeModifier, default 320) so the page fits; faded down by the opacity mask, spacer 200 * 100 / 320. */
-  .art { position: absolute; left: 0; right: 0; top: 0; height: 200px; background: radial-gradient(ellipse at 70% 20%, #6b4a1c 0%, #2c1d0c 55%, transparent 100%); opacity: .85;
-    -webkit-mask-image: linear-gradient(rgba(0,0,0,.65), #000 25%, rgba(0,0,0,.6) 48%, rgba(0,0,0,.2) 68%, transparent 85%); mask-image: linear-gradient(rgba(0,0,0,.65), #000 25%, rgba(0,0,0,.6) 48%, rgba(0,0,0,.2) 68%, transparent 85%); }
+  /* HeroArt: GameBannerHeight set to 200 (ThemeModifier, default 320) so the page fits. A black scrim darkens it toward the title, then it fades to the page color. Spacer 200 * 100 / 320. */
+  .art { position: absolute; left: 0; right: 0; top: 0; height: 200px;
+    background: linear-gradient(transparent 38%, var(--PANEL_BG_DEEP)), linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.12) 22%, rgba(0,0,0,.55) 60%, rgba(0,0,0,.7)),
+      radial-gradient(ellipse 46% 52% at 12% 104%, #17141c 62%, transparent 63%), radial-gradient(ellipse 58% 40% at 88% 108%, #1e1a22 62%, transparent 63%),
+      radial-gradient(ellipse 30% 26% at 63% 70%, #ffe2a0 0%, #f0a050 30%, transparent 100%), linear-gradient(#1c2046, #4a3f6b 38%, #b0684a 64%, #d98f52 72%, #3a2a2a 73%, #241c1e); }
   .head { position: absolute; left: 20px; right: 37px; top: 86px; }
-  h1 { font-size: 31px; font-weight: 400; color: var(--NORMAL_FONT_COLOR); text-shadow: 2px 2px 0 var(--QUEST_FONT_COLOR); line-height: 1.2; }
+  h1 { font-family: Georgia, "Palatino Linotype", "Segoe UI"; font-size: 31px; font-weight: 600; color: var(--NORMAL_FONT_COLOR); text-shadow: 2px 2px 0 var(--QUEST_FONT_COLOR); line-height: 1.2; }
   .acts { display: flex; margin-top: 18px; align-items: center; }
-  /* Play (PlayButton, 150x40, FontSizeLarge, primary leather) then More and Edit: icon-only 40x40 squares, 20px glyphs, 10px apart, always visible. */
-  .btn { height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); text-shadow: 1px 1px 0 var(--QUEST_FONT_COLOR); font-size: 15px;
-    background: linear-gradient(var(--BUTTON_RED_HIGHLIGHT), var(--BUTTON_RED) 45%, var(--BUTTON_RED_SHADOW)); border: 1px solid var(--BUTTON_EDGE); border-radius: var(--RADIUS_MEDIUM); }
-  .btn.play { width: 150px; font-size: 17px; color: var(--HIGHLIGHT_FONT_COLOR); background: linear-gradient(var(--BUTTON_HOVER_MID), var(--BUTTON_RED) 50%, var(--BUTTON_RED_SHADOW)); }
-  .btn.sq { width: 40px; margin-left: 10px; }
-  .btn svg { width: 20px; height: 20px; }
-  /* Game page body: quest paper (2px FrameBrush ring, radius 6, padding 26,18,26,24) left, 280px item-tooltip pane right (20px apart). */
+  /* Play (PlayButton, 150x40): the brighter face, gold label one size up. More and Edit: icon-only 40x40 plates, 20px glyphs, 10px apart. */
+  .play { width: 150px; height: 40px; font-size: 17px;
+    background: linear-gradient(90deg, rgba(0,0,0,.69), transparent 9px, transparent calc(100% - 9px), rgba(0,0,0,.69)),
+      linear-gradient(var(--BUTTON_RED_SHADE), var(--BUTTON_RED) 10%, var(--BUTTON_RED_LIT) 32%, var(--BUTTON_RED_LIT) 62%, var(--BUTTON_RED_DEEP) 88%, var(--BUTTON_RED_SHADE)); }
+  .sq { width: 40px; height: 40px; margin-left: 10px; }
+  .sq svg { width: 20px; height: 20px; }
+  /* Body: info panel left (tooltip frame: backdrop, 1px metal line, 1px black line inside, radius 5), details panel right (300px of content, 20px apart). */
   .cols { position: absolute; left: 20px; right: 37px; top: 204px; display: flex; align-items: flex-start; }
-  .paper-wrap { flex: 1; min-width: 0; padding: 2px; border-radius: var(--RADIUS_LARGE); background: linear-gradient(135deg, var(--FRAME_EDGE_LIGHT), var(--FRAME_EDGE) 50%, var(--FRAME_EDGE_LIGHT)); }
-  .paper { padding: 18px 26px 24px; overflow: hidden; color: var(--ITEM_TEXT_FONT_COLOR); border-radius: var(--RADIUS_MEDIUM);
-    background: url(../src/Images/parchment.png), linear-gradient(var(--PARCHMENT_HIGHLIGHT), var(--PARCHMENT) 55%, var(--PARCHMENT_SHADE)); box-shadow: inset 0 0 40px 10px rgba(90,60,20,.5); }
-  .shots { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; height: 92px; margin-bottom: 12px; }
-  .shots div { border: 1px solid var(--FRAME_BRONZE); background: radial-gradient(ellipse at 50% 35%, var(--PARCHMENT_EDGE), #1a1209); }
-  h2 { font-size: 20px; font-weight: 400; color: var(--QUEST_FONT_COLOR); text-shadow: 1px 1px 0 var(--QUEST_TITLE_SHADOW_COLOR); margin-bottom: 6px; }
-  .paper p { line-height: 1.45; font-size: 17px; margin-bottom: 8px; }
-  .paper a { color: var(--PARCHMENT_LINK); }
-  .tip { width: 322px; flex: none; margin: 0 0 0 20px; background: var(--TOOLTIP_DEFAULT_BACKGROUND_COLOR); border: 1px solid var(--TEXTURE_TOOLTIP_BORDER); border-radius: var(--RADIUS_MEDIUM); padding: 8px 10px; overflow: hidden; align-self: flex-start; }
-  .tip h3 { font-size: 17px; font-weight: 400; color: var(--HIGHLIGHT_FONT_COLOR); margin-bottom: 8px; }
-  .grp { padding: 0 0 8px; }
-  .kv { display: flex; padding: 3px 0; font-size: 15px; }
-  .kv em { width: 108px; flex: none; font-style: normal; color: var(--NORMAL_FONT_COLOR); }
+  .left { flex: 1; min-width: 0; }
+  .panel { background: var(--TOOLTIP_BACKDROP); border: 1px solid var(--TOOLTIP_BORDER); border-radius: var(--RADIUS_LARGE); box-shadow: inset 0 0 0 1px var(--FRAME_INK); }
+  .info { padding: 15px 19px 17px; }
+  h2 { font-size: 20px; font-weight: 400; color: var(--NORMAL_FONT_COLOR); line-height: 24px; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid color-mix(in srgb, var(--TOOLTIP_BORDER) 30%, transparent); }
+  h2, .letter h3 { font-family: Georgia, "Palatino Linotype", "Segoe UI"; font-weight: 600; }
+  .shots { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 6px; height: 74px; margin-bottom: 18px; }
+  .shots div { border-radius: var(--RADIUS_SMALL); background: linear-gradient(rgba(0,0,0,.1), rgba(0,0,0,.45)), linear-gradient(#2d3156, #7a5560 55%, #b9703f); }
+  .shots div:nth-child(2) { background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.5)), linear-gradient(#3a4a3a, #6b6a45); }
+  .shots div:nth-child(3) { background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.5)), linear-gradient(#4a3a30, #8a5a35); }
+  .shots div:nth-child(4) { background: linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.5)), linear-gradient(#2a3348, #4f5f78); }
+  .info p { line-height: 1.45; margin-bottom: 8px; }
+  .info p:last-child { margin-bottom: 0; }
+  .info a { color: var(--NORMAL_FONT_COLOR); }
+  /* Notes: a letter. Ink on tiled paper with a shaded rim, in a black line. */
+  .letter { margin-top: 14px; padding: 12px 18px 16px; color: var(--ITEM_TEXT_FONT_COLOR); border: 1px solid var(--FRAME_INK); border-radius: var(--RADIUS_SMALL);
+    background: radial-gradient(ellipse 75% 75% at 50% 50%, transparent 55%, color-mix(in srgb, var(--PARCHMENT_EDGE) 63%, transparent)), url(../src/Images/parchment.png), linear-gradient(var(--PARCHMENT_HIGHLIGHT), var(--PARCHMENT) 55%, var(--PARCHMENT_SHADE)); }
+  .letter h3 { font-size: 20px; font-weight: 600; color: var(--QUEST_FONT_COLOR); text-shadow: 1px 1px 0 color-mix(in srgb, var(--QUEST_SMALL_FONT_COLOR) 65%, transparent); margin-bottom: 4px; }
+  .tip { width: 332px; flex: none; margin-left: 20px; padding: 13px 16px 9px; }
+  .tip h2 { font-size: 20px; line-height: 24px; }
+  .grp { margin-bottom: 14px; }
+  .tip .grp:first-of-type { margin-top: -6px; }
+  .kv { display: flex; padding: 6px 0; line-height: 19px; }
+  .kv em { width: 132px; flex: none; font-style: normal; color: var(--NORMAL_FONT_COLOR); padding-right: 8px; }
   .kv span { color: var(--HIGHLIGHT_FONT_COLOR); min-width: 0; }
-  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-  .chip { background: rgba(0,0,0,.45); border: 1px solid var(--SLOT_EDGE); padding: 0 7px; font-size: 13px; border-radius: var(--RADIUS_MEDIUM); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: -5px; }
+  .chip { background: var(--SLOT_FILL); border: 1px solid var(--CHECK_EDGE); padding: 0 7px; height: 22px; line-height: 19px; font-size: 13px; border-radius: var(--RADIUS_SMALL); }
+
+/* Toolbar order matches the left-docked XAML; button heights stay constant in every state. */
+.toolbar-order { position:absolute; inset:0 150px 0 8px; display:flex; align-items:center; gap:4px; }
+.toolbar-order > [data-part] { position:relative !important; inset:auto !important; flex:0 0 auto; margin-top:0 !important; margin-bottom:0 !important; }
+.toolbar-order > [data-part="PART_TextMainSearch"] { margin-left:0 !important; margin-right:4px !important; }
+.toolbar-order > [data-part="PART_PanelMainItems"] { display:flex; align-items:center; width:max-content !important; padding:0; border:0; background:transparent; }
+.toolbar-order > [data-part="PART_PanelMainItems"] > *, .toolbar-order > [data-part="PART_ToggleFilter"], .toolbar-order > [data-part="PART_ToggleNotifications"] { height:30px !important; min-height:30px !important; margin-top:0 !important; margin-bottom:0 !important; position:relative !important; inset:auto !important; display:flex; align-items:center; justify-content:center; }
 </style>
 </head>
 <body>
@@ -92,24 +135,31 @@
   <symbol id="WindowClose" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M6.84,4.36 L19.64,17.16 L17.16,19.64 L4.36,6.84 Z M19.64,6.84 L6.84,19.64 L4.36,17.16 L17.16,4.36 Z"/><path d="M6.84,4.36 L19.64,17.16 L17.16,19.64 L4.36,6.84 Z M19.64,6.84 L6.84,19.64 L4.36,17.16 L17.16,4.36 Z"/></symbol>
 </svg>
 <div class="rail" data-part="sidebar">
-  <div class="it" data-part="PART_ElemMainMenu"><svg><use href="#MainMenu"/></svg></div>
-  <div class="it cur"><svg><use href="#Library"/></svg></div>
-  <div class="it"><svg><use href="#Statistics"/></svg></div>
-  <div class="it"><svg><use href="#Explorer"/></svg></div>
+  <div class="menu" data-part="PART_ElemMainMenu"><svg><use href="#MainMenu"/></svg></div>
+  <div class="it cur"><div><svg><use href="#Library"/></svg></div></div>
+  <div class="it"><div><svg><use href="#Statistics"/></svg></div></div>
+  <div class="it"><div><svg><use href="#Explorer"/></svg></div></div>
 </div>
-<div class="win"><b><svg><use href="#WindowMinimize"/></svg></b><b><svg><use href="#WindowMaximize"/></svg></b><b><svg><use href="#WindowClose"/></svg></b></div>
+<div class="win"><b class="red"><svg><use href="#WindowMinimize"/></svg></b><b class="red"><svg><use href="#WindowMaximize"/></svg></b><b class="red"><svg><use href="#WindowClose"/></svg></b></div>
 <div class="main">
   <div class="top" data-part="top-panel">
-    <div class="search" data-part="PART_TextMainSearch"><svg><use href="#Search"/></svg>Search</div>
-    <div class="items" data-part="PART_PanelMainItems">
-      <div class="tool on"><svg><use href="#DetailsView"/></svg></div>
-      <div class="tool"><svg><use href="#GridView"/></svg></div>
-      <div class="tool"><svg><use href="#ListView"/></svg></div>
-      <div class="tool"><svg><use href="#Group"/></svg></div>
-      <div class="tool"><svg><use href="#Sort"/></svg></div>
+<div class="toolbar-order">
+<div class="search" data-part="PART_TextMainSearch"><svg><use href="#Search"/></svg>Search</div>
+<div class="tool" data-part="PART_ToggleFilter"><svg><use href="#Filter"/></svg></div>
+<div class="items" data-part="PART_PanelMainItems"><div class="tool" title="Sort"><svg><use href="#Sort"></use></svg></div>
+      <div class="tool on"><svg><use href="#DetailsView"></use></svg></div>
+      <div class="tool"><svg><use href="#GridView"></use></svg></div>
+      <div class="tool"><svg><use href="#ListView"></use></svg></div>
+      <div class="tool"><svg><use href="#Group"></use></svg></div>
+
     </div>
-    <div class="tool" data-part="PART_ToggleFilter"><svg><use href="#Filter"/></svg></div>
-    <div class="tool" data-part="PART_ToggleNotifications"><svg><use href="#Notifications"/></svg><span class="badge">2</span></div>
+<div class="tool" data-part="PART_ToggleNotifications"><svg><use href="#Notifications"/></svg><span class="badge">2</span></div>
+</div>
+
+
+
+
+
   </div>
   <div class="view">
     <div class="game-list" data-part="game-list">
@@ -119,7 +169,7 @@
       <div class="row sel"><i></i>The Lost Ledger</div>
       <div class="row in"><i></i>Elderglen</div>
       <div class="row"><i></i>Frostmere Pass</div>
-      <div class="row in"><i></i>Gilded Bastion</div>
+      <div class="row in hov"><i></i>Gilded Bastion</div>
       <div class="row"><i></i>Hearthstone Inn</div>
       <div class="row in"><i></i>Ironforge Tales</div>
       <div class="row"><i></i>Jade Lantern</div>
@@ -132,49 +182,46 @@
       <div class="row in"><i></i>Redridge Rangers</div>
       <div class="row"><i></i>Silvermoon Road</div>
       <div class="row in"><i></i>Thornvale</div>
+      <div class="row in"><i></i>Underkeep</div>
+      <div class="row"><i></i>Westfall Harvest</div>
     </div>
     <div class="page" data-part="game-page">
       <div class="art"></div>
       <div class="head">
         <h1>The Lost Ledger</h1>
-        <div class="acts"><div class="btn play" data-part="PART_ButtonPlayAction">Play</div><div class="btn sq" data-part="PART_ButtonMoreActions" title="More"><svg><use href="#Options"/></svg></div><div class="btn sq" data-part="PART_ButtonEditGame" title="Edit"><svg><use href="#Edit"/></svg></div></div>
+        <div class="acts"><div class="red play" data-part="PART_ButtonPlayAction">Play</div><div class="plate sq" data-part="PART_ButtonMoreActions" title="More"><svg><use href="#Options"/></svg></div><div class="plate sq" data-part="PART_ButtonEditGame" title="Edit"><svg><use href="#Edit"/></svg></div></div>
       </div>
       <div class="cols">
-        <div class="paper-wrap"><div class="paper">
-          <h2>Screenshots</h2>
-          <div class="shots"><div></div><div></div><div></div></div>
-          <h2>Description</h2>
-          <p>The innkeeper presses a water-stained ledger into your hands. Three names are crossed out and a fourth is circled in red. Follow the trade road past the old mill, speak with the quartermaster and return before the moon rises over the keep.</p>
-          <p>Complete the objectives, gather the missing pages and decide whom to trust. <a>Read the full quest text</a> for rewards and prerequisites.</p>
-          <h2>Notes</h2>
-          <p>Bring a lantern. The cellar is darker than it looks.</p>
-        </div></div>
-        <div class="tip" data-part="metadata">
-          <h3>Game Details</h3>
+        <div class="left">
+          <div class="panel info">
+            <h2>Screenshots</h2>
+            <div class="shots"><div></div><div></div><div></div><div></div></div>
+            <h2 class="panel-title">Description</h2>
+            <p>The innkeeper presses a water-stained ledger into your hands. Three names are crossed out and a fourth is circled in red. Follow the trade road past the old mill and speak with the quartermaster before the moon rises over the keep.</p>
+            <p>Gather the missing pages and decide whom to trust. <a>Read the full quest text</a> for rewards.</p>
+          </div>
+          <div class="letter"><h3>Notes</h3>Bring a lantern. The cellar is darker than it looks.</div>
+        </div>
+        <div class="panel tip" data-part="metadata">
+          <h2 class="panel-title">Game Details</h2>
           <div class="grp">
-            <div class="kv"><em>Completion</em><span>In progress</span></div>
-            <div class="kv"><em>Play time</em><span>36 hours</span></div>
-            <div class="kv"><em>Last played</em><span>Yesterday</span></div>
+            <div class="kv"><em>Completion Status</em><span>Playing</span></div>
+            <div class="kv"><em>Time Played</em><span>36h 12m</span></div>
+            <div class="kv"><em>Last Played</em><span>Yesterday</span></div>
           </div>
           <div class="grp">
-            <div class="kv"><em>Community</em><span style="color:var(--UNCOMMON_GREEN_COLOR)">86</span></div>
-            <div class="kv"><em>Critic</em><span style="color:var(--RARE_BLUE_COLOR)">78</span></div>
+            <div class="kv"><em>Community Score</em><span style="color:var(--UNCOMMON_GREEN_COLOR)">86</span></div>
+            <div class="kv"><em>Critic Score</em><span style="color:var(--NORMAL_FONT_COLOR)">68</span></div>
           </div>
           <div class="grp">
             <div class="kv"><em>Developer</em><span>Hollowpine Games</span></div>
             <div class="kv"><em>Publisher</em><span>Lantern &amp; Quill</span></div>
-            <div class="kv"><em>Release date</em><span>2004</span></div>
+            <div class="kv"><em>Release Date</em><span>11/23/2004</span></div>
           </div>
           <div class="grp">
-            <div class="kv"><em>Platform</em><span class="chips"><span class="chip">PC</span></span></div>
-            <div class="kv"><em>Genres</em><span class="chips"><span class="chip">RPG</span><span class="chip">Adventure</span></span></div>
-            <div class="kv"><em>Tags</em><span class="chips"><span class="chip">Quests</span><span class="chip">Fantasy</span></span></div>
+            <div class="kv"><em>Genre</em><span class="chips"><span class="chip">RPG</span><span class="chip">Adventure</span></span></div>
+            <div class="kv"><em>Tag</em><span class="chips"><span class="chip">Quests</span><span class="chip">Fantasy</span></span></div>
           </div>
-          <div class="grp">
-            <div class="kv"><em>Library</em><span>Steam</span></div>
-            <div class="kv"><em>Install size</em><span>4.2 GB</span></div>
-          </div>
-          <div class="grp"><div class="kv"><em>Links</em><span>Website, Wiki</span></div></div>
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@
 // DockPanel.Dock), then compared with where Chromium actually draws the tagged parts.
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { launchBrowser, tokenStyle, fontFaceCss } from './preview-tokens.mjs';
 
 const VIEWPORT = { width: 1280, height: 720 };
@@ -54,7 +54,7 @@ export function expectedTopOrder(themeDir) {
 }
 
 async function measure(page, file, themeDir) {
-  await page.goto('file://' + path.resolve(file));
+  await page.goto(pathToFileURL(path.resolve(file)).href);
   // Same page state as render-theme-preview.mjs (theme tokens + bundled fonts), so the measured widths are the rendered ones.
   const tokens = tokenStyle(themeDir);
   if (tokens) await page.addStyleTag({ content: tokens });

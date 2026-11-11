@@ -58,6 +58,12 @@ if (-not $onWindows) {
 }
 Step $testName { dotnet @testArgs } -Native
 Step "script regressions" { & (Join-Path $repoRoot "tests/ScriptRegressionTests.ps1") }
+if ($onWindows) {
+    Step "Grid details panel width regressions (WPF)" { pwsh -STA -File (Join-Path $repoRoot "tests/GridDetailsPanelWidthRegressionTests.ps1") } -Native
+    Step "Game page breakpoint regressions (WPF)" { pwsh -STA -File (Join-Path $repoRoot "tests/GamePageBreakpointsRegressionTests.ps1") } -Native
+    Step "Steam screenshots selection regressions (WPF)" { pwsh -STA -File (Join-Path $repoRoot "tests/SteamScreenshotsRegressionTests.ps1") } -Native
+    Step "Search clear hit-area regressions (WPF)" { pwsh -STA -File (Join-Path $repoRoot "tests/SearchClearRegressionTests.ps1") } -Native
+}
 
 Step "validate themes" { & (Join-Path $PSScriptRoot "validate-themes.ps1") -Mode Ci -Configuration $Configuration }
 if (-not $Quick) {
@@ -66,6 +72,7 @@ if (-not $Quick) {
 
 # Whether an add-on counts as released comes from its <key>-v<version> tag: fetch tags first.
 Step "generated READMEs up to date" { node scripts/generate-readmes.mjs --check } -Native
+Step "preview tooling regressions" { node --test tests/PreviewToolsTests.mjs } -Native
 Step "preview colours use theme tokens" { node scripts/preview-tokens.mjs check } -Native
 if (-not $Quick) {
     Step "preview layout" { node scripts/preview-layout.mjs } -Native

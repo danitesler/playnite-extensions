@@ -36,6 +36,8 @@ Type: 12 / 14 / 16 / 20 / 35. `HtmlTextView` reads the Colors of the brushes on 
 | `Views/MainWindow.xaml` | Default layout, notifications slide in from the right. |
 | `Views/Library.xaml` | Background art over both rows with the menu vignette; library layer at `rgba(20,20,20,0.4)`. |
 
+**Settings chrome.** The CS2 navbar as a 44px band: the crosshair mark in `selectedNavColor`, a thin white-30% vertical rule, the title in Bahnschrift, a giant crosshair ghosted at 8% into the right end and the navbar's 1px rule closing it; 40x32 caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows, body face, navbar tabs laid vertically; hover = white-5% wash with a faint underline, selected = pale-blue tab wash, `selectedNavColor` type and a solid 2px underline across the row; children under a 1px navbar-separator rule; width 256 (Settings), 280 (Add-ons).
+
 ## Game page
 
 Follows the shared skeleton. Differences:

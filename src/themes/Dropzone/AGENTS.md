@@ -37,6 +37,8 @@ Type: 12 / 14 / 16 / 22 / 40.
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, muted glyphs, red close hover, 64px caption height. |
 | `Views/Library.xaml` | Background art behind everything under a navy wash (`ScrimBrush`: 90% under the navbar, 60% mid, 95% at the bottom). Library layer transparent. |
 
+**Settings chrome.** `DefaultControls/TreeView.xaml`: 30px rounded plate rows (8px, inset 6px) in the body face; hover is the white 12% plate with the yellow notification dot half-lit, selected is the navbar's light grey pill with near-black label and the full yellow dot; children sit under a rounded 2px guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 44px band in the settings tab-strip navy, title as the current-tab grey pill followed by three fading yellow dots, the drop-zone ring (two outlines) ghosted at the right, closed by a 2px blue menu edge; `WindowBarButton` is 40x32 with 8px corners.
+
 ## Game page
 
 Follows the shared skeleton, dressed as the island details screen: the banner gets a second, horizontal navy wash from the left (details view), the title is 40px Bold condensed, captions are the label cyan in the heading face Bold, list values are the slanted blue tags, PLAY is 52px tall and 200px wide, More and Edit are 52px round pills. The metadata pane is a 12px-radius card in the rail navy; groups are separated by space only.

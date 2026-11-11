@@ -38,6 +38,8 @@ The double frame (`DoubleFrameTemplate`): two 1px lines 2px apart, the outer a p
 | `DerivedStyles/MainWindowStyle.xaml` | Close is the game's close box (X in the brown double frame, light on hover); minimize and maximize are bare glyphs. Caption height 64. |
 | `Views/Library.xaml` | Background art behind the header row, shaded like the game's backdrop; library on black at 55%, 16px in from the band. |
 
+**Settings chrome.** `DefaultControls/TreeView.xaml`: the game's settings rows in a column, 30px square rows in the body face with the 5px dark strip at the left edge; hover is the lighter row fill with the grey notched double frame (`DoubleFrameTemplate`), selected is the amber wash fading left to right, the light double frame, the strip lit orange and the white label; children under a brown guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 44px menu-band header, the title as the taupe section name inside the brown double frame, the medallion ghosted at the right, a brown closing rule; `WindowBarButton` is 36x28, square.
+
 ## Game page
 
 Follows the shared skeleton. Differences: the page is black (`GameOverviewBackgroundBrush`), the banner darkens to 80% toward the title; the name is regular DIN in label grey; Play is the selected quest header (gold double frame on dark amber, orange bar at its left), the other actions brown-framed boxes; section titles are the journal's category headers (uppercase taupe, brown rule); the metadata pane is a journal panel (`#070707`, faint brown edge) with brown group rules. The two views share every block; change them in pairs.

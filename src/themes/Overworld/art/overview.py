@@ -5,6 +5,7 @@ metadata pane of six groups. Generating them keeps the groups, part names and sp
 Run from anywhere: python3 art/overview.py
 """
 from pathlib import Path
+from subprocess import PIPE, run
 
 ROOT = Path(__file__).resolve().parent.parent / "src" / "Views"
 
@@ -151,7 +152,22 @@ def heading(text_key, top="0,0,0,0"):
             '<Control Template="{DynamicResource DividerTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" Margin="0,8,0,12" />')
 
 
-STEAM = '''<Grid>
+STEAM = '''<Grid x:Name="SteamScreenshotsGameScope">
+    <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
+    <Grid.Style>
+        <Style TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Grid.Style>
+<Grid>
     <Grid.Style>
         <Style TargetType="Grid">
             <Setter Property="Visibility" Value="Collapsed" />
@@ -200,6 +216,7 @@ STEAM = '''<Grid>
             </Control>
         </Grid>
     </StackPanel>
+</Grid>
 </Grid>'''
 
 TEXT_COLUMN = STEAM + '''
@@ -424,7 +441,7 @@ def details():
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-{indent(spacer(150), 12)}
+{indent(grid_spacer(spacer(150), 8, 'DetailsBannerSpacer'), 12)}
 {indent(header, 12)}
 {indent(columns, 12)}
         </Grid>
@@ -456,8 +473,86 @@ def details():
 {HEADER_NOTE}''', body)
 
 
+INLINE_CLOSE = '''<Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
+        Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
+        ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
+        Template="{Binding Template, ElementName=SidePanelCloseButton}"
+        Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}">
+            <Button.RenderTransform>
+                <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
+            </Button.RenderTransform>
+    </Button>'''
+
+
+def grid_spacer(markup, floor, name='GridBannerSpacer'):
+    import re
+    markup = markup.replace('<Border', '<Border x:Name="' + name + '" MinHeight="' + str(floor) + '"', 1)
+    markup = re.sub(r'(<Setter Property="Height" Value=")(\d+)(" />)', lambda m: m[1] + str(floor) + m[3], markup)
+    return markup.replace('</Style.Triggers>', '''<DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed"><Setter Property="Height" Value="$FLOOR" /></DataTrigger>
+'''.replace('$FLOOR', str(floor)) + '</Style.Triggers>')
+
+
+# Grid-only layout: retain each pane's markup while allowing metadata to move below it.
+def responsive_body(main, metadata, gap=24, attrs=''):
+    import re
+    def unposition(text, role):
+        def root(match):
+            tag = re.sub(r'\s(?:Grid\.Column|Grid\.Row|DockPanel\.Dock)="[^"]*"', '', match[0])
+            def margin(m):
+                values = m[1].split(',')
+                if len(values) == 4: values[0 if role == 'Metadata' else 2] = '0'
+                return 'Margin="' + ','.join(values) + '"'
+            return re.sub(r'Margin="([^"]+)"', margin, tag)
+        return re.sub(r'^<[^>]+>', root, text, count=1)
+    def width(match):
+        tag = match[1]
+        return '<' + tag + match[2] + match[3] + ' x:Name="GridMetadataContent" MaxWidth="{DynamicResource GridDetailsPaneWidth}" Tag="{DynamicResource GridDetailsPaneWidth}">\n' + '''<$TAG.Style><Style TargetType="$TAG">
+    <Setter Property="Width" Value="{DynamicResource GridDetailsPaneWidth}" />
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /></DataTrigger></Style.Triggers>
+</Style></$TAG.Style>'''.replace('$TAG', tag)
+    metadata = re.sub(r'<(\w+)([^>]*?)\sWidth="\{DynamicResource GridDetailsPaneWidth\}"([^>]*)>', width, unposition(metadata, 'Metadata'), count=1)
+    main = unposition(main, 'Main')
+    def column(role, content):
+        return ('''<Grid x:Name="Grid$ROLEColumn" VerticalAlignment="Top">
+<Grid.Style><Style TargetType="Grid">
+    <Setter Property="Grid.Column" Value="$COL" /><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.ColumnSpan" Value="1" />
+    $MARGIN
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
+        <Setter Property="Grid.Column" Value="0" /><Setter Property="Grid.Row" Value="$ROW" /><Setter Property="Grid.ColumnSpan" Value="2" />
+        $NARROWMARGIN
+    </DataTrigger></Style.Triggers>
+</Style></Grid.Style>
+$WIDTH
+$CONTENT
+</Grid>'''
+            .replace('$ROLE', role).replace('$COL', '0' if role == 'Main' else '1').replace('$ROW', '0' if role == 'Main' else '1')
+            .replace('$MARGIN', '<Setter Property="Margin" Value="' + str(gap) + ',0,0,0" />' if role == 'Metadata' else '')
+            .replace('$NARROWMARGIN', '<Setter Property="Margin" Value="0,24,0,0" />' if role == 'Metadata' else '')
+            .replace('$WIDTH', '''<Grid.MaxWidth><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - $GAP)">
+    <Binding Path="ActualWidth" ElementName="GridOverviewBody" /><Binding Path="ActualWidth" ElementName="GridMetadataColumn" /><Binding Path="Tag" ElementName="GridOverviewBody" />
+</MultiBinding></Grid.MaxWidth>''' if role == 'Main' else '').replace('$CONTENT', content))
+    return ('''<Grid x:Name="GridOverviewBody" $ATTRS>
+<Grid.Tag><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + $GAP + 400">
+    <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" /><Binding Path="Tag" ElementName="GridMetadataContent" />
+</MultiBinding></Grid.Tag>
+<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+$MAIN
+$META
+</Grid>'''.replace('$ATTRS', attrs).replace('$MAIN', column('Main', main))
+        .replace('$META', column('Metadata', metadata)).replace('$GAP', str(gap)))
+
+
 def grid_panel():
-    header = f'''<DockPanel>
+    columns = responsive_body(f'''<StackPanel Grid.Column="0">
+{indent(TEXT_COLUMN, 8)}
+    </StackPanel>''', f'''<StackPanel Grid.Column="2" Margin="0,0,0,24" VerticalAlignment="Top">
+{indent(heading("LOCGameDetails"), 8)}
+{indent(pane_xaml(False), 8)}
+    </StackPanel>''', attrs='VerticalAlignment="Top"')
+
+    header = f'''<DockPanel Panel.ZIndex="2">
+{indent(INLINE_CLOSE, 4)}
     <Image Name="PART_ImageIcon" DockPanel.Dock="Left" MaxHeight="32" MaxWidth="32"
            RenderOptions.BitmapScalingMode="Fant" Margin="0,0,12,0" />
 {indent(title("{DynamicResource FontSizeLargest}", 2), 4)}
@@ -479,35 +574,44 @@ def grid_panel():
     </Button>
 {indent(edit_button("Grid", "10,0,8,0", 44, column="2"), 4)}
 </Grid>
-<Grid VerticalAlignment="Top">
-    <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="24" />
-        <ColumnDefinition Width="Auto" />
-    </Grid.ColumnDefinitions>
-    <StackPanel Grid.Column="2" Margin="0,0,0,24" VerticalAlignment="Top">
-{indent(heading("LOCGameDetails"), 8)}
-{indent(pane_xaml(False), 8)}
-    </StackPanel>
-    <StackPanel Grid.Column="0">
-{indent(TEXT_COLUMN, 8)}
-    </StackPanel>
-</Grid>'''
+{columns}'''
 
-    close = '''<Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,14,26,0" Width="36" Height="36"
-        Focusable="False" Cursor="Hand" Foreground="{DynamicResource MainMenuButtonForegroundBrush}"
+    close = '''<Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}"
+
+        HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
+        Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}"
         Command="{MainViewModel CloseGameSideBarCommand}">
+<Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Collapsed` : `Visible`'}" />
+    <Style.Triggers><DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+</Style></Button.Style>
+    <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
     <Button.Template>
         <ControlTemplate TargetType="{x:Type Button}">
-            <Border x:Name="Chrome" Background="Transparent">
-                <ContentPresenter Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                  Content="{DynamicResource IconWindowClose}"
-                                  ContentTemplate="{DynamicResource IconTemplate}" />
-            </Border>
+            <Grid Background="Transparent">
+                <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource ButtonBackgroundBrush}"
+                        BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
+                <Border x:Name="HoverPlate" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource DangerBrush}" Opacity="0" IsHitTestVisible="False" />
+                <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                Content="{DynamicResource IconWindowClose}" ContentTemplate="{DynamicResource IconTemplate}"
+                                Foreground="{DynamicResource TextBrush}" />
+            </Grid>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource DangerBrush}" />
-                    <Setter Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                    <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                    <Trigger.EnterActions>
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                        </Storyboard></BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard><Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                        </Storyboard></BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -543,7 +647,7 @@ def grid_panel():
                     </Style>
                 </TextBlock.Style>
             </TextBlock>
-            <ScrollViewer DockPanel.Dock="Top" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+            <ScrollViewer CanContentScroll="False" DockPanel.Dock="Top" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                           x:Name="PART_ScrollViewHost">
                 <ScrollViewer.Style>
                     <Style TargetType="ScrollViewer" BasedOn="{{StaticResource {{x:Type ScrollViewer}}}}">
@@ -557,7 +661,7 @@ def grid_panel():
                 <Grid>
 {indent(hero("NormalBrush"), 20)}
                     <StackPanel Margin="24,0,24,0">
-{indent(spacer(110), 24)}
+{indent(grid_spacer(spacer(110), 4), 24)}
                         <StackPanel Margin="0,20,0,0">
 {indent(header, 28)}
                         </StackPanel>
@@ -572,7 +676,7 @@ def grid_panel():
     the grid side: the game's art as a banner at the top, darkened toward the title; the title in the pixel font with
     its shadow, the yellow splash (completion status) under it, a header separator; the green Play button and a stone
     button under it; then two columns: Steam screenshots, description and notes on the left, Game details on the
-    right (the six metadata groups in a list panel, captions beside values). A close button sits over the top-right
+    right (the six metadata groups in a list panel, captions beside values). A close button sits before the icon below 120px banner height, otherwise over the top-left
     corner.
 {HEADER_NOTE}''', body)
 
@@ -599,8 +703,20 @@ def wrap(name, desc, body):
 '''
 
 
-if __name__ == "__main__":
+def main():
+    converter = Path(__file__).resolve().parents[4] / "scripts" / "game-page-breakpoints.mjs"
+    pages = {"Details": details(), "Grid": grid_panel()}
+    responsive = {
+        view: run(["node", str(converter), "--stdin", view], input=source,
+                  stdout=PIPE, check=True, encoding="utf-8").stdout
+        for view, source in pages.items()
+    }
     ROOT.mkdir(parents=True, exist_ok=True)
-    (ROOT / "DetailsViewGameOverview.xaml").write_text(details(), encoding="utf-8")
-    (ROOT / "GridViewGameOverview.xaml").write_text(grid_panel(), encoding="utf-8")
-    print("wrote", ROOT / "DetailsViewGameOverview.xaml", ROOT / "GridViewGameOverview.xaml")
+    for view, source in responsive.items():
+        path = ROOT / f"{view}ViewGameOverview.xaml"
+        path.write_text(source, encoding="utf-8", newline="\n")
+        print("wrote", path)
+
+
+if __name__ == "__main__":
+    main()

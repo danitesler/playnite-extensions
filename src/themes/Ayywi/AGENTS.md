@@ -29,6 +29,8 @@ Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius
 | `DerivedStyles/MainWindowStyle.xaml` | 46x32 ghost rounded window buttons, close hover in `DangerBrush` |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | 16px gutters, ghost icon buttons |
 
+**Settings chrome.** Plain 44px header like an ayywi dialog: black band, the empty state's 28px icon tile (options glyph) before the title in Unbounded, one hairline rule, 40x32 ghost caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows (28 + 1px gaps), body font, rounded `ControlCornerRadius` plates inset 6px; hover = wash plate plus a faint dot, selected = inverted white plate with a solid dot; children under a hairline guide; width 256 in Settings, 280 in Add-ons.
+
 ## Game page
 
 Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 112px caption column. Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). More and Edit are always-visible 48px square icon buttons (icon-only, the label in a `ToolTip`; repo rule). `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover (clip plus corner pieces, no mask), round 44px Play and Info buttons (`GridTileButton`). With no game selected both overviews show an empty state (icon tile and title).

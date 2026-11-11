@@ -48,15 +48,20 @@ Options rows on a 53px pitch at 1080p become 34-35 here (`ButtonPadding` 16,7; `
 | `Views/Library.xaml` | Library art under the duotone: maroon at 55%, black at 55%, vignette |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Black side panels, labels in the title face like the Options category stack |
 
+**Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the Options page's list, 30px rows in the body face with the expander caret moved to the right so the left owns the selection arrow. Hover is the pointer-aid veil with a white label and the arrow at 40%; selected is a duotone-wash plate whose right end is torn like the game's header bars, a white label and the red Options-row arrow fully lit. Children sit under a 2px rule. The title band is 44px: the title sits on a maroon header bar that runs in from the window edge and ends in a torn ragged cut (fixed 12px wide, so the bar stays content-sized), in the title face in selection white, with the flat 2px grey rule closing the band; caption buttons are 44x40 keycaps.
+
 ## Game page
 
 Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left column above the description, banner spacer scaled with `HeroArt` through `MathConverter` (110/360 details, 76/360 grid). Differences: the banner gets the duotone wash (`ArtTintBrush` at 50%) before the fade; the title is in the title face in selection white with no underline; every section heading (description, notes, screenshots, game details) is maroon over a full-width 2px rule; the metadata pane has no box (an Options column); Play is a maroon bar with torn ends.
+
+Empty state (no game selected, both overviews, shown when `{Binding Game, FallbackValue={x:Null}}` is null): a torn maroon header slab carrying `LOCErrorNoGameSelected` in the title face, two paint drips hanging from it and the flat 2px rule under it, centered. The drips lengthen and recede slowly (plain `Height` loops in their own style, removed on exit, so nothing runs once a game is selected). The grid panel keeps its close button.
 
 ## Components
 
 | Playnite file | RDR1 element |
 |---------------|--------------|
-| Button, ToggleButton, RepeatButton, GridTileButton | Prompt keycap; default button and Play in maroon; checked toggle = duotone wash |
+| Button, ToggleButton, RepeatButton | Prompt keycap; default button and Play in maroon; checked toggle = duotone wash |
+| GridViewItemTemplate (+ GridTileButton) | Cover hover controls. Play is the painted header bar (64 x 40 maroon slab, torn ends, white glyph); Info a 40px prompt keycap with a 2px grey rule that turns selection white on hover. Shade fades in, controls rise 8px and scale 0.9 to 1 (0.16s, no overshoot), Info 50ms later; Play gets a fresh coat (brighter maroon wiped on from the left through a growing clip, 0.2s), Info lights its rule and keycap |
 | TextBox, PasswordBox, SearchBox, ComboBox | Options value: black box on the 2px rule; the rule lightens on hover and turns white on focus |
 | ListBox, DetailsViewItemStyle, Menu, ComboBoxItem | Options rows: grey text, white + duotone wash when selected / highlighted |
 | CheckBox, RadioButton | Grey outline; checked fills (box) or rings (radio) in glyph red with a white tick |
@@ -66,7 +71,7 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 | TabControl | Store tab line: title face, current tab red |
 | GroupBox | Options section: maroon title over the 2px rule |
 | GridViewItemStyle | White 2px frame around the selected cover, rule grey on hover |
-| PlayButton | Header bar ("ORGANIZE AND COMPARE") with torn ends |
+| PlayButton | Header bar ("ORGANIZE AND COMPARE") with torn ends. Hover: a copy of the slab in the brighter maroon is wiped across it from the left (clip rectangle, 0.24s) while the label steps 3px right; leaving wipes it off in 0.2s; pressed fades in a dark-red copy. No loops |
 | PropertyItemButton | Values link-style; chips as the store's price tags |
 
 ## Deviations

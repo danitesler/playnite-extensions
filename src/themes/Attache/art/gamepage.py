@@ -5,6 +5,7 @@ them keeps the six groups, the field order and the collapse triggers identical i
 XAML, then run: python3 art/gamepage.py
 """
 from pathlib import Path
+from subprocess import PIPE, run
 
 ROOT = Path(__file__).resolve().parent.parent / "src" / "Views"
 
@@ -155,7 +156,22 @@ DESCRIPTION = '''<StackPanel x:Name="PART_ElemDescription" Margin="0,0,0,28">
              AcceptsReturn="True" TextWrapping="Wrap" Margin="-1,0,-1,0" Padding="0" />
 </StackPanel>'''
 
-STEAM = '''<Grid Margin="0,0,0,28">
+STEAM = '''<Grid x:Name="SteamScreenshotsGameScope">
+    <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
+    <Grid.Style>
+        <Style TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Grid.Style>
+<Grid Margin="0,0,0,28">
     <Grid.Style>
         <Style TargetType="Grid">
             <Setter Property="Visibility" Value="Collapsed" />
@@ -205,6 +221,7 @@ STEAM = '''<Grid Margin="0,0,0,28">
             </Control>
         </Grid>
     </StackPanel>
+</Grid>
 </Grid>'''
 
 
@@ -295,6 +312,7 @@ XMLNS = '''<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xa
 
 def details():
     art, spacer = hero(220)
+    spacer = grid_spacer(spacer, 16, 'DetailsBannerSpacer')
     body = f'''<Grid Background="{{DynamicResource GameOverviewBackgroundBrush}}"
       d:DesignWidth="1280" d:DesignHeight="960"
       d:DataContext="{{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}}">
@@ -354,8 +372,85 @@ def details():
 '''
 
 
+INLINE_CLOSE = '''<Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
+        Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
+        ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
+        Template="{Binding Template, ElementName=SidePanelCloseButton}"
+        Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}">
+            <Button.RenderTransform>
+                <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
+            </Button.RenderTransform>
+    </Button>'''
+
+
+def grid_spacer(markup, floor, name='GridBannerSpacer'):
+    import re
+    markup = markup.replace('<Border', '<Border x:Name="' + name + '" MinHeight="' + str(floor) + '"', 1)
+    markup = re.sub(r'(<Setter Property="Height" Value=")(\d+)(" />)', lambda m: m[1] + str(floor) + m[3], markup)
+    return markup.replace('</Style.Triggers>', '''<DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed"><Setter Property="Height" Value="$FLOOR" /></DataTrigger>
+'''.replace('$FLOOR', str(floor)) + '</Style.Triggers>')
+
+
+# Grid-only layout: retain each pane's markup while allowing metadata to move below it.
+def responsive_body(main, metadata, gap=24, attrs=''):
+    import re
+    def unposition(text, role):
+        def root(match):
+            tag = re.sub(r'\s(?:Grid\.Column|Grid\.Row|DockPanel\.Dock)="[^"]*"', '', match[0])
+            def margin(m):
+                values = m[1].split(',')
+                if len(values) == 4: values[0 if role == 'Metadata' else 2] = '0'
+                return 'Margin="' + ','.join(values) + '"'
+            return re.sub(r'Margin="([^"]+)"', margin, tag)
+        return re.sub(r'^<[^>]+>', root, text, count=1)
+    def width(match):
+        tag = match[1]
+        return '<' + tag + match[2] + match[3] + ' x:Name="GridMetadataContent" MaxWidth="{DynamicResource GridDetailsPaneWidth}" Tag="{DynamicResource GridDetailsPaneWidth}">\n' + '''<$TAG.Style><Style TargetType="$TAG">
+    <Setter Property="Width" Value="{DynamicResource GridDetailsPaneWidth}" />
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /></DataTrigger></Style.Triggers>
+</Style></$TAG.Style>'''.replace('$TAG', tag)
+    metadata = re.sub(r'<(\w+)([^>]*?)\sWidth="\{DynamicResource GridDetailsPaneWidth\}"([^>]*)>', width, unposition(metadata, 'Metadata'), count=1)
+    main = unposition(main, 'Main')
+    def column(role, content):
+        return ('''<Grid x:Name="Grid$ROLEColumn" VerticalAlignment="Top">
+<Grid.Style><Style TargetType="Grid">
+    <Setter Property="Grid.Column" Value="$COL" /><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.ColumnSpan" Value="1" />
+    $MARGIN
+    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
+        <Setter Property="Grid.Column" Value="0" /><Setter Property="Grid.Row" Value="$ROW" /><Setter Property="Grid.ColumnSpan" Value="2" />
+        $NARROWMARGIN
+    </DataTrigger></Style.Triggers>
+</Style></Grid.Style>
+$WIDTH
+$CONTENT
+</Grid>'''
+            .replace('$ROLE', role).replace('$COL', '0' if role == 'Main' else '1').replace('$ROW', '0' if role == 'Main' else '1')
+            .replace('$MARGIN', '<Setter Property="Margin" Value="' + str(gap) + ',0,0,0" />' if role == 'Metadata' else '')
+            .replace('$NARROWMARGIN', '<Setter Property="Margin" Value="0,24,0,0" />' if role == 'Metadata' else '')
+            .replace('$WIDTH', '''<Grid.MaxWidth><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - $GAP)">
+    <Binding Path="ActualWidth" ElementName="GridOverviewBody" /><Binding Path="ActualWidth" ElementName="GridMetadataColumn" /><Binding Path="Tag" ElementName="GridOverviewBody" />
+</MultiBinding></Grid.MaxWidth>''' if role == 'Main' else '').replace('$CONTENT', content))
+    return ('''<Grid x:Name="GridOverviewBody" $ATTRS>
+<Grid.Tag><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + $GAP + 400">
+    <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" /><Binding Path="Tag" ElementName="GridMetadataContent" />
+</MultiBinding></Grid.Tag>
+<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+$MAIN
+$META
+</Grid>'''.replace('$ATTRS', attrs).replace('$MAIN', column('Main', main))
+        .replace('$META', column('Metadata', metadata)).replace('$GAP', str(gap)))
+
+
 def grid():
+    columns = responsive_body(f'''<StackPanel>
+{indent(STEAM, 28)}
+{indent(DESCRIPTION, 28)}
+                        </StackPanel>''', f'''<StackPanel DockPanel.Dock="Right" Width="{{DynamicResource GridDetailsPaneWidth}}" Margin="24,0,0,0">
+{indent(pane(False), 28)}
+                        </StackPanel>''')
     art, spacer = hero(150)
+    spacer = grid_spacer(spacer, 8)
     body = f'''<Border BorderBrush="{{DynamicResource PanelSeparatorBrush}}" Background="{{DynamicResource GameOverviewBackgroundBrush}}"
         d:DataContext="{{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}}">
     <Border.Style>
@@ -384,7 +479,7 @@ def grid():
                 </Style>
             </TextBlock.Style>
         </TextBlock>
-        <ScrollViewer x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <ScrollViewer.Style>
                 <Style TargetType="ScrollViewer" BasedOn="{{StaticResource {{x:Type ScrollViewer}}}}">
                     <Style.Triggers>
@@ -398,7 +493,8 @@ def grid():
 {indent(art, 16)}
                 <StackPanel Margin="24,0,24,24">
 {indent(spacer, 20)}
-                    <DockPanel Margin="0,16,0,16">
+                    <DockPanel Panel.ZIndex="2" Margin="0,16,0,16">
+{indent(INLINE_CLOSE, 24)}
                         <Image x:Name="PART_ImageIcon" MaxHeight="32" MaxWidth="32" DockPanel.Dock="Left" Margin="0,0,12,0"
                                VerticalAlignment="Center" RenderOptions.BitmapScalingMode="Fant" />
 {indent(TITLE, 24)}
@@ -406,22 +502,50 @@ def grid():
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,28">
 {indent(actions(40), 24)}
                     </StackPanel>
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Right" Width="{{DynamicResource GridDetailsPaneWidth}}" Margin="24,0,0,0">
-{indent(pane(False), 28)}
-                        </StackPanel>
-                        <StackPanel>
-{indent(STEAM, 28)}
-{indent(DESCRIPTION, 28)}
-                        </StackPanel>
-                    </DockPanel>
+{indent(columns, 20)}
                 </StackPanel>
             </Grid>
         </ScrollViewer>
-        <Button HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,12,12,0" Width="32" Height="32" Padding="0"
-                Command="{{MainViewModel CloseGameSideBarCommand}}" Background="{{DynamicResource PopupBackgroundBrush}}">
-            <ContentControl Width="12" Height="12" Focusable="False" IsTabStop="False"
-                            Content="{{DynamicResource IconWindowClose}}" ContentTemplate="{{DynamicResource IconTemplate}}" />
+        <Button x:Name="SidePanelCloseButton" Tag="{{DynamicResource GameBannerHeight}}"
+
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
+                Focusable="False" Cursor="Hand" ToolTip="{{DynamicResource LOCCloseLabel}}"
+                Command="{{MainViewModel CloseGameSideBarCommand}}">
+<Button.Style><Style TargetType="Button" BasedOn="{{StaticResource {{x:Type Button}}}}">
+    <Setter Property="Visibility" Value="{{Binding Tag, RelativeSource={{RelativeSource Self}}, Converter={{StaticResource MathConverter}}, ConverterParameter='x &lt; 120 ? `Collapsed` : `Visible`'}}" />
+    <Style.Triggers><DataTrigger Binding="{{Binding Game, FallbackValue={{x:Null}}}}" Value="{{x:Null}}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+</Style></Button.Style>
+            <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
+            <Button.Template>
+                <ControlTemplate TargetType="{{x:Type Button}}">
+                    <Grid Background="Transparent">
+                        <Border CornerRadius="{{DynamicResource ControlCornerRadius}}" Background="{{DynamicResource ButtonBackgroundBrush}}"
+                                BorderBrush="{{DynamicResource NormalBorderBrush}}" BorderThickness="1" IsHitTestVisible="False" />
+                        <Border x:Name="HoverPlate" CornerRadius="{{DynamicResource ControlCornerRadius}}" Background="{{DynamicResource DangerBrush}}" Opacity="0" IsHitTestVisible="False" />
+                        <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                        Content="{{DynamicResource IconWindowClose}}" ContentTemplate="{{DynamicResource IconTemplate}}"
+                                        Foreground="{{DynamicResource TextBrush}}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{{DynamicResource DangerForegroundBrush}}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                </Storyboard></BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard><Storyboard>
+                                    <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                </Storyboard></BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
         </Button>
     </Grid>
 </Border>'''
@@ -429,7 +553,7 @@ def grid():
     Overlay on Playnite Default/Views/GridViewGameOverview.xaml: the side panel of the grid view.
     The game page of DetailsViewGameOverview.xaml, narrowed: darkened scene banner, the name in small caps, the Play
     plate and square More and Edit buttons under it, then the description and notes beside one metadata pane whose
-    captions sit above their values. A close button over the top right corner. Generated by art/gamepage.py.
+    captions sit above their values. A close button before the icon below 120px banner height, otherwise over the top left corner. Generated by art/gamepage.py.
     Every PART_ element of Playnite's file is kept.
 -->
 '''
@@ -448,6 +572,20 @@ def grid():
 '''
 
 
-(ROOT / "DetailsViewGameOverview.xaml").write_text(details())
-(ROOT / "GridViewGameOverview.xaml").write_text(grid())
-print("wrote", ROOT / "DetailsViewGameOverview.xaml", ROOT / "GridViewGameOverview.xaml")
+def main():
+    converter = Path(__file__).resolve().parents[4] / "scripts" / "game-page-breakpoints.mjs"
+    pages = {"Details": details(), "Grid": grid()}
+    responsive = {
+        view: run(["node", str(converter), "--stdin", view], input=source,
+                  stdout=PIPE, check=True, encoding="utf-8").stdout
+        for view, source in pages.items()
+    }
+    ROOT.mkdir(parents=True, exist_ok=True)
+    for view, source in responsive.items():
+        path = ROOT / f"{view}ViewGameOverview.xaml"
+        path.write_text(source, encoding="utf-8", newline="\n")
+        print("wrote", path)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,8 +1,10 @@
 <!--
-    Cold Seat Button: the stone glue button of the main menu. Stone plate (ButtonBackgroundBrush) with a 1px stone rim,
-    a lit top/left bevel (BevelLightBrush) and a dark bottom/right bevel (BevelShadowBrush), corners ControlCornerRadius (2).
-    Gold text, white on hover over ButtonHoverBackgroundBrush; pressed uses ButtonPressedBackgroundBrush with the bevel inverted.
-    Padding ButtonPadding. Keyboard focus: FocusVisual.
+    Cold Seat Button: the glue button of the Frozen Throne menus (Single Player, OK, Cancel). A deep blue plate
+    (ButtonBackgroundBrush) with a lit blue top/left line and sheen (SelectedSheenBrush), set in a 3px forged iron frame between
+    black grooves (FramedPlateTemplate in Common.xaml). Gold label; hover blends the lit plate in (ButtonHoverBackgroundBrush)
+    and turns the label white; pressed sinks to ButtonPressedBackgroundBrush and pushes the label 1px down and right (the FDF
+    ButtonPushedTextOffset). Disabled: the plate goes black, as the locked dropdowns of the game lobby. Padding
+    ButtonPadding. Keyboard focus: FocusVisual.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -11,7 +13,7 @@
     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="Background" Value="{DynamicResource ButtonBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SelectedSheenBrush}" />
         <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ButtonPadding}" />
@@ -21,26 +23,63 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="Plate" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <Border x:Name="BevelLight" BorderThickness="1,1,0,0" BorderBrush="{DynamicResource BevelLightBrush}"
-                                CornerRadius="{DynamicResource ControlCornerRadius}">
-                            <Border x:Name="BevelShadow" BorderThickness="0,0,1,1" BorderBrush="{DynamicResource BevelShadowBrush}"
-                                    CornerRadius="{DynamicResource ControlCornerRadius}">
-                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                  Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" />
-                            </Border>
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Control x:Name="Plate" Template="{DynamicResource FramedPlateTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                 Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" />
+                        <Border x:Name="HoverPlate" Margin="4" IsHitTestVisible="False" Opacity="0" Background="{DynamicResource ButtonHoverBackgroundBrush}">
+                            <Border BorderThickness="1,1,0,0" BorderBrush="{DynamicResource SelectedBorderBrush}" />
                         </Border>
-                    </Border>
+                        <Border x:Name="PressPlate" Margin="4" IsHitTestVisible="False" Opacity="0" Background="{DynamicResource ButtonPressedBackgroundBrush}">
+                            <Border BorderThickness="1,1,0,0" BorderBrush="{DynamicResource FrameInnerBrush}" />
+                        </Border>
+                        <ContentPresenter x:Name="Content" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" IsHitTestVisible="False"
+                                          Margin="{TemplateBinding Padding}" RecognizesAccessKey="True">
+                            <ContentPresenter.RenderTransform>
+                                <TranslateTransform x:Name="PushShift" X="0" Y="0" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ButtonHoverBackgroundBrush}" TargetName="Plate" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ButtonPressedBackgroundBrush}" TargetName="Plate" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource BevelShadowBrush}" TargetName="BevelLight" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource BevelLightBrush}" TargetName="BevelShadow" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="1" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="1" Duration="0:0:0.05" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.06" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.06" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" TargetName="Plate" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource FrameHoverBrush}" TargetName="Plate" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -69,7 +108,7 @@
                 </Setter>
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ButtonHoverForegroundBrush}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
@@ -77,37 +116,9 @@
         </Style.Triggers>
     </Style>
 
-    <!-- SecondaryButton: More and Edit. A stone plate in the theme palette (stone fill, stone rim, lit top/dark bottom bevel)
-         with a gold glyph, so the secondary game-page actions sit beside the gold Play plate without clashing. -->
+    <!-- SecondaryButton: More and Edit on the game page. The same glue button as every other, square, with a gold glyph. -->
     <Style x:Key="SecondaryButton" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{DynamicResource SecondaryButtonBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource SecondaryButtonBorderBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="Plate" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <Border x:Name="BevelLight" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BevelLightBrush}"
-                                CornerRadius="{DynamicResource ControlCornerRadius}">
-                            <Border x:Name="BevelShadow" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BevelShadowBrush}"
-                                    CornerRadius="{DynamicResource ControlCornerRadius}">
-                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                                  Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" />
-                            </Border>
-                        </Border>
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SecondaryButtonHoverBackgroundBrush}" TargetName="Plate" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SecondaryButtonPressedBackgroundBrush}" TargetName="Plate" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <Style x:Key="LoadMoreButton" BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">

@@ -1,4 +1,4 @@
-# Batch build for every theme (docs/theme-patch-workflow.md): one call instead of 29 manual builds.
+# Batch build for every registered theme (docs/theme-patch-workflow.md).
 # Builds never deploy: deploying sets Playnite's active theme, so only one theme can be active.
 # Pass -DeployKey <key> to deploy + restart just that theme after all builds succeed
 # (root AGENTS.md: "build each, then deploy+restart only the theme currently being worked on").

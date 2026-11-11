@@ -55,9 +55,11 @@ Rows are 48px at 1080p, 32 here: `ButtonPadding` 16,6.5; `InputPadding` 8,6.5; m
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px stripe-black rail with a 1px brown edge; the main menu button is the amber icon block of the amber panel headers (44 x 40, ink glyph), a 6px hazard band under it; items 44 x 40 with 16px olive glyphs (a fixed 14,12 plate padding and no `IconPadding`, so the 16 x 16 content area never collapses), the current one amber inside a 32px bracket box |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px header band closed by a 6px hazard band (hidden with "panel separators"); 260 x 32 search cell; glyph buttons, olive at rest, amber in brackets when on |
 | `DerivedStyles/MainWindowStyle.xaml` | 44 x 32 window buttons, amber on hover, close hovers redline red |
-| `DerivedStyles/StandardWindowStyle.xaml` | Dialogs: a 30px hazard-striped title bar with the title and the caption buttons on dark plates |
+| `DerivedStyles/StandardWindowStyle.xaml` | Dialogs: a 36px hazard-striped title bar with the title and the caption buttons on dark plates |
 | `Views/Library.xaml` | Library art under the page color at 72% and a vignette |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | The World Map's list panel: amber-brown fill, bold amber field labels |
+
+**Settings chrome.** Title bar raised to 36px (caption and content offset 36), same hazard stripes, dark title plate and caption plate, a 1px brown rule under it; the title is the section name via `LOCSettingsLabel`. Section list (`DefaultControls/TreeView.xaml`): 30px rows on the stripe-black rail, olive type at rest; hover = amber-brown panel plate with bright type and a half-lit 8px amber square (the panel-heading bullet); selected = the dark selected cell under four amber L brackets (`CornerMarksTemplate`), amber type and the full square; children under a 1px brown line; width 256 (Settings), 280 (Add-ons).
 
 ## Game page
 
@@ -109,4 +111,4 @@ Stand-in fonts (bundled, `scripts/data/fonts.json`): Eurostile is drawn with Orb
 - Bracket placement around covers with small item spacing (the brackets sit 6px outside the tile).
 - Sidebar at Top, Bottom and Right.
 - Add-on sidebar icons (not just Library and Statistics) are visible at 16 x 16 in the rail.
-- The Settings tree (`TreeView`) is Playnite's template recolored through the palette; the preview draws its selected node as the select fill without the amber bar.
+- The Settings tree (`TreeView.xaml`) was written for the current preview; it has not been seen in Playnite.

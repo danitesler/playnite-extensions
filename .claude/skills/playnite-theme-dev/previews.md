@@ -61,15 +61,15 @@ The previews replicate two real Playnite screens. Tag the regions below with `da
 |--------|-------------|------|
 | Sidebar | `sidebar` | Left, compact: 44px wide, 44x40 items, 16px glyphs. Main menu button at its top: `PART_ElemMainMenu` |
 | Top panel | `top-panel` | Parts below, in the order **this theme's `src/Views/TopPanel.xaml`** draws them |
-| Search box | `PART_TextMainSearch` | |
-| View switches, group, sort, view settings | `PART_PanelMainItems` | **Icons only**: details, grid, list (`IconDetailsView`, `IconGridView`, `IconListView`), group, sort. Never words like "Grid" or "Details" |
-| Filter toggle | `PART_ToggleFilter` | Icon |
+| Search box | `PART_TextMainSearch` | First at the top left; magnifier remains visible while focused or typing and changes to the active color |
+| Filter toggle | `PART_ToggleFilter` | Icon immediately after search; idle and active plates have the same height as the toolbar buttons |
+| Sorting, view switches, group, view settings | `PART_PanelMainItems` | Sorting first, directly beside filters, then the other tools. **Icons only**: details, grid, list (`IconDetailsView`, `IconGridView`, `IconListView`), group, sort. Never words like "Grid" or "Details" |
 | Notifications toggle | `PART_ToggleNotifications` | Icon |
 | Game list | `game-list` | **Left of the game page**, below the top panel: one row per game (icon plate + name), one row selected the way the theme's `DetailsViewItemStyle` draws it |
 | Game page | `game-page` | Banner, title and actions, then screenshots + description left and the metadata pane right (`src/themes/AGENTS.md` -> Game page) |
 | Metadata pane | `metadata` | One pane, groups in the order of Metadata pane in `src/themes/AGENTS.md`, caption column beside the value |
 
-Top panel order: open `src/Views/TopPanel.xaml`. The `DockPanel` that holds `PART_TextMainSearch` decides it: children docked Left run left to right in document order, children docked Right run right to left (the first one at the window edge). Playnite Default is all Left: menu, search, main items, filter, notifications, plugin items. Themes change it (Ancient puts search at the far right, Primer docks everything right, ChakraUi puts search after the main items), so read the file, do not copy another theme's bar. `PART_ElemMainMenu` lives in the sidebar while the sidebar is visible. `PART_PanelMainPluginItems` may be left out.
+Top panel order is **search → filters → sorting at the top left** in every theme. Read `src/Views/TopPanel.xaml` for the theme's dimensions and styling: the three hosts dock Left, and `PART_PanelMainItems` uses template-based Grid columns to put sorting first despite Playnite's insertion order. Match that visual order in HTML rather than the runtime child insertion order. Keep all toolbar button plates the same height in idle and active states; Cold Seat uses 36px. `PART_ElemMainMenu` lives in the sidebar while the sidebar is visible. Preserve caption-button clearance and the theme's plugin/notification placement. See [reference.md](reference.md#top-bar-layout-and-search) for the full rules and regression checks.
 
 Sizes in the top bar (height, button size, gaps, search width) come from the same file and the theme's `Common.xaml` keys.
 

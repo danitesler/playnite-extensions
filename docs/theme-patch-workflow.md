@@ -1,8 +1,8 @@
-# Theme patch workflow (29x edits)
+# Theme patch workflow
 
 Themes are standalone by design (`src/themes/AGENTS.md`): no shared XAML.
 A shell, game-page, or sidebar fix must be applied to every theme
-individually. This checklist keeps the 29 copies in sync.
+individually. This checklist keeps all registered themes in sync.
 
 ## Shared skeleton (same role in every theme)
 
@@ -28,7 +28,7 @@ Per-theme `AGENTS.md` records only what differs from the skeleton.
 1. Fix one theme first, validate and load it in Playnite.
 2. Find every copy — search from the repo root, not per folder:
    ```bash
-   grep -rn --include="*.xaml" "<pattern>" src/themes/*/src
+   rg -n -g '*.xaml' '<pattern>' src/themes
    ```
    Useful patterns: `PART_PanelMainItems`, `MathConverter`, `IconPadding`,
    `CornerRadiusFull`, `MetaProgress`, `GameBannerHeight`.
@@ -40,7 +40,7 @@ Per-theme `AGENTS.md` records only what differs from the skeleton.
    a bug — the validator's square-walk already allows the 1:1 cases.
 5. Validate and build every touched theme — or all of them in one run:
    ```pwsh
-   ./scripts/validate-themes.ps1 [-Keys shade,primo]   # all 29 by default; -Mode Package before a release
+   ./scripts/validate-themes.ps1 [-Keys shade,primo]   # all registered themes by default; -Mode Package before a release
    ./scripts/build-themes.ps1 [-Keys shade,primo] [-DeployKey <key>]  # builds never deploy; -DeployKey deploys + restarts only that theme
    ./scripts/take-screenshots.ps1 -Extension <key>      # per theme, only where previews changed
    ```
@@ -60,7 +60,7 @@ Per-theme `AGENTS.md` records only what differs from the skeleton.
 
 ## Why not shared XAML
 
-Sharing would couple 29 designs to one file: a change for one design
+Sharing would couple every design to one file: a change for one design
 system would risk all others, and per-theme divergence (plates, rails,
 badges) already exceeds what a shared template could carry. The grep +
 checklist above is the deliberate substitute.

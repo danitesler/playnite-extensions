@@ -157,8 +157,8 @@ GLYPHS = {
                    + " " + rrect(9.4, 10.8, 1.5, 7.6, 0.5, hole=True) + " " + rrect(13.1, 10.8, 1.5, 7.6, 0.5, hole=True)),
     # Options (game menu): the same cogwheel as the view settings
     "IconOptions": gear(12, 12, 8, 10.8, 8.2, 3.7),
-    # Play on a cover: the page arrow of the spellbook, a stout shaft and a head
-    "IconPlay": rrect(3.2, 9.3, 9.4, 5.4, 1.2) + " " + poly([(11, 4.4), (21, 12), (11, 19.6)]),
+    # Play on a cover: a clear triangular play symbol
+    "IconPlay": poly([(6, 3), (20, 12), (6, 21)]),
     # Info on a cover: a quest scroll, two rolls round a page of text lines
     "IconInfo": (rrect(4, 2.6, 16, 3.4, 1.7) + " " + rrect(4, 18, 16, 3.4, 1.7)
                  + " " + poly([(6, 5.6), (18, 5.6), (18, 18.4), (6, 18.4)])

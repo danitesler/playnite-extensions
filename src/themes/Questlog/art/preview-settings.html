@@ -1,114 +1,162 @@
 <!doctype html>
-<!-- Questlog: HTML replica of Playnite's Settings window (1280x720): the gold dialog frame, a TreeView of sections with the
-     gold fading highlight, the section page with Vanilla-style controls (dark bed + gold edge boxes, red leather panel buttons,
-     the beige slider plate) and the bottom bar. Colors: var(--token) from src/tokens.css. Fan-made, unofficial. -->
+<!-- Questlog: HTML replica of Playnite's Settings window (StandardWindowStyle, TreeView, the form controls), centered on a dark backdrop.
+     A client options frame: metal line between two black lines, the warm title strip with the title between two gold diamonds and a
+     red close plate, the category list (white header band, gold entries, gold underglow on the current one), then the page with the
+     dropdown plate, edit box, slider gem, sunken check and radio beds and red panel buttons. Rules: .claude/skills/playnite-theme-dev/previews.md
+     Unofficial fan theme: no game logos or assets. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Questlog - Settings Preview</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 1280px; height: 720px; overflow: hidden; background: var(--DIALOG_BG_DARK); color: var(--HIGHLIGHT_FONT_COLOR);
-    font-family: "Friz Quadrata TT", Constantia, "Palatino Linotype", Georgia, "Segoe UI", serif; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  body { width: 1280px; height: 720px; overflow: hidden; position: relative; background: var(--FRAME_INK);
+    color: var(--HIGHLIGHT_FONT_COLOR); font-family: "Friz Quadrata TT", Constantia, "Palatino Linotype", Georgia, "Segoe UI", serif; font-size: 15px; }
   svg { fill: currentColor; display: block; }
-
-  /* Dialog (StandardWindowStyle): 2px FrameBrush ring (dark brown gradient), 1px FRAME_SHADOW line inside, panel-fill gradient bed, content 32px below the top edge;
-     the title sits on a centered plaque (panel fill, 2px FrameBrush ring, radius 6, gold text), caption glyphs 24x22 at the right. */
-  .window { width: 920px; height: 680px; display: flex; flex-direction: column; padding: 2px; border-radius: 0;
-    background: linear-gradient(135deg, var(--FRAME_EDGE_LIGHT), var(--FRAME_EDGE) 50%, var(--FRAME_EDGE_LIGHT)); }
-  .inner { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; border: 1px solid var(--FRAME_SHADOW); background: linear-gradient(var(--DIALOG_BG_TOP), var(--DIALOG_BG_BOTTOM)); }
-  .cap { height: 32px; flex: none; position: relative; }
-  .plaque { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); padding: 2px 26px 4px; border: 2px solid transparent; border-radius: var(--RADIUS_LARGE); color: var(--NORMAL_FONT_COLOR); font-size: 15px;
-    background: linear-gradient(var(--PANEL_FILL), var(--PANEL_FILL)) padding-box, linear-gradient(135deg, var(--FRAME_EDGE_LIGHT), var(--FRAME_EDGE) 50%, var(--FRAME_EDGE_LIGHT)) border-box; }
-  .cb-x { position: absolute; right: 8px; top: 5px; width: 24px; height: 22px; display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); border-radius: var(--RADIUS_MEDIUM); }
-  .cb-x svg { width: 12px; height: 12px; }
+  /* Backdrop: the main window dimmed behind the dialog (HasChildWindow, opacity 0.4). */
+  .back { position: absolute; inset: 0; opacity: .4; background: linear-gradient(var(--TITLE_BAR_EDGE), var(--TITLE_BAR) 24px, var(--TITLE_BAR_SHADE) 48px, var(--PANEL_BG_DEEP) 48px); }
+  /* Window (StandardWindowStyle): black, metal, black; 36px title strip closed by black, metal, black. */
+  .window { position: absolute; left: 180px; top: 37px; width: 920px; height: 646px; background: var(--PANEL_BG); border: 1px solid var(--FRAME_INK); padding: 2px; display: flex; flex-direction: column; }
+  .window::before { content: ""; position: absolute; inset: 0; border: 1px solid; border-image: linear-gradient(135deg, var(--FRAME_METAL_LIGHT), var(--FRAME_METAL) 50%, var(--FRAME_METAL_LIGHT)) 1; pointer-events: none; }
+  .window::after { content: ""; position: absolute; inset: 1px; border: 1px solid var(--FRAME_INK); pointer-events: none; }
+  .title { height: 36px; flex: none; position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; padding-bottom: 3px; color: var(--NORMAL_FONT_COLOR);
+    background: linear-gradient(var(--FRAME_INK), var(--FRAME_INK)) bottom / 100% 1px no-repeat, linear-gradient(var(--FRAME_METAL), var(--FRAME_METAL)) 0 calc(100% - 1px) / 100% 1px no-repeat,
+      linear-gradient(var(--FRAME_INK), var(--FRAME_INK)) 0 calc(100% - 2px) / 100% 1px no-repeat, linear-gradient(var(--TITLE_BAR_EDGE), var(--TITLE_BAR) 50%, var(--TITLE_BAR_SHADE)); }
+  .title i { width: 8px; height: 8px; background: var(--NORMAL_FONT_COLOR); transform: rotate(45deg) scale(.72); }
+  .title u { width: 32px; height: 1px; margin: 0 -5px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--SELECT_LINE) 75%, transparent)); }
+  .title u:last-of-type { transform: scaleX(-1); }
+  /* Close (WindowBarButton): the red panel face in a gray bezel inside a black line, 28x24, gold glyph. */
+  .red { border: 1px solid var(--PLATE_EDGE); border-radius: var(--RADIUS_MEDIUM); box-shadow: inset 0 0 0 1px var(--BUTTON_BEZEL); color: var(--NORMAL_FONT_COLOR); text-shadow: 1px 1px 0 var(--QUEST_FONT_COLOR);
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(90deg, rgba(0,0,0,.69), transparent 7px, transparent calc(100% - 7px), rgba(0,0,0,.69)),
+      linear-gradient(var(--BUTTON_RED_RIM), var(--BUTTON_RED_DEEP) 10%, var(--BUTTON_RED) 30%, var(--BUTTON_RED) 62%, var(--BUTTON_RED_DEEP) 86%, var(--BUTTON_RED_SHADE)); }
+  .close { position: absolute; right: 6px; top: 5px; width: 28px; height: 24px; }
+  .close svg { width: 12px; height: 12px; }
   .body { flex: 1; min-height: 0; display: flex; }
-
-  /* TreeView: 16px rows, gold fading highlight on the selected node, gold arrows. */
-  .tree { width: 210px; flex: none; padding: 8px 4px; overflow: hidden; border-right: 1px solid var(--FRAME_BRONZE); background: rgba(0,0,0,.25); }
-  .n { height: 26px; line-height: 26px; padding: 0 8px; margin: 0 2px; color: var(--COMMON_WHITE_COLOR); font-size: 15px; border-radius: var(--RADIUS_MEDIUM); white-space: nowrap; }
-  .n.c { margin-left: 20px; }
-  .n.o:before { content: ""; display: inline-block; border: 4px solid transparent; border-top: 6px solid var(--NORMAL_FONT_COLOR); border-bottom: 0; margin-right: 7px; vertical-align: 2px; }
-  .n.sel { background: linear-gradient(90deg, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 52%, transparent), color-mix(in srgb, var(--NORMAL_FONT_COLOR) 14%, transparent)); }
-
-  .page { flex: 1; min-width: 0; padding: 20px 28px; overflow: hidden; }
-  h2 { font-size: 20px; font-weight: 400; color: var(--NORMAL_FONT_COLOR); text-shadow: 1px 1px 0 var(--QUEST_FONT_COLOR); padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--FRAME_BRONZE); }
-  .r { display: flex; align-items: center; gap: 16px; min-height: 46px; }
-  .r > label { width: 190px; flex: none; color: var(--NORMAL_FONT_COLOR); font-size: 15px; }
-  .inp { width: 280px; height: 30px; background: var(--FIELD_BACKGROUND); border: 1px solid var(--FIELD_BORDER); border-radius: var(--RADIUS_MEDIUM); padding: 0 8px; display: flex; align-items: center; justify-content: space-between; }
-  .inp.focus { border-color: var(--NORMAL_FONT_COLOR); }
-  /* ComboBox: value inset 8px left and 28px right (chevron room), 20px arrow cell with a 10px IconDropDown glyph, 2px margin */
-  .inp.combo { padding: 0 2px 0 8px; }
-  .inp.combo b { font-weight: 400; margin-right: 28px; }
-  .inp.combo i { width: 20px; height: 24px; margin-left: -48px; display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); }
-  .inp.combo i svg { width: 10px; height: 10px; }
-  .cb { width: 20px; height: 20px; background: var(--SLOT_FILL_BOTTOM); border: 1px solid var(--FRAME_GOLD); border-radius: var(--RADIUS_MEDIUM); display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); flex: none; }
-  .cb svg { width: 14px; height: 14px; }
-  .rd { width: 20px; height: 20px; border-radius: 50%; background: var(--SLOT_FILL_BOTTOM); border: 1px solid var(--QUEST_FONT_COLOR); display: flex; align-items: center; justify-content: center; flex: none; position: relative; }
-  .rd:before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--FRAME_GOLD); }
-  .rd.on:after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--NORMAL_FONT_COLOR); border: 1px solid var(--QUEST_FONT_COLOR); }
-  .opts { display: flex; gap: 24px; }
-  .opts span { display: flex; align-items: center; gap: 8px; }
-  /* Slider: 10px groove (black 1px ring, radius 6; field bed + tan edge inside), 6px red fill inset 2px, 12x22 beige plate with a grip line. */
-  .sl { width: 280px; height: 22px; position: relative; }
-  .sl .tr { position: absolute; left: 0; right: 0; top: 6px; height: 10px; background: var(--FIELD_BACKGROUND); border: 1px solid var(--FIELD_BORDER); outline: 1px solid var(--QUEST_FONT_COLOR); outline-offset: 0; border-radius: var(--RADIUS_MEDIUM); }
-  .sl .fl { position: absolute; left: 2px; top: 8px; height: 6px; width: 150px; background: linear-gradient(var(--BUTTON_RED_HIGHLIGHT), var(--BUTTON_RED) 45%, var(--BUTTON_RED_SHADOW)); border-radius: var(--RADIUS_SMALL); }
-  .sl .th { position: absolute; left: 150px; top: 0; width: 12px; height: 22px; background: linear-gradient(90deg, var(--KNOB_LIGHT), var(--KNOB) 50%, var(--KNOB_DARK)); border: 1px solid var(--QUEST_FONT_COLOR); border-radius: var(--RADIUS_MEDIUM); }
-  .sl .th:after { content: ""; position: absolute; left: 5px; top: 4px; bottom: 4px; width: 1px; background: var(--QUEST_FONT_COLOR); opacity: .45; }
-  .btn { height: 32px; min-width: 96px; padding: 4px 14px 5px; display: flex; align-items: center; justify-content: center; color: var(--NORMAL_FONT_COLOR); text-shadow: 1px 1px 0 var(--QUEST_FONT_COLOR); font-size: 15px;
-    background: linear-gradient(var(--BUTTON_RED_HIGHLIGHT), var(--BUTTON_RED) 45%, var(--BUTTON_RED_SHADOW)); border: 1px solid var(--BUTTON_EDGE); border-radius: var(--RADIUS_MEDIUM); }
-  .btn.plain { background: var(--FIELD_BACKGROUND); border-color: var(--FIELD_BORDER); }
-
-  .bar { height: 54px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 14px; border-top: 1px solid var(--FRAME_BRONZE); background: linear-gradient(90deg, var(--STONE_LIGHT), var(--STONE_DARK)); }
-  .bar .note { margin-right: auto; color: var(--DISABLED_FONT_COLOR); font-size: 12px; }
-  /* Form fields and buttons: 32px, the theme's ControlHeight. */
-  div.btn, div.btn.plain, div.inp.combo, div.inp.focus { height: 32px; min-height: 32px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; }
+  /* Section tree (TreeView): 250px with a reserved 12px scroll lane, 30px rows in the body face. */
+  .nav { width: 250px; flex: none; border-right: 1px solid var(--PANEL_RULE); padding: 6px 0; position: relative; overflow: hidden; }
+  .rows { margin-right: 12px; }
+  .node { height: 30px; padding: 0 12px 0 10px; display: flex; align-items: center; color: var(--NORMAL_FONT_COLOR); position: relative; }
+  .node b { width: 14px; height: 16px; margin-right: 6px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .node b svg { width: 12px; height: 12px; }
+  .kids { margin-left: 14px; }
+  /* A node with children is a category header: white on a sunken band, faint line above, lit line below. */
+  .node.band { color: var(--HIGHLIGHT_FONT_COLOR); }
+  .node.band::before { content: ""; position: absolute; inset: 1px 0; z-index: -1; background: var(--PANEL_BAND);
+    border-top: 1px solid color-mix(in srgb, var(--PLATE_HIGHLIGHT) 30%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--PLATE_HIGHLIGHT) 75%, transparent); }
+  .node.band b { color: var(--NORMAL_FONT_COLOR); }
+  /* Hover: faint glow, white label, the underline at 45 percent. */
+  .node.hov { color: var(--HIGHLIGHT_FONT_COLOR); }
+  .node.hov::after { content: ""; position: absolute; inset: 1px 0; z-index: -1;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--SELECT_LINE) 45%, transparent) 40%, transparent 95%) bottom / 100% 1px no-repeat,
+      linear-gradient(90deg, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 3%, transparent), color-mix(in srgb, var(--NORMAL_FONT_COLOR) 11%, transparent) 45%, transparent); }
+  /* Selected: the gold glow, strongest in the middle, closed by a gold hairline above and below; white label. */
+  .node.sel { color: var(--HIGHLIGHT_FONT_COLOR); }
+  .node.sel::after { content: ""; position: absolute; inset: 1px 0; z-index: -1;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--SELECT_LINE) 69%, transparent) 40%, transparent 95%) top / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent, var(--SELECT_LINE) 40%, transparent 95%) bottom / 100% 1px no-repeat,
+      linear-gradient(90deg, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 6%, transparent), color-mix(in srgb, var(--NORMAL_FONT_COLOR) 24%, transparent) 45%, color-mix(in srgb, var(--NORMAL_FONT_COLOR) 2%, transparent)); }
+  .nav { z-index: 0; }
+  /* Scroll bar: a quiet 12px lane, bare gray arrows, the warm gray knob in a black line. */
+  .lane { position: absolute; right: 0; top: 0; bottom: 0; width: 12px; display: flex; flex-direction: column; align-items: center; color: var(--POOR_GRAY_COLOR); }
+  .lane svg { width: 8px; height: 8px; margin: 2px 0; flex: none; }
+  .lane svg:first-child { transform: rotate(180deg); }
+  .lane div { flex: 1; width: 8px; background: color-mix(in srgb, var(--PANEL_BAND) 45%, transparent); border-radius: var(--RADIUS_SMALL); position: relative; }
+  .lane div::after { content: ""; position: absolute; left: -1px; right: -1px; top: 0; height: 74%; border: 1px solid var(--PLATE_EDGE); border-radius: var(--RADIUS_SMALL);
+    background: linear-gradient(90deg, var(--SCROLL_KNOB_LIGHT), var(--SCROLL_KNOB) 22%, var(--SCROLL_KNOB_DARK)); }
+  /* Section page: labels beside 32px controls. */
+  .content { flex: 1; min-width: 0; padding: 24px 28px; }
+  .line { display: flex; align-items: center; min-height: 32px; margin-bottom: 14px; }
+  .line > label { width: 210px; flex: none; }
+  /* ComboBox: charcoal plate lit along the top, gold value, the arrow in its own cell behind a dark line. */
+  .combo { width: 280px; height: 32px; border: 1px solid var(--PLATE_EDGE); border-radius: var(--RADIUS_MEDIUM); box-shadow: inset 0 0 0 1px var(--PLATE_RIM); color: var(--NORMAL_FONT_COLOR);
+    display: flex; align-items: center; padding-left: 10px;
+    background: linear-gradient(var(--PLATE_HIGHLIGHT), var(--PLATE_HIGHLIGHT)) 2px 1px / calc(100% - 4px) 1px no-repeat, linear-gradient(var(--PLATE_TOP), var(--PLATE) 50%, var(--PLATE_BOTTOM)); }
+  .combo span { flex: 1; }
+  .combo b { width: 26px; height: 26px; margin-right: 2px; border-left: 1px solid var(--PLATE_EDGE); display: flex; align-items: center; justify-content: center; }
+  .combo svg { width: 10px; height: 10px; }
+  /* TextBox: near-black field, gray edge; keyboard focus turns the edge gold. */
+  .input { width: 280px; height: 32px; background: var(--FIELD_BACKGROUND); border: 1px solid var(--FIELD_BORDER); border-radius: var(--RADIUS_MEDIUM); display: flex; align-items: center; padding: 0 8px; }
+  .input.focus { border-color: var(--NORMAL_FONT_COLOR); }
+  /* Slider: sunken groove, a gold thread up to the value, the gray gem. */
+  .slider { width: 280px; height: 22px; position: relative; }
+  .slider::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 8px; background: var(--SLIDER_GROOVE); border: 1px solid var(--CHECK_EDGE); border-radius: 4px; }
+  .slider::after { content: ""; position: absolute; left: 3px; width: 54%; top: 10px; height: 2px; border-radius: 1px; background: color-mix(in srgb, var(--SELECT_LINE) 70%, transparent); }
+  .slider svg { position: absolute; left: 55%; top: 2px; width: 18px; height: 18px; }
+  /* CheckBox and RadioButton: 20px sunken beds, gold tick reaching past the box, gold dot. */
+  .check { display: flex; align-items: center; gap: 8px; margin-right: 26px; }
+  .box { width: 20px; height: 20px; flex: none; position: relative; background: var(--CHECK_BED); border: 1px solid var(--CHECK_EDGE); border-radius: var(--RADIUS_SMALL); box-shadow: inset 1px 1px 0 var(--PLATE_EDGE); color: var(--NORMAL_FONT_COLOR); }
+  .box svg { position: absolute; left: 2px; top: -3px; width: 18px; height: 18px; }
+  .box.round { border-radius: 50%; box-shadow: inset 0 0 0 1px var(--PLATE_EDGE); }
+  .box.round.on::after { content: ""; position: absolute; left: 4px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--NORMAL_FONT_COLOR); }
+  .btn { height: 32px; padding: 0 15px; margin-right: 8px; white-space: nowrap; }
+  .btn.hov { color: var(--HIGHLIGHT_FONT_COLOR);
+    background: linear-gradient(90deg, rgba(0,0,0,.69), transparent 7px, transparent calc(100% - 7px), rgba(0,0,0,.69)),
+      linear-gradient(var(--BUTTON_RED_SHADE), var(--BUTTON_RED) 10%, var(--BUTTON_RED_HOVER) 36%, var(--BUTTON_RED_LIT) 66%, var(--BUTTON_RED_DEEP) 90%, var(--BUTTON_RED_SHADE)); }
+  .btn.off { color: var(--POOR_GRAY_COLOR); text-shadow: none; background: var(--PLATE); box-shadow: inset 0 0 0 1px var(--CHECK_EDGE); }
+  /* GroupBox: a card on the sunken bed with a category band for its title. */
+  .group { margin-top: 6px; width: 490px; border: 1px solid var(--PANEL_RULE); border-radius: var(--RADIUS_MEDIUM); background: color-mix(in srgb, var(--PANEL_BAND) 55%, transparent); }
+  .group h4 { font-size: 15px; font-weight: 400; padding: 5px 12px 6px; background: var(--PANEL_BAND); border-bottom: 1px solid color-mix(in srgb, var(--PLATE_HIGHLIGHT) 75%, transparent); border-radius: 2px 2px 0 0; }
+  .group > div { padding: 12px; display: flex; align-items: center; }
+  /* Bottom bar: 1px rule, the restart note left, Save then Cancel right. */
+  .foot { height: 52px; flex: none; border-top: 1px solid var(--PANEL_RULE); display: flex; align-items: center; padding: 0 14px 0 16px; }
+  .foot small { flex: 1; font-size: 13px; color: var(--POOR_GRAY_COLOR); }
+  .foot .btn { min-width: 92px; margin: 0 0 0 8px; }
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute">
-  <symbol id="Check" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M3.6,12.8 L6.2,10.2 L9.7,13.7 L17.8,5.6 L20.4,8.2 L9.7,18.9 Z"/><path d="M3.6,12.8 L6.2,10.2 L9.7,13.7 L17.8,5.6 L20.4,8.2 L9.7,18.9 Z"/></symbol>
-  <symbol id="DropDown" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M5.5,8.6 L18.5,8.6 L12,16.2 Z"/><path d="M5.5,8.6 L18.5,8.6 L12,16.2 Z"/></symbol>
   <symbol id="WindowClose" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M6.84,4.36 L19.64,17.16 L17.16,19.64 L4.36,6.84 Z M19.64,6.84 L6.84,19.64 L4.36,17.16 L17.16,4.36 Z"/><path d="M6.84,4.36 L19.64,17.16 L17.16,19.64 L4.36,6.84 Z M19.64,6.84 L6.84,19.64 L4.36,17.16 L17.16,4.36 Z"/></symbol>
+  <symbol id="DropDown" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M5.5,8.6 L18.5,8.6 L12,16.2 Z"/><path d="M5.5,8.6 L18.5,8.6 L12,16.2 Z"/></symbol>
+  <symbol id="Submenu" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M16.4,12 L8.6,19 L8.6,5 Z"/><path d="M16.4,12 L8.6,19 L8.6,5 Z"/></symbol>
+  <symbol id="Check" viewBox="0 0 24 24"><path transform="translate(.9 .9)" opacity=".7" fill="var(--QUEST_FONT_COLOR)" d="M3.6,12.8 L6.2,10.2 L9.7,13.7 L17.8,5.6 L20.4,8.2 L9.7,18.9 Z"/><path d="M3.6,12.8 L6.2,10.2 L9.7,13.7 L17.8,5.6 L20.4,8.2 L9.7,18.9 Z"/></symbol>
 </svg>
-<div class="window" data-part="settings-window"><div class="inner">
-  <div class="cap"><div class="plaque">Settings</div><div class="cb-x"><svg><use href="#WindowClose"/></svg></div></div>
+<div class="back"></div>
+<div class="window" data-part="settings-window">
+  <div class="title"><u></u><i></i>Settings<i></i><u></u><div class="red close"><svg><use href="#WindowClose"/></svg></div></div>
   <div class="body">
-    <div class="tree" data-part="settings-nav">
-      <div class="n">General</div>
-      <div class="n o">Appearance</div>
-      <div class="n c sel">General</div>
-      <div class="n c">Advanced</div>
-      <div class="n c">Details View</div>
-      <div class="n c">Grid View</div>
-      <div class="n c">List View</div>
-      <div class="n c">Layout</div>
-      <div class="n c">Top panel</div>
-      <div class="n">Search</div>
-      <div class="n">Updating</div>
-      <div class="n">Metadata</div>
-      <div class="n">Sorting</div>
-      <div class="n">Scripts</div>
-      <div class="n">Auto Close Clients</div>
-      <div class="n">Import Exclusion List</div>
-      <div class="n">Backup</div>
-      <div class="n">For developers</div>
-      <div class="n">Input</div>
-      <div class="n o">Advanced</div>
-      <div class="n c">Performance</div>
+    <div class="nav" data-part="settings-nav">
+      <div class="rows">
+        <div class="node"><b></b>General</div>
+        <div class="node band"><b><svg><use href="#DropDown"/></svg></b>Appearance</div>
+        <div class="kids">
+          <div class="node sel"><b></b>General</div>
+          <div class="node"><b></b>Advanced</div>
+          <div class="node"><b></b>Details View</div>
+          <div class="node"><b></b>Grid View</div>
+          <div class="node"><b></b>List View</div>
+          <div class="node"><b></b>Layout</div>
+          <div class="node"><b></b>Top panel</div>
+        </div>
+        <div class="node"><b></b>Search</div>
+        <div class="node hov"><b></b>Updating</div>
+        <div class="node"><b></b>Metadata</div>
+        <div class="node"><b></b>Sorting</div>
+        <div class="node"><b></b>Scripts</div>
+        <div class="node"><b></b>Auto Close Clients</div>
+        <div class="node"><b></b>Import Exclusion List</div>
+        <div class="node"><b></b>Backup</div>
+        <div class="node"><b></b>For developers</div>
+        <div class="node"><b></b>Input</div>
+        <div class="node band"><b><svg><use href="#Submenu"/></svg></b>Advanced</div>
+      </div>
+      <div class="lane"><svg><use href="#DropDown"/></svg><div></div><svg><use href="#DropDown"/></svg></div>
     </div>
-    <div class="page" data-part="settings-content">
-      <h2>Appearance</h2>
-      <div class="r"><label>Desktop theme</label><div class="inp combo"><b>Questlog</b><i><svg><use href="#DropDown"/></svg></i></div></div>
-      <div class="r"><label>Library folder</label><div class="inp focus">D:\Games</div></div>
-      <div class="r"><label>Font size</label><div class="sl"><div class="tr"></div><div class="fl"></div><div class="th"></div></div></div>
-      <div class="r"><label>Show notification panel</label><div class="cb"><svg><use href="#Check"/></svg></div></div>
-      <div class="r"><label>Show names under covers</label><div class="cb"></div></div>
-      <div class="r"><label>Animations</label><div class="opts"><span><i class="rd on"></i>Standard</span><span><i class="rd"></i>Reduced</span></div></div>
-      <div class="r"><label>Backup</label><div style="display:flex;gap:8px"><div class="btn">Apply</div><div class="btn plain">Browse...</div></div></div>
+    <div class="content" data-part="settings-content">
+      <div class="line"><label>Desktop mode theme</label><div class="combo"><span>Questlog</span><b><svg><use href="#DropDown"/></svg></b></div></div>
+      <div class="line"><label>Language</label><div class="combo"><span>English</span><b><svg><use href="#DropDown"/></svg></b></div></div>
+      <div class="line"><label>Database location</label><div class="input focus">D:\Games\Playnite\library</div></div>
+      <div class="line"><label>Font size</label><div class="slider"><svg viewBox="0 0 18 18"><path d="M9,0.5 L17.5,9 9,17.5 0.5,9 Z" fill="url(#gem)" stroke="var(--PLATE_EDGE)"/><path d="M2.5,9 L9,2.5 15.5,9" fill="none" stroke="var(--HIGHLIGHT_FONT_COLOR)" opacity=".55"/><defs><linearGradient id="gem" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--KNOB_LIGHT)"/><stop offset=".3" stop-color="var(--KNOB)"/><stop offset="1" stop-color="var(--KNOB_DARK)"/></linearGradient></defs></svg></div></div>
+      <div class="line"><label>Minimize to system tray</label><div class="check"><span class="box"><svg><use href="#Check"/></svg></span>Enabled</div><div class="check"><span class="box"></span>Close to system tray</div></div>
+      <div class="line"><label>Apply to</label><div class="check"><span class="box round on"></span>Desktop mode</div><div class="check"><span class="box round"></span>Fullscreen mode</div></div>
+      <div class="line"><label>Theme files</label><div class="red btn">Get more themes</div><div class="red btn hov">Create new theme</div><div class="red btn off">Restore</div></div>
+      <div class="group">
+        <h4>Game details</h4>
+        <div><div class="check"><span class="box"><svg><use href="#Check"/></svg></span>Show icon</div><div class="check"><span class="box"><svg><use href="#Check"/></svg></span>Show cover</div><div class="check"><span class="box"></span>Show background</div></div>
+      </div>
     </div>
   </div>
-  <div class="bar" data-part="settings-buttons"><span class="note">* Requires restart to apply</span><div class="btn">Save</div><div class="btn">Cancel</div></div>
-</div></div>
+  <div class="foot" data-part="settings-buttons"><small>* Requires restart to apply</small><div class="red btn">Save</div><div class="red btn">Cancel</div></div>
+</div>
 </body>
 </html>

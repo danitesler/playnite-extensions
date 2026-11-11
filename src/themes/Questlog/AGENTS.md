@@ -2,21 +2,43 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named Questlog, taking inspiration from the **World of Warcraft Vanilla (1.x) interface**: gold and bronze frames, red leather panel buttons with gold text, the navy tooltip, stone bars, item slots, the quest log. The game details screen is laid out like the quest log.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named Questlog, taking inspiration from the **World of Warcraft Classic interface**: neutral charcoal panels in a thin metal frame, deep red panel buttons with gold text, gold labels and white values, charcoal plates for dropdowns and icon buttons, and a gold glow under the current entry. The Settings window is modeled on a client options panel; the game page uses the info panels of the character screens.
 
-Fan-made and unofficial: **no game files are included**. Every icon, texture and placeholder is original artwork drawn for this theme (`art/`), and the client font is not bundled (see Fonts). `info/NOTICE-Questlog.txt` ships in the package.
+Fan-made and unofficial: **no game files are included**. Every icon, texture and placeholder is original artwork drawn for this theme (`art/`), and the client font is not bundled (see Tokens). `info/NOTICE-Questlog.txt` ships in the package.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
 ## Sources
 
-Reference notes, measurements, and asset sources are documented in [`RESEARCH.md`](RESEARCH.md).
+Reference captures, per-pixel measurements, design rules and motion notes are in [`RESEARCH.md`](RESEARCH.md).
 
 ## Tokens
 
-Keys are the shared vocabulary; the template names the token behind each one. Gradient keys (buttons, frame, bars, page, row highlights) are `LinearGradientBrush`; ThemeModifier's solid-color editor does not recolor those stops.
+Keys are the shared vocabulary; the template names the token behind each one. The roles that matter:
 
-Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`. Sizes 12 / 14 / 16 / 20 / 28 (the client sets its UI at 13 and its large headings at 16 and 20).
+| Role | Key | Token |
+|------|-----|-------|
+| Accent, labels, glyphs | `GlyphBrush`, `ButtonForegroundBrush` | `NORMAL_FONT_COLOR` (gold) |
+| Text, values | `TextBrush` | `HIGHLIGHT_FONT_COLOR` (white) |
+| Panel body | `WindowBackgourndBrush` | `PANEL_BG` |
+| Library and game page layer | `ContentBackgroundBrush` | `PANEL_BG_DEEP` |
+| Rail, sunken bands | `ShellBackgroundBrush`, `NormalBrushDark` | `PANEL_BAND` |
+| Title strip | `TopPanelBackgroundBrush`, `WindowTitleBackgroundBrush` | `TITLE_BAR_*` gradient |
+| Frame line, black line inside it | `FrameBrush`, `FrameInnerBrush` | `FRAME_METAL_*`, `FRAME_INK` |
+| Red button face | `ButtonBackgroundBrush`, `PrimaryButtonBackgroundBrush` (brighter) | `BUTTON_RED_*` gradients |
+| Button bezel | `ButtonBorderBrush` | `BUTTON_BEZEL` |
+| Charcoal plate | `SecondaryButton*Brush`, `BevelLightBrush`, `BevelShadowBrush` | `PLATE_*` |
+| Selection glow and hairline | `ListItemSelectedBrush`, `SelectedBorderBrush` | `NORMAL_FONT_COLOR` at 2 to 24 percent, `SELECT_LINE` |
+| Popups, info panels | `PopupBackgroundBrush`, `TooltipBackgroundBrush`, `PopupBorderBrush` | `TOOLTIP_BACKDROP`, `TOOLTIP_BORDER` |
+| Filter and notification mark | `DataChangeNotifBrush` | `NEW_FLAG_COLOR` (blue, reads against gold glyphs) |
+
+Gradient keys (button faces, plates, title strip, knobs, selection glow) are `LinearGradientBrush`; ThemeModifier's solid-color editor does not recolor those stops.
+
+Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`. Sizes 13 / 15 / 17 / 20 / 31.
+
+The game title and all game-page section headings (Steam screenshots, Description, Details and Notes) use `HeadingFontFamily` = `Georgia, Palatino Linotype, Segoe UI` at semibold weight. Section headings all use FontSizeLarger (20px). Buttons and the dialog title use the body face. The previously bundled Cinzel faces remain in `src/Typography/` but are not referenced.
+
+Radii: 2 / 3 / 5. `FrameThickness` is 1 (the frame is three 1px lines: black, metal, black).
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -28,59 +50,88 @@ Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia,
 
 | File | Behavior |
 |------|----------|
-| `DerivedStyles/MainWindowStyle.xaml` | The window is a dark brown 3px ring (literals in `MainWindowStyle`) with a 1px inner line; dialogs keep the same frame. `MainWindowButton`: plain 24x22 gold glyphs, no plate; a faint wash on hover, close turns `DangerBrush`. |
-| `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml` | Dialogs: the same frame, the title on a plaque at the top center (gold on the panel fill in a gold ring, `UI-DialogBox-Header`), caption glyphs as above. Content starts 32px down. |
-| `Views/Sidebar.xaml` | The 44px compact rail: a plain strip of stone (`ShellBackgroundBrush`), no rule toward the library, all four positions. `MainMenuButton`: a bare gold hamburger that takes a faint wash on hover (a 44x40 item with a 16px glyph on the rail, 32px in the top bar). |
-| `CustomControls/SidebarItem.xaml` | Borderless 44x40 items with 16px glyphs. Hover is a faint wash; the current item is a gold glyph on a faint gold wash. Library is the tome, Statistics the hourglass. `PART_ProgressStatus` overlays a translucent gold fill. |
-| `Views/TopPanel.xaml` | Plain 50px band, transparent so the library shows through, no rule under it. `TopPanelSearchBox`: a single-edge edit box with a magnifier. View controls are borderless 32px icons (`TopPanelItem.xaml`). Notifications are a letter with a red count. The global progress bar is the casting bar. The right 110px stay clear for the window buttons. |
-| `Views/Library.xaml` | The library on the dark `ContentBackgroundBrush` layer; the game's background art is drawn over it. |
-| `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Plain dark glass, no bronze rule; the preset buttons are bare gold glyphs (bin, quill, plus). |
+| `DerivedStyles/MainWindowStyle.xaml` | The window frame is black, metal (`FrameBrush`), black, 1px each. `MainWindowButton`: the frame's red plates, 28x24 with 12px gold glyphs, centred on the top bar; hover lights the face and whitens the glyph, close goes to `DangerBrush`. |
+| `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml` | Dialogs: the same frame and a 36px title strip (`WindowTitleBackgroundBrush`) closed by black, metal, black. The title sits in the middle in gold, body face, between two gold diamonds with a short fading rule each (the signature graphic, vectors in theme brushes). Caption buttons are the same red plates. The Settings window is titled through `LOCSettingsLabel`; content starts 36px down. |
+| `Views/Sidebar.xaml` | The 44px compact rail: a sunken black band (`ShellBackgroundBrush`) closed toward the library by a hairline, all four positions. `MainMenuButton`: a bare gold hamburger that takes the charcoal plate on hover (36x32 on the rail, 32px in the top bar). |
+| `CustomControls/SidebarItem.xaml` | 44x40 items with a 36x32 slot and 16px glyphs. Hover is the charcoal plate with a white glyph; the current item is a checked slot, gold glow inside a gold line with a white glyph. Library is the tome, Statistics the hourglass. `PART_ProgressStatus` overlays a translucent gold fill. |
+| `Views/TopPanel.xaml` | The title strip of a frame: 48px warm dark band closed by black, metal, black. `TopPanelSearchBox`: a 280x30 edit box with a magnifier. View controls and toggles are 30px gold glyphs (`TopPanelItem.xaml`): charcoal plate on hover, a sunken black slot in a gold line while on. The filter mark is a 9px blue diamond. Notifications are a letter with a red count. The global progress bar is the casting bar. The right 116px stay clear for the window buttons. |
+| `Views/Library.xaml` | The library on the `ContentBackgroundBrush` layer; the game's background art is drawn over it. |
+| `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Plain sunken charcoal; 28px fields; the preset buttons are bare gold glyphs (bin, quill, plus). |
 
-## Game overview (the quest log)
+## Game page
 
-`Views/DetailsViewGameOverview.xaml` (details view) and `GridViewGameOverview.xaml` (grid view side panel) keep Playnite's arrangement and every `PART_` name:
+`Views/DetailsViewGameOverview.xaml` (details view) and `GridViewGameOverview.xaml` (grid side panel) are **generated by `art/overview.py`**; change the page there. They keep Playnite's arrangement and every `PART_` name.
 
-- Title in gold at 31px with a one pixel shadow; the icon and cover sit in a single thin slot edge (hidden with the image).
-- **Steam screenshots, description and notes = quest text** on the left: ink on a paper page (`ParchmentBrush`, the tiled `parchment.png` at 90 %, a shaded rim from an `OpacityMask` in a `BitmapCache` wrapper), inside one `FrameBrush` frame. Headings are `QuestTitleFont` style: black with a brown shadow copy behind, with no rule under them. Screenshots use the Steam Screenshots plugin host (`SteamScreenshots_SteamScreenshotsViewControl`), hidden when that plugin's control is not visible.
-- **Properties = an item tooltip** on the right of that page: the tooltip navy inside a 1px light edge, no inner line and no rule under the title. Labels gold, values white, links white until the pointer turns them gold, scores in the item quality colors. It holds every metadata field Playnite can show, in the six shared groups (progress, scores, about, tags as plain dark chips, library, links; see `.claude/skills/playnite-theme-dev/reference.md`) split by space only (108px gold caption column beside white values; a group whose fields are all hidden collapses). The grid panel uses the same two columns (quest text, then a 280px tooltip) with each caption over its value. The side panel has no bronze rule against the grid.
-- `DescriptionView.html` draws the description with the same ink.
+- **Banner**: no `OpacityMask` (it sits behind the animated Play button). A black scrim darkens it toward the title and a gradient fades it into the page color, read from `PageRoot`.
+- **Title** in Georgia semibold at 31px, gold, with a two pixel shadow; icon and cover in item slots (hidden with the image).
+- **Actions**: Play is the big red panel button with a gold label (`PlayButton`); More and Edit are 40x40 charcoal plates with gold glyphs (`SecondaryButton`).
+- **Left**: Steam screenshots and the description in one info panel, the tooltip frame (near-black backdrop, a metal line, a black line inside it, radius 5), with gold headings over a faint rule and white text drawn by `DescriptionView.html`. The panel goes away when it has neither. The **notes are a letter** under it: ink on the tiled paper (`ParchmentBrush`, `parchment.png`) with a shaded rim.
+- **Right**: the details panel, the same frame, 300px of content. Gold captions (132px column in the details view so "Completion Status" stays on one line; 2:3 columns in the grid panel), white values, scores in the item quality colors, tags as small black slots with a gray edge. Six groups split by space only.
+- **Empty state** (both views): an empty item slot holding the quest mark (`IconUpdate`) under a slow gold glow (`glow-spot.png`), and `LOCErrorNoGameSelected`.
+- `DescriptionView.html` carries its colors as literals (white text, gold links): the file is not a template.
+
+**Settings chrome** (`DefaultControls/TreeView.xaml`): the category list of an options panel, 30px rows in the body face. Entries are gold; an entry with children is a header, white on a black band with a lit line under it. Hover is a faint gold glow with the underline at 45 percent. Selected is the gold glow, strongest in the middle, between two gold hairlines, with a white label. Dialog trees reserve the scroll lane.
 
 ## Components
 
-*(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+| File | Client component |
+|------|------------------|
+| `Button.xaml`, `ToggleButton.xaml`, `RepeatButton.xaml` | Panel button: red face darkening into its rim, gray bezel, black line; gold label, white on hover. Checked toggle: sunken black in a gold line |
+| `Button.xaml` `SecondaryButton` | Step arrow plate: charcoal, lit along the top |
+| `ComboBox.xaml` | Dropdown: the plate with a gold value and the arrow in its own cell. Editable boxes and boxes in the filter panel are edit fields |
+| `TextBox.xaml`, `PasswordBox.xaml`, `SearchBox.xaml` | Edit box: near-black, gray edge, gold on keyboard focus |
+| `CheckBox.xaml`, `RadioButton.xaml` | Check button: 20px sunken bed, gold tick reaching past the box; round bed with a gold dot |
+| `Slider.xaml` | Options slider: sunken groove, a gold thread up to the value, a gray diamond gem |
+| `ScrollViewer.xaml` | Slim bar: 12px quiet lane, bare gray arrows, warm gray knob |
+| `TabControl.xaml` | Frame tabs: dark plates with gold labels; the current one is the lit plate with a gold line and a white label |
+| `GroupBox.xaml`, `Expander.xaml` | Category header: white title on a black band; content-sized card |
+| `TreeView.xaml`, `DetailsViewItemStyle.xaml`, `ListBox.xaml`, `Menu.xaml` | Category list rows: gold entries, gold glow selection |
+| `ToolTip.xaml`, `ContextMenu.xaml`, `Common.xaml` `PopupBorder` | Tooltip frame |
+| `PlayButton.xaml` | The Login / Accept button |
+| `GridViewItemStyle.xaml`, `GridViewItemTemplate.xaml` | Item slot highlight; 48px red Play and charcoal Info cover buttons |
+| `ProgressBar.xaml` | Casting bar |
 
 ## Deviations from the client
 
-- **No game assets, no client font.** Icons and textures are original; Friz Quadrata is used only if installed (`FONT_FAMILY` falls back to Constantia, Palatino Linotype, Georgia, Segoe UI). Playnite's HTML description uses `DescriptionView.html`'s own font list.
-- **Colors of the art are approximations** (see Sources); the client's textures are not sampled.
-- **Shadows**: text shadows are `DropShadowEffect` (blur 0) on buttons, the progress text and the game title only, not on every text block, to keep list scrolling cheap. No shadows on popups or tiles (repo rule).
-- **Plainer than the client chrome.** The window and dialogs keep the gold frame. Inside it, rails, the top bar, icon buttons, group boxes, tabs and the game page drop the extra rules, slot borders and glows, closer to the quiet panels (the test dialog, the HUD edit list, the classic login form) than to a frame around every control.
+- **No game assets, no client font.** Icons and textures are original; Friz Quadrata is not shipped.
+- **Playnite's font setting wins.** Settings > Appearance > Font replaces the `FontFamily` and `FontSize*` keys at startup, so the UI is drawn in whatever the user picked there (seen live: a sans face at 14px), not in the theme's serif stack. For the client look, pick Friz Quadrata, Constantia or Palatino Linotype there. `DescriptionView.html` takes the same font from Playnite's `{font_family}` placeholder, so the description matches the window. The game title and panel headings set `HeadingFontFamily` themselves.
+- **Measured colors, drawn shapes.** Colors are sampled from captures (see `RESEARCH.md`); the frame, bezels and plates are drawn with borders and gradients, not the client's textures, so they are flatter than the art.
+- **Labels on Settings pages are white**, not gold: Playnite draws them as plain `TextBlock`s in `TextBrush`, and the theme does not restyle those views.
+- **Shadows**: text shadows are `DropShadowEffect` (blur 0) on button labels, the progress text and the game title only. No shadows on popups or tiles (repo rule).
+- **The slider shows its value** with a thin gold thread; the client's does not fill.
 - **Gradients** are used where the art is a gradient; ThemeModifier's solid-color editor cannot recolor them.
-- **`DescriptionView.html` carries its colors as literals** (`#2E1F0F` ink, `#7A1A0A` links): the file is not a template. Keep it in step with `ITEM_TEXT_FONT_COLOR` and `PARCHMENT_LINK` in `tokens.css`.
-- **The client has no left-hand list plus right-hand page** in the quest log (the list sits above the text); Playnite's details view keeps its own split, dressed in the same pieces.
 - **Disabled buttons** restore `Opacity` to 1 (BaseStyle dims to 0.5) because the gray face is the disabled look.
-- **Disabled and unsupported**: menu icons Playnite copies stay PNG paths (Playnite rebuilds glyph resources from text); the grid tile's hover play / info buttons keep Playnite's glyph font; no fullscreen theme.
+- **Disabled and unsupported**: menu icons Playnite copies stay PNG paths (Playnite rebuilds glyph resources from text); no fullscreen theme.
 - Window buttons use the icons of `Media.xaml`, not Marlett glyphs; Playnite still sets the content to `0`, `1`, `2`, `r` and the templates read it.
 
 ## Art
 
 ```text
-python3 art/glyphs.py media      # rewrite the glyph block in src/Media.xaml
-python3 art/glyphs.py preview    # art/glyphs-preview.html
-python3 art/menu_icons.py png    # src/Images/Menu/*.png, questionmark.png, cover.png (Node + Chromium, Pillow)
-python3 art/menu_icons.py sheet  # art/menu-sheet.html
-python3 art/parchment.py         # src/Images/parchment.png
-python3 scripts/render-addon-icon.py --svg src/themes/Questlog/art/mark.svg --extension questlog   # info/icon.png
+python art/overview.py           # src/Views/DetailsViewGameOverview.xaml, GridViewGameOverview.xaml
+python art/glyphs.py media       # rewrite the glyph block in src/Media.xaml
+python art/glyphs.py preview     # art/glyphs-preview.html
+python art/menu_icons.py png     # src/Images/Menu/*.png, questionmark.png, cover.png (Node + Chromium, Pillow)
+python art/menu_icons.py sheet   # art/menu-sheet.html
+python art/parchment.py          # src/Images/parchment.png
+python art/fx.py                 # src/Images/fx/*.png (white masks), art/fx-sheet.png
+python scripts/render-addon-icon.py --svg src/themes/Questlog/art/mark.svg --extension questlog   # info/icon.png
 ```
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` replicate the current XAML (screenshots via `scripts/take-screenshots.ps1 -Extension questlog`). Icons are the `Media.xaml` geometries with the one pixel ink shadow of `IconTemplate`. Font stack `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`: Friz Quadrata, Constantia, Palatino and Georgia are all drawn with the bundled Gelasio stand-in.
+`art/preview-details.html` and `art/preview-settings.html` replicate the current XAML (screenshots via `scripts/take-screenshots.ps1 -Extension questlog`). Icons are the `Media.xaml` geometries with the one pixel ink shadow of `IconTemplate`. Font stack `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`: all drawn with the bundled Gelasio stand-in. Georgia in the game title and panel headings also uses Gelasio in previews.
 
-Signature motifs: the 3px dark brown window ring with a 1px line inside it (`MainWindowStyle` literals) and the plaque title of dialogs; the gold fading highlight on the selected row and tree node; red leather panel buttons (Play 150x40 in the brighter primary leather, More and Edit icon-only 40x40 squares 10px apart); ink on tiled parchment in its own 2px ring beside the navy item-tooltip pane (280px, "Game Details" header); the beige slider plate on a black groove. The details preview uses `GameBannerHeight` 200 (default 320) so the page and the whole tooltip pane fit in 720px; the spacer above the title scales with it (`x * 100 / 320`).
+Signature motifs: the three-line frame (black, metal, black) and the warm title strip with red frame buttons; the gold glow between two gold hairlines under the current entry (game list and Settings tree) and the white-on-black category band; red panel buttons in a gray bezel (Play 150x40 in the brighter face) beside 40x40 charcoal plates; info panels in the tooltip frame with gold headings, and the notes as a letter on paper; the dialog title between two gold diamonds. The details preview uses `GameBannerHeight` 200 (default 320) so the page fits in 720px, and shows four of the six metadata groups for the same reason. The banner is a painted placeholder.
 
 ## Not verified yet
 
-Built and statically checked on Linux (the repo's `build-theme.ps1` and `validate-extension.ps1` under PowerShell 7, plus a lint of every XAML file against the .NET Framework 4.6.2 WPF reference assemblies: element, property, attached property, `TemplateBinding` and `TargetName` names, checked on Playnite's own Default theme first); **never loaded in Playnite**, so no screenshot exists yet (`info/danitesler_questlog.yaml` has no `Screenshots`; add `art/*.png` and the entries once it runs).
+Checked so far: `build-theme.ps1` and `validate-extension.ps1` pass; Playnite 10.64 loads the theme with no error in `playnite.log`; the main window in details view was looked at once (rail, top strip, game list selection, banner fade, Play, plates, both panels); and the form controls (tree, combo boxes, text box, slider, check and radio, buttons, the 41px button, tabs, group boxes, expander, scroll bar) were rendered off-screen from the built XAML in WPF, so their templates apply. Hover and pressed states, dialogs and the grid view were **not** looked at in Playnite. Still to check by hand:
 
-First run checklist: follow standard list in `../AGENTS.md`. Also: how the `DropShadowEffect` on buttons looks with ClearType, the `OpacityMask` vignette and the tiled paper in the overview (`BitmapCache`), the plaque title at different dialog widths, `ImageBrush` with `{ThemeFile}` inside a control template, the scroll bar arrows on horizontal bars, whether Constantia is picked when Friz Quadrata is missing, and how the 16px scroll bar sits in `DetailsScrollViewer`'s 17px margin, and the tooltip pane with every field on and with few (spacing between groups, item slots wrapping, two-line captions such as "Completion Status" in the 108px column).
+- The standard list in `../AGENTS.md`.
+- Banner: the page-color fade (`Background.Color` binding to `PageRoot`) with and without art, and Play hover at 125% and 150% scaling (no dark seams).
+- Empty state in both views: fresh empty selection, and selected game -> grid -> details with the selection cleared, then a game again.
+- The info panel collapsing for a game with no description and no screenshots; the notes letter alone.
+- Settings and Add-ons trees: header bands on nodes with children, the reserved scroll lane, a selected child, a long translated label.
+- ComboBox: a short value ("English") beside the arrow cell, an editable box, the filter panel preset box.
+- Tabs in the game edit dialog (label colors on the page), the 41px ThemeModifier buttons, Statistics as compact cards.
+- Text shadow (`DropShadowEffect`) on button labels with ClearType; whether Constantia is picked when Friz Quadrata is missing.
