@@ -6,7 +6,7 @@
 
 **Hi-Fi RUSH inspired comic-book theme: thick outlines, angled cards, halftone dots and sticker indicators. Unofficial.**
 
-_Not released yet._
+**[Download Backbeat 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/backbeat-v1.0.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial fan theme. Not affiliated with, endorsed by or sponsored by Tango Gam
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/backbeat-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Backbeat](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Backbeat)

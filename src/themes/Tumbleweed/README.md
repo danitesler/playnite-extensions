@@ -6,7 +6,7 @@
 
 **A dark Western theme inspired by the Red Dead Redemption menus: maroon headings, white-on-select grey text, red duotone art.**
 
-**[Download Tumbleweed 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/tumbleweed-v1.0.0)**
+**[Download Tumbleweed 1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/tumbleweed-v1.1.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Pure black pages, maroon headings over flat grey rules, grey text that turns whi
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/tumbleweed-v1.0.0)
+- **Latest release:** [1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/tumbleweed-v1.1.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Tumbleweed](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Tumbleweed)

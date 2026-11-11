@@ -6,7 +6,7 @@
 
 **Transistor-inspired dark theme: deep teal panels, glowing mint circuit borders, cyan selection brackets.**
 
-_Not released yet._
+**[Download Cloudbank 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/cloudbank-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Transistor-inspired dark theme: deep teal panels, glowing mint circuit borders, 
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/cloudbank-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Cloudbank](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Cloudbank)

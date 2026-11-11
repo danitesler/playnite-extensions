@@ -6,7 +6,7 @@
 
 **A dark theme inspired by the Team Fortress 2 menus: tan paper buttons, rust hover, RED and BLU rule on the top bar.**
 
-**[Download Mann Co 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/mannco-v1.0.0)**
+**[Download Mann Co 1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/mannco-v1.1.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Dark brown pages, tan paper plates for whatever you press or select, rust on hov
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/mannco-v1.0.0)
+- **Latest release:** [1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/mannco-v1.1.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/MannCo](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/MannCo)

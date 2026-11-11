@@ -6,7 +6,7 @@
 
 **Keeps completion status honest—stale "Playing" games go On Hold, and starting a game sets it back to Playing.**
 
-**[Download AutoStatus 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/autostatus-v1.0.0)**
+**[Download AutoStatus 1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/autostatus-v1.1.0)**
 
 ## About
 
@@ -27,7 +27,7 @@ Both rules use your own completion statuses, so you can pick any source and targ
 ## Details
 
 - **Type:** Plugin
-- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/autostatus-v1.0.0)
+- **Latest release:** [1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/autostatus-v1.1.0)
 - **Extension type:** GenericPlugin
 - **Tags:** Completion status, Automation, Backlog, Generic
 - **Source:** [src/AutoStatus](https://github.com/danitesler/playnite-extensions/tree/main/src/AutoStatus)

@@ -6,7 +6,7 @@
 
 **A black, minimal theme with a brush-edged icon rail, uppercase DIN text and thin double frames. Inspired by The Witcher 3 main menu.**
 
-**[Download Medallion 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/medallion-v1.0.0)**
+**[Download Medallion 1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/medallion-v1.1.0)**
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Unofficial; not affiliated with CD PROJEKT RED. The Witcher is a trademark of CD
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/medallion-v1.0.0)
+- **Latest release:** [1.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/medallion-v1.1.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop, Gaming
 - **Source:** [src/themes/Medallion](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Medallion)

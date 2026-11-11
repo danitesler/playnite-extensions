@@ -6,7 +6,7 @@
 
 **Darkest Dungeon II-inspired dark theme: black ink panels, broken gold frames, torn crimson ribbons and a flickering torch. Unofficial, not affiliated with Red Hook Studios.**
 
-_Not released yet._
+**[Download Last Flame 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/lastflame-v1.0.0)**
 
 ## Screenshots
 
@@ -28,7 +28,7 @@ Darkest Dungeon II-inspired dark theme: black ink panels, broken gold frames, to
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/lastflame-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/LastFlame](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/LastFlame)

@@ -6,7 +6,7 @@
 
 **An unofficial Hyper Light Drifter-inspired pixel-neon theme, not affiliated with, endorsed by or sponsored by Heart Machine.**
 
-_Not released yet._
+**[Download Glyphbit 1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/glyphbit-v1.0.0)**
 
 ## Screenshots
 
@@ -29,7 +29,7 @@ Not affiliated with, endorsed by or sponsored by Heart Machine or any rights hol
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [1.0.0](https://github.com/danitesler/playnite-extensions/releases/tag/glyphbit-v1.0.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Dark, Desktop
 - **Source:** [src/themes/Glyphbit](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Glyphbit)
