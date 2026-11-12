@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the **Overwatch 2** menus (Blizzard Entertainment, 2022 to 2025 interface; the February 2026 relaunch reworked the lobby and is not modeled). The game's menus are light: a blue-grey gradient behind white plates. Payload is the dark side of the same system. The career profile's navy tab bar and stat tiles become the shell. Selection is the game's solid cyan fill with black text. The call to action is the OW2 orange, slanted 15 degrees like the VS-screen plates. Headings use the oblique display face, and scores take the team colors.
 
-**Unofficial fan theme.** No Blizzard assets. The tile mark (a slanted plate with a forward chevron) and the slanted plates are original. The icons are Google's Material Symbols. The game's display face (BigNoodleTooOblique) and menu face (Config) are not shipped. The theme names them first and falls back to Bahnschrift, then Impact and Segoe UI. Overwatch is a trademark of Blizzard Entertainment.
+**Unofficial fan theme.** No Blizzard assets. The tile mark (a slanted plate with a forward chevron) and the slanted plates are original. The icons are Google's Material Symbols. The game's display face (BigNoodleTooOblique) and menu face (Config) are not shipped. Display text uses the bundled Barlow Condensed Bold Italic (`src/Typography/`); body text names Config first and falls back to Bahnschrift and Segoe UI. Overwatch is a trademark of Blizzard Entertainment.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -35,7 +35,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 | `ow-ally` / `ow-color-yellow-100` / `ow-enemy` | `PositiveRatingBrush` / `MixedRatingBrush`, `WarningBrush` / `NegativeRatingBrush`, `DangerBrush` | Scores, warnings, close hover |
 | `ow-glow` ff943c | `GridViewItemSelectedBorderBrush` | Selected cover frame |
 
-Radii: `CornerRadiusSmall` and `ControlCornerRadius` 2, `Large` 4, `XLarge` 6, `Full` 9999 (only for 1:1 marks). `FrameThickness` 2. Fonts: `FontFamily` "Config, Bahnschrift, Segoe UI"; `HeadingFontFamily` "BigNoodleTooOblique, …, Bahnschrift SemiBold Condensed, Bahnschrift, Impact". Hosts set `FontStyle="Oblique"` on display text.
+Radii: `CornerRadiusSmall` and `ControlCornerRadius` 2, `Large` 4, `XLarge` 6, `Full` 9999 (only for 1:1 marks). `FrameThickness` 2. Fonts: `FontFamily` "Config, Bahnschrift, Segoe UI"; `HeadingFontFamily` "./Typography/#Barlow Condensed, BigNoodleTooOblique, …, Bahnschrift SemiBold Condensed, Bahnschrift, Impact". Hosts set `FontStyle="Oblique"` on display text.
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -48,7 +48,7 @@ Radii: `CornerRadiusSmall` and `ControlCornerRadius` 2, `Large` 4, `XLarge` 6, `
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px tab-bar navy rail with a 1px edge. The main menu button is an orange 32 x 28 parallelogram (glyph counter-skewed upright) in a 44 x 56 cell. Items are 44 x 40, 16px glyphs in blue-grey. The current item is a cyan slanted plate with a black glyph and a short orange tick below it. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px bar in tab-bar navy at 70% with a 1px rule. The search field is a dark well with a light blue edge. Glyph buttons show a faint slanted plate on hover and the cyan slanted plate when toggled. The notification count is an orange pip. |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | Flat window buttons. Hover uses the header strip, and close hovers enemy red. |
-| `Views/Library.xaml` | Library art under the site's navy wash (45%), the page blue (45%) and a vignette. |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Medium blue side panels. Filter labels use the oblique display face. |
 
 **Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list takes the rail's slanted plates, 30px rows in the body face. Hover is a faint 15-degree plate with a 40% orange tick; selected is the solid cyan slanted plate with a black label and the orange tick fully lit. The title band is 40px on the tab-bar navy: the orange slanted plate of the main menu button leads into the oblique display title, three slanted stripes (cyan, orange, cyan) are ghosted into the right end, and a 1px edge closes the band with a 120px cyan segment under the title; caption buttons are 44x40.
@@ -91,7 +91,7 @@ Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the l
 - **Dark dropdowns:** OW2 dropdowns are light with black text, but here they are dark wells. Playnite's unrestyled filter boxes and grids read `TextBrush` (light), and a light field would leave their text unreadable.
 - **Selected list rows:** these use a cyan wash plus an edge instead of the game's solid cyan, so long multi-select lists stay readable. Tabs, the rail and the top bar keep the solid fill.
 - **Slant:** the 15-degree slant comes from OW1-era VS plates, which OW2 still uses on its VS and hero-select screens. The OW2 menus themselves are rectangular.
-- **No uppercase:** WPF has no text-transform. Display text is uppercase only when BigNoodleTooOblique (caps-only) is installed; the Bahnschrift fallback shows mixed case, made oblique by `FontStyle`.
+- **No uppercase:** WPF has no text-transform. Display text keeps the case it is typed in: the bundled Barlow Condensed Bold Italic has lowercase (BigNoodleTooOblique is caps-only).
 - **Unverified controls:** see Sources. No settings-menu capture was available.
 
 ## Previews

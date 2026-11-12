@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **Red Dead Redemption** (2010; the 2023 console and 2024 PC ports keep the same interface). It is not the RDR2 look. Tumbleweed follows RDR1's rules: pure black pages, one maroon for titles and the pause stack, a grey text ramp where **selection turns grey text white** (no frames, no underlines), flat 2px grey rules, prompt keycaps, and the red-and-black duotone the game lays over the world behind every menu. Square corners, no gradients except the banner fade.
 
-**Unofficial fan theme.** No Rockstar assets: the paint splash, torn bar ends and the tile mark are original paths; icons are Phosphor. The game's title face (Chinese Rocks, Typodermic: free for desktop use, not embeddable) is not shipped; the theme names it first and falls back to Anton (OFL) and Impact. The body face is a light condensed sans the game never names; the theme uses Oswald / Pathway Gothic One (OFL), then Arial Narrow, Bahnschrift and Segoe UI. Rockstar and Red Dead Redemption are trademarks of Rockstar Games.
+**Unofficial fan theme.** No Rockstar assets: the paint splash, torn bar ends and the tile mark are original paths; icons are Phosphor. The game's title face (Chinese Rocks, Typodermic: free for desktop use, not embeddable) is not shipped; the theme bundles Anton (OFL) in its place. The body face is a light condensed sans the game never names; the theme bundles Oswald Light (OFL). Both are in `src/Typography/`. Rockstar and Red Dead Redemption are trademarks of Rockstar Games.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -45,7 +45,7 @@ Options rows on a 53px pitch at 1080p become 34-35 here (`ButtonPadding` 16,7; `
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px black rail; an original maroon paint splash (70 x 68 path, spills 26px over the top bar's padding) behind a 44 x 56 main menu button with a black glyph; items 44 x 40, 16px glyphs in the pause stack's red, white when current, grey on hover. Right / Top / Bottom: no splash, the main menu is a plain red tile. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px transparent bar closed by the flat 2px rule (inset 24px); search box = black box on a rule; tab glyphs dim grey, white on hover, red when current (store tab rule) |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | Window buttons as prompt keycaps that appear on hover; close hovers maroon |
-| `Views/Library.xaml` | Library art under the duotone: maroon at 55%, black at 55%, vignette |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Black side panels, labels in the title face like the Options category stack |
 
 **Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the Options page's list, 30px rows in the body face with the expander caret moved to the right so the left owns the selection arrow. Hover is the pointer-aid veil with a white label and the arrow at 40%; selected is a duotone-wash plate whose right end is torn like the game's header bars, a white label and the red Options-row arrow fully lit. Children sit under a 2px rule. The title band is 44px: the title sits on a maroon header bar that runs in from the window edge and ends in a torn ragged cut (fixed 12px wide, so the bar stays content-sized), in the title face in selection white, with the flat 2px grey rule closing the band; caption buttons are 44x40 keycaps.
@@ -79,7 +79,7 @@ Empty state (no game selected, both overviews, shown when `{Binding Game, Fallba
 - The duotone is approximated by layering maroon and black over full-color art (WPF has no blend modes or cheap desaturation), so some hue survives.
 - Resting text is a6a6a6, not the game's 525252; captions take 6a6a6a. The game's ramp fails contrast on a desktop.
 - Lists add a dark red wash behind the selected row; the game relies on white text alone.
-- Chinese Rocks and the body face are fallbacks unless installed; WPF has no text-transform, so headings are uppercase only in fonts that are caps-only (Chinese Rocks is).
+- Anton stands in for Chinese Rocks; WPF has no text-transform and Anton has lowercase, so headings show the case they are typed in.
 - No ink-spray texture except the paint splash and the torn Play ends.
 
 ## Previews
@@ -90,5 +90,5 @@ Empty state (no game selected, both overviews, shown when `{Binding Game, Fallba
 
 - Everything in a real Playnite: build and validation pass, but the theme has not been run in the app (built on Linux; no Windows here).
 - The paint splash overflowing the rail (negative margin) over the top bar; sidebar at Right, Top and Bottom.
-- Font fallback in WPF when Oswald / Chinese Rocks are missing (comma-separated families).
+- Bundled Oswald Light and Anton rendering and text fit.
 - The Play bar's torn-end paths following the hover / pressed fill.

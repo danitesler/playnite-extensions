@@ -37,7 +37,7 @@ Layers, deepest first: `void` (window and icon rail), `night` (library), `slate`
 | `Views/TopPanel.xaml` | The top bar: 48px on `slate`, 146px clear on the right for the caption buttons. Search (`TopPanelSearchBox`, 320px inset field) at the left; view buttons, filter, notifications (gold count badge) on the right; a running task's caption and 2px progress bar in between. `PART_ElemMainMenu` shows here only while the sidebar is hidden. |
 | `CustomControls/TopPanelItem.xaml` | 34px icon button on the top bar; veil on hover; toggled = gold on a gold wash with a 2px gold underline. |
 | `CustomControls/SearchBox.xaml` | The inset field with a search icon and a clear icon; `PART_SeachIcon` carries the "Search" placeholder. |
-| `Views/Library.xaml` | Everything under the top bar is one layer (`night`). The background art fades out toward the left and the bottom and is dimmed by a veil in the layer's brush. |
+| `Views/Library.xaml` | Game art behind the content layer below the solid top bar only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). Side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Side panels on `slate` with a hairline on the inner edge; filter captions in small caps; preset buttons use `IconRemove` / `IconEdit` / `IconAdd`. |
 | `Views/SearchView.xaml` | Playnite's Ctrl+F window with its three hard-coded colors moved onto the palette. |
 

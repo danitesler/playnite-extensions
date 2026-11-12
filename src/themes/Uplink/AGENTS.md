@@ -14,7 +14,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 ## Tokens
 
-Type: body `Segoe UI`; `HeadingFontFamily` is `Eurostile Extended, Microgramma D Extended, Eurostile, Bahnschrift SemiBold, Bahnschrift, Segoe UI` (the game sets navigation and headings in Eurostile Extended caps; nothing is bundled, so most machines get Bahnschrift). Sizes 12 / 14 / 16 / 21 / 28. Corners are square (`ControlCornerRadius` 0); cut corners are drawn by `ChamferTemplate`.
+Type: body `Segoe UI`; `HeadingFontFamily` is `./Typography/#Orbitron`, then `Orbitron, Eurostile Extended, Microgramma D Extended, Eurostile, Bahnschrift SemiBold, Bahnschrift, Segoe UI` (the game sets navigation and headings in Eurostile Extended caps; Orbitron Regular, SemiBold and Bold are bundled in `src/Typography/` as its stand-in). Sizes 12 / 14 / 16 / 21 / 28. Corners are square (`ControlCornerRadius` 0); cut corners are drawn by `ChamferTemplate`.
 
 New shared key this theme added to `scripts/data/theme-keys.json`: **`ChamferTemplate`**, a ControlTemplate for a plain `Control` that draws a plate with 6px cut corners from the host's `Background` and a 1px edge from its `BorderBrush`: `<Control Template="{DynamicResource ChamferTemplate}" Background="..." BorderBrush="..." />` behind the content, hit testing off.
 
@@ -32,7 +32,8 @@ New shared key this theme added to `scripts/data/theme-keys.json`: **`ChamferTem
 | `CustomControls/SidebarItem.xaml` | **Top/bottom:** icon + title in uppercase heading sans (15px, Playnite's `StringToUpperCaseConverter`), 20px either side, short 1px dividers; `TextBrushDarker` at rest; hover and current = white over a blue glow (`FrameInnerBrush`) rising from the bar's bottom edge; current adds a 2px beam (`TabItemIndicatorBrush`) that fades out at both ends. **Rails:** icon only, 44x40, glow from the library-side edge and a 2px beam there; title as tooltip. |
 | `Views/TopPanel.xaml` | The sub navigation strip: 48px on `TopPanelBackgroundBrush`, 1px line under it; search (320px) left; view, sort, filter, notification icons right, `TextBrushDarker`, light blue on a glow wash when on. Keeps 146px clear for the caption buttons only when it is the topmost bar (sidebar not at the top). |
 | `DerivedStyles/MainWindowStyle.xaml` | Caption buttons 46x40, 8px from the top with the sidebar at the top (centered on the 56px bar), 4px otherwise; red close hover. |
-| `Views/Library.xaml`, `FilterPanelView.xaml`, `ExplorerPanel.xaml`, `SearchView.xaml` | Library layer on `deck`, the game's background art feathered in; side panels on `hull`. |
+| `Views/Library.xaml`, `FilterPanelView.xaml`, `ExplorerPanel.xaml`, `SearchView.xaml` | Library layer on `deck`, game art only while Playnite's window background setting is on, at full strength with Playnite's own darken and blur (repo rule "Window background"); side panels on `hull`. |
+
 
 **Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the glue menus' sub navigation list, 30px rows in the body face, each a `ChamferTemplate` plate (the game's cut corners). Hover is the veil plate on the blue panel edge with a quarter-strength beam; selected is the glow-wash plate on the lit edge with the full 2px beam (`TabItemIndicatorBrush`) lit under it, fading out at both ends, and a white label. Children sit under a 1px blue guide. The title band is 40px: the navigation gradient lifted by a blue glow from its lower edge, the title on a chamfered sub navigation plate with the lit beam under it, a status tick ruler and the ghosted hex mark at the right end, and a blue panel edge closing the band; caption buttons are 44x40.
 
@@ -56,9 +57,9 @@ The rest (TextBox, PasswordBox, ScrollViewer, ProgressBar, TabControl, Expander,
 
 ## Deviations
 
-- **Uppercase:** WPF has no text-transform. Navigation titles and string button labels go through Playnite's `StringToUpperCaseConverter`. Headings from Playnite's `LOC` strings and data-bound text (game title, group names) can't take a converter where they are set from code or through `ObjectToStringConverter`, so they use `Typography.Capitals="AllSmallCaps"`, which shows them as typed with fonts that have no small caps (Bahnschrift, most Eurostile builds).
+- **Uppercase:** WPF has no text-transform. Navigation titles and string button labels go through Playnite's `StringToUpperCaseConverter`. Headings from Playnite's `LOC` strings and data-bound text (game title, group names) can't take a converter where they are set from code or through `ObjectToStringConverter`, so they use `Typography.Capitals="AllSmallCaps"`, which shows them as typed with fonts that have no small caps (the bundled Orbitron, most Eurostile builds).
 - **No letter-spacing, no blur**: the game's tracked capitals and blurred glass behind the bar are not possible; glows are radial gradients masked onto `FrameInnerBrush`, never `DropShadowEffect`.
-- **Not the game's font**: Eurostile Extended is used only if installed. Bahnschrift is narrower, so tabs are shorter than in the game.
+- **Not the game's font**: the bundled Orbitron stands in for Eurostile Extended; it is a little wider, so long tab labels run wider than in the game.
 - **No hexagon pattern, no 3D scenes**: the bar's animated hex shimmer and the menu backgrounds are game art; the library shows the game's own background art instead.
 - Playnite templates this theme does not replace (DataGrid in List view, DatePicker, TreeView, notification panel, add-on views) take the colors, not the chamfers.
 
@@ -68,7 +69,7 @@ Source: [`RESEARCH.md`](RESEARCH.md) -> Motion (hover fades 0.4s, selected glow 
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` replicate the XAML (`scripts/take-screenshots.ps1 -Extension uplink`): the 44px rail with the boxed home plate (22px hexagon) and 44x40 items with a lit beam on the current one, the 48px sub navigation strip, 1px-ruled game rows with a glow wash and light blue bar on the current game, chamfered plates (Play 180x40 in the call-to-action blue, icon-only 40x40 More and Edit 10px apart), and the unboxed Game Details column (heading over the lit divider, 120px caption column in the heading sans beside the values, 1px group rules). Icons are the `Media.xaml` strokes (1.5px, miter joins, flat caps). The heading sans is drawn as `Bahnschrift SemiBold` (Barlow stand-in), what most machines resolve, since Eurostile Extended is not bundled; headings show as typed (AllSmallCaps has no effect on it), button labels are uppercase (`StringToUpperCaseConverter`). The details preview uses `GameBannerHeight` 200 (default 320) so the page fits; the spacer above the title scales with it (`x * 100 / 320`).
+`art/preview-details.html` and `art/preview-settings.html` replicate the XAML (`scripts/take-screenshots.ps1 -Extension uplink`): the 44px rail with the boxed home plate (22px hexagon) and 44x40 items with a lit beam on the current one, the 48px sub navigation strip, 1px-ruled game rows with a glow wash and light blue bar on the current game, chamfered plates (Play 180x40 in the call-to-action blue, icon-only 40x40 More and Edit 10px apart), and the unboxed Game Details column (heading over the lit divider, 120px caption column in the heading sans beside the values, 1px group rules). Icons are the `Media.xaml` strokes (1.5px, miter joins, flat caps). The heading face is Orbitron, the font the theme bundles in `src/Typography/`; headings show as typed (Orbitron has no small caps, so AllSmallCaps has no effect), button labels are uppercase (`StringToUpperCaseConverter`). The details preview uses `GameBannerHeight` 200 (default 320) so the page fits; the spacer above the title scales with it (`x * 100 / 320`).
 
 ## Not verified yet
 

@@ -53,7 +53,7 @@ Colors were sampled in Chromium from the full-size images (canvas `getImageData`
 ## Typography
 
 - Game Font Library lists **Raleway** as the main face, **Ubuntu** second and **Julius Sans One** third. The captures agree: headings ("Crash()", "User Level 2") are a geometric sans with Raleway's pointed W and tall caps; small labels ("ACTIVE SLOT EFFECT", "FUNCTION", "USER LEVEL") are the same face in bold caps; body copy is a humanist sans. The pause-menu wordmark is wide-tracked thin caps. Not confirmed by Supergiant; treat as a strong match, not a fact.
-- Playnite themes cannot ship fonts (no `Fonts/` folder), so the stacks name the faces first and fall back to what Windows has: headings `Raleway, Century Gothic, Segoe UI`; body `Ubuntu, Segoe UI`. Users without Raleway see Century Gothic (Office) or Segoe UI.
+- Headings use Sora, bundled in `src/Typography/` (Regular, SemiBold, Bold) as the stand-in for Raleway; body `Ubuntu, Segoe UI`.
 - Sizes in the game at 1080p: section labels ~22px caps, function names ~30px bold, body ~18px, HUD labels ~15px caps. At Playnite's 14px base that maps to 12 (labels, caps), 14 (body), 20 (names), 29 (title).
 - Case: section headers and HUD labels are all caps; names are title case with a trailing `()` (`Crash()`, `Turn()`, `Jaunt()`). WPF has no text-transform, so caps can only be used on the theme's own strings, not on Playnite's localized labels.
 

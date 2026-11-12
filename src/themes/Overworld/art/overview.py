@@ -98,7 +98,7 @@ def field_xaml(field, label, kind, part, beside):
             '        <ColumnDefinition Width="12" />\n'
             '        <ColumnDefinition Width="3*" />\n'
             '    </Grid.ColumnDefinitions>\n'
-            f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSizeSmall}}" TextWrapping="Wrap" VerticalAlignment="Top" />\n'
+            f'    <TextBlock Text="{{DynamicResource {label}}}" Style="{{DynamicResource HeadingTextBlock}}" FontSize="{{DynamicResource FontSize}}" TextWrapping="Wrap" VerticalAlignment="Top" />\n'
             + indent(grid_value, 4) + "\n"
             '</Grid>')
 
@@ -138,7 +138,7 @@ def pane_xaml(beside):
     # The pane is a list panel of the game's menus (ExpanderBackgroundBrush) in the 1px black widget outline.
     width_key = "GameDetailsPaneWidth" if beside else "GridDetailsPaneWidth"
     return ('<Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource SlotBorderBrush}"\n'
-            '        BorderThickness="1" Padding="16,4,16,4">\n'
+            '        BorderThickness="1" Padding="16,16,16,16">\n'
             f'    <Border ClipToBounds="True" Width="{{DynamicResource {width_key}}}">\n'
             f'        <StackPanel Margin="0,{top},0,-{FIELD_GAP}">\n'
             + indent(groups, 12) + "\n"
@@ -251,6 +251,9 @@ def hero(brush, name="HeroArt"):
                 <DataTrigger Binding="{{Binding Visibility, ElementName=PART_ImageBackground}}" Value="Collapsed">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
+                <DataTrigger Binding="{{Settings ShowBackgroundImageOnWindow}}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Grid.Style>
@@ -266,6 +269,19 @@ def hero(brush, name="HeroArt"):
     </Grid.OpacityMask>
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <Rectangle Fill="{{DynamicResource GameBannerTintBrush}}" Opacity="{{DynamicResource GameBannerDarken}}" IsHitTestVisible="False" />
+    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+    <Rectangle Fill="{{DynamicResource GameBannerTintBrush}}" Opacity="0.5" Tag="{{DynamicResource GameBannerDarken}}" IsHitTestVisible="False">
+        <Rectangle.Style>
+            <Style TargetType="Rectangle">
+                <Style.Triggers>
+                    <DataTrigger Binding="{{Binding Tag, RelativeSource={{RelativeSource Self}}}}" Value="0">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Rectangle.Style>
+    </Rectangle>
     <!-- Scrim: the page's own brush, light at the top, closing in toward the title. -->
     <Border Background="{{DynamicResource {brush}}}">
         <Border.OpacityMask>
@@ -420,7 +436,17 @@ def details():
     </StackPanel>
 </DockPanel>'''
 
-    body = f'''<Grid Background="{{DynamicResource ContentBackgroundBrush}}">
+    body = f'''<Grid>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background" Value="{{DynamicResource ContentBackgroundBrush}}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{{Settings ShowBackgroundImageOnWindow}}" Value="True">
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
     <Grid>
         <Grid.Style>
             <Style TargetType="Grid">
@@ -618,9 +644,10 @@ def grid_panel():
     </Button.Template>
 </Button>'''
 
-    body = f'''<Border BorderBrush="{{DynamicResource SlotBorderBrush}}" Background="{{DynamicResource NormalBrush}}">
+    body = f'''<Border BorderBrush="{{DynamicResource SlotBorderBrush}}">
     <Border.Style>
         <Style TargetType="Border">
+            <Setter Property="Background" Value="{{DynamicResource NormalBrush}}" />
             <Setter Property="BorderThickness" Value="1,0,0,0" />
             <Style.Triggers>
                 <DataTrigger Binding="{{Settings GridViewDetailsPosition}}" Value="Left">
@@ -628,6 +655,9 @@ def grid_panel():
                 </DataTrigger>
                 <DataTrigger Binding="{{Settings ShowPanelSeparators}}" Value="False">
                     <Setter Property="BorderThickness" Value="0" />
+                </DataTrigger>
+                <DataTrigger Binding="{{Settings ShowBackgroundImageOnWindow}}" Value="True">
+                    <Setter Property="Background" Value="Transparent" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>

@@ -12,7 +12,7 @@ Mojang publishes no design system. Values were read from the game itself; `token
 | `[eye]` | Window, rail and library surfaces, list background flattened for popups, row hover veil, XP green | Chosen between sourced values. |
 | Icons | Pixelarticons 2.4.1 (MIT), whole pixels on a 24px grid | `art/icons.py` writes the geometries into `src/Media.xaml` and the menu PNGs into `src/Images/Pixel`. `info/LICENSE-pixelarticons.txt`. |
 | Tile icon | `art/mark.svg` (original isometric block), default orange | `scripts/render-addon-icon.py` |
-| Font | Monocraft (OFL 1.1) suggested, not bundled; Minecraftia is personal-use only, so only named | |
+| Font | Pixelify Sans (OFL 1.1) bundled in `src/Typography/` as the pixel face; Minecraftia is personal-use only, so only named | |
 | Playnite | Every file starts from the Playnite 10.60 Default theme (MIT, `info/LICENSE-Playnite.txt`); game page and side panels follow the shared skeleton | |
 
 Sizes are the game's at **GUI scale 2**: 1 sprite pixel = 2px (outlines, bevel edges), buttons 40px tall.

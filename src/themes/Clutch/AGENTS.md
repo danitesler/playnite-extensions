@@ -16,7 +16,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 `src/tokens.css` keeps the game's `@define` names verbatim (`baseText`, `selectedNavColor`, ...) and names the rest after their selector. `Constants.template.xaml` maps them:
 
-Library art: `Views/Library.xaml` lays a black scrim over it with the game's menu vignette (`#DD` at the top fading out by 25%, `#94` over the bottom 15%, `ScrimBrush`).
+Library art: `Views/Library.xaml` shows the game art only while Playnite's window background setting is on, at full strength with Playnite's own darken and blur (repo rule "Window background").
 
 Type: 12 / 14 / 16 / 20 / 35. `HtmlTextView` reads the Colors of the brushes on its `TextElement.Foreground` and `Tag`, so ThemeModifier brush edits reach the description too.
 
@@ -34,8 +34,7 @@ Type: 12 / 14 / 16 / 20 / 35. `HtmlTextView` reads the Colors of the brushes on 
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px icon rail on the navbar color with the crosshair (main menu) on top; 32px plates, selected = wash + blue glyph. Top/bottom docking: a 64px strip where view items become uppercase tabs. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons (Material window icons), red close hover, 64px caption height. |
 | `Views/MainWindow.xaml` | Default layout, notifications slide in from the right. |
-| `Views/Library.xaml` | Background art over both rows with the menu vignette; library layer at `rgba(20,20,20,0.4)`. |
-
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 **Settings chrome.** The CS2 navbar as a 44px band: the crosshair mark in `selectedNavColor`, a thin white-30% vertical rule, the title in Bahnschrift, a giant crosshair ghosted at 8% into the right end and the navbar's 1px rule closing it; 40x32 caption buttons. Section list (`DefaultControls/TreeView.xaml`): 30px rows, body face, navbar tabs laid vertically; hover = white-5% wash with a faint underline, selected = pale-blue tab wash, `selectedNavColor` type and a solid 2px underline across the row; children under a 1px navbar-separator rule; width 256 (Settings), 280 (Add-ons).
 
 ## Game page

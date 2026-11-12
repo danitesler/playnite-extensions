@@ -776,6 +776,100 @@ function Test-SidePanelCloseButton {
     return @($errors)
 }
 
+function Test-WindowBackground {
+    <#
+        AGENTS.md "Window background": Playnite's "Use game background image as window background" is the only way a
+        theme shows game art behind the library. Library.xaml shows PART_ImageBackground at full strength (no Opacity,
+        Visibility or Effect on it, no OpacityMask around it, no ScrimBrush/ArtTintBrush layer after it; a fade at its own bottom edge is fine):
+        Playnite's darken and blur are the only treatment. With the setting off, GameBannerDarken (ThemeModifier) darkens the banner. Both game pages collapse the banner while the setting is on, so
+        GameBannerHeight has no effect, and the Slider style disables ThemeModifier's banner height slider then.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $setting = '{Settings ShowBackgroundImageOnWindow}'
+    $xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml"
+
+    $relative = "Views/Library.xaml"
+    $path = Join-Path $Directory $relative
+    if (Test-Path $path) {
+        $doc = Read-XamlDocument $path
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        $image = if ($doc) { $doc.SelectSingleNode("//*[local-name()='FadeImage'][@*[local-name()='Name']='PART_ImageBackground']") }
+        if ($image) {
+            foreach ($attribute in @('Opacity', 'Visibility')) {
+                if ($image.GetAttribute($attribute)) {
+                    $errors.Add("${where}: PART_ImageBackground sets $attribute. Show the window art at full strength; Playnite's darken and blur settings are the only treatment (AGENTS.md Window background).") | Out-Null
+                }
+            }
+            if ($image.SelectSingleNode("./*[local-name()='FadeImage.Effect']")) {
+                $errors.Add("${where}: PART_ImageBackground has an Effect. Playnite's blur setting blurs the window art; drop the theme's own (AGENTS.md Window background).") | Out-Null
+            }
+            $ancestor = $image.ParentNode
+            while ($ancestor -and $ancestor.LocalName -ne 'ControlTemplate') {
+                if ($ancestor.SelectSingleNode("./*[local-name()='$($ancestor.LocalName).OpacityMask']")) {
+                    $errors.Add("${where}: PART_ImageBackground sits inside an OpacityMask ($($ancestor.LocalName)). Show the whole art; no fades or feathering (AGENTS.md Window background).") | Out-Null
+                    break
+                }
+                $ancestor = $ancestor.ParentNode
+            }
+            $sibling = $image.NextSibling
+            while ($sibling) {
+                if ($sibling.NodeType -eq 'Element' -and $sibling.OuterXml -match '\{DynamicResource (ScrimBrush|ArtTintBrush)\}' -and $sibling.LocalName -notin @('TopPanel', 'DockPanel')) {
+                    $errors.Add("${where}: a $($sibling.LocalName) in $($Matches[1]) covers PART_ImageBackground. No theme scrim or tint over the window art: Playnite's darken setting is the tint (AGENTS.md Window background).") | Out-Null
+                    break
+                }
+                $sibling = $sibling.NextSibling
+            }
+        }
+    }
+
+    foreach ($view in @('DetailsViewGameOverview', 'GridViewGameOverview')) {
+        $relative = "Views/$view.xaml"
+        $path = Join-Path $Directory $relative
+        if (-not (Test-Path $path)) { continue }
+        $doc = Read-XamlDocument $path
+        if (-not $doc) { continue }
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        $banners = @($doc.SelectNodes("//*[@Height='{DynamicResource GameBannerHeight}' or @MaxHeight='{DynamicResource GameBannerHeight}']"))
+        if ($banners.Count -gt 0 -and -not $doc.SelectSingleNode("//*[@Opacity='0.5' and @Tag='{DynamicResource GameBannerDarken}']")) {
+            $errors.Add("${where}: no banner darkening floor. After the darkening layer add the same brush at Opacity=`"0.5`" with Tag=`"{DynamicResource GameBannerDarken}`", collapsed by a DataTrigger on Tag = 0, so any value above 0 starts at 50% (AGENTS.md Window background).") | Out-Null
+        }
+        if ($banners.Count -gt 0 -and -not $doc.SelectSingleNode("//*[@Opacity='{DynamicResource GameBannerDarken}']")) {
+            $errors.Add("${where}: no banner darkening layer. Add <Rectangle Fill=`"{DynamicResource GameBannerTintBrush}`" Opacity=`"{DynamicResource GameBannerDarken}`" IsHitTestVisible=`"False`" /> right after the banner's PART_ImageBackground (AGENTS.md Window background).") | Out-Null
+        }
+        foreach ($banner in $banners) {
+            $name = $banner.GetAttribute("Name", $xamlNs)
+            $collapses = $banner.SelectSingleNode("./*[local-name()='$($banner.LocalName).Style']//*[local-name()='DataTrigger'][@Binding='$setting' and @Value='True']/*[local-name()='Setter'][@Property='Visibility' and @Value='Collapsed']")
+            if (-not $collapses) {
+                $label = if ($name) { $name } else { $banner.LocalName }
+                $errors.Add("${where}: the banner ($label, GameBannerHeight) does not collapse while Playnite draws the game art behind the window. Add a DataTrigger Binding=`"$setting`" Value=`"True`" setting Visibility Collapsed to its Style (AGENTS.md Window background).") | Out-Null
+            }
+        }
+    }
+
+    $relative = "DefaultControls/Slider.xaml"
+    $path = Join-Path $Directory $relative
+    if (Test-Path $path) {
+        $doc = Read-XamlDocument $path
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        foreach ($key in @('GameBannerHeight', 'GameBannerDarken')) {
+        $ok = $false
+        if ($doc) {
+            foreach ($trigger in $doc.SelectNodes("//*[local-name()='Style'][@TargetType='{x:Type Slider}']/*[local-name()='Style.Triggers']/*[local-name()='MultiDataTrigger']")) {
+                $xml = $trigger.OuterXml
+                if ($xml -match 'Children\[0\]\.Tag' -and $xml -match "Value=`"$key`"" -and $xml.Contains($setting) -and
+                    $trigger.SelectSingleNode("./*[local-name()='Setter'][@Property='IsEnabled' and @Value='False']")) { $ok = $true }
+            }
+        }
+        if (-not $ok) {
+            $errors.Add("${where}: the Slider style does not disable ThemeModifier's $key slider while Playnite's window background is on (MultiDataTrigger: Children[0].Tag of the ancestor Grid = $key and $setting = True -> IsEnabled False, Opacity 0.4; AGENTS.md Window background).") | Out-Null
+        }
+        }
+    }
+    return @($errors)
+}
+
 function Test-FilterActiveIndicator {
     <#
         AGENTS.md "Active-state indicators": the top panel's filter toggle never prints a word ("Filter Active") when a
@@ -1025,7 +1119,7 @@ if ($isTheme) {
                 $errors.Add("Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')")
             }
             $themeSourceRoot = "$($profile.dir)/src"
-            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $scratch -SourceRoot $themeSourceRoot)) {
+            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-WindowBackground -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $scratch -SourceRoot $themeSourceRoot)) {
                 $errors.Add($ruleError)
             }
             foreach ($ruleError in @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot -Advisory)) {
@@ -1194,6 +1288,14 @@ if ($isTheme -and (Get-Command node -ErrorAction SilentlyContinue)) {
             }
         }
         catch { $previewNotes.Add("preview token check could not run: $($_.Exception.Message)") }
+    }
+}
+
+# Fonts: Playnite must draw the faces the previews draw. A stack led by a font Windows lacks falls back at runtime
+# while the preview shows its stand-in, so such faces are bundled in src/Typography (theme-fonts.mjs).
+if ($isTheme -and (Get-Command node -ErrorAction SilentlyContinue)) {
+    foreach ($line in @(& node (Join-Path $PSScriptRoot "theme-fonts.mjs") (Join-RepoPath $profile.dir) 2>&1)) {
+        $errors.Add("Fonts: $("$line" -replace '^error: ', '')") | Out-Null
     }
 }
 

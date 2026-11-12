@@ -74,10 +74,10 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Uplink | 56px navigation rail (glow and lit line on the current item), top panel as a 48px sub navigation strip; with the sidebar at the top, an uppercase tab bar |
 | Ancient | 44px compact slate navigation rail on the left (blue glow behind the current item), top panel as a 52px black strip with the view buttons left and search right, library art behind the strip |
 | Clutch | 64px black navbar with centered icon view buttons between thin rules, 44px compact icon rail, translucent panels over the library art |
-| Libertalia | 44px compact black icon rail and a bar-less top row over the darkened library art; icon view switches between thin "|" rules, selection as a feathered smudge, framed near-black panels |
+| Libertalia | 44px compact black icon rail and a bar-less top row over the library art; icon view switches between thin "|" rules, selection as a feathered smudge, framed near-black panels |
 | Ayywi | One black surface; 44px compact icon rail, 56px top bar with 12px rounded toggles and search box, cards and hairlines instead of fills |
 | Dropzone | 44px compact sidebar-navy icon rail with a slanted blue plate for the current item; the top panel is a row of icon view buttons on the bare bar (current = light grey pill) with yellow dots as separators; library over the art under a navy wash |
-| Attache | 44px compact icon rail with pewter selection plates on near black, transparent 56px top strip over darkened library art |
+| Attache | 44px compact icon rail with pewter selection plates on near black, transparent 56px top strip over the library art |
 | Biome | Night-sky window; 44px compact list-panel rail with hotbar-slot items, see-through 64px top bar with icon view switches (gold when current), panels with 2px black edges |
 | Medallion | 44px compact near-black icon rail on the left with a brush edge and the medallion on top; header row on the bare black page; the current item takes the amber wash fading left to right with an orange left bar |
 | Overworld | 44px compact rail of bare 16px pixel icons that fill the whole cell on hover/current, top panel as a 52px dark tab strip with filled tabs and 20px icons, blurred game art behind the library |
@@ -92,6 +92,10 @@ Each theme lays the shell out its own way; the mechanics are the same:
 | Holotape | 44px compact void-black rail closed by a 1px rule, current item boxed in a 1px green outline; transparent 52px top bar ending in a 1px rule with end ticks; warm dark yellow-brown page with faint scanlines behind the art |
 | Blacklist | 44px compact stripe-black rail with an amber main menu block and amber bracket boxes on the current item, 56px header band closed by a 6px hazard stripe, amber-brown panels with L brackets and striped title bands |
 | Mann Co | 44px compact brown rail with a tan menu plate and tan paper plates for the current item, 52px top bar ending in a 3px RED and BLU rule, flat dark brown page |
+| Relay | 44px compact warm black rail with a lime main menu over a slanted lime tick, the current item an olive cut-corner plate with a lime rim and a lime tick on the rail edge; 52px top bar closed by a dark copper rule with a lit copper segment; amber-washed library art |
+| Tarnish | 44px compact rail in the void with no plates: a pale gold main menu glyph on a gold light streak, the current item a gold glyph over a soft glow with the streak under it and a gold diamond on the rail edge; 52px top bar closed by a hairline that fades out to the right, frameless icon cells; library art under an olive haze rising from the bottom |
+| Bloodpetal | 44px compact rail of dark cut stone closed by an iron line, the main menu a 32px blood plate with a gilt petal, the current item a blood plate with a gilt glyph and an ember bar on the rail edge; 52px stone top bar closed by the ember seam (a molten crack), 34px cells that lift a stone slab on hover and turn to blood plates when toggled; library art under a red wash with a low blood glow |
+| Slipstream | Light paper shell: 44px plate rail with a hairline, the main menu a 32px teal disc, the current item a vermilion disc with a paper-white glyph and a notched vermilion arrow on the rail edge; 56px paper top bar closed by a 2px ink rule, 32px ghost pills that turn vermilion when toggled, a 280px pill search well; library art under an 86% paper wash |
 
 ## Game page
 

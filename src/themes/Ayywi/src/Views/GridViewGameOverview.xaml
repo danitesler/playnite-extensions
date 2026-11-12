@@ -92,10 +92,15 @@
                             </Grid>
 
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
-                                <Grid x:Name="PageRoot" Background="{DynamicResource ContentBackgroundBrush}">
+                                <!-- The page colour, see-through while Playnite draws the game art behind the whole window (its window background setting). -->
+                                <Grid x:Name="PageRoot">
                                     <Grid.Style>
                                         <Style TargetType="Grid">
+                                            <Setter Property="Background" Value="{DynamicResource ContentBackgroundBrush}" />
                                             <Style.Triggers>
+                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                 </DataTrigger>
@@ -106,11 +111,15 @@
                                         </Style>
                                     </Grid.Style>
                                 <!-- Banner: the game's background art as a band of GameBannerHeight (0 turns it off), faded into the page by a gradient on top
-                                     (not a mask). Collapsed when the game has no background art or Playnite hides the image. -->
+                                     (not a mask). Collapsed when the game has no background art or Playnite hides the image. Collapsed while Playnite draws
+                                     the art behind the whole window, so GameBannerHeight has no effect there. -->
                                 <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                     <Grid.Style>
                                         <Style TargetType="Grid">
                                             <Style.Triggers>
+                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                 </DataTrigger>
@@ -122,6 +131,19 @@
                                     </Grid.Style>
                                     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
+                                    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+                                    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
+                                        <Rectangle.Style>
+                                            <Style TargetType="Rectangle">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Rectangle.Style>
+                                    </Rectangle>
                                     <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark patches on
                                      scaled displays. The fade is a plain gradient to the page color, read from the page brush (PageRoot). -->
                                 <Rectangle>
@@ -386,11 +408,11 @@
                                                     BorderBrush="{DynamicResource WindowPanelSeparatorBrush}" BorderThickness="1"
                                                     CornerRadius="{DynamicResource CornerRadiusLarge}" Padding="{DynamicResource GroupBoxPadding}">
                                                 <Border.Resources>
-                                                    <!-- Values are body text; a TextBlock with Tag="Caption" is the field caption (12px, medium, muted) -->
+                                                    <!-- Values are body text; a TextBlock with Tag="Caption" is the field caption (body size, medium, muted) -->
                                                     <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
                                                         <Style.Triggers>
                                                             <Trigger Property="Tag" Value="Caption">
-                                                                <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}" />
+                                                                <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
                                                                 <Setter Property="FontWeight" Value="Medium" />
                                                                 <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
                                                                 <Setter Property="TextWrapping" Value="Wrap" />

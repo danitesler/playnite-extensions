@@ -1,0 +1,247 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Relay - details view</title>
+<style>
+  /* Relay preview: Playnite details view. Colors come from src/tokens.css (injected at render time).
+     Unofficial fan theme inspired by the Mass Effect 2 menus; no game art, logo or font. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: var(--me-void); color: var(--me-sand);
+    font-family: "Segoe UI", sans-serif; font-size: 14px;
+  }
+  .hd { font-family: Orbitron, "Segoe UI", sans-serif; }
+  svg.i { width: 16px; height: 16px; fill: currentColor; display: block; }
+  .app { position: absolute; inset: 0; display: flex; }
+
+  /* Cut-corner plate: rim layer + fill layer, top-left and bottom-right corners cut. */
+  .plate { position: relative; --c: 7px; --fill: var(--me-plate); --rim: var(--me-rim); }
+  .plate::before, .plate::after { content: ""; position: absolute; pointer-events: none;
+    clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c)); }
+  .plate::before { inset: 0; background: var(--rim); }
+  .plate::after { inset: 1px; background: var(--fill);
+    clip-path: polygon(calc(var(--c) - 0.4px) 0, 100% 0, 100% calc(100% - var(--c) + 0.4px), calc(100% - var(--c) + 0.4px) 100%, 0 100%, 0 calc(var(--c) - 0.4px)); }
+  .plate > * { position: relative; z-index: 1; }
+  .hex { position: absolute; left: 0; right: 0; top: var(--c); bottom: var(--c); z-index: 1; opacity: .22; background: var(--rim);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6.928' height='12' viewBox='0 0 6.928 12'%3E%3Cpath d='M3.464,0 L6.928,2 L6.928,6 L3.464,8 L0,6 L0,2 Z M3.464,8 L3.464,12' fill='none' stroke='white' stroke-width='0.7'/%3E%3C/svg%3E") repeat; }
+
+  /* Sidebar: 44px rail */
+  .sidebar { width: 44px; flex: none; background: var(--me-void); border-right: 1px solid var(--me-rule); display: flex; flex-direction: column; }
+  .mainmenu { height: 52px; display: flex; align-items: center; justify-content: center; color: var(--me-lime); position: relative; margin-bottom: 4px; }
+  .mainmenu .tick { position: absolute; bottom: 6px; left: 11px; width: 22px; height: 2px; background: var(--me-lime); clip-path: polygon(2px 0, 100% 0, calc(100% - 2px) 100%, 0 100%); }
+  .sitem { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--me-amber); position: relative; }
+  .sitem .bg { position: absolute; left: 6px; right: 6px; top: 2px; bottom: 2px; --c: 5px; }
+  .sitem.on { color: var(--me-lime); }
+  .sitem.on .bg { --fill: var(--me-olive); --rim: var(--me-lime); }
+  .sitem.on::before { content: ""; position: absolute; left: 0; top: 10px; width: 3px; height: 20px; background: var(--me-lime); clip-path: polygon(0 3px, 100% 0, 100% 17px, 0 100%); }
+  .sitem svg { position: relative; z-index: 2; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--me-hull); }
+
+  /* Top bar: 52px, rule with a copper segment */
+  .top { height: 52px; flex: none; background: var(--me-void); position: relative; display: flex; align-items: center; padding: 0 0 0 10px; }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--me-rule); }
+  .top::before { content: ""; position: absolute; left: 0; bottom: 0; width: 240px; height: 2px; background: var(--me-copper); clip-path: polygon(0 0, 100% 0, calc(100% - 2px) 100%, 0 100%); z-index: 1; }
+  .search { width: 240px; height: 32px; --c: 6px; --fill: var(--me-panel); --rim: var(--me-rim); display: flex; align-items: center; padding-left: 9px; color: var(--me-dust); }
+  .search span { margin-left: 8px; font-size: 14px; color: var(--me-dust); }
+  .tbtn { width: 32px; height: 32px; margin-left: 6px; display: flex; align-items: center; justify-content: center; color: var(--me-amber); position: relative; }
+  .tbtn .bg { position: absolute; inset: 0; --c: 5px; --fill: transparent; --rim: transparent; }
+  .tbtn.on { color: var(--me-lime); }
+  .tbtn.on .bg { --fill: var(--me-olive); --rim: var(--me-lime); }
+  .tbtn svg { position: relative; z-index: 2; }
+  .mark { position: absolute; right: 5px; top: 4px; width: 8px; height: 9px; background: var(--me-lime); z-index: 3;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .items { display: flex; }
+  .spacer { flex: 1; }
+  .caption { display: flex; align-self: flex-start; }
+  .caption div { width: 40px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--me-dust); }
+
+  .body { flex: 1; display: flex; min-height: 0; }
+
+  /* Game list */
+  .list { width: 250px; flex: none; padding: 8px 0; border-right: 1px solid var(--me-rule); }
+  .row { height: 32px; display: flex; align-items: center; padding: 0 12px; gap: 10px; color: var(--me-sand); position: relative; }
+  .row .ic { width: 20px; height: 20px; flex: none; background: var(--me-plate); border: 1px solid var(--me-rim); }
+  .row.dim { color: var(--me-dust); }
+  .row.sel { background: var(--me-olive); border-top: 1px solid var(--me-lime); border-bottom: 1px solid var(--me-lime); color: var(--me-lime); }
+  .row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--me-lime); clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%); }
+  .row.hov { background: var(--me-row-hover); border-left: 2px solid var(--me-orange); }
+
+  /* Game page */
+  .page { flex: 1; position: relative; overflow: hidden; background: var(--me-hull); min-width: 0; }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 330px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 340px 200px at 70% 38%, rgba(255, 160, 80, .55), transparent 70%),
+      radial-gradient(ellipse 260px 160px at 30% 30%, rgba(70, 120, 160, .45), transparent 70%),
+      radial-gradient(circle at 78% 30%, rgba(255, 230, 190, .7) 0 14px, transparent 40px),
+      linear-gradient(170deg, #1c2430 0%, #2a1a12 55%, #120806 100%); }
+  .hero::before { content: ""; position: absolute; inset: 0; background: var(--me-plate); opacity: .3; }
+  .hero .scan { position: absolute; inset: 0; opacity: .35;
+    background: repeating-linear-gradient(to bottom, var(--me-void) 0 1px, transparent 1px 3px); }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--me-hull) 96%); }
+  .content { position: absolute; left: 28px; right: 28px; top: 176px; }
+  .head { display: flex; align-items: center; margin-bottom: 20px; }
+  .gicon { width: 32px; height: 32px; margin-right: 12px; background: var(--me-plate-hi); border: 1px solid var(--me-orange); }
+  .title { flex: 1; font-size: 28px; color: var(--me-lime); letter-spacing: .5px; }
+  .actions { display: flex; align-items: center; }
+  .play { width: 160px; height: 40px; --c: 10px; --fill: var(--me-lime-deep); --rim: var(--me-lime); display: flex; align-items: center; justify-content: center;
+    color: var(--me-lime); font-size: 18px; filter: drop-shadow(0 0 8px rgba(173, 252, 100, .25)); }
+  .play .hex { --rim: var(--me-lime); }
+  .sq { width: 40px; height: 40px; margin-left: 8px; display: flex; align-items: center; justify-content: center; color: var(--me-gold); }
+  .sq .hex { --c: 7px; }
+
+  .cols { display: flex; gap: 24px; align-items: flex-start; }
+  .text { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 8px; margin-bottom: 18px; }
+  .shot { height: 96px; flex: 1; border: 1px solid var(--me-rim); position: relative; overflow: hidden;
+    background: linear-gradient(160deg, #2c3640, #3a2214 60%, #160a06); }
+  .shot:nth-child(2) { background: linear-gradient(200deg, #40301e, #1c1410 70%); }
+  .shot:nth-child(3) { background: linear-gradient(130deg, #1e2a30, #2c160c); }
+  .shot::after { content: ""; position: absolute; inset: 0; opacity: .3; background: repeating-linear-gradient(to bottom, var(--me-void) 0 1px, transparent 1px 3px); }
+  .rule { width: 140px; height: 4px; position: relative; margin-bottom: 12px; }
+  .rule::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--me-orange); opacity: .55; }
+  .rule::after { content: ""; position: absolute; left: 0; bottom: 0; width: 21px; height: 4px; background: var(--me-orange); clip-path: polygon(3px 0, 100% 0, 18px 100%, 0 100%); }
+  .desc p { line-height: 1.5; margin-bottom: 10px; color: var(--me-sand); }
+  .desc a { color: var(--me-lime); text-decoration: none; }
+
+  .meta { width: 326px; flex: none; position: relative; padding: 13px 13px 14px; --c: 12px; --fill: var(--me-panel); --rim: var(--me-copper);
+    filter: drop-shadow(0 0 10px rgba(160, 92, 52, .22)); }
+  .meta .tick { position: absolute; left: 16px; top: -1px; width: 44px; height: 3px; background: var(--me-lime); clip-path: polygon(0 0, 100% 0, 41px 100%, 0 100%); z-index: 2; }
+  .meta .plus { position: absolute; right: 7px; top: 7px; width: 9px; height: 9px; z-index: 2; color: var(--me-orange); }
+  .grp { border-top: 1px solid var(--me-rule); padding: 4px 0; }
+  .grp:first-of-type { border-top: 0; }
+  .f { display: grid; grid-template-columns: 2fr 3fr; gap: 12px; padding: 5px 0; align-items: start; }
+  .f .k { color: var(--me-dust); font-size: 12px; padding-top: 2px; }
+  .f .v { color: var(--me-sand); }
+  .f .v a { color: var(--me-orange); text-decoration: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { position: relative; padding: 3px 11px; font-size: 12px; color: var(--me-sand); }
+  .chip::before { content: ""; position: absolute; inset: 0; background: var(--me-rim); clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+  .chip::after { content: ""; position: absolute; inset: 1px; background: var(--me-panel-hi); clip-path: polygon(4.6px 0, 100% 0, calc(100% - 4.6px) 100%, 0 100%); }
+  .chip span { position: relative; z-index: 1; }
+  .score { color: var(--me-lime); }
+  .foot { position: absolute; right: 12px; bottom: 6px; font-size: 10px; color: var(--me-dust); opacity: .7; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7,0H12L15,3V8L12,11H7L4,8V3ZM7.8,2L6,3.8V7.2L7.8,9H11.2L13,7.2V3.8L11.2,2ZM4,9.6L5.4,11L1.4,15L0,13.6Z"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 16 16"><path d="M0,1H16L10,8V14L6,16V8Z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 16 16"><path d="M0,1H16V3H0ZM0,7H11V9H0ZM0,13H6V15H0Z"/></symbol>
+    <symbol id="i-group" viewBox="0 0 16 16"><path d="M3,0H16V11H14.5V1.5H3ZM0,4H12V16H2L0,14Z"/></symbol>
+    <symbol id="i-details" viewBox="0 0 16 16"><path d="M0,0H6V2H0ZM0,4.67H6V6.67H0ZM0,9.33H6V11.33H0ZM0,14H6V16H0ZM8,0H16V16H10L8,14Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 16 16"><path d="M0,0H7V7H0ZM9,0H16V7H9ZM0,9H7V16H0ZM9,9H16V14L14,16H9Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 16 16"><path d="M0,1H3V3.5H0ZM5,1H16V3.5H5ZM0,6.75H3V9.25H0ZM5,6.75H16V9.25H5ZM0,12.5H3V15H0ZM5,12.5H16V15H5Z"/></symbol>
+    <symbol id="i-view" viewBox="0 0 16 16"><path d="M0,2H16V3.5H0ZM0,7.25H16V8.75H0ZM0,12.5H16V14H0ZM4,0H8L7,5.5H3ZM10,5H14L13,11H9ZM3,10.25H7L6,16H2Z"/></symbol>
+    <symbol id="i-notif" viewBox="0 0 16 16"><path d="M6,0H10V1.2L13,3V10L15,12V13H1V12L3,10V3L6,1.2ZM6,14H10L9,16H7Z"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 16 16"><path d="M1,2H16L15,4H0ZM1,7H16L15,9H0ZM1,12H16L15,14H0Z"/></symbol>
+    <symbol id="i-library" viewBox="0 0 16 16"><path d="M0,0H3V16H0ZM5,0H8V16H5ZM10,1.2L12.9,0.4L16,15.2L13.1,16Z"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 16 16"><path d="M0,10H3.5V16H0ZM4.17,5H7.67V16H4.17ZM8.33,8H11.83V16H8.33ZM12.5,1H16V16H12.5Z"/></symbol>
+    <symbol id="i-random" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2,0H14L16,2V14L14,16H2L0,14V2ZM4,3V5H6V3ZM10,3V5H12V3ZM7,7V9H9V7ZM4,11V13H6V11ZM10,11V13H12V11Z"/></symbol>
+    <symbol id="i-options" viewBox="0 0 16 16"><path d="M0,6.5H3.5V10H0ZM6.25,6.5H9.75V10H6.25ZM12.5,6.5H16V10H12.5Z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 16 16"><path d="M11,0.5L15.5,5L5.5,15H1V10.5Z"/></symbol>
+    <symbol id="i-add" viewBox="0 0 16 16"><path d="M6,0H10V6H16V10H10V16H6V10H0V6H6Z"/></symbol>
+    <symbol id="i-min" viewBox="0 0 16 16"><path d="M2,11H14V12.5H2Z"/></symbol>
+    <symbol id="i-max" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4,2H14V12L12,14H2V4ZM4.6,3.5L3.5,4.6V12.5H11.4L12.5,11.4V3.5Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 16 16"><path d="M2.5,1.5L8,7L13.5,1.5L14.5,2.5L9,8L14.5,13.5L13.5,14.5L8,9L2.5,14.5L1.5,13.5L7,8L1.5,2.5Z"/></symbol>
+  </defs>
+</svg>
+<div class="app">
+  <aside class="sidebar" data-part="sidebar">
+    <div class="mainmenu" data-part="PART_ElemMainMenu"><svg class="i"><use href="#i-menu"/></svg><div class="tick"></div></div>
+    <div class="sitem on"><div class="bg plate"></div><svg class="i"><use href="#i-library"/></svg></div>
+    <div class="sitem"><svg class="i"><use href="#i-stats"/></svg></div>
+    <div class="sitem"><svg class="i"><use href="#i-random"/></svg></div>
+  </aside>
+  <div class="main">
+    <header class="top" data-part="top-panel">
+      <div class="search plate" data-part="PART_TextMainSearch"><svg class="i"><use href="#i-search"/></svg><span>Search library</span></div>
+      <div class="tbtn" data-part="PART_ToggleFilter"><div class="bg plate"></div><svg class="i"><use href="#i-filter"/></svg><div class="mark"></div></div>
+      <div class="items" data-part="PART_PanelMainItems">
+        <div class="tbtn"><div class="bg plate"></div><svg class="i"><use href="#i-sort"/></svg></div>
+        <div class="tbtn"><div class="bg plate"></div><svg class="i"><use href="#i-group"/></svg></div>
+        <div class="tbtn on"><div class="bg plate"></div><svg class="i"><use href="#i-details"/></svg></div>
+        <div class="tbtn"><div class="bg plate"></div><svg class="i"><use href="#i-grid"/></svg></div>
+        <div class="tbtn"><div class="bg plate"></div><svg class="i"><use href="#i-list"/></svg></div>
+        <div class="tbtn"><div class="bg plate"></div><svg class="i"><use href="#i-view"/></svg></div>
+      </div>
+      <div class="tbtn" data-part="PART_ToggleNotifications"><div class="bg plate"></div><svg class="i"><use href="#i-notif"/></svg></div>
+      <div class="spacer"></div>
+      <div class="caption"><div><svg class="i"><use href="#i-min"/></svg></div><div><svg class="i"><use href="#i-max"/></svg></div><div><svg class="i"><use href="#i-close"/></svg></div></div>
+    </header>
+    <div class="body">
+      <nav class="list" data-part="game-list">
+        <div class="row"><div class="ic"></div>Ashfall Protocol</div>
+        <div class="row hov"><div class="ic"></div>Cinder Reach</div>
+        <div class="row sel"><div class="ic"></div>Halcyon Drift</div>
+        <div class="row"><div class="ic"></div>Iron Meridian</div>
+        <div class="row dim"><div class="ic"></div>Kestrel Run</div>
+        <div class="row"><div class="ic"></div>Lantern Fleet</div>
+        <div class="row dim"><div class="ic"></div>Nightjar Station</div>
+        <div class="row"><div class="ic"></div>Orbital Saints</div>
+        <div class="row"><div class="ic"></div>Pale Tide</div>
+        <div class="row dim"><div class="ic"></div>Quiet Engines</div>
+        <div class="row"><div class="ic"></div>Red Sextant</div>
+        <div class="row"><div class="ic"></div>Silent Ward</div>
+        <div class="row dim"><div class="ic"></div>Tessellate</div>
+        <div class="row"><div class="ic"></div>Umbra Line</div>
+        <div class="row"><div class="ic"></div>Vesper Accord</div>
+        <div class="row dim"><div class="ic"></div>Wayfinder Nine</div>
+        <div class="row"><div class="ic"></div>Xeno Choir</div>
+        <div class="row"><div class="ic"></div>Zenith Hollow</div>
+        <div class="row dim"><div class="ic"></div>Zero Parallax</div>
+      </nav>
+      <section class="page" data-part="game-page">
+        <div class="hero"><div class="scan"></div></div>
+        <div class="content">
+          <div class="head">
+            <div class="gicon"></div>
+            <div class="title hd">Halcyon Drift</div>
+            <div class="actions">
+              <div class="play plate hd"><div class="hex"></div><span>Play</span></div>
+              <div class="sq plate"><div class="hex"></div><svg class="i"><use href="#i-options"/></svg></div>
+              <div class="sq plate"><div class="hex"></div><svg class="i"><use href="#i-edit"/></svg></div>
+            </div>
+          </div>
+          <div class="cols">
+            <div class="text">
+              <div class="shots"><div class="shot"></div><div class="shot"></div><div class="shot"></div></div>
+              <div class="rule"></div>
+              <div class="desc">
+                <p>Command a stolen frigate and a crew of specialists across a dying cluster. Every choice you make in conversation changes who stands with you when the final jump comes.</p>
+                <p>Recruit, upgrade and earn the loyalty of twelve squadmates, scan worlds for resources and research new weapons in the ship's lab. Read the <a href="#">full mission brief</a>.</p>
+              </div>
+            </div>
+            <aside class="meta plate" data-part="metadata">
+              <div class="tick"></div><svg class="plus i"><use href="#i-add"/></svg>
+              <div class="grp">
+                <div class="f"><div class="k">Completion Status</div><div class="v"><a href="#">Playing</a></div></div>
+                <div class="f"><div class="k">Time Played</div><div class="v">48h 12m</div></div>
+                <div class="f"><div class="k">Last Played</div><div class="v">Yesterday</div></div>
+              </div>
+              <div class="grp">
+                <div class="f"><div class="k">Critic Score</div><div class="v score">92</div></div>
+                <div class="f"><div class="k">User Score</div><div class="v score">95</div></div>
+              </div>
+              <div class="grp">
+                <div class="f"><div class="k">Developer</div><div class="v"><a href="#">Kestrel Forge</a></div></div>
+                <div class="f"><div class="k">Publisher</div><div class="v"><a href="#">Meridian Interactive</a></div></div>
+                <div class="f"><div class="k">Release Date</div><div class="v"><a href="#">26/01/2024</a></div></div>
+              </div>
+              <div class="grp">
+                <div class="f"><div class="k">Genre</div><div class="v chips"><div class="chip"><span>Action RPG</span></div><div class="chip"><span>Shooter</span></div></div></div>
+                <div class="f"><div class="k">Tags</div><div class="v chips"><div class="chip"><span>Space</span></div><div class="chip"><span>Story Rich</span></div><div class="chip"><span>Squad</span></div></div></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+        <div class="foot">Unofficial fan theme inspired by Mass Effect 2. Not affiliated with BioWare or EA.</div>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>

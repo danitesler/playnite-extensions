@@ -35,8 +35,7 @@ Type: 12 / 14 / 16 / 22 / 40.
 | `Views/TopPanel.xaml` | 64px row, transparent. At the left the lobby navbar items, bare on the bar (the game's 44px rounded navy strip is not drawn: repo rule, no container around `PART_PanelMainItems`): Playnite's icon items and the icon view switches (`TopPanelSwitch*ViewTemplate`); the current view is the light grey pill with near-black text; Playnite's two `Canvas` separators become 7px yellow dots. At the right: pill search box, filter, notifications (yellow badge), progress, 150px kept clear for the caption buttons. |
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact rail in the sidebar navy, menu bars on top, 44x40 items with blue glyphs; the current item is a full-width blue plate with slanted ends (a `Path`, `M0,4 L44,0 L44,36 L0,40 Z`) and a white glyph. Top/bottom: capital tabs, current = light pill. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, muted glyphs, red close hover, 64px caption height. |
-| `Views/Library.xaml` | Background art behind everything under a navy wash (`ScrimBrush`: 90% under the navbar, 60% mid, 95% at the bottom). Library layer transparent. |
-
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 **Settings chrome.** `DefaultControls/TreeView.xaml`: 30px rounded plate rows (8px, inset 6px) in the body face; hover is the white 12% plate with the yellow notification dot half-lit, selected is the navbar's light grey pill with near-black label and the full yellow dot; children sit under a rounded 2px guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 44px band in the settings tab-strip navy, title as the current-tab grey pill followed by three fading yellow dots, the drop-zone ring (two outlines) ghosted at the right, closed by a 2px blue menu edge; `WindowBarButton` is 40x32 with 8px corners.
 
 ## Game page
@@ -57,7 +56,7 @@ Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and 
 ## Deviations
 
 - Motion is built from a fan rebuild of one Fortnite button and the game's look, not from Epic numbers (`RESEARCH.md` -> Motion).
-- The banner washes through plain gradients, not an `OpacityMask`: PLAY animates over it (reference.md). `Library.xaml` still masks its solid scrim rectangles (not art).
+- The banner washes through plain gradients, not an `OpacityMask`: PLAY animates over it (reference.md).
 - Burbank Big Condensed is replaced by Bahnschrift Bold Condensed.
 - Values in chips and the game title keep their own case: Playnite's `StringToUpperCaseConverter` returns an empty string for non-string content, and `PART_TextDisplayName` is filled from code.
 - The lobby's 3D scene is the game's background art under a navy wash; no animated scene, no rarity gradients.

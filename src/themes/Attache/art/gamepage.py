@@ -236,6 +236,9 @@ def hero(spacer, banner=360):
                 <DataTrigger Binding="{Binding Visibility, ElementName=PART_ImageBackground}" Value="Collapsed">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Grid.Style>
@@ -250,6 +253,19 @@ def hero(spacer, banner=360):
         </LinearGradientBrush>
     </Grid.OpacityMask>
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
+    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
+        <Rectangle.Style>
+            <Style TargetType="Rectangle">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Rectangle.Style>
+    </Rectangle>
     <!-- The menus' scene treatment: darkened overall, darkest at the left where the words sit and toward the title. -->
     <Rectangle Fill="{DynamicResource ScrimBrush}" Opacity="0.35" />
     <Rectangle Fill="{DynamicResource ScrimBrush}">

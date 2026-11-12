@@ -49,7 +49,7 @@ Radii are 0 throughout; `CornerRadiusFull` is defined but unused. Scroll thumb 3
 |------|---------------|
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px black rail with soot grain, closed by the worn double rule. Main menu is the hanging pennant carrying the theme's flame. Items 44x40, fixed 14,12 padding (no `IconPadding`), 16px glyphs; grey idle, tan on hover; current = 32x32 wine plate with tan chisel ticks |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px black bar with grain and the worn double rule. Default order; 132px kept clear. Toggled item = wine plate plus ticks. Notifications count on a red diamond |
-| `Views/Library.xaml` | Solid ink (no texture behind covers), art at 0.16 under an oxblood wash, low torchlight rising from the bottom |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). Low torchlight rises from the bottom (decor). |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | 1px iron window line; 40x32 caption buttons with hand-cut glyphs, close hovers crimson. `MainWindowButton` lives in `WindowBarButton.xaml` so it derives from the theme's style, not Default's |
 | `DerivedStyles/StandardWindowStyle.xaml` | Dialogs: 40px band, crimson diamond, tan title, worn double rule |
 

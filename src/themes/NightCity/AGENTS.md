@@ -2,7 +2,7 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0), dark only, in the style of the **Cyberpunk 2077 yellow look**: black panels, Cyberpunk yellow (`#FCEE09`) as the main accent, cyan as the secondary accent, red for danger, square and chamfered shapes. Unofficial fan theme: no CD PROJEKT RED assets, logos or fonts are shipped. "Cyberpunk 2077" is a trademark of CD PROJEKT S.A.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0), dark only, in the style of the **Cyberpunk 2077 in-game menus** (red chrome, cyan state on red-violet blacks) with the franchise yellow kept as the brand layer: Cyberpunk yellow (`#FCEE09`) as the main accent, cyan as the secondary accent, red for danger, square and chamfered shapes. Unofficial fan theme: no CD PROJEKT RED assets, logos or fonts are shipped. "Cyberpunk 2077" is a trademark of CD PROJEKT S.A.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
 
@@ -12,23 +12,27 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 ## Tokens
 
-All colors are in `src/tokens.css` (dark block); the template maps them by role.
+All colors are in `src/tokens.css` (dark block); the template maps them by role. The palette follows the in-game menus (Game UI Database captures, RESEARCH.md) with the franchise yellow kept as the brand layer. Three roles, never mixed:
+
+- **Red = chrome** (the in-game frame): outlines, rules, popup edges, section heads, captions, secondary text, scroll thumb, hover plates.
+- **Cyan = state** (the in-game active colour): hover and focus edges and glyphs, links, values, the cover hover outline.
+- **Yellow = commit and brand**: Play, every selected or checked thing (current rail item, selected row and cover, active view switch, current Settings section, checkboxes, radios, slider and progress fills), the game title, the dialog title slab, the filter-active mark.
 
 | Token | Key | Used for |
 |-------|-----|----------|
-| `cp-yellow` | `GlyphBrush`, `SelectedBrush`, `ThumbBrush`, `MixedRatingBrush`, `WarningBrush`, `GridViewItemHoverBorderBrush` | The accent: selection, checked, links, thumbs, hover outline on covers |
-| `cp-cyan` | `HighlightGlyphBrush`, `FocusBrush`, `PositiveRatingBrush`, `DataChangeNotifBrush` | Keyboard focus, text input focus, scores, secondary accent |
+| `cp-yellow` | `SelectedBrush`, `PrimaryButton*`, `HeadingForegroundBrush`, `TabItemIndicatorBrush`, `ThumbBrush`, `MixedRatingBrush`, `WarningBrush`, `DataChangeNotifBrush` | Selection, checked, Play, game title, filter mark |
+| `cp-cyan` | `GlyphBrush`, `HighlightGlyphBrush`, `FocusBrush`, `PositiveRatingBrush`, `GridViewItemHoverBorderBrush` | Hover, focus, links, scores, cover hover outline |
+| `cp-red-ui` | `SectionHeaderBrush`, `FrameBrush`, `ScrollBarThumbBrush` (80%), `PopupBorderBrush` (via `cp-red-edge`) | Section heads (game page, GroupBox, filter panel), cut-corner ticks, card rules, dialog crosshair grid |
+| `cp-red-label` | `TextBrushDarker` | Secondary text, captions, idle rail and tree labels |
+| `cp-red-dim` | `NormalBorderBrush`, `WindowPanelSeparatorBrush` (70%), `HoverBrush` (30%), `ProgressBarTrackBrush` (35%) | Outlines, dividers, hover plates, tracks |
 | `cp-red` | `DangerBrush`, `NegativeRatingBrush` | Destructive actions, close hover |
 | `cp-void` | `WindowBackgourndBrush`, `InputBackgroundBrush`, `TooltipBackgroundBrush`, `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `BackgroundToneColor` | Page, inputs, rail, top bar |
 | `cp-panel` | `NormalBrushDark`, `PopupBackgroundBrush`, `ExpanderBackgroundBrush`, `ContentBackgroundBrush` | Cards, popups, library layer |
 | `cp-panel-raised` | `NormalBrush`, `ButtonBackgroundBrush` | Control fill |
-| `cp-text` | `TextBrush`, `DangerForegroundBrush`, `PrimaryButtonHoverBackgroundBrush` | Body text; the Play button turns off-white on hover |
-| `cp-text-muted` at 60% | `TextBrushDarker` | Secondary text |
+| `cp-text` | `TextBrush`, `DangerForegroundBrush` | Body text |
 | `cp-on-yellow` | `TextBrushDark` | Black text on yellow fills |
-| `cp-yellow` at 16% / 28% / 20% / 70% | `HoverBrush` and `ButtonHoverBackgroundBrush` / `ButtonPressedBackgroundBrush` / `ProgressBarTrackBrush` / `ScrollBarThumbBrush` | Derived tints |
-| `cp-yellow` at 45% / 30%, `cp-yellow-edge` | `NormalBorderBrush` / `WindowPanelSeparatorBrush` / `PopupBorderBrush` | Hairlines |
 
-Radii: `ControlCornerRadius` 2px, `CornerRadiusSmall` and the rest 0; the look is square. Thin tracks use explicit half-thickness radii (4px slider track = 2, 6px progress bar and scrollbar thumb = 3). Fonts: `FontFamily` = Rajdhani, Bahnschrift, Segoe UI; `MonospaceFontFamily` = Consolas. Sizes are Playnite's scale (12/14/15/20/29).
+Radii: `ControlCornerRadius` 2px, `CornerRadiusSmall` and the rest 0; the look is square. Thin tracks use explicit half-thickness radii (4px slider track = 2, 6px progress bar and scrollbar thumb = 3). Fonts: `FontFamily` = bundled Rajdhani (Regular, SemiBold, Bold), then Bahnschrift, Segoe UI; `HeadingFontFamily` = bundled Orbitron (Regular, Bold), then Bahnschrift SemiBold; both in `src/Typography/`; `MonospaceFontFamily` = Consolas. Sizes are Playnite's scale (12/14/15/20/29).
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -55,8 +59,7 @@ These are this theme's own values: there is no published spec to quote.
 | `Views/MainWindow.xaml`, `DerivedStyles/MainWindowStyle.xaml` | Frame on `ShellBackgroundBrush`; `MainWindowButton` (close hover = `DangerBrush`) |
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px left rail, items 44x40 with 16px glyphs, yellow marker and tinted plate on the current item; `MainMenuButton` |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 52px black strip, icon-only view switches (current = solid yellow plate, black glyph, one 8px cut corner), search box on the right (`TopPanelSearchBox`), 128px kept clear for the window buttons |
-| `Views/Library.xaml` | Library art at 0.18 opacity, not feathered |
-
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 **Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the game's menu list as cut-corner slabs, 30px rows in the body face. Hover is a yellow hairline plate with the label in yellow and a half-lit cyan ghost lip; selected is the solid yellow slab with its top-left and bottom-right corners cut (8px triangles in the rail brush), black label, and the cyan lip fully lit 2px off the slab. The title band is 40px: the title sits on a yellow slab with two 12px cut corners (heading face, black), a cyan sliver continues it along the band foot, yellow slashes are ghosted left of the 44x40 caption buttons and a yellow hairline closes the band.
 
 ## Game page
@@ -69,23 +72,23 @@ Empty state (no game selected): both overviews hide the page and show an empty c
 
 | Playnite file | Night City component |
 |---------------|----------------------|
-| `Button`, `ToggleButton`, `RepeatButton` | Near-black fill, 1px yellow hairline, yellow tint on hover, cyan focus box (`FocusVisual`) |
+| `Button`, `ToggleButton`, `RepeatButton` | Near-black fill, 1px dim red outline with a red cut-corner tick, red plate and cyan edge on hover, cyan focus box (`FocusVisual`) |
 | `TextBox`, `PasswordBox`, `BareTextBox` | `InputBackgroundBrush`, hairline, cyan edge on `IsKeyboardFocusWithin` |
 | `CheckBox`, `RadioButton` | 16px square box (yellow fill, black check) and a 14px circle with a 6px dot |
-| `ComboBox`, `ListBox`, `TabControl`, `GroupBox` | Square; active tab with a cut corner; cards with a yellow top hairline |
+| `ComboBox`, `ListBox`, `TabControl`, `GroupBox` | Square; active tab a yellow plate with a cut corner; cards with a red top rule and red caps header |
 | `Slider`, `SliderEx`, `ProgressBar`, `ScrollViewer`, `Thumb` | 4px slider rail, 6px progress and scrollbar thumb, yellow fill |
-| `ToolTip`, `ContextMenu`, `Menu`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` | Black popups with a 1px yellow edge, yellow-tinted hover rows |
+| `ToolTip`, `ContextMenu`, `Menu`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` | Black popups with a 1px red edge and a 2px yellow top bar, red-plate hover rows with a cyan marker |
 | `DetailsViewItemStyle` | Hairline rows, solid yellow selection with black text |
-| `GridViewItemStyle` | Selected = static 3px yellow outline. Hover = the glitch-lock, animated: 2px yellow outline flickers on (0.12s), a cyan ghost outline jumps 3 to 4px off it in two stepped frames, yellow chamfer triangles pop in at the top-left and bottom-right corners; everything fades out in 0.15s |
+| `GridViewItemStyle` | Selected = static 3px yellow outline. Hover = the glitch-lock, animated: 2px cyan outline flickers on (0.12s), a red ghost outline jumps 3 to 4px off it in two stepped frames, cyan chamfer triangles pop in at the top-left and bottom-right corners; everything fades out in 0.15s |
 | `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover controls as 48x40 cut-corner slabs with solid glyphs (`IconPlay` bar and triangle, `IconInfo` cut-corner box with a square-cut i, `IconDownload` block arrow over a cut base, drawn in `Media.xaml`); shade fades in, buttons rise 10px and scale 0.86 to 1, Info 60ms after Play; hover flashes the slab yellow (0.08s, black glyph) with a stepped cyan ghost outline |
 | `PlayButton` | Solid yellow CTA with a cut corner. Hover: brighter plate in 0.1s plus a glitch burst (stepped cyan and red ghosts, a 7px yellow slice, label shake) every 3s while hovered; leaving fades in 0.2s; pressed is its own plate |
 | `PropertyItemButton`, `WindowBarButton`, `HighlightBorder` | Yellow text links and square chips |
-| `FilterPanelView`, `ExplorerPanel` | Hairline rows, yellow section headers |
+| `FilterPanelView`, `ExplorerPanel` | Red hairline rows, red section headers |
 
 ## Deviations
 
-- Yellow is the franchise and fan-UI yellow; the real in-game screens that could be sampled are red and cyan (see Sources).
-- Rajdhani is not shipped (`Fonts/` is not allowed) and is not a Windows font; without it the stack falls back to Bahnschrift. The HTML previews draw it with the bundled Rajdhani and Orbitron (headings), so the shots show the intended faces.
+- Yellow is the franchise yellow, not an in-game menu colour (those are red and cyan, RESEARCH.md -> In-game menus). It is kept on purpose for selection and Play only.
+- Rajdhani and Orbitron are bundled in `src/Typography/` (packing skips `Fonts/`), so Playnite and the previews draw the same faces.
 - Cut corners are a single 8px triangle drawn in the surface brush on a few elements, not a full chamfer on every control.
 - No `SliderTrackBrush` or `ProgressBarForegroundBrush` is defined: the slider rail uses `ProgressBarTrackBrush` and the progress fill uses `GlyphBrush`.
 - The indeterminate `ProgressBar` scales a fill from the left instead of Default's opaque masks, which would show through a translucent rail.
@@ -103,6 +106,6 @@ Empty state (no game selected): both overviews hide the page and show an empty c
 - Whether `{Binding Game.PluginId}` for the Steam skeleton matches Playnite's view model (if not, the skeleton never shows).
 - Whether `PART_ElemMainMenu` accepts a `Border` style for `MainMenuButton`.
 - Cut-corner triangles against the surface brush behind them on hover and selected states.
-- Rajdhani and Bahnschrift rendering and text fit.
+- Rajdhani and Orbitron rendering and text fit.
 - ThemeModifier: palette edits and Edit constants recoloring the restyled controls.
 - Screenshots come from the HTML previews, not Playnite.

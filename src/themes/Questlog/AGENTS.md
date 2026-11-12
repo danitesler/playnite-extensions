@@ -36,7 +36,7 @@ Gradient keys (button faces, plates, title strip, knobs, selection glow) are `Li
 
 Font: `FONT_FAMILY` = `Friz Quadrata TT, Constantia, Palatino Linotype, Georgia, Segoe UI`. Sizes 13 / 15 / 17 / 20 / 31.
 
-The game title and all game-page section headings (Steam screenshots, Description, Details and Notes) use `HeadingFontFamily` = `Georgia, Palatino Linotype, Segoe UI` at semibold weight. Section headings all use FontSizeLarger (20px). Buttons and the dialog title use the body face. The previously bundled Cinzel faces remain in `src/Typography/` but are not referenced.
+The game title and all game-page section headings (Steam screenshots, Description, Details and Notes) use `HeadingFontFamily` = `Georgia, Palatino Linotype, Segoe UI` at semibold weight. Section headings all use FontSizeLarger (20px). Buttons and the dialog title use the body face.
 
 Radii: 2 / 3 / 5. `FrameThickness` is 1 (the frame is three 1px lines: black, metal, black).
 
@@ -55,7 +55,7 @@ Radii: 2 / 3 / 5. `FrameThickness` is 1 (the frame is three 1px lines: black, me
 | `Views/Sidebar.xaml` | The 44px compact rail: a sunken black band (`ShellBackgroundBrush`) closed toward the library by a hairline, all four positions. `MainMenuButton`: a bare gold hamburger that takes the charcoal plate on hover (36x32 on the rail, 32px in the top bar). |
 | `CustomControls/SidebarItem.xaml` | 44x40 items with a 36x32 slot and 16px glyphs. Hover is the charcoal plate with a white glyph; the current item is a checked slot, gold glow inside a gold line with a white glyph. Library is the tome, Statistics the hourglass. `PART_ProgressStatus` overlays a translucent gold fill. |
 | `Views/TopPanel.xaml` | The title strip of a frame: 48px warm dark band closed by black, metal, black. `TopPanelSearchBox`: a 280x30 edit box with a magnifier. View controls and toggles are 30px gold glyphs (`TopPanelItem.xaml`): charcoal plate on hover, a sunken black slot in a gold line while on. The filter mark is a 9px blue diamond. Notifications are a letter with a red count. The global progress bar is the casting bar. The right 116px stay clear for the window buttons. |
-| `Views/Library.xaml` | The library on the `ContentBackgroundBrush` layer; the game's background art is drawn over it. |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `ExplorerPanel.xaml` | Plain sunken charcoal; 28px fields; the preset buttons are bare gold glyphs (bin, quill, plus). |
 
 ## Game page

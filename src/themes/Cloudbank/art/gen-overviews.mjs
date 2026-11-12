@@ -165,10 +165,26 @@ const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible
                 <DataTrigger Binding="{Binding Game.BackgroundImage}" Value="{x:Null}">
                     <Setter Property="Height" Value="0" />
                 </DataTrigger>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Grid.Style>
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill" />
+    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
+    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
+        <Rectangle.Style>
+            <Style TargetType="Rectangle">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Rectangle.Style>
+    </Rectangle>
     <Border Background="{DynamicResource ArtTintBrush}" Opacity="0.35" />
     <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark
          seams on scaled displays. The fade is a plain gradient to the page color, read from the page brush. -->
@@ -337,7 +353,17 @@ const details = `<!--
             <Setter.Value>
                 <ControlTemplate TargetType="DetailsViewGameOverview">
                     <ScrollViewer x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <Grid x:Name="PageRoot" Background="{DynamicResource GameOverviewBackgroundBrush}" UseLayoutRounding="True">
+                        <Grid x:Name="PageRoot" UseLayoutRounding="True">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
 ${ind(heroArt, 28)}
                             <StackPanel Margin="28,0,28,28">
                                 <StackPanel.Style>
@@ -536,7 +562,17 @@ const gridView = `<!--
                         </Border.Style>
                         <Grid>
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                                <Grid x:Name="PageRoot" Background="{DynamicResource GameOverviewBackgroundBrush}" UseLayoutRounding="True">
+                                <Grid x:Name="PageRoot" UseLayoutRounding="True">
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                                    <Setter Property="Background" Value="Transparent" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
 ${ind(heroArt, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="22,0,22,24">
                                         <StackPanel.Style>

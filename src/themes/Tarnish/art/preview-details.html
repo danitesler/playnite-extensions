@@ -1,0 +1,235 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tarnish - details view</title>
+<style>
+  /* Tarnish preview: Playnite details view. Colors come from src/tokens.css (injected at render time).
+     Unofficial fan theme inspired by the Elden Ring menus; no game art, logo or font. Sample data is invented. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: var(--er-void); color: var(--er-text);
+    font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif; font-size: 14px;
+  }
+  .hd { font-family: Cinzel, "Palatino Linotype", Georgia, serif; }
+  svg.i { width: 16px; height: 16px; fill: currentColor; display: block; }
+  .app { position: absolute; inset: 0; display: flex; }
+
+  /* Shared shapes (Common.xaml) */
+  .streak { position: absolute; pointer-events: none; height: 11px;
+    background: radial-gradient(closest-side, var(--er-gold), transparent); opacity: .55; }
+  .streak::after { content: ""; position: absolute; left: 5%; right: 5%; top: 50%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--er-gold), transparent); }
+  .bar { position: absolute; inset: 0; pointer-events: none;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 64px), transparent); }
+  .bar.sel { background: var(--er-select); box-shadow: inset 0 1px 0 rgba(206,195,145,.45), inset 0 -1px 0 rgba(206,195,145,.45); }
+  .bar.hov { background: var(--er-hover); }
+  .plate { background: var(--er-well); border: 1px solid var(--er-line); position: relative; }
+  .plate::after { content: ""; position: absolute; inset: 3px; border: 1px solid var(--er-line); opacity: .22; pointer-events: none; }
+  .dia { width: 7px; height: 7px; background: var(--er-gold); transform: rotate(45deg); }
+
+  /* Sidebar: 44px rail, no plates */
+  .sidebar { width: 44px; flex: none; background: var(--er-void); border-right: 1px solid var(--er-rule); display: flex; flex-direction: column; }
+  .mainmenu { height: 52px; display: flex; align-items: center; justify-content: center; color: var(--er-gold-pale); position: relative; margin-bottom: 4px; }
+  .mainmenu .streak { left: 4px; right: 4px; bottom: 5px; }
+  .sitem { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--er-text-dim); position: relative; }
+  .sitem.on { color: var(--er-gold-pale); background: radial-gradient(closest-side, rgba(244,203,76,.3), rgba(244,203,76,.07) 55%, transparent); }
+  .sitem.on .streak { left: 6px; right: 6px; bottom: 3px; height: 9px; }
+  .sitem.on .dia { position: absolute; left: -3px; top: 16px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--er-night); position: relative; }
+  .haze { position: absolute; left: 0; right: 0; bottom: 0; height: 300px; pointer-events: none; opacity: .4;
+    background: linear-gradient(180deg, transparent, var(--er-haze)); }
+
+  /* Top bar: 52px, hairline bright at the left and fading right */
+  .top { height: 52px; flex: none; background: var(--er-void); position: relative; display: flex; align-items: center; padding-left: 10px; z-index: 2; }
+  .top::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--er-rule); }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--er-hairline) 8%, rgba(138,136,124,.33) 45%, transparent); }
+  .search { width: 240px; height: 32px; display: flex; align-items: center; padding-left: 9px; color: var(--er-text-dim); }
+  .search span { margin-left: 8px; }
+  .tbtn { width: 32px; height: 32px; margin-left: 6px; display: flex; align-items: center; justify-content: center; color: var(--er-text-dim); position: relative; }
+  .tbtn.on { color: var(--er-bright); background: radial-gradient(closest-side, var(--er-select), rgba(61,59,47,.8) 55%, transparent); }
+  .tbtn.on .streak { left: 1px; right: 1px; bottom: -4px; height: 9px; background: radial-gradient(closest-side, var(--er-parchment), transparent); }
+  .tbtn.on .streak::after { background: linear-gradient(90deg, transparent, var(--er-parchment), transparent); }
+  .mark { position: absolute; right: 4px; top: 3px; width: 6px; height: 6px; background: var(--er-gold); transform: rotate(45deg); }
+  .items { display: flex; margin-left: 4px; }
+  .spacer { flex: 1; }
+  .caption { display: flex; align-self: flex-start; }
+  .caption div { width: 40px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--er-text-dim); }
+
+  .body { flex: 1; display: flex; min-height: 0; position: relative; z-index: 1; }
+
+  /* Game list: option rows */
+  .list { width: 262px; flex: none; padding: 10px 0 0 6px; border-right: 1px solid var(--er-rule); }
+  .row { height: 30px; display: flex; align-items: center; padding: 0 14px; position: relative; color: var(--er-text); white-space: nowrap; }
+  .row.dim { color: var(--er-text-dim); }
+  .row .ico { width: 18px; height: 18px; margin-right: 10px; flex: none; border: 1px solid var(--er-rule); position: relative; z-index: 1; }
+  .row span { position: relative; z-index: 1; overflow: hidden; text-overflow: ellipsis; }
+  .row.on { color: var(--er-bright); }
+  .row.on .dia { position: absolute; left: 1px; top: 12px; width: 5px; height: 5px; z-index: 1; }
+  .grp { height: 26px; display: flex; align-items: center; padding: 0 14px; color: var(--er-gold-pale); font-size: 12px; letter-spacing: .08em; }
+
+  /* Game page */
+  .page { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 300px;
+    background:
+      radial-gradient(ellipse 46% 70% at 68% 18%, rgba(223,199,152,.5), rgba(156,118,78,.25) 40%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 30% 85%, rgba(71,70,58,.9), transparent 70%),
+      linear-gradient(200deg, #2b2a22 0%, #171612 55%, var(--er-void) 100%); }
+  .hero .tree { position: absolute; left: 64%; top: 0; width: 2px; height: 210px; background: linear-gradient(180deg, rgba(244,203,76,.0), rgba(244,203,76,.55) 30%, rgba(223,199,152,.15)); filter: blur(1px); }
+  .hero .ridge { position: absolute; left: 0; right: 0; bottom: 60px; height: 90px; background: var(--er-well); opacity: .8;
+    clip-path: polygon(0 70%, 10% 52%, 19% 60%, 31% 28%, 40% 48%, 52% 22%, 61% 44%, 72% 30%, 84% 55%, 93% 38%, 100% 50%, 100% 100%, 0 100%); }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, var(--er-night) 96%); }
+  .inner { position: relative; padding: 158px 28px 0 28px; }
+  .head { display: flex; align-items: center; }
+  .gicon { width: 48px; height: 48px; border: 1px solid var(--er-line); margin-right: 16px; background: linear-gradient(135deg, var(--er-select), var(--er-night)); display: flex; align-items: center; justify-content: center; color: var(--er-gold-pale); }
+  .title { font-size: 30px; color: var(--er-gold-pale); flex: 1; letter-spacing: .03em; white-space: nowrap; }
+  .play { width: 160px; height: 40px; background: var(--er-select); border: 1px solid var(--er-parchment); color: var(--er-gold-pale); font-size: 15px; letter-spacing: .1em;
+    display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 22px rgba(244,203,76,.14); }
+  .play::after { content: ""; position: absolute; inset: 3px; border: 1px solid var(--er-parchment); opacity: .22; }
+  .play .streak { left: -6px; right: -6px; bottom: -8px; height: 16px; opacity: .5; }
+  .sq { width: 40px; height: 40px; margin-left: 8px; display: flex; align-items: center; justify-content: center; color: var(--er-text); }
+  .cols { display: flex; margin-top: 26px; gap: 24px; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 8px; margin-bottom: 18px; }
+  .shot { flex: 1; height: 96px; border: 1px solid var(--er-rule); }
+  .shot.a { background: linear-gradient(160deg, var(--er-haze), var(--er-panel) 70%); }
+  .shot.b { background: radial-gradient(circle at 70% 30%, rgba(156,118,78,.7), #14130f 65%); }
+  .shot.c { background: linear-gradient(20deg, var(--er-well), var(--er-rule) 60%, var(--er-line)); }
+  .rule { display: flex; align-items: center; width: 260px; margin-bottom: 12px; }
+  .rule .dia { background: var(--er-hairline); flex: none; }
+  .rule i { flex: 1; height: 1px; margin-left: 4px; background: linear-gradient(90deg, var(--er-hairline), transparent); opacity: .7; }
+  .desc { line-height: 1.55; color: var(--er-text); }
+  .desc p + p { margin-top: 10px; }
+
+  /* Metadata: the status panel */
+  .meta { width: 334px; flex: none; background: var(--er-panel); border: 1px solid var(--er-rule); padding: 4px 16px 8px; position: relative; align-self: flex-start; }
+  .meta::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; background: linear-gradient(90deg, transparent, var(--er-hairline), transparent); }
+  .meta > .dia { position: absolute; left: 50%; top: -4px; margin-left: -3px; }
+  .g { padding: 4px 0; border-top: 1px solid var(--er-rule); }
+  .g:first-of-type { border-top: 0; }
+  .f { display: flex; padding: 5px 0; }
+  .f b { font-weight: normal; color: var(--er-text-dim); width: 112px; flex: none; }
+  .f span { color: var(--er-text); }
+  .f a { color: var(--er-parchment); margin-right: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { font-size: 12px; padding: 2px 10px; background: var(--er-panel-hi); border: 1px solid var(--er-rule); color: var(--er-text); }
+  .score { color: var(--er-stamina); }
+  .note { position: absolute; right: 12px; bottom: 6px; font-size: 11px; color: var(--er-text-faint); z-index: 3; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-menu" viewBox="0 0 16 16"><path d="M0,3L8,1.9L16,3L8,4.1ZM0,8L8,6.9L16,8L8,9.1ZM0,13L8,11.9L16,13L8,14.1Z"/></symbol>
+    <symbol id="i-library" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8,3C6,1.6 3,1.4 0,2V13.5C3,12.9 6,13.1 8,14.5C10,13.1 13,12.9 16,13.5V2C13,1.4 10,1.6 8,3ZM7.3,4.2V12.6C5.6,11.8 3.4,11.6 1.4,11.9V3.2C3.6,2.9 5.8,3.2 7.3,4.2ZM8.7,4.2C10.2,3.2 12.4,2.9 14.6,3.2V11.9C12.6,11.6 10.4,11.8 8.7,12.6Z"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 16 16"><path d="M1,9H4V14.2H1ZM6.5,5H9.5V14.2H6.5ZM12,1H15V14.2H12ZM0,15.6L8,15L16,15.6L8,16.2Z"/></symbol>
+    <symbol id="i-glint" viewBox="0 0 16 16"><path d="M8,0L9,7L16,8L9,9L8,16L7,9L0,8L7,7Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M6.5,1A5.5,5.5 0 1 1 6.5,12A5.5,5.5 0 1 1 6.5,1ZM6.5,2.5A4,4 0 1 0 6.5,10.5A4,4 0 1 0 6.5,2.5ZM10,10.9L10.9,10L15.6,14.2L14.2,15.6Z"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 16 16"><path d="M1,1.5H15L9.5,8.2V13.6L6.5,15.2V8.2Z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 16 16"><path d="M0,3L8,1.9L16,3L8,4.1ZM0,8L5.5,6.9L11,8L5.5,9.1ZM0,13L3,11.9L6,13L3,14.1Z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 16 16"><path d="M0,2.9H16V4.1H0ZM0,7.4H16V8.6H0ZM0,11.9H16V13.1H0ZM5,1L7.5,3.5L5,6L2.5,3.5ZM11,5.5L13.5,8L11,10.5L8.5,8ZM6,10L8.5,12.5L6,15L3.5,12.5Z"/></symbol>
+    <symbol id="i-group" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M5.5,2L11,8L5.5,14L0,8ZM5.5,4.1L2,8L5.5,11.9L9,8ZM10.5,2L16,8L10.5,14L8.9,12.2L12.7,8L8.9,3.8Z"/></symbol>
+    <symbol id="i-details" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0,1H5.5V2.3H0ZM0,5.2H5.5V6.5H0ZM0,9.4H5.5V10.7H0ZM0,13.6H5.5V14.9H0ZM7.5,1H16V15H7.5ZM8.8,2.3V13.7H14.7V2.3Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M0,0H7V7H0ZM1.3,1.3V5.7H5.7V1.3ZM9,0H16V7H9ZM10.3,1.3V5.7H14.7V1.3ZM0,9H7V16H0ZM1.3,10.3V14.7H5.7V10.3ZM9,9H16V16H9ZM10.3,10.3V14.7H14.7V10.3Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 16 16"><path d="M1.6,0.6L3.2,2.2L1.6,3.8L0,2.2ZM5,1.6H16V2.9H5ZM1.6,6.4L3.2,8L1.6,9.6L0,8ZM5,7.35H16V8.65H5ZM1.6,12.2L3.2,13.8L1.6,15.4L0,13.8ZM5,13.1H16V14.4H5Z"/></symbol>
+    <symbol id="i-notif" viewBox="0 0 16 16"><path d="M8,0.5C8.8,0.5 9.3,1 9.3,1.8C11.6,2.5 12.6,4.4 12.6,7C12.6,9.6 13.4,11 15,12.2V13H1V12.2C2.6,11 3.4,9.6 3.4,7C3.4,4.4 4.4,2.5 6.7,1.8C6.7,1 7.2,0.5 8,0.5ZM6.2,14H9.8C9.6,15.2 8.9,15.8 8,15.8C7.1,15.8 6.4,15.2 6.2,14Z"/></symbol>
+    <symbol id="i-options" viewBox="0 0 16 16"><path d="M2.2,5.8L4.4,8L2.2,10.2L0,8ZM8,5.8L10.2,8L8,10.2L5.8,8ZM13.8,5.8L16,8L13.8,10.2L11.6,8Z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 16 16"><path d="M15.5,0.5C10,1.5 6,5 3.6,10L2,14L6,12.4C11,10 14.5,6 15.5,0.5ZM1.2,14.2L0.5,15.5L1.8,14.8Z"/></symbol>
+    <symbol id="i-min" viewBox="0 0 16 16"><path d="M2,11.5L8,10.7L14,11.5L8,12.3Z"/></symbol>
+    <symbol id="i-max" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5,2.5H13.5V13.5H2.5ZM3.7,3.7V12.3H12.3V3.7Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 16 16"><path d="M8,7L2.8,2L2,2.8L7,8L2,13.2L2.8,14L8,9L13.2,14L14,13.2L9,8L14,2.8L13.2,2Z"/></symbol>
+  </defs>
+</svg>
+<div class="app">
+  <aside class="sidebar" data-part="sidebar">
+    <div class="mainmenu" data-part="PART_ElemMainMenu"><svg class="i"><use href="#i-menu"/></svg><div class="streak"></div></div>
+    <div class="sitem on"><div class="dia"></div><svg class="i"><use href="#i-library"/></svg><div class="streak"></div></div>
+    <div class="sitem"><svg class="i"><use href="#i-stats"/></svg></div>
+    <div class="sitem"><svg class="i"><use href="#i-glint"/></svg></div>
+  </aside>
+  <div class="main">
+    <div class="haze"></div>
+    <header class="top" data-part="top-panel">
+      <div class="search plate" data-part="PART_TextMainSearch"><svg class="i"><use href="#i-search"/></svg><span>Search</span></div>
+      <div class="tbtn" data-part="PART_ToggleFilter"><svg class="i"><use href="#i-filter"/></svg><div class="mark"></div></div>
+      <div class="items" data-part="PART_PanelMainItems">
+        <div class="tbtn" style="margin-left:6px"><svg class="i"><use href="#i-sort"/></svg></div>
+        <div class="tbtn"><svg class="i"><use href="#i-settings"/></svg></div>
+        <div class="tbtn"><svg class="i"><use href="#i-group"/></svg></div>
+        <div class="tbtn on"><svg class="i"><use href="#i-details"/></svg><div class="streak"></div></div>
+        <div class="tbtn"><svg class="i"><use href="#i-grid"/></svg></div>
+        <div class="tbtn"><svg class="i"><use href="#i-list"/></svg></div>
+      </div>
+      <div class="tbtn" data-part="PART_ToggleNotifications" style="color:var(--er-gold-pale)"><svg class="i"><use href="#i-notif"/></svg></div>
+      <div class="spacer"></div>
+      <div class="caption"><div><svg class="i"><use href="#i-min"/></svg></div><div><svg class="i"><use href="#i-max"/></svg></div><div><svg class="i"><use href="#i-close"/></svg></div></div>
+    </header>
+    <div class="body">
+      <nav class="list" data-part="game-list">
+        <div class="grp hd">INSTALLED</div>
+        <div class="row"><div class="ico" style="background:var(--er-rule)"></div><span>A Cartographer's Winter</span></div>
+        <div class="row"><div class="bar hov"></div><div class="ico" style="background:var(--er-amber-deep)"></div><span>Brinewake</span></div>
+        <div class="row on"><div class="bar sel"></div><div class="dia"></div><div class="ico" style="background:var(--er-brass)"></div><span>The Gilded Hollow</span></div>
+        <div class="row"><div class="ico" style="background:var(--er-panel-hi)"></div><span>Lanternfall</span></div>
+        <div class="row"><div class="ico" style="background:var(--er-select)"></div><span>Marrowgate Chronicles</span></div>
+        <div class="row"><div class="ico" style="background:var(--er-line)"></div><span>Of Salt and Cinder</span></div>
+        <div class="row"><div class="ico" style="background:var(--er-panel)"></div><span>Pilgrim of the Low Road</span></div>
+        <div class="grp hd" style="margin-top:8px">NOT INSTALLED</div>
+        <div class="row dim"><div class="ico" style="background:var(--er-panel)"></div><span>Quiet Reliquary</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-panel-hi)"></div><span>Roots Beneath the Keep</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-rule)"></div><span>Starless Vigil</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-panel)"></div><span>Thornwright</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-panel-hi)"></div><span>Under a Waning Crown</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-panel)"></div><span>Vesper Marsh</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-rule)"></div><span>Wardens of the Ember Coast</span></div>
+        <div class="row dim"><div class="ico" style="background:var(--er-panel)"></div><span>Wyrmrest</span></div>
+      </nav>
+      <section class="page" data-part="game-page">
+        <div class="hero"><div class="tree"></div><div class="ridge"></div></div>
+        <div class="inner">
+          <div class="head">
+            <div class="gicon"><svg class="i" style="width:22px;height:22px"><use href="#i-glint"/></svg></div>
+            <div class="title hd">THE GILDED HOLLOW</div>
+            <div class="play hd">PLAY<div class="streak"></div></div>
+            <div class="sq plate"><svg class="i"><use href="#i-options"/></svg></div>
+            <div class="sq plate"><svg class="i"><use href="#i-edit"/></svg></div>
+          </div>
+          <div class="cols">
+            <div class="left">
+              <div class="shots"><div class="shot a"></div><div class="shot b"></div><div class="shot c"></div></div>
+              <div class="rule"><div class="dia"></div><i></i></div>
+              <div class="desc">
+                <p>A kingdom sleeps under the roots of a burnt tree. You wake at its edge with a lantern, a borrowed blade and a map that someone else gave up on.</p>
+                <p>Cross the hollow at your own pace: ride the open moors, read what the dead left carved in the stone, and decide which of the old oaths are still worth keeping.</p>
+              </div>
+            </div>
+            <aside class="meta" data-part="metadata">
+              <div class="dia"></div>
+              <div class="g">
+                <div class="f"><b>Completion Status</b><span>Playing</span></div>
+                <div class="f"><b>Time Played</b><span>86h 12m</span></div>
+                <div class="f"><b>Last Played</b><span>Yesterday</span></div>
+              </div>
+              <div class="g">
+                <div class="f"><b>Critic Score</b><span class="score">94</span></div>
+              </div>
+              <div class="g">
+                <div class="f"><b>Developer</b><a>Hollowlight Works</a></div>
+                <div class="f"><b>Release Date</b><span>2/25/2022</span></div>
+              </div>
+              <div class="g">
+                <div class="f"><b>Genre</b><div class="chips"><span class="chip">Action RPG</span><span class="chip">Open World</span></div></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="note">Tarnish: unofficial fan theme, not affiliated with FromSoftware or Bandai Namco. Sample data and art are invented.</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,251 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slipstream - details view</title>
+<style>
+  /* Slipstream preview: Playnite details view. Colors come from src/tokens.css (injected at render time); sizes from the XAML.
+     Unofficial fan theme inspired by the menus of Star Wars: Galactic Racer; no game art, logo or font. Sample games are made up. */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: var(--ss-paper); color: var(--ss-ink);
+    font-family: Bahnschrift, "Segoe UI", sans-serif; font-size: 14px;
+  }
+  .hd { font-family: Unbounded, Bahnschrift, "Segoe UI", sans-serif; font-weight: 700; }
+  svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: block; }
+  .app { position: absolute; inset: 0; display: flex; border: 1px solid var(--ss-ink); }
+
+  /* The game's selection arrow: a notched arrowhead */
+  .arrow { width: 8px; height: 10px; background: var(--ss-vermilion); clip-path: polygon(0 0, 100% 50%, 0 100%, 37% 50%); }
+
+  /* Sidebar: 44px plate rail, 44x40 items with 32px discs, 16px glyphs */
+  .sidebar { width: 44px; flex: none; background: var(--ss-plate); border-right: 1px solid var(--ss-hairline); display: flex; flex-direction: column; align-items: center; }
+  .mainmenu { width: 32px; height: 32px; margin: 12px 6px; border-radius: 16px; background: var(--ss-teal); border: 1px solid var(--ss-teal-deep); color: var(--ss-paper-white); display: flex; align-items: center; justify-content: center; }
+  .sitem { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--ss-ink-muted); position: relative; }
+  .sitem .disc { width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .sitem.on { color: var(--ss-paper-white); }
+  .sitem.on .disc { background: var(--ss-vermilion); }
+  .sitem.on .arrow { position: absolute; left: 0; top: 16px; width: 5px; height: 8px; }
+  .sitem svg, .mainmenu svg { width: 16px; height: 16px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* Top bar: 56px on paper, closed by the 2px ink rule; every plate is a 32px pill */
+  .top { height: 56px; flex: none; display: flex; align-items: center; padding: 0 0 0 16px; border-bottom: 2px solid var(--ss-ink); background: var(--ss-paper); }
+  .search { width: 280px; height: 32px; border-radius: 16px; background: var(--ss-paper-hi); border: 1px solid var(--ss-ink-faint); display: flex; align-items: center; padding-left: 12px; color: var(--ss-ink-muted); }
+  .search svg { width: 16px; height: 16px; }
+  .search span { margin-left: 12px; }
+  .tbtn { min-width: 36px; height: 32px; margin: 0 2px; padding: 0 8px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--ss-ink-muted); position: relative; }
+  .tbtn.filter { min-width: 40px; margin-left: 8px; padding: 0 10px; color: var(--ss-ink); }
+  .tbtn.on { background: var(--ss-vermilion); color: var(--ss-paper-white); }
+  .tbtn.hover { background: var(--ss-wash-strong); color: var(--ss-ink); }
+  .dot { position: absolute; right: 6px; top: 3px; width: 9px; height: 9px; border-radius: 50%; background: var(--ss-vermilion); border: 1.5px solid var(--ss-paper); }
+  .items { display: flex; margin-left: 4px; }
+  .bell { margin-left: 8px; min-width: 40px; }
+  .badge { position: absolute; right: -2px; top: -4px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--ss-red); color: var(--ss-paper-white); font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .spacer { flex: 1; }
+  .caption { display: flex; align-self: flex-start; margin: 12px 12px 0 0; }
+  .caption div { width: 46px; height: 32px; margin: 0 1px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--ss-ink-muted); }
+  .caption svg { width: 16px; height: 16px; }
+
+  .body { flex: 1; display: flex; min-height: 0; }
+
+  /* Game list: pill rows with a 16px gutter; selected = vermilion pill + arrow */
+  .list { width: 236px; flex: none; padding: 8px 0; border-right: 1px solid var(--ss-hairline); }
+  .row { height: 28px; margin: 1px 6px 1px 16px; padding: 0 10px 0 2px; border-radius: 16px; display: flex; align-items: center; position: relative; color: var(--ss-ink); white-space: nowrap; }
+  .row .ic { width: 20px; height: 20px; border-radius: 4px; margin: 0 8px 0 4px; flex: none; }
+  .row.off { color: var(--ss-ink-muted); }
+  .row.hover { background: var(--ss-wash-strong); }
+  .row.on { background: var(--ss-vermilion); color: var(--ss-paper-white); }
+  .row.on .arrow { position: absolute; left: -12px; top: 9px; }
+
+  /* Game page */
+  .page { flex: 1; position: relative; overflow: hidden; background: var(--ss-paper); }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 320px; overflow: hidden; }
+  /* Art placeholder: an original poster of dunes, a low sun and speed lines; not game art. */
+  .banner .art { position: absolute; inset: 0; background:
+      radial-gradient(circle at 78% 34%, #f3e3b6 0 46px, transparent 47px),
+      linear-gradient(168deg, transparent 0 58%, #8a5a34 58% 100%),
+      linear-gradient(8deg, #b98352 0 34%, transparent 34%),
+      repeating-linear-gradient(100deg, transparent 0 46px, rgba(255,255,255,.16) 46px 50px),
+      linear-gradient(180deg, #3d7890 0%, #7fb0a8 44%, #e0b874 72%, #c98f52 100%); }
+  .banner .wash { position: absolute; inset: 0; background: var(--ss-paper); opacity: .28; }
+  .banner .fade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0) 0%, var(--ss-paper) 82%); }
+  .content { position: relative; max-width: 1280px; margin: 0 32px; padding-top: 100px; }
+  .header { display: flex; align-items: flex-end; margin-bottom: 24px; }
+  .header .left { flex: 1; min-width: 0; }
+  .title { display: flex; align-items: center; }
+  .title .gicon { width: 40px; height: 40px; border-radius: 6px; margin-right: 12px; background: linear-gradient(135deg, var(--ss-blue) 0 50%, var(--ss-mustard) 50% 100%); }
+  .slash { width: 16px; height: 26px; margin-right: 8px; background: var(--ss-vermilion); clip-path: polygon(56% 0, 100% 0, 44% 100%, 0 100%); }
+  .title .name { font-size: 28px; line-height: 31px; }
+  .actions { display: flex; margin-top: 20px; }
+  .play { min-width: 160px; height: 40px; border-radius: 20px; background: var(--ss-vermilion); color: var(--ss-paper-white); font-size: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .ibtn { width: 40px; height: 40px; margin-left: 8px; border-radius: 16px; background: var(--ss-teal); border: 1px solid var(--ss-teal-deep); color: var(--ss-paper-white); display: flex; align-items: center; justify-content: center; }
+  .cover { width: 132px; height: 176px; margin-left: 24px; border-radius: 6px; overflow: hidden; position: relative; background:
+      linear-gradient(115deg, transparent 0 52%, var(--ss-mustard) 52% 60%, transparent 60% 64%, var(--ss-sage) 64% 74%, transparent 74%),
+      linear-gradient(180deg, var(--ss-blue-deep) 0 58%, var(--ss-vermilion) 58% 100%); }
+  .cover b { position: absolute; left: 10px; right: 10px; bottom: 10px; font-size: 11px; line-height: 13px; color: var(--ss-paper-white); }
+
+  .cols { display: flex; align-items: flex-start; }
+  .maincol { flex: 1; min-width: 0; }
+  .card { background: var(--ss-plate); border: 1px solid var(--ss-hairline); border-radius: 6px; padding: 16px; }
+  .card + .card { margin-top: 16px; }
+  .h { display: flex; align-items: flex-end; margin-bottom: 12px; }
+  .h span { font-size: 13px; }
+  .h::after { content: ""; flex: 1; height: 2px; margin: 0 0 3px 8px; background: var(--ss-ink); }
+  .shots { display: flex; gap: 8px; }
+  .shots div { flex: 1; aspect-ratio: 16 / 9; border-radius: 4px; }
+  .shots div:nth-child(1) { background: linear-gradient(160deg, #3d7890 0 46%, #e0b874 46% 70%, #8a5a34 70%); }
+  .shots div:nth-child(2) { background: linear-gradient(200deg, #c98f52 0 38%, #2e5e72 38% 72%, #1e363e 72%); }
+  .shots div:nth-child(3) { background: linear-gradient(140deg, #adbdaf 0 40%, #b2523a 40% 62%, #2a464e 62%); }
+  .shots div:nth-child(4) { background: linear-gradient(175deg, #7fb0a8 0 52%, #c39949 52% 68%, #8a5a34 68%); }
+  .desc { line-height: 21px; color: var(--ss-ink); }
+  .desc p + p { margin-top: 10px; }
+
+  /* Metadata pane: one plate card, 300px of content, caption column 112px */
+  .meta { width: 334px; flex: none; margin-left: 24px; }
+  .grp { padding: 12px 0; border-top: 1px solid var(--ss-hairline); }
+  .grp:first-child { border-top: 0; padding-top: 0; }
+  .grp:last-child { padding-bottom: 0; }
+  .f { display: flex; padding: 4px 0; align-items: baseline; }
+  .f .c { width: 112px; flex: none; font-size: 12px; font-weight: 500; color: var(--ss-ink-muted); }
+  .f .v { flex: 1; }
+  .link { color: var(--ss-teal-deep); }
+  .good { color: var(--ss-green); font-weight: 600; }
+  .mid { color: var(--ss-orange); font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 4px; background: var(--ss-paper-hi); border: 1px solid var(--ss-ink-faint); color: var(--ss-teal-deep); }
+  .note { position: absolute; right: 12px; bottom: 6px; font-size: 10px; color: var(--ss-ink-faint); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><path d="M16 6l4 14M12 6v14M8 8v12M4 4v16"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16M18 17V9M13 17V5M8 17v-3"/></symbol>
+    <symbol id="i-explorer" viewBox="0 0 24 24"><path d="M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-.9-1.2A1 1 0 0 0 15 3h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1ZM20 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.92-.6H13a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1ZM3 5a2 2 0 0 0 2 2h3M3 3v13a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M21 21l-4.34-4.34M3 11a8 8 0 1 0 16 0a8 8 0 1 0-16 0Z"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M2 5h20M6 12h12M9 19h6"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M21 16l-4 4l-4-4M17 20V4M3 8l4-4l4 4M7 4v16"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M10 5H3M12 19H3M14 3v4M16 17v4M21 12h-9M21 19h-5M21 5h-7M8 10v4M8 12H3"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83ZM2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></symbol>
+    <symbol id="i-details" viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2ZM15 3v18"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 3h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1ZM15 3h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1ZM15 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1ZM4 14h5a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1v-5a1 1 0 0 1 1-1Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M3 5h.01M3 12h.01M3 19h.01M8 5h13M8 12h13M8 19h13"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+    <symbol id="i-options" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2ZM12 9a3 3 0 1 0 .001 6a3 3 0 0 0-.001-6Z"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497ZM15 5l4 4"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <div class="sidebar" data-part="sidebar">
+    <div class="mainmenu" data-part="PART_ElemMainMenu"><svg class="i"><use href="#i-menu"/></svg></div>
+    <div class="sitem on"><div class="arrow"></div><div class="disc"><svg class="i"><use href="#i-library"/></svg></div></div>
+    <div class="sitem"><div class="disc"><svg class="i"><use href="#i-stats"/></svg></div></div>
+    <div class="sitem"><div class="disc"><svg class="i"><use href="#i-explorer"/></svg></div></div>
+  </div>
+
+  <div class="main">
+    <div class="top" data-part="top-panel">
+      <div class="search" data-part="PART_TextMainSearch"><svg class="i"><use href="#i-search"/></svg><span>Search</span></div>
+      <div class="tbtn filter" data-part="PART_ToggleFilter"><svg class="i"><use href="#i-filter"/></svg><div class="dot"></div></div>
+      <div class="items" data-part="PART_PanelMainItems">
+        <div class="tbtn"><svg class="i"><use href="#i-sort"/></svg></div>
+        <div class="tbtn"><svg class="i"><use href="#i-settings"/></svg></div>
+        <div class="tbtn hover"><svg class="i"><use href="#i-group"/></svg></div>
+        <div class="tbtn on"><svg class="i"><use href="#i-details"/></svg></div>
+        <div class="tbtn"><svg class="i"><use href="#i-grid"/></svg></div>
+        <div class="tbtn"><svg class="i"><use href="#i-list"/></svg></div>
+      </div>
+      <div class="tbtn bell" data-part="PART_ToggleNotifications"><svg class="i"><use href="#i-bell"/></svg><div class="badge">2</div></div>
+      <div class="spacer"></div>
+      <div class="caption">
+        <div><svg class="i"><use href="#i-min"/></svg></div>
+        <div><svg class="i"><use href="#i-max"/></svg></div>
+        <div><svg class="i"><use href="#i-close"/></svg></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="list" data-part="game-list">
+        <div class="row"><div class="ic" style="background:var(--ss-blue)"></div>Apex Drift</div>
+        <div class="row off"><div class="ic" style="background:var(--ss-sage)"></div>Canyon Run 2049</div>
+        <div class="row"><div class="ic" style="background:var(--ss-teal)"></div>Copper Skies</div>
+        <div class="row hover"><div class="ic" style="background:var(--ss-mustard)"></div>Hollow Tide</div>
+        <div class="row"><div class="ic" style="background:var(--ss-orange)"></div>Low Orbit</div>
+        <div class="row off"><div class="ic" style="background:var(--ss-ink-muted)"></div>Moonshot Courier</div>
+        <div class="row"><div class="ic" style="background:var(--ss-blue-deep)"></div>Night Freight</div>
+        <div class="row"><div class="ic" style="background:var(--ss-sage-pale)"></div>Paper Kites</div>
+        <div class="row off"><div class="ic" style="background:var(--ss-red)"></div>Pilot's Ledger</div>
+        <div class="row"><div class="ic" style="background:var(--ss-teal-hi)"></div>Salt Flats</div>
+        <div class="row on"><div class="arrow"></div><div class="ic" style="background:linear-gradient(135deg, var(--ss-blue) 0 50%, var(--ss-mustard) 50% 100%)"></div>Sandline Grand Prix</div>
+        <div class="row"><div class="ic" style="background:var(--ss-vermilion-deep)"></div>Switchback</div>
+        <div class="row off"><div class="ic" style="background:var(--ss-plate-edge)"></div>Thermal</div>
+        <div class="row"><div class="ic" style="background:var(--ss-teal-deep)"></div>Vector Nine</div>
+        <div class="row"><div class="ic" style="background:var(--ss-green)"></div>Windward</div>
+        <div class="row off"><div class="ic" style="background:var(--ss-ink-faint)"></div>Zero Hour Rally</div>
+      </div>
+
+      <div class="page" data-part="game-page">
+        <div class="banner"><div class="art"></div><div class="wash"></div><div class="fade"></div></div>
+        <div class="content">
+          <div class="header">
+            <div class="left">
+              <div class="title"><div class="gicon"></div><div class="slash"></div><div class="name hd">Sandline Grand Prix</div></div>
+              <div class="actions">
+                <div class="play hd">Play</div>
+                <div class="ibtn"><svg class="i"><use href="#i-options"/></svg></div>
+                <div class="ibtn"><svg class="i"><use href="#i-edit"/></svg></div>
+              </div>
+            </div>
+            <div class="cover"><b class="hd">SANDLINE GRAND PRIX</b></div>
+          </div>
+
+          <div class="cols">
+            <div class="maincol">
+              <div class="card">
+                <div class="h"><span class="hd">Screenshots</span></div>
+                <div class="shots"><div></div><div></div><div></div><div></div></div>
+              </div>
+              <div class="card">
+                <div class="h"><span class="hd">Description</span></div>
+                <div class="desc">
+                  <p>Twelve circuits across open desert, dry lake beds and canyon switchbacks. Build a sled from salvaged parts, tune it between heats and hold your line through the dust.</p>
+                  <p>Career, time trial and eight-pilot online races, with a photo mode for the finish line.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card meta" data-part="metadata">
+              <div class="grp">
+                <div class="f"><div class="c">Completion Status</div><div class="v link">Playing</div></div>
+                <div class="f"><div class="c">Time Played</div><div class="v">41h 12m</div></div>
+                <div class="f"><div class="c">Last Played</div><div class="v">Yesterday</div></div>
+              </div>
+              <div class="grp">
+                <div class="f"><div class="c">Community Score</div><div class="v good">86</div></div>
+                <div class="f"><div class="c">Critic Score</div><div class="v mid">74</div></div>
+              </div>
+              <div class="grp">
+                <div class="f"><div class="c">Developer</div><div class="v link">Dry Lake Works</div></div>
+                <div class="f"><div class="c">Release Date</div><div class="v link">3/14/2025</div></div>
+              </div>
+              <div class="grp">
+                <div class="f"><div class="c">Genres</div><div class="v chips"><span class="chip">Racing</span><span class="chip">Arcade</span><span class="chip">Sports</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="note">Unofficial fan theme. No game art.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

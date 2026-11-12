@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<!--
+  Bloodpetal: Settings window preview (1280x720). A replica of the theme's XAML (StandardWindowStyle, TreeView and the
+  form controls), not a capture and not the game it is inspired by: no logos, no game assets. Colors are var(--token)
+  from src/tokens.css; sprites are the theme's own white masks; icons are the geometries of src/Media.xaml.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bloodpetal - settings</title>
+<style>
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { width: 1280px; height: 720px; overflow: hidden; background: var(--bp-abyss); color: var(--bp-bone);
+  font: 14px/1.35 "Segoe UI"; -webkit-font-smoothing: antialiased; position: relative; }
+.serif { font-family: "Palatino Linotype"; font-weight: 700; font-variant: small-caps; letter-spacing: .01em; }
+.ic { display: block; flex: none; }
+.orn { display: block; flex: none; color: var(--bp-steel); }
+
+/* BevelTemplate: stone slab = fill + grain (stone.png mask in the lit colour at 50%) + lit top edge + shadowed bottom edge */
+.slab { position: relative; background: var(--bp-stone); border: 1px solid var(--bp-abyss); }
+.slab::before { content: ""; position: absolute; inset: 0; background: var(--bp-slab-lit); opacity: .5; pointer-events: none;
+  -webkit-mask: url(../src/Images/fx/stone.png) 0 0 / 256px 256px repeat; }
+.slab::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bp-slab-lit) 60%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--bp-abyss) 85%, transparent); }
+.slab > * { position: relative; z-index: 1; }
+
+/* SelectionBarTemplate: blood plate = wine lit from its centre, blood rim inside a black outline */
+.blood { background: radial-gradient(ellipse 62% 95% at 50% 50%, color-mix(in srgb, var(--bp-hot) 34%, var(--bp-wine)), var(--bp-wine));
+  border: 1px solid var(--bp-abyss); box-shadow: inset 0 0 0 1px var(--bp-blood); }
+
+/* FramedPlateTemplate: black outline, pewter line, dark line 2px inside, a 7px stud on each corner */
+.frame { position: relative; }
+.frame::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3; border: 1px solid var(--bp-abyss);
+  box-shadow: inset 0 0 0 1px var(--bp-pewter); }
+.frame::after { content: ""; position: absolute; inset: 3px; pointer-events: none; z-index: 3; border: 1px solid var(--bp-iron); }
+.studs { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+.studs i { position: absolute; width: 7px; height: 7px; background: linear-gradient(135deg, var(--bp-slab-lit) 0 2.5px, var(--bp-pewter) 2.5px); border: 1px solid var(--bp-abyss); }
+.studs i:nth-child(1) { left: 0; top: 0; } .studs i:nth-child(2) { right: 0; top: 0; }
+.studs i:nth-child(3) { left: 0; bottom: 0; } .studs i:nth-child(4) { right: 0; bottom: 0; }
+
+/* GlowLineTemplate: ember seam, glow + molten core, 1024x16 tile */
+.seam { position: absolute; left: 0; right: 0; height: 16px; pointer-events: none; z-index: 5; }
+.seam i { position: absolute; inset: 0; }
+.seam i:nth-child(1) { background: var(--bp-ember); -webkit-mask: url(../src/Images/fx/seam.png) 0 0 / 1024px 16px repeat-x; }
+.seam i:nth-child(2) { background: var(--bp-ember-core); -webkit-mask: url(../src/Images/fx/seam-core.png) 0 0 / 1024px 16px repeat-x; }
+
+/* section band: 30px slab, four-point ornament, serif small capitals */
+.band { height: 30px; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 12px; background-color: var(--bp-slab); }
+.band span { font-size: 16px; color: var(--bp-bone); }
+
+/* Button: stone slab, pewter outline, carved line 2px inside, serif small caps */
+.btn { height: 32px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; color: var(--bp-bone); }
+.btn.stone { border-color: var(--bp-pewter); }
+.btn.stone b { position: absolute; inset: 2px; border: 1px solid color-mix(in srgb, var(--bp-abyss) 60%, transparent); z-index: 0; }
+.btn.primary { color: var(--bp-gilt-lit); }
+.btn span { font-weight: 700; }
+
+/* shell */
+.rail { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; background: var(--bp-slab-dim); border: 0; }
+.rail .edge { position: absolute; right: 0; top: 0; bottom: 0; width: 2px; background: var(--bp-abyss); border-left: 1px solid var(--bp-iron-lit); z-index: 2; }
+.seal { width: 44px; height: 62px; position: relative; }
+.seal .plate { position: absolute; left: 6px; top: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--bp-gilt); }
+.seal .orn { position: absolute; left: 17px; bottom: 4px; opacity: .7; }
+.rail .item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--bp-dust); position: relative; }
+.rail .item.sel { color: var(--bp-gilt-lit); }
+.rail .item.sel .plate { position: absolute; left: 6px; top: 4px; width: 32px; height: 32px; }
+.rail .item.sel::before { content: ""; position: absolute; left: 0; top: 9px; width: 2px; height: 22px; background: var(--bp-ember); z-index: 2; }
+.rail .item .ic { position: relative; z-index: 1; }
+
+.top { position: absolute; left: 44px; top: 0; right: 0; height: 52px; background: var(--bp-slab-dim); border: 0; z-index: 6; }
+.top .row { position: absolute; left: 12px; top: 9px; right: 132px; height: 34px; display: flex; align-items: center; }
+.search { width: 280px; height: 32px; background: var(--bp-slate); border: 1px solid var(--bp-iron-lit); display: flex; align-items: center; padding: 0 9px; gap: 8px;
+  color: var(--bp-dust); box-shadow: inset 0 3px 0 -1px color-mix(in srgb, var(--bp-abyss) 55%, transparent); }
+.search span { color: var(--bp-dust); font-size: 14px; }
+.tool { width: 34px; height: 34px; margin-left: 5px; display: flex; align-items: center; justify-content: center; color: var(--bp-dust); position: relative; }
+.tool.on { color: var(--bp-gilt-lit); }
+.tool.hover { color: var(--bp-bone); }
+.tool .mark { position: absolute; right: 5px; top: 5px; width: 7px; height: 7px; background: var(--bp-legend); transform: rotate(45deg); outline: 1px solid var(--bp-abyss); z-index: 2; }
+.tool .ic { position: relative; z-index: 1; }
+.sep { width: 1px; height: 18px; background: var(--bp-iron-lit); margin: 0 4px 0 9px; }
+.caps { position: absolute; right: 0; top: 0; display: flex; }
+.caps div { width: 40px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--bp-parchment); }
+.bell { position: relative; color: var(--bp-gilt); }
+.bell .gem { position: absolute; right: 1px; bottom: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--bp-gem); border: 1px solid var(--bp-abyss);
+  font: 700 10px/14px "Segoe UI"; text-align: center; color: var(--bp-bone); z-index: 2; }
+
+body { background: radial-gradient(ellipse 60% 55% at 50% 108%, color-mix(in srgb, var(--bp-gem) 16%, transparent), transparent 70%), var(--bp-abyss); }
+.win { position: absolute; left: 180px; top: 16px; width: 920px; height: 688px; background: var(--bp-pitch); border: 1px solid var(--bp-pewter); }
+.tband { position: absolute; left: 0; right: 0; top: 0; height: 44px; background-color: var(--bp-slab-dim); border: 0; }
+.tband .haze { position: absolute; left: 70px; right: 70px; top: 3px; bottom: 3px; background: var(--bp-blood); -webkit-mask: url(../src/Images/fx/haze.png) 0 0 / 100% 100% no-repeat; z-index: 1; }
+.tband .t { position: absolute; inset: 0 0 2px 0; display: flex; align-items: center; justify-content: center; gap: 12px; z-index: 2; }
+.tband .t span { font-size: 20px; color: var(--bp-bone); }
+.tband .x { position: absolute; right: 0; top: 0; width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--bp-parchment); z-index: 2; }
+.body { position: absolute; left: 0; right: 0; top: 44px; bottom: 52px; display: flex; }
+.nav { width: 250px; flex: none; padding: 8px 12px 0 6px; border-right: 1px solid var(--bp-iron); overflow: hidden; }
+.tr { height: 28px; margin-bottom: 1px; display: flex; align-items: center; padding: 0 10px 0 12px; color: var(--bp-parchment); border: 1px solid transparent; }
+.tr .mk { margin-right: 8px; opacity: .3; }
+.tr .exp { width: 14px; margin-right: 6px; color: var(--bp-gilt); display: flex; justify-content: center; }
+.tr.hov { color: var(--bp-bone); background-color: var(--bp-stone); border-color: var(--bp-abyss); }
+.tr.hov .mk { opacity: .55; }
+.tr.sel { color: var(--bp-bone); border-color: var(--bp-abyss); }
+.tr.sel .mk { opacity: 1; color: var(--bp-gilt); }
+.pg { flex: 1; padding: 16px 22px 0; }
+.pg .band { margin-bottom: 14px; }
+.line { display: flex; align-items: center; min-height: 32px; margin-bottom: 9px; }
+.line label { width: 250px; color: var(--bp-bone); }
+.cb { width: 18px; height: 18px; margin-right: 9px; background: var(--bp-slate); border: 1px solid var(--bp-pewter); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bp-abyss) 70%, transparent);
+  display: flex; align-items: center; justify-content: center; color: var(--bp-bone); position: relative; }
+.cb.on i { position: absolute; inset: 1px; }
+.cb .ic { position: relative; z-index: 1; }
+.rb { width: 18px; height: 18px; margin-right: 9px; border-radius: 50%; background: var(--bp-slate); border: 1.5px solid var(--bp-pewter); position: relative; }
+.rb.on::before { content: ""; position: absolute; inset: 2.5px; border-radius: 50%; background: var(--bp-gem); }
+.rb.on::after { content: ""; position: absolute; left: 4.5px; top: 4.5px; width: 3px; height: 3px; border-radius: 50%; background: var(--bp-bone); opacity: .75; }
+.well { height: 32px; background: var(--bp-slate); border: 1px solid var(--bp-iron-lit); box-shadow: inset 0 3px 0 -1px color-mix(in srgb, var(--bp-abyss) 55%, transparent);
+  display: flex; align-items: center; padding: 0 9px; color: var(--bp-bone); position: relative; }
+.well.focus { border-color: var(--bp-gilt); }
+.combo { width: 230px; }
+.combo .arrow { position: absolute; right: 4px; top: 3px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--bp-gilt); }
+.slider { width: 230px; height: 20px; position: relative; }
+.slider .track { position: absolute; left: 0; right: 0; top: 5px; height: 10px; background: var(--bp-well); border: 1px solid var(--bp-iron-lit); }
+.slider .fill { position: absolute; left: 2px; top: 7px; height: 6px; width: 132px; background: var(--bp-steel); opacity: .6; }
+.slider .thumb { position: absolute; left: 130px; top: 0; width: 12px; height: 20px; background: var(--bp-steel); border: 1px solid var(--bp-abyss); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bp-bone) 70%, transparent); }
+.slider .thumb::after { content: ""; position: absolute; left: 4px; top: 5px; width: 2px; height: 8px; background: color-mix(in srgb, var(--bp-abyss) 55%, transparent); }
+.val { margin-left: 12px; color: var(--bp-parchment); }
+.foot { position: absolute; left: 0; right: 0; bottom: 0; height: 52px; border-top: 1px solid var(--bp-iron); display: flex; align-items: center; padding: 0 16px; gap: 10px; }
+.foot .note { color: var(--bp-parchment); margin-right: auto; }
+.winstuds { inset: -1px; }
+</style>
+</head>
+<body>
+<div class="win" data-part="settings-window">
+  <div class="tband slab">
+    <div class="haze"></div>
+    <div class="t"><svg class="orn " width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="serif">Settings</span><svg class="orn " width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg></div>
+    <div class="x"><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4,4 L12,10.2 20,4 13.8,12 20,20 12,13.8 4,20 10.2,12Z"/></svg></div>
+  </div>
+  <div class="seam" style="top:36px"><i></i><i></i></div>
+  <div class="body">
+    <div class="nav" data-part="settings-nav">
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>General</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><svg class="ic exp" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3,7 L12,11 21,7 12,19Z"/></svg><span>Appearance</span></div>
+<div class="tr" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>General</span></div>
+<div class="tr" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Advanced</span></div>
+<div class="tr sel blood" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Details View</span></div>
+<div class="tr hov slab" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Grid View</span></div>
+<div class="tr" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>List View</span></div>
+<div class="tr" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Layout</span></div>
+<div class="tr" style="margin-left:18px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Top panel</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Search</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Updating</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Metadata</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Sorting</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Scripts</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Auto Close Clients</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Import Exclusion List</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Backup</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>For developers</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="exp"></span><span>Input</span></div>
+<div class="tr" style="margin-left:0px"><svg class="orn mk" width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><svg class="ic exp" width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M7,3 L11,12 7,21 19,12Z"/></svg><span>Advanced</span></div>
+    </div>
+    <div class="pg" data-part="settings-content">
+      <div class="band slab"><svg class="orn " width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="serif">Details View</span></div>
+      <div class="line"><div class="cb on"><i class="blood"></i><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L9,22 22,2 9.5,15.5Z"/></svg></div>Show game icon on the details view list</div>
+      <div class="line"><div class="cb"></div>Indent game details</div>
+      <div class="line"><div class="cb on"><i class="blood"></i><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L9,22 22,2 9.5,15.5Z"/></svg></div>Show background image on main window</div>
+      <div class="line"><label>Game details position:</label><div class="rb on"></div><span style="margin-right:22px">Right</span><div class="rb"></div>Left</div>
+      <div class="line"><label>Blur background image:</label><div class="slider"><div class="track"></div><div class="fill"></div><div class="thumb"></div></div><span class="val">60</span></div>
+      <div class="line"><label>Details list icon size:</label><div class="well focus" style="width:230px">26</div></div>
+      <div class="line"><label>Font:</label><div class="well combo">Segoe UI<div class="arrow blood"><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3,7 L12,11 21,7 12,19Z"/></svg></div></div></div>
+      <div class="band slab" style="margin-top:18px"><svg class="orn " width="10" height="10" viewBox="0 0 10 10"><path fill="currentColor" d="M5,0.4 L6.6,2 5,3.6 3.4,2Z M2,3.4 L3.6,5 2,6.6 0.4,5Z M8,3.4 L9.6,5 8,6.6 6.4,5Z M5,6.4 L6.6,8 5,9.6 3.4,8Z"/></svg><span class="serif">Game fields to be displayed on details panel</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:2px">
+        <div class="line" style="margin:0"><div class="cb on"><i class="blood"></i><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L9,22 22,2 9.5,15.5Z"/></svg></div>Time Played</div>
+        <div class="line" style="margin:0"><div class="cb on"><i class="blood"></i><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L9,22 22,2 9.5,15.5Z"/></svg></div>Genre</div>
+        <div class="line" style="margin:0"><div class="cb"></div>Age Rating</div>
+        <div class="line" style="margin:0"><div class="cb on"><i class="blood"></i><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L9,22 22,2 9.5,15.5Z"/></svg></div>Last Played</div>
+        <div class="line" style="margin:0"><div class="cb on"><i class="blood"></i><svg class="ic " width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L9,22 22,2 9.5,15.5Z"/></svg></div>Developer</div>
+        <div class="line" style="margin:0"><div class="cb"></div>Region</div>
+      </div>
+      <div class="line" style="margin-top:16px;gap:10px"><div class="btn stone slab"><b></b><span class="serif">Clear web cache</span></div><div class="btn primary blood"><span class="serif">Apply</span></div></div>
+    </div>
+  </div>
+  <div class="foot" data-part="settings-buttons">
+    <span class="note">* Requires restart to apply</span>
+    <div class="btn primary blood" style="min-width:96px"><span class="serif">Save</span></div>
+    <div class="btn stone slab" style="min-width:96px"><b></b><span class="serif">Cancel</span></div>
+  </div>
+  <div class="studs winstuds"><i></i><i></i><i></i><i></i></div>
+</div>
+</body>
+</html>

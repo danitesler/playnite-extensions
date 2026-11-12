@@ -38,7 +38,7 @@ Shared templates in `Common.xaml`:
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | **The compact icon rail.** A 44px rail on `page` with a hairline toward the library. The main menu button sits in a 44x56 header, then a short rule. Items are icons only: 44x40 rows with 16px glyphs in `SidebarItemForegroundBrush`. Hover brightens the icon in place with a subtle wash. The current item sits on the brushed pewter selection plate (`SelectionBarTemplate`) in `SelectedForegroundBrush`. Top and bottom are fallbacks: a 56px strip, with 148px kept clear for the caption buttons. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | A 56px transparent strip over the library art with a hairline under it. The search box (underline only) is on the left; thin icons are on the right. The current view or open panel gets the tab mark. Notifications show an amber dot instead of a count. 148px is kept clear on the right. |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons, 12px from the top. Close turns `logo-red`. |
-| `Views/Library.xaml` | The background art sits behind the top strip and the library, anchored top right and faded toward the left and the bottom, under a 75% `ScrimBrush` veil (the title-screen scene). |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Black columns with a hairline edge and 16px gutters. |
 
 ## Game page

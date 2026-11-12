@@ -91,13 +91,28 @@
                                   Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible"
                                   d:DesignWidth="1280" d:DesignHeight="1280"
                                   d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}">
-                        <Grid x:Name="PageRoot" Background="{DynamicResource ContentBackgroundBrush}">
+                        <!-- The page colour, see-through while Playnite draws the game art behind the whole window (its window background setting). -->
+                        <Grid x:Name="PageRoot">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Background" Value="{DynamicResource ContentBackgroundBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <!-- Banner: the game's background art as a band of GameBannerHeight (0 turns it off), faded into the page by a gradient on top
-                                 (not a mask). Collapsed when the game has no background art or Playnite hides the image. -->
+                                 (not a mask). Collapsed when the game has no background art or Playnite hides the image. Collapsed while Playnite draws
+                                 the art behind the whole window, so GameBannerHeight has no effect there. -->
                             <Grid x:Name="HeroArt" Height="{DynamicResource GameBannerHeight}" VerticalAlignment="Top" ClipToBounds="True" IsHitTestVisible="False">
                                 <Grid.Style>
                                     <Style TargetType="Grid">
                                         <Style.Triggers>
+                                            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
                                             <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
                                                 <Setter Property="Visibility" Value="Collapsed" />
                                             </DataTrigger>
@@ -109,6 +124,19 @@
                                 </Grid.Style>
                                 <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
+                                <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+                                <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
+                                    <Rectangle.Style>
+                                        <Style TargetType="Rectangle">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Rectangle.Style>
+                                </Rectangle>
                                 <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark patches on
                                      scaled displays. The fade is a plain gradient to the page color, read from the page brush (PageRoot). -->
                                 <Rectangle>
@@ -207,11 +235,11 @@
                                                 BorderBrush="{DynamicResource WindowPanelSeparatorBrush}" BorderThickness="1"
                                                 CornerRadius="{DynamicResource CornerRadiusLarge}" Padding="{DynamicResource GroupBoxPadding}">
                                             <Border.Resources>
-                                                <!-- Values are body text; a TextBlock with Tag="Caption" is the field caption (12px, medium, muted) -->
+                                                <!-- Values are body text; a TextBlock with Tag="Caption" is the field caption (body size, medium, muted) -->
                                                 <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
                                                     <Style.Triggers>
                                                         <Trigger Property="Tag" Value="Caption">
-                                                            <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}" />
+                                                            <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
                                                             <Setter Property="FontWeight" Value="Medium" />
                                                             <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
                                                             <Setter Property="TextWrapping" Value="Wrap" />
@@ -250,7 +278,7 @@
                                                             <StackPanel>
                                                                 <Grid x:Name="PART_ElemCompletionStatus" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCCompletionStatus}" />
@@ -258,7 +286,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemPlayTime" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCTimePlayed}" />
@@ -266,7 +294,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemLastPlayed" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCLastPlayed}" />
@@ -274,7 +302,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemRecentActivity" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCRecentActivityLabel}" />
@@ -282,7 +310,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemAdded" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCDateAddedLabel}" />
@@ -309,7 +337,7 @@
                                                             <StackPanel>
                                                                 <Grid x:Name="PART_ElemCommunityScore" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCCommunityScore}" />
@@ -317,7 +345,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemCriticScore" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCCriticScore}" />
@@ -325,7 +353,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemUserScore" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCUserScore}" />
@@ -355,7 +383,7 @@
                                                             <StackPanel>
                                                                 <Grid x:Name="PART_ElemDevelopers" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCDevelopersLabel}" />
@@ -363,7 +391,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemPublishers" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCPublishersLabel}" />
@@ -371,7 +399,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemReleaseDate" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCGameReleaseDateTitle}" />
@@ -379,7 +407,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemSeries" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCSeriesLabel}" />
@@ -387,7 +415,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemAgeRating" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCAgeRatingLabel}" />
@@ -395,7 +423,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemRegion" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCRegionLabel}" />
@@ -424,7 +452,7 @@
                                                             <StackPanel>
                                                                 <Grid x:Name="PART_ElemPlatform" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,3,8,0" Text="{DynamicResource LOCPlatformsTitle}" />
@@ -438,7 +466,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemGenres" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,3,8,0" Text="{DynamicResource LOCGenresLabel}" />
@@ -452,7 +480,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemCategories" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,3,8,0" Text="{DynamicResource LOCCategoriesLabel}" />
@@ -466,7 +494,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemFeatures" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,3,8,0" Text="{DynamicResource LOCFeaturesLabel}" />
@@ -480,7 +508,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemTags" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,3,8,0" Text="{DynamicResource LOCTagsLabel}" />
@@ -515,7 +543,7 @@
                                                             <StackPanel>
                                                                 <Grid x:Name="PART_ElemLibrary" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCGameProviderTitle}" />
@@ -523,7 +551,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemSource" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCSourceLabel}" />
@@ -531,7 +559,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemVersion" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCVersionLabel}" />
@@ -539,7 +567,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemInstallSize" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCInstallSizeLabel}" />
@@ -547,7 +575,7 @@
                                                                 </Grid>
                                                                 <Grid x:Name="PART_ElemInstallDirectory" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCGameInstallDirTitle}" />
@@ -569,7 +597,7 @@
                                                             <StackPanel>
                                                                 <Grid x:Name="PART_ElemLinks" Margin="0,8,0,8">
                                                                     <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="112" />
+                                                                        <ColumnDefinition Width="124" />
                                                                         <ColumnDefinition Width="*" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Tag="Caption" Margin="0,2,8,0" Text="{DynamicResource LOCLinksLabel}" />

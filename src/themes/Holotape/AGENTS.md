@@ -45,7 +45,7 @@ Full source list, what is measured and what is judged: **[`RESEARCH.md`](RESEARC
 
 Radii are all 0 (`ControlCornerRadius`, `CornerRadiusSmall/Large/XLarge/Full`), so no control can turn into an oval; `FrameThickness` is 1 (the Pip-Boy outline).
 
-Fonts: `FontFamily` Bahnschrift, Segoe UI (body); `HeadingFontFamily` Monofonto, Bahnschrift SemiCondensed, Bahnschrift, Segoe UI; `MonospaceFontFamily` Fixedsys Excelsior 3.01, Consolas. Body stays proportional on purpose: a monospace description reads as a gimmick within a page.
+Fonts: `FontFamily` Bahnschrift, Segoe UI (body); `HeadingFontFamily` and `MonospaceFontFamily` lead with the bundled Cascadia Mono Regular (`src/Typography/`), then Monofonto / Fixedsys Excelsior 3.01 and the Windows fallbacks. Body stays proportional on purpose: a monospace description reads as a gimmick within a page.
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -58,7 +58,7 @@ Rows 32px (`ButtonPadding` 14,6.5; `InputPadding` 10,6.5); menu and list rows 28
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px rail on `pb-void` closed by a 1px rule; dim amber glyphs, amber main menu glyph; current item = green glyph in a 32px green-outlined box over the green wash; add-on glyphs get the same 16 x 16 from the item's `14,12` plate padding (`IconPadding` is deliberately not used) |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | Transparent 52px bar ending in a 1px rule with 6px ticks rising at both ends; terminal-well search; current view green over a 2px green underline |
 | `DerivedStyles/MainWindowStyle.xaml` | 44 x 32 square window buttons, 52px caption band, close hovers red |
-| `Views/Library.xaml` | Library art under a 75% page scrim, a 1-in-3 scanline mask and a vignette |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Page-colored side panels with a 1px edge |
 
 **Settings chrome.** `DefaultControls/TreeView.xaml`: a RobCo menu, 30px square rows in the body face with a `>` prompt cell; hover is the row fill with the prompt at 45%, selected is the 1px green outline over the green wash with the full green prompt; children under a 1px guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 40px terminal status bar, a green `>` before the amber title, a tick ruler (1px tick every 8px, a dashed `Line` in a `Canvas`) above the closing 1px rule; `WindowBarButton` is 40x30, square.
@@ -88,7 +88,7 @@ Empty state (no game selected): both overviews hide the page and show a RobCo te
 
 ## Deviations
 
-- No `OpacityMask` on any art (banner, library): the scanlines are tiled lines in the scrim color drawn over the art and the vignette is a radial gradient to the page color, because masked art behind animated controls leaves dark boxes on scaled displays. The library art no longer shows behind the game page.
+- No `OpacityMask` on any art (banner, library), because masked art behind animated controls leaves dark boxes on scaled displays. The library art no longer shows behind the game page.
 - No bloom, blur or color tint over images: WPF has no cheap equivalent over live art; the scanlines are the only screen effect.
 - Fonts are fallbacks unless Monofonto / Fixedsys Excelsior are installed (not redistributable / not shipped).
 - Add-on sidebar icons are 16 x 16 (plate padding), not sized by `IconPadding`: stacking both collapses the icon to 0px.
@@ -101,7 +101,7 @@ Empty state (no game selected): both overviews hide the page and show a RobCo te
 
 Signature motifs drawn: (1) the 1px green selection box over the green wash (rail, list row, tree node, shot, chip); (2) amber headings over the tick rule; (3) faint scanlines and a vignette on the banner; (4) the segmented green stat bar (global progress); (5) the "equipped" filled-square check box and the 2px gauge slider with a green needle. The banner scene (a radio tower on mesas) and every game, studio and description are invented; no Bethesda or Obsidian art.
 
-Stand-in fonts (`scripts/data/fonts.json`): Monofonto and Fixedsys Excelsior 3.01 are drawn with Cascadia Mono (OFL, nearest bundled monospace); Bahnschrift with Barlow, Bahnschrift SemiCondensed with Barlow Semi Condensed, Segoe UI with Selawik. Real Monofonto differs in letterforms and width.
+Fonts: headings and monospace text are Cascadia Mono, bundled in `src/Typography/` and named first in the previews; Bahnschrift with Barlow, Bahnschrift SemiCondensed with Barlow Semi Condensed, Segoe UI with Selawik. Real Monofonto differs in letterforms and width.
 
 ## Not verified yet
 

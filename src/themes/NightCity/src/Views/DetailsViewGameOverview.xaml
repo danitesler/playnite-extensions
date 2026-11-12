@@ -1,11 +1,10 @@
 <!--
     Overlay on Playnite Default/Views/DetailsViewGameOverview.xaml (details view, right pane).
     A Cyberpunk 2077 menu screen (journal, inventory): near-black page, the game's art as a banner fading into
-    it, the title in the title face (HeadingFontFamily, FontSizeLargest) with the short yellow underline the game draws
-    under a section title (TabItemIndicatorBrush, 48 x 3), then the actions: Play as the yellow slab
+    it, the title in the title face (HeadingFontFamily, FontSizeLargest), no underline, then the actions: Play as the yellow slab
     (PlayButton), the context action and More as dark rows (Button.xaml), Edit a 40px glyph row shown while the pointer
     is over the header. Steam screenshots host and skeleton, then two columns: description and notes as sections
-    (heading in the title face with the yellow underline, no box) on the left, the metadata pane on the right as the
+    (heading in the title face in red caps, no underline, no box) on the left, the metadata pane on the right as the
     game's info box: the image box fill (ExpanderBackgroundBrush), square, 20px inside, every field Playnite can show
     in six groups (progress, scores, about, tags, library, links) split by the 1px divider (WindowPanelSeparatorBrush);
     a group whose fields are all hidden collapses with its rule. Captions are FontSizeSmall dim grey in a 112px column
@@ -20,11 +19,12 @@
                     xmlns:pbeh="clr-namespace:Playnite.Behaviors;assembly=Playnite"
                     mc:Ignorable="d">
 
-    <!-- Section heading: the title face (HeadingFontFamily) at FontSizeLarger in the brand yellow, as the game's menu section headers. Used by every overview. -->
+    <!-- Section heading: the title face (HeadingFontFamily) at FontSizeLarger in the in-game red (SectionHeaderBrush), as the game's
+         menu section heads (WEAPONS, STATS). The game title keeps the brand yellow (HeadingForegroundBrush). Used by every overview. -->
     <Style x:Key="HeadingTextBlock" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
         <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeLarger}" />
-        <Setter Property="Foreground" Value="{DynamicResource HeadingForegroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SectionHeaderBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -89,7 +89,17 @@
                                   Style="{DynamicResource DetailsScrollViewer}" Visibility="Visible"
                                   d:DesignWidth="1280" d:DesignHeight="1280"
                                   d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}">
-                        <Grid x:Name="PageRoot" Background="{DynamicResource ContentBackgroundBrush}">
+                        <Grid x:Name="PageRoot">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Background" Value="{DynamicResource ContentBackgroundBrush}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                            <Setter Property="Background" Value="Transparent" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
                             <!-- Banner: the game's background art as a band of GameBannerHeight (0 turns it off). Faded out downward by a veil and a plain gradient to the page color
                                  (no OpacityMask, see below), Collapsed when the game has no background
                                  art or Playnite hides the image. -->
@@ -103,11 +113,27 @@
                                             <DataTrigger Binding="{Binding Visibility, ElementName=PART_ImageBackground}" Value="Collapsed">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                             </DataTrigger>
+                                            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Grid.Style>
                                 <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
+                                <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+                                <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
+                                    <Rectangle.Style>
+                                        <Style TargetType="Rectangle">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Rectangle.Style>
+                                </Rectangle>
                                 <!-- No OpacityMask on the banner: masked art repainted in part (behind the animated Play button) left dark
                                      seams on scaled displays. A veil and a plain gradient to the page color fade it toward the title instead. -->
                                 <Border Background="{DynamicResource ContentBackgroundBrush}" Opacity="0.35" />
@@ -176,8 +202,6 @@
                                             <TextBlock x:Name="PART_TextDisplayName" FontSize="{DynamicResource FontSizeLargest}"
                                                        FontFamily="{DynamicResource HeadingFontFamily}" TextWrapping="Wrap" VerticalAlignment="Center" FontWeight="Bold" Foreground="{DynamicResource HeadingForegroundBrush}" />
                                         </DockPanel>
-                                        <Border Width="48" Height="3" Margin="0,10,0,0" HorizontalAlignment="Left"
-                                                Background="{DynamicResource TabItemIndicatorBrush}" />
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,20,0,0">
                                             <Grid>
                                                 <Button x:Name="PART_ButtonPlayAction" Style="{DynamicResource PlayButton}" Height="40" MinWidth="140" />
@@ -221,7 +245,6 @@
 <StackPanel.Style><Style TargetType="StackPanel"><Setter Property="Width" Value="{DynamicResource GameDetailsPaneWidth}" /><Setter Property="MaxWidth" Value="{DynamicResource GameDetailsPaneWidth}" /><Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=DetailsOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /><Setter Property="MaxWidth" Value="Infinity" /></DataTrigger></Style.Triggers></Style></StackPanel.Style>
                                                 <StackPanel Margin="0,0,0,14">
     <TextBlock Style="{DynamicResource HeadingTextBlock}" Text="{DynamicResource LOCGameDetails}" />
-    <Border Width="48" Height="3" Margin="0,6,0,0" HorizontalAlignment="Left" Background="{DynamicResource TabItemIndicatorBrush}" />
 </StackPanel>
                                                 <!-- The rule of each group is its top border; the wrapper clips the first one (negative margins:
                                                      -(2 x 12 + 1 + 8) on top, -8 at the bottom; change them with the spacing). -->
@@ -638,7 +661,6 @@
                                                 <StackPanel>
                                                     <StackPanel Margin="0,0,0,14">
     <TextBlock Style="{DynamicResource HeadingTextBlock}" Text="{DynamicResource LOC_SteamScreenshots_SteamScreenshotsLabel}" />
-    <Border Width="48" Height="3" Margin="0,6,0,0" HorizontalAlignment="Left" Background="{DynamicResource TabItemIndicatorBrush}" />
 </StackPanel>
                                                     <Grid>
                                                         <ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" />
@@ -673,7 +695,6 @@
                                             <StackPanel x:Name="PART_ElemDescription">
                                                 <StackPanel Margin="0,0,0,14">
     <TextBlock Style="{DynamicResource HeadingTextBlock}" Text="{DynamicResource LOCGameDescriptionTitle}" />
-    <Border Width="48" Height="3" Margin="0,6,0,0" HorizontalAlignment="Left" Background="{DynamicResource TabItemIndicatorBrush}" />
 </StackPanel>
                                                 <HtmlTextView x:Name="PART_HtmlDescription"
                                                               TextElement.Foreground="{DynamicResource TextBrush}"
@@ -700,7 +721,6 @@
                                             <StackPanel x:Name="PART_ElemNotes">
                                                 <StackPanel Margin="0,0,0,14">
     <TextBlock Style="{DynamicResource HeadingTextBlock}" Text="{DynamicResource LOCNotesLabel}" />
-    <Border Width="48" Height="3" Margin="0,6,0,0" HorizontalAlignment="Left" Background="{DynamicResource TabItemIndicatorBrush}" />
 </StackPanel>
                                                 <TextBox x:Name="PART_TextNotes" Style="{DynamicResource BareTextBox}" IsReadOnly="True"
                                                          AcceptsReturn="True" TextWrapping="Wrap" Padding="0" BorderThickness="0"
@@ -732,7 +752,7 @@
                                         </Path>
                                         <Path Data="M12,0.75 H119.25 V84 L108,95.25 H0.75 V12 Z" Fill="{DynamicResource GridItemBackgroundBrush}" Stroke="{DynamicResource NormalBorderBrush}" StrokeThickness="1.5" />
                                         <Grid Margin="6" ClipToBounds="True" IsHitTestVisible="False">
-                                            <Rectangle Height="2" VerticalAlignment="Top" Fill="{DynamicResource GlyphBrush}" Opacity="0.7">
+                                            <Rectangle Height="2" VerticalAlignment="Top" Fill="{DynamicResource SelectedBrush}" Opacity="0.7">
                                                 <Rectangle.RenderTransform><TranslateTransform x:Name="EmptyFx2Xf" Y="4" /></Rectangle.RenderTransform>
                                             </Rectangle>
                                         </Grid>

@@ -12,7 +12,7 @@ Reference notes, measurements, and asset sources are documented in [`RESEARCH.md
 
 ## Tokens
 
-Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius-lg (8), `CornerRadiusLarge` = radius-card (16), `CornerRadiusXLarge` = 24, `CornerRadiusFull` = pill, reserved for 1:1 square elements (repo rule); ayywi's pill buttons, chips and tabs use `ControlCornerRadius` because WPF distorts a full radius on non-square elements, and the notification count badge uses 8 (half its 16px height). Fonts: `Sora, Segoe UI` for body and `./Typography/#Unbounded` for `HeadingFontFamily` (bundled in `src/Typography/`, fallback to installed Unbounded, Sora, Segoe UI). Game titles: 26px (`FontSizeLargest`) · 700 · 1.2 (`LineHeight="31.2"`). Play button: 18px · 700 · 1.3 (`LineHeight="23.4"`).
+Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius-lg (8), `CornerRadiusLarge` = radius-card (16), `CornerRadiusXLarge` = 24, `CornerRadiusFull` = pill, reserved for 1:1 square elements (repo rule); ayywi's pill buttons, chips and tabs use `ControlCornerRadius` because WPF distorts a full radius on non-square elements, and the notification count badge uses 8 (half its 16px height). Fonts: `./Typography/#Sora` for body and `./Typography/#Unbounded` for `HeadingFontFamily` (both bundled in `src/Typography/`, fallback to Segoe UI). Game titles: 26px (`FontSizeLargest`) · 700 · 1.2 (`LineHeight="31.2"`). Play button: 18px · 700 · 1.3 (`LineHeight="23.4"`).
 
 *(Full token-to-key mapping: see `src/Constants.template.xaml`)*
 
@@ -33,7 +33,9 @@ Radii: `ControlCornerRadius` = radius-control (12), `CornerRadiusSmall` = radius
 
 ## Game page
 
-Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 112px caption column. Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). More and Edit are always-visible 48px square icon buttons (icon-only, the label in a `ToolTip`; repo rule). `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover (clip plus corner pieces, no mask), round 44px Play and Info buttons (`GridTileButton`). With no game selected both overviews show an empty state (icon tile and title).
+Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`ExpanderBackgroundBrush`, 16px radius) with hairline rules between groups. Details view: 124px caption column; captions are body size (same as the values). Title in `HeadingFontFamily`. Play is the primary button (`ControlCornerRadius`). More and Edit are always-visible 48px square icon buttons (icon-only, the label in a `ToolTip`; repo rule). `GridViewItemTemplate.xaml` is overlaid: 12px rounded cover (transparent mask), round 44px Play and Info buttons (`GridTileButton`). With no game selected both overviews show an empty state (icon tile and title).
+
+**Window background.** Playnite's Settings, Appearance, General, "Use game background image as window background" is the one way to show the game art behind everything (issue #22); Playnite's own "Darken background image" and blur amounts are the tint. `Library.xaml`'s `PART_ImageBackground` shows behind the views, and `{Settings ShowBackgroundImageOnWindow}` turns the top bar, filter and explorer panels and both `PageRoot`s transparent and collapses `HeroArt`, so `GameBannerHeight` has no effect and ThemeModifier greys out its banner sliders (repo rule in `../AGENTS.md`); the art's bottom edge fades into the page. Off, the banner band works as above, and ThemeModifier's "Banner darkening" (`GameBannerDarken`) lays `GameBannerTintBrush` (the page black) over the banner art.
 
 ## Components
 
@@ -51,7 +53,7 @@ Generated asset: `art/fx.py` writes `src/Images/fx/glow.png` and `art/fx-sheet.p
 ## Deviations
 
 - Hover lift (2px) and glow are drawn on Play and the cover buttons (a transform and one glow mask). Not drawn: card lift and `shadow.lift`, heading tracking, shimmer. The glow layer is 2x the CSS opacity (`RESEARCH.md` -> Motion).
-- Unbounded font is bundled in `src/Typography/`; Sora applies where installed (falling back to Segoe UI).
+- Unbounded (Medium, SemiBold, Bold) and Sora (Regular, Medium, SemiBold, Bold) are bundled in `src/Typography/`, only the weights the theme sets.
 - Main window caption band is the whole 56px top bar (Default: 25px).
 - `Expander` and `ExpanderEx` are not restyled (palette recolor only), so the game edit dialog sections are not cards.
 - Progress bar indeterminate keeps Playnite's hider animation; it does not slide ayywi's 40% bar.

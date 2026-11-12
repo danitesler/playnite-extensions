@@ -1,0 +1,82 @@
+<!--
+    Overlay on Playnite Default/DerivedStyles/GridViewItemStyle.xaml: the frame around a cover tile in the grid view.
+    The game's poster tiles are flat cards with a 4px corner; state is drawn around and along them, never as a fill.
+    Selected (static, setters): a 3px vermilion outline (GridViewItemSelectedBorderBrush) just outside the tile.
+    Hover (its own animated layers): a 2px teal outline (GridViewItemHoverBorderBrush) fades in over 0.2s and the
+    racing stripe, a 4px blue / sage / mustard bar (StripeBrush, StripeAltBrush, StripeAccentBrush), wipes in from the
+    left along the cover's bottom edge (ScaleX 0 to 1, 0.28s, ease out). Leaving reverses both over 0.25s
+    (FillBehavior Stop). Everything sits inside the item's own spacing margin. The tile itself is GridViewItemTemplate.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="GridViewItemStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Grid Background="Transparent"
+                          Margin="{Settings ItemSpacingMargin}"
+                          x:Name="ItemGrid">
+                        <ContentPresenter />
+                        <Border x:Name="HoverBorder" BorderThickness="2" Margin="0" IsHitTestVisible="False" Opacity="0"
+                                BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}"
+                                CornerRadius="{DynamicResource CornerRadiusLarge}" />
+                        <Border x:Name="SelectionBorder" BorderThickness="3" Margin="0" IsHitTestVisible="False"
+                                CornerRadius="{DynamicResource CornerRadiusLarge}" />
+                        
+                        <Grid x:Name="StripeBar" Height="4" VerticalAlignment="Bottom" IsHitTestVisible="False" Opacity="0"
+                              RenderTransformOrigin="0,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="StripeScale" ScaleX="0" />
+                            </Grid.RenderTransform>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="5*" />
+                                <ColumnDefinition Width="3*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Grid.Column="0" Fill="{DynamicResource StripeBrush}" />
+                            <Rectangle Grid.Column="1" Fill="{DynamicResource StripeAltBrush}" />
+                            <Rectangle Grid.Column="2" Fill="{DynamicResource StripeAccentBrush}" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="StripeBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="StripeScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.28">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation Storyboard.TargetName="StripeBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation Storyboard.TargetName="StripeScale" Storyboard.TargetProperty="ScaleX" To="0" Duration="0:0:0.25" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                        </Trigger>
+                        <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
+                            <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

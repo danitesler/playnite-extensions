@@ -1,0 +1,128 @@
+<!--
+    Bloodpetal: Play, the source's great red button. An iron socket (black, pewter line, a stud on each corner) holding a
+    blood plate lit from its centre, gilt serif small capitals. Layers bottom to top: bloom, socket, plate, hover plate,
+    pressed plate, ember seam, studs, label.
+    Hover, animated both ways (no setters on animated parts, so nothing snaps):
+      in  0.2s: the hotter plate and the bloom fade in; the ember seam lights along the plate's foot and crawls (one
+          1024px tile in 14s) while the bloom breathes on its wrapper.
+      out 0.35s: everything fades back; every exit animation has FillBehavior Stop, so no clock is left running.
+    Press fades in its own dark plate, so leaving while pressed cannot strand the hover state.
+    Sprites are white masks filled with theme brushes. Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="26,0,26,1" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLarger}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Typography.Capitals" Value="SmallCaps" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="Root" Background="Transparent">
+                        <Grid x:Name="BloomWrap" Margin="-24,-20" IsHitTestVisible="False">
+                            <Control x:Name="Bloom" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource PrimaryButtonGlowBrush}" Opacity="0.16" Focusable="False" />
+                        </Grid>
+                        <Border Background="{DynamicResource BevelShadowBrush}" BorderBrush="{DynamicResource FrameBrush}" BorderThickness="1" SnapsToDevicePixels="True" />
+                        <Control Margin="3" Template="{DynamicResource SelectionBarTemplate}" Foreground="{TemplateBinding Background}"
+                                 BorderBrush="{DynamicResource PrimaryButtonBorderBrush}" Focusable="False" />
+                        <Control x:Name="HoverPlate" Margin="3" Template="{DynamicResource SelectionBarTemplate}" Foreground="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                 BorderBrush="{DynamicResource PrimaryButtonGlowBrush}" Opacity="0" Focusable="False" />
+                        <Border x:Name="PressedPlate" Margin="3" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Grid x:Name="SeamBand" Height="16" VerticalAlignment="Bottom" Margin="5,0,5,-3" ClipToBounds="True" IsHitTestVisible="False" Opacity="0" Visibility="Hidden">
+                            <Canvas>
+                                <Grid Width="3072" Height="16">
+                                    <Grid.RenderTransform>
+                                        <TranslateTransform x:Name="SeamShift" X="0" />
+                                    </Grid.RenderTransform>
+                                    <Rectangle Fill="{DynamicResource TopPanelRuleStartBrush}">
+                                        <Rectangle.OpacityMask>
+                                            <ImageBrush ImageSource="{ThemeFile 'Images/fx/seam.png'}" TileMode="Tile" Stretch="None" Viewport="0,0,1024,16" ViewportUnits="Absolute" />
+                                        </Rectangle.OpacityMask>
+                                    </Rectangle>
+                                    <Rectangle Fill="{DynamicResource TopPanelRuleEndBrush}">
+                                        <Rectangle.OpacityMask>
+                                            <ImageBrush ImageSource="{ThemeFile 'Images/fx/seam-core.png'}" TileMode="Tile" Stretch="None" Viewport="0,0,1024,16" ViewportUnits="Absolute" />
+                                        </Rectangle.OpacityMask>
+                                    </Rectangle>
+                                </Grid>
+                            </Canvas>
+                        </Grid>
+                        <Control Template="{DynamicResource RivetsTemplate}" Foreground="{DynamicResource FrameBrush}" Margin="-1" Focusable="False" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.7" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SeamBand" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SeamBand" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="SeamShift" Storyboard.TargetProperty="X" From="0" To="-1024" Duration="0:0:14" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.2">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BloomWrap" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.9" Value="0.62" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.16" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BloomWrap" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SeamBand" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SeamShift" Storyboard.TargetProperty="X" By="-12" Duration="0:0:0.35" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="SeamBand" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.35" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.08" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

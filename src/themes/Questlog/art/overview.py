@@ -345,11 +345,27 @@ HERO = '''<!-- Banner: the game's background art as a band at the top, GameBanne
                 <DataTrigger Binding="{Binding Visibility, ElementName=PART_ImageBackground}" Value="Collapsed">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Grid.Style>
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill"
                HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
+    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
+    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
+        <Rectangle.Style>
+            <Style TargetType="Rectangle">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Rectangle.Style>
+    </Rectangle>
     <Rectangle>
         <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -538,7 +554,17 @@ def details_view():
 {indent(details_panel(False, ' DockPanel.Dock="Right" Margin="20,0,0,20" VerticalAlignment="Top"'), 4)}
 {indent(text_column(' Margin="0,0,0,20"'), 4)}
 </DockPanel>'''
-    page = f'''<Grid x:Name="PageRoot" Background="{{DynamicResource ContentBackgroundBrush}}">
+    page = f'''<Grid x:Name="PageRoot">
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background" Value="{{DynamicResource ContentBackgroundBrush}}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{{Settings ShowBackgroundImageOnWindow}}" Value="True">
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
     <!-- Visibility is set here on purpose: the inherited DetailsScrollViewer style collapses the host on a null
          DataContext, which would hide the empty state too. -->
     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
@@ -721,8 +747,18 @@ def grid_view():
 </Grid>'''
     body = responsive_body(text_column(' Grid.Column="0" Margin="0,0,0,16"'),
         details_panel(True, ' Grid.Column="2" Margin="0,0,0,16" VerticalAlignment="Top"'), attrs='VerticalAlignment="Top"')
-    page = f'''<Grid x:Name="PageRoot" Background="{{DynamicResource ContentBackgroundBrush}}"
+    page = f'''<Grid x:Name="PageRoot"
       d:DataContext="{{x:Static DesignMainViewModel.DesignSelectedGameDetailsIntance}}">
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Setter Property="Background" Value="{{DynamicResource ContentBackgroundBrush}}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{{Settings ShowBackgroundImageOnWindow}}" Value="True">
+                        <Setter Property="Background" Value="Transparent" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
     <ScrollViewer CanContentScroll="False" HorizontalAlignment="Stretch"
                   HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                   x:Name="PART_ScrollViewHost">

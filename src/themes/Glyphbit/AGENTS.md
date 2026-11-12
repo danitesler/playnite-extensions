@@ -48,7 +48,7 @@ Radii are all 0: corners are stepped by `ChamferTemplate`. Fonts: `Bahnschrift` 
 |------|---------------|
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px void rail; mint main menu glyph over a short ramp; items 44x40, 16px glyph, no `IconPadding`; current = black slot with a mint edge and three 2px counter squares |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px void bar, 2px stepped ramp magenta to cyan to mint; icon-only 32px cells, current = white chip; Default order; 132px kept clear for the caption buttons |
-| `Views/Library.xaml` | solid ink, art at 0.16 under a plain gradient; no texture behind covers |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `DerivedStyles/StandardWindowStyle.xaml` | dialogs as the settings screen: 2px magenta frame, magenta title with a pip, noise strips along two edges |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | 1px slate edge; pixel caption glyphs; close hovers red |
 

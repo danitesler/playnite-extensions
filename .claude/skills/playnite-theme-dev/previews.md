@@ -22,7 +22,7 @@
 - Page size is `body { width: 1280px; height: 720px; overflow: hidden }`, the renderer viewport is the same. Nothing may be cut off at the edges: check the bottom (footers, panels) and the right.
 - Use the theme's real values from XAML and tokens: sidebar rail 44px wide, 44x40 items, 16px glyphs (AGENTS.md mandate), corner radii, font sizes, row heights, control sizes. Do not invent new ones.
 - Same shell as the theme: sidebar on the left, top panel, game list or grid, game page layout per `src/themes/AGENTS.md` (screenshots left above the description, metadata right, banner and title scrim).
-- Font stack copies the theme's `FontFamily` keys. A font Playnite users may not have is fine as the first entry as long as the fallbacks match XAML. Say in AGENTS.md -> Previews which face stands in for which.
+- Font stack copies the theme's `FontFamily` keys and draws what Playnite draws. The first face must be one Windows ships or one the theme bundles in `src/Typography/` (reference.md -> Bundled fonts); never lead with a font users don't have, because its stand-in would show only in the screenshots. Say in AGENTS.md -> Previews which face stands in for which.
 - Use the theme's own icon set, rendered from the same source as `art/` icons (SVG inline or the generated glyphs), not emoji or unicode stand-ins where a real glyph exists. Unicode glyphs are acceptable only where the theme itself uses text glyphs.
 - Selection, hover, focus, checked and disabled looks are copied from the control templates (edge bars, fills, outlines), not guessed. The settings preview must show a checked box, a radio, a slider, a text box, a combo box and a primary and plain button in the theme's real states.
 - Corner radii follow the AGENTS.md mandate: never `CornerRadiusFull` on non-square elements; capsule shapes are not used unless the source UI has them and the XAML draws them.
@@ -92,6 +92,7 @@ Every tagged region stays inside 1280x720. A footer or panel that runs past the 
 
 ## Keep it unique
 
+- The previews are the storefront: stage the brief's hero moment in its hovered end state in `preview-details.html`, show the brand mark in the `preview-settings.html` title band, and make at least three rows of the `BRIEF.md` game element map visible ([creative-direction.md](creative-direction.md)).
 - Pull 3 to 5 signature motifs out of the source material (scanline haze, an accent edge on selected rows, heading case and underline, clipped corners, a footer note) and draw each one. Name them in AGENTS.md -> Previews.
 - Do not reuse another theme's preview as a base and recolor it. Start from the scaffold shell or from scratch.
 - No leftover scaffold content: the indigo `#6366f1`, "Eldritch Void" sample data copied verbatim in every theme, the generic header comment. Give the sample game, metadata and settings labels that suit the theme.

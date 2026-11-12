@@ -56,7 +56,7 @@ New vocabulary entries in `theme-keys.json`: `AngledCardTemplate`, `HalftoneTemp
 |------|---------------|
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px ink rail, 3px white edge; main menu is an orange impact star; items 44x40 with a fixed 32x32 plate (no `IconPadding`); current = blue sticker, white line, yellow offset; halftone patch at the rail's foot |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px night strip, 3px white rule, three slanted print-color tabs on its left end; 32px slanted stickers; current view is yellow with an ink glyph; Default order; 132px kept clear for caption buttons |
-| `Views/Library.xaml` | Flat plum, art at 0.16 under a night wash, faded with a plain gradient; no texture behind covers |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | 40x32 caption buttons with the theme's glyphs; hover blue, close hover red |
 | `DerivedStyles/StandardWindowStyle.xaml` | Dialogs: 40px ink title band, 3px white rule, title on a yellow sticker |
 

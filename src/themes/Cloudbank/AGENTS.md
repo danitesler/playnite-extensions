@@ -29,7 +29,7 @@ Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rul
 | `tr-func`, `tr-detail`, `tr-mem` | `HeadingMarkerBrush` (orange bar), `HeadingMarkerAltBrush` (blue bar); `PositiveRatingBrush` |
 | `tr-active`, `tr-process` | `WarningBrush`, `MixedRatingBrush`, `DataChangeNotifColor`; `DangerBrush`, `NegativeRatingBrush` |
 
-Radii: `ControlCornerRadius` 2 (`tr-radius`), small 1, large 3, XL 4, full 9999 only on square badges. Slider track 3 / fill 2 (6 / 4px), scroll thumb 3 (6px), tab indicator 1 (2px). Fonts: headings `Raleway, Century Gothic, Segoe UI` (`HeadingFontFamily`), body `Ubuntu, Segoe UI`; nothing ships. Scale 12 / 14 / 15 / 20 / 29.
+Radii: `ControlCornerRadius` 2 (`tr-radius`), small 1, large 3, XL 4, full 9999 only on square badges. Slider track 3 / fill 2 (6 / 4px), scroll thumb 3 (6px), tab indicator 1 (2px). Fonts: headings bundled Sora (`./Typography/#Sora`), then `Raleway, Century Gothic, Segoe UI` (`HeadingFontFamily`), body `Ubuntu, Segoe UI`; nothing ships. Scale 12 / 14 / 15 / 20 / 29.
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -52,7 +52,7 @@ Radii: `ControlCornerRadius` 2 (`tr-radius`), small 1, large 3, XL 4, full 9999 
 |------|---------------|
 | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px rail on `tr-void`, 1px frame line; mint main menu glyph over a circuit stub; items 44x40 with a fixed 32x32 plate (no `IconPadding`), 16px glyph area; current = glow plate, aqua glyph, a soft aqua halo and cyan corner brackets |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px Turn() bar: 32px cells (cell fill, frame edge), current view = aqua cell with a bloom; the rule's left third is charged: bloom, electric arcs and a spark at the tip. Default order; 132px kept clear for the caption buttons |
-| `Views/Library.xaml` | solid `tr-deep` easing toward `tr-void` at the bottom (no texture) and the pause-panel glow under the top bar; the top bar is raised (`Panel.ZIndex` 1) so its bloom shows over the views; background art at 0.14 under a cell wash |
+| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). Solid `tr-deep` layer with the pause-panel glow under the top bar; the top bar is raised (`Panel.ZIndex` 1). |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | 1px frame around the window; 40x32 caption buttons with the theme's glyphs (close hovers Process red) |
 | `DerivedStyles/StandardWindowStyle.xaml` | dialogs: 36px title band with an aqua marker, charged rule under it |
 
@@ -94,7 +94,7 @@ Both previews are written from `RESEARCH.md`, colors as `var(--tr-*)`, sprites l
 
 ## Deviations
 
-- Fonts are named, not shipped; most Windows machines render Segoe UI.
+- Heading font: the bundled Sora stands in for Raleway. Body text is Ubuntu when installed, else Segoe UI.
 - WPF has no text-transform, so Playnite's localized labels keep their case; only theme strings imitate the game's caps.
 - Neither the game page banner nor the library layer uses an `OpacityMask` (see Effects): their fades, the bottom darkening and the top glow are plain gradients whose colors come from brush swatches (`PageRoot`, `LibraryRoot`, `VoidSwatch`, `AccentSwatch`).
 - Motion uses storyboards, not animated GIFs: WPF images do not play GIF frames, and a GIF would bake in its colors where the storyboards animate brush-colored sprites.
