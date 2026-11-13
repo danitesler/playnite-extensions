@@ -1,0 +1,165 @@
+<!--
+    Emberline: Play, the source's START GAME plate. A black plate in a card hairline with faint scratches, the label in
+    the display face, white. Layers bottom to top: bloom, plate, scratches, hover plate, pressed plate, reload bar,
+    prompt cap, burning frame, label (uppercase).
+    Hover, animated both ways (no setters on animated parts, so nothing snaps):
+      in  0.2s: the burning frame ignites around the plate, a cinder wash and an ember bloom fade in, and the reload
+          bar shows along the plate's foot (a hairline track with a white "perfect" zone two thirds along); the
+          source's prompt cap (a white key cap with the play glyph) slides in 8px from the left. While
+          hovered the frame flickers on its wrapper in an uneven 2.4s loop.
+      out 0.35s: everything burns down; every exit animation has FillBehavior Stop, so no clock is left running.
+    Press, on its own layers so leaving while pressed cannot strand the hover state: the reload marker sweeps from the
+    left into the perfect zone in 0.12s (PowerEase out), the zone flashes and a dried-blood plate fades in.
+    Sprites are white masks filled with theme brushes. Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="38,0,38,3" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLarger}" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="Root" Background="Transparent">
+                        <Grid x:Name="BloomWrap" Margin="-26,-22" IsHitTestVisible="False">
+                            <Control x:Name="Bloom" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource PrimaryButtonGlowBrush}" Opacity="0" Focusable="False" />
+                        </Grid>
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource FrameBrush}" BorderThickness="1" SnapsToDevicePixels="True" />
+                        <Rectangle Margin="1" IsHitTestVisible="False" Fill="{DynamicResource BevelLightBrush}" Opacity="0.6">
+                            <Rectangle.OpacityMask>
+                                <ImageBrush ImageSource="{ThemeFile 'Images/fx/grime.png'}" TileMode="Tile" Stretch="None" Viewport="0,0,256,256" ViewportUnits="Absolute" />
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
+                        <Border x:Name="HoverPlate" Margin="1" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Border x:Name="PressedPlate" Margin="1" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <!-- Reload bar: track, perfect zone (columns 62* / 9* / 29*), and the marker run that scales from the left to 0.68. -->
+                        <Grid x:Name="ReloadBar" Height="3" Margin="12,0,12,6" VerticalAlignment="Bottom" IsHitTestVisible="False" Opacity="0" SnapsToDevicePixels="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="62*" />
+                                <ColumnDefinition Width="9*" />
+                                <ColumnDefinition Width="29*" />
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Grid.ColumnSpan="3" Fill="{DynamicResource FrameBrush}" />
+                            <Rectangle x:Name="PerfectZone" Grid.Column="1" Fill="{DynamicResource PrimaryButtonForegroundBrush}" Opacity="0.6" />
+                            <Rectangle x:Name="ReloadRun" Grid.ColumnSpan="3" Fill="{DynamicResource PrimaryButtonForegroundBrush}" Opacity="0" RenderTransformOrigin="0,0.5">
+                                <Rectangle.RenderTransform>
+                                    <ScaleTransform x:Name="ReloadScale" ScaleX="0" />
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Grid>
+                        <!-- The source's prompt cap ([A] START CAMPAIGN): a white key cap with the play glyph in ink, sliding in from the left on hover. -->
+                        <Grid x:Name="PromptCap" Width="18" Height="18" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0,0,3" Opacity="0" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="PromptShift" X="-8" />
+                            </Grid.RenderTransform>
+                            <Border Background="{DynamicResource PrimaryButtonForegroundBrush}" />
+                            <Viewbox Width="10" Height="10">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="{DynamicResource IconPlay}" Fill="{DynamicResource TextBrushDark}" />
+                                </Canvas>
+                            </Viewbox>
+                        </Grid>
+                        <Grid x:Name="EmberWrap" IsHitTestVisible="False">
+                            <Control x:Name="Ember" Template="{DynamicResource EmberFrameTemplate}" Foreground="{DynamicResource PrimaryButtonGlowBrush}" Opacity="0" Visibility="Hidden" Focusable="False" />
+                        </Grid>
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True">
+                            <ContentPresenter.Resources>
+                                <DataTemplate DataType="{x:Type sys:String}">
+                                    <AccessText Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                                </DataTemplate>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.5" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Ember" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ReloadBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="PromptCap" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="PromptShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Ember" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" BeginTime="0:0:0.2">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EmberWrap" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="0.74" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="0.96" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.1" Value="0.68" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.3" Value="0.9" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.9" Value="0.78" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.4" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BloomWrap" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2" Value="0.6" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.4" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BloomWrap" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="EmberWrap" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Ember" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ReloadBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PromptCap" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.35" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PromptShift" Storyboard.TargetProperty="X" To="-8" Duration="0:0:0.35" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="Ember" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.35" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ReloadRun" Storyboard.TargetProperty="Opacity" To="0.9" Duration="0:0:0.04" />
+                                        <DoubleAnimation Storyboard.TargetName="ReloadScale" Storyboard.TargetProperty="ScaleX" From="0" To="0.68" Duration="0:0:0.12"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PerfectZone" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.08" Duration="0:0:0.04" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ReloadRun" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ReloadScale" Storyboard.TargetProperty="ScaleX" To="0.68" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PerfectZone" Storyboard.TargetProperty="Opacity" To="0.6" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
