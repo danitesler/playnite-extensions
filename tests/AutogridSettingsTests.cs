@@ -64,6 +64,42 @@ namespace PlayniteExtensions.Tests
             });
         }
 
+        [Fact]
+        public void RestoreUserCoverSize_ClearsWrapPanelTileCache()
+        {
+            RunSta(() =>
+            {
+                var settings = new AutogridSettings { Enabled = false, HasSavedUserLayout = true };
+                settings.SavedUserGridItemWidth = 240;
+                settings.SavedUserGridItemSpacing = 12;
+                var appSettings = new AppSettings { GridItemWidth = 180, GridItemSpacing = 8 };
+                var plugin = CreatePlugin(settings, appSettings);
+
+                Invoke(plugin, "RestoreUserCoverSize");
+
+                Assert.Equal(240d, appSettings.GridItemWidth);
+                Assert.Equal(1, typeof(AutogridPlugin).GetField("tileCacheResetCalls", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(plugin));
+            });
+        }
+
+        [Fact]
+        public void FirstLayoutCapture_PersistsTheSnapshotBeforePlayniteCanSaveTheNewWidth()
+        {
+            RunSta(() =>
+            {
+                var settings = new AutogridSettings();
+                var plugin = CreatePlugin(settings, new AppSettings());
+                Invoke(plugin, "CaptureUserLayoutIfNeeded", 240d, 12);
+                Assert.True(settings.HasSavedUserLayout);
+                Assert.Equal(240d, settings.SavedUserGridItemWidth);
+                Assert.Equal(1, settings.UserLayoutPersistCount);
+
+                Invoke(plugin, "CaptureUserLayoutIfNeeded", 80d, 4);
+                Assert.Equal(240d, settings.SavedUserGridItemWidth);
+                Assert.Equal(1, settings.UserLayoutPersistCount);
+            });
+        }
+
         [Theory]
         [InlineData(true, true, true)]
         [InlineData(true, false, false)]

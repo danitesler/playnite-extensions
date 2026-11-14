@@ -4,7 +4,7 @@
 
 Standalone dark Playnite Desktop theme, `ThemeApiVersion` 2.9.0, inspired by the comic-book, cel-shaded look of *Hi-Fi RUSH* (Tango Gameworks, 2023). One dark variant. Unofficial; not affiliated with, endorsed by or sponsored by Tango Gameworks, Bethesda Softworks, ZeniMax Media or KRAFTON, Inc. No game art, character, logo or font ships; the tile mark, icons, sprites, speech balloon and preview art are original. See `info/NOTICE-Backbeat.txt`.
 
-Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `.claude/skills/playnite-theme-dev/reference.md`.
+Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `docs/themes/reference.md`.
 
 ## Sources
 
@@ -93,6 +93,7 @@ Empty state (no game selected): content hidden; a blank speech balloon on a cyan
 | `GridViewItemTemplate` (+ `GridTileButton`) | 48x40 parallelogram stickers, orange Play and cyan Info, custom ink glyphs; they drop in tilted and small, then snap into place, Info 60ms after Play; hover lights yellow and pops the glyph |
 | `DetailsViewItemStyle` | Selected row is a yellow sticker with ink text; hover is a purple slanted plate |
 | `PropertyItemButton` | Cyan links; chips are slanted ink stickers with a cyan line |
+| Running game (`RunningIndicatorBrush` = `bb-green`) | the backbeat: everything rides the -9 degree skew of the sticker plates. A reverse comet (a hard trailing edge with a soft front, `RunningScan`, masked inside the skewed layer so it keeps the slant) crosses details rows, list rows, covers and the slanted plate, and the equalizer is the progress read. **Launching:** the hit takes 0.95s (1.5s loop, a hard ease), a foot line fills behind it and the three equalizer bars (`RunningBar1..3`) kick up one after another as it lands. **Running:** the foot stays full, the frame breathes 0.72 to 1, the bars dance on their own phases (2.4s) and the plate thumps once per cycle (`Thump`, 2.5%). The plate holds a 0.88 scrim over the green while launching and breathes 0.55 to 0.68 while running under a light label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the burst, hover plate and speed lines are off while launching or running. |
 
 ## Previews
 

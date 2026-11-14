@@ -13,7 +13,7 @@ Square corners everywhere. Dark only (the game has no light UI).
 
 The name is the game's Blacklist, the list of 15 rivals the player climbs.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -83,6 +83,7 @@ Empty state (no game selected): both overviews hide the page and show an empty s
 | GridViewItemStyle | Selected: static 1px amber outline and L brackets. Hover: dim outline fades in and dimmer brackets (0.7) snap in from 14% outside in 0.12s, breathing while hovered; fades out in 0.15s |
 | GridViewItemTemplate (+ GridTileButton) | Cover hover controls as 40px square plates (Play the amber plate with ink) with monoline angular glyphs (`IconPlay` a double chevron like the carousel arrows, `IconInfo` a squared i, `IconDownload` an arrow over a bar, in `Media.xaml`); shade fades in, buttons rise 8px and scale 0.9 to 1 with a hard ease-out (0.16s, Info 0.05s later); hover snaps brackets around the plate |
 | ToolTip | Prompt-bar plate with a 3px amber tab |
+| Running game (`RunningIndicatorBrush` = `--mw-blue`, the pursuit cooldown blue) | the pursuit light bar in cooldown blue, square: a hard-edged double block (two light-bar heads, `RunningScan`) crosses details rows, list rows, covers and the slab. **Launching:** the blocks cross in 1.1s (1.6s loop), a segmented foot (6px cells) fills in step and two lamps flash in turn as the heads land. **Running:** the foot stays full, the frame breathes 0.65 to 1 and the two lamps swap slowly like parked light bars (2.4s). The slab holds a 0.5 scrim over the blue plate (breathing 0.22 to 0.42 while running); hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the hazard strip, hover plate and corner brackets (`HoverFx`, `BracketPulse`) are off while launching or running. The amber outline and brackets on covers and rows stay outside the blue frame. |
 
 ## Previews
 

@@ -19,7 +19,7 @@ param(
 # Re-run when targeting a new Playnite release, then review the diff of scripts/data/playnite-theme-api.json.
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
 $source = (Resolve-Path $PlayniteSource).Path
 $themesCs = Join-Path $source "source/Playnite/Themes.cs"

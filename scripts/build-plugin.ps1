@@ -12,9 +12,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
-. (Join-Path $PSScriptRoot "theme-tools.ps1")
-. (Join-Path $PSScriptRoot "playnite-runtime.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/theme-tools.ps1")
+. (Join-Path $PSScriptRoot "lib/playnite-runtime.ps1")
 
 $profile = Get-ExtensionProfile -Extension $Extension
 

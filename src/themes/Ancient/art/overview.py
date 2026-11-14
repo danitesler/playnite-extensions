@@ -475,7 +475,8 @@ def details():
         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" Margin="0,12,0,0">
             <Grid>
                 <Button Name="PART_ButtonPlayAction" Width="220" Height="48" Style="{{DynamicResource PlayButton}}" />
-                <Button Name="PART_ButtonContextAction" Width="220" Height="48" />
+                <Button Name="PART_ButtonContextAction" Tag="ContextAction" Style="{{DynamicResource PlayButton}}" Width="220" Height="48" />
+                <Control Style="{{DynamicResource RunningActionIndicator}}" Height="48" />
             </Grid>
             <Button Name="PART_ButtonMoreActions" Width="48" Height="48" Padding="0" Margin="12,0,0,0"
                     ToolTip="{{DynamicResource LOCMoreAction}}" Focusable="False">
@@ -527,8 +528,17 @@ def details():
 INLINE_CLOSE = '''<Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
         Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
         ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
-        Template="{Binding Template, ElementName=SidePanelCloseButton}"
-        Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}">
+        Template="{Binding Template, ElementName=SidePanelCloseButton}">
+    <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Visibility" Value="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Button.Style>
             <Button.RenderTransform>
                 <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
             </Button.RenderTransform>
@@ -615,7 +625,7 @@ def grid_panel():
         <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
     <Button Name="PART_ButtonPlayAction" Grid.Column="0" Height="44" Style="{{DynamicResource PlayButton}}" />
-    <Button Name="PART_ButtonContextAction" Grid.Column="0" Height="44" />
+    <Button Name="PART_ButtonContextAction" Tag="ContextAction" Style="{{DynamicResource PlayButton}}" Grid.Column="0" Height="44" />
     <Button Name="PART_ButtonMoreActions" Grid.Column="1" Width="44" Height="44" Padding="0" Margin="10,0,0,0"
             ToolTip="{{DynamicResource LOCMoreAction}}" Focusable="False">
         <ContentControl Width="18" Height="18" Focusable="False" IsTabStop="False"
@@ -623,6 +633,7 @@ def grid_panel():
                         ContentTemplate="{{DynamicResource IconTemplate}}" />
     </Button>
 {indent(edit_button("10,0,0,0", 44, column=2), 4)}
+    <Control Style="{{DynamicResource RunningActionIndicator}}" Grid.Column="0" Height="44" />
 </Grid>
 {columns}'''
 
@@ -633,7 +644,11 @@ def grid_panel():
         Command="{MainViewModel CloseGameSideBarCommand}">
 <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
     <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Collapsed` : `Visible`'}" />
-    <Style.Triggers><DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+    <Style.Triggers>
+            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
 </Style></Button.Style>
     <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
     <Button.Template>

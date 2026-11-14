@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the **ayywi** design system (github.com/danitesler/ayywi), on its default `dark` theme: black page, white as the primary color, alpha hairlines, pill buttons, segmented pill tabs. `dark-soft` (charcoal) would be a token-only sibling theme.
 
-Shared anatomy: **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy: **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -47,6 +47,7 @@ Skeleton and metadata pane as in `../AGENTS.md`; the pane is one card (`Expander
 | `DerivedStyles/GridViewItemStyle.xaml` | Selected outline static; hover is a separate outline layer fading 0.3s in and out. No card lift or shadow (stays inside the spacing margin). |
 | `DerivedStyles/GridViewItemTemplate.xaml` | Cover without `OpacityMask` (cell clip plus four 12px page-colour corner pieces, because the buttons animate over it). Hover: image zoom 1.03 (0.6s out-expo), scrim fade 0.15s, Play and Info fade 0.15s and rise 6px (0.3s out-expo, Info 50ms later). `GridTileButton` (Info) and an inline primary style on Play: fill and edge fade, 2px lift. Lucide glyphs. |
 | `Views/*GameOverview.xaml` | Banner fade is a gradient on top (`PageRoot` on `ContentBackgroundBrush`) instead of a mask. Empty state: icon tile with the Lucide gamepad (inline path, because the validator allows no new `Icon*` keys) and the title in the heading font, 0.45s fade-in, no loop. |
+| Running game (`RunningIndicatorBrush` = `ayy-color-success`) | Presence in the system's own calm: the success green in each item's radius (details rows `CornerRadiusSmall`, list rows square, covers the clip's `ControlCornerRadius`, the button `ControlCornerRadius`), a 0.16 tint, a frame, a 2px pill hairline at the foot and a 6px status dot at the far end (covers: a pill tape at the foot holding both). **Launching:** a soft symmetric glow bar (`RunningScan`, ease-out) glides across while the hairline fills in step; as it lands the dot lights and a ring pings out of it (1.8s loop, 0.55s rest). The slab holds a page-colour scrim (0.3) under the bar and `shadow.glow` in the running colour lifts behind it. **Running:** line full, layer breathes 0.72 to 1, the ring pings slowly and the glow and the plate scrim breathe 0.2 to 0.02 (3.4s); black label on the green plate stays above 4.5:1. **Hover on RUNNING:** the plate darkens (second scrim 0.5), the label turns light and reads Cancel; the white hover glow is recoloured and the dim plate cannot be faded (the plate is its own layer); hover binding is `Self`. Levers: symmetric glow band, ease-out, dot plus expanding ring, out-expo-like sweep, pill foot. |
 
 Generated asset: `art/fx.py` writes `src/Images/fx/glow.png` and `art/fx-sheet.png` (deterministic).
 

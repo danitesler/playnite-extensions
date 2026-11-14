@@ -1,0 +1,148 @@
+<!doctype html>
+<!-- Hexfall: HTML replica of Playnite's Settings window (1280x720). Playnite's SettingsWindow is a standard window
+     (800x620 minimum): title band, section tree on the left, the section page on the right, a bottom bar with the
+     restart note left and Save, Cancel right. Colors are var(--pf-*) from src/tokens.css (injected at render).
+     Icons are the Media.xaml geometries. Rules: docs/themes/previews.md, docs/themes/settings-screens.md. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hexfall - Settings Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--pf-void); color: var(--pf-white); font-family: "Segoe UI", sans-serif; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  svg.i { fill: currentColor; fill-rule: evenodd; display: block; width: 16px; height: 16px; flex: none; }
+
+  .cut { position: relative; clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+  .cut::before, .cut::after { content: ""; position: absolute; width: 7px; height: 7px; pointer-events: none; background: linear-gradient(to bottom right, transparent calc(50% - .8px), var(--cutc, var(--pf-frame)) calc(50% - .8px), var(--cutc, var(--pf-frame)) calc(50% + .8px), transparent calc(50% + .8px)); }
+  .cut::before { left: 0; top: 0; } .cut::after { right: 0; bottom: 0; }
+  .capbar .rv { position: absolute; left: 8px; right: 8px; top: 2px; height: 2px; background: repeating-linear-gradient(90deg, var(--pf-gunmetal-hi) 0 2px, transparent 2px 14px); }
+  .card { margin: 4px 0 6px; padding: 12px 16px 6px; background: var(--pf-well); border: 1px solid var(--pf-frame); }
+  .card .gh { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; font: 600 11px "Sora", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-mist); }
+  .card .gh b { color: var(--pf-amber); font-weight: 700; letter-spacing: -.1em; }
+  .lane { position: absolute; right: 3px; top: 14px; width: 5px; height: 150px; background: var(--pf-steel); opacity: .45; }
+  .note2 { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; font-size: 10px; color: var(--pf-dim); }
+  .window { width: 920px; height: 680px; background: var(--pf-hull); border: 1px solid var(--pf-frame); display: flex; flex-direction: column; position: relative; }
+  /* Title band: 44px. Gunmetal cap with three lamps across the top, amber slash before a caps title, the mark ghosted, a brass notch on the cyan rule. */
+  .band { height: 44px; flex: none; background: var(--pf-void); position: relative; border-bottom: 1px solid var(--pf-frame); overflow: visible; }
+  .capbar { height: 6px; position: absolute; left: 0; right: 0; top: 0; background: linear-gradient(var(--pf-gunmetal-hi) 0, var(--pf-gunmetal) 1px, var(--pf-gunmetal) 5px, var(--pf-void) 6px); }
+  .capbar .notch { position: absolute; top: 0; left: calc(50% - 40px); width: 80px; height: 10px; background: var(--pf-gunmetal); clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 7px 100%); }
+  .capbar .lamp { position: absolute; top: 2px; width: 12px; height: 4px; }
+  .lamp.a { background: var(--pf-amber-hot); } .lamp.w { background: var(--pf-ice); }
+  .band .t { position: absolute; left: 18px; top: 15px; display: flex; align-items: center; gap: 10px; font: 600 14px/1 "Sora", sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--pf-ice); }
+  .band .t b { color: var(--pf-amber); font-weight: 700; letter-spacing: -.1em; }
+  .band .ghost { position: absolute; right: 64px; top: 7px; width: 36px; height: 36px; color: var(--pf-cyan); opacity: .07; }
+  .band .ghost svg.i { width: 36px; height: 36px; }
+  .band .x { position: absolute; right: 0; top: 6px; width: 46px; height: 37px; display: flex; align-items: center; justify-content: center; color: var(--pf-mist); }
+  .band .x svg.i { width: 12px; height: 12px; }
+  .band .brass { position: absolute; left: calc(50% - 30px); bottom: -3px; width: 60px; height: 5px; background: var(--pf-brass-dim); clip-path: polygon(0 0, 100% 0, calc(100% - 4px) 100%, 4px 100%); }
+
+  .body { flex: 1; min-height: 0; display: flex; }
+  /* Section tree: 30px outline plates, 3px apart. Hover lifts the plate; selected = green fill, green edge, amber pointer. */
+  .tree { width: 240px; position: relative; flex: none; padding: 12px 18px 12px 10px; background: var(--pf-hull); border-right: 1px solid var(--pf-line-dim); overflow: hidden; }
+  .node { height: 30px; margin-bottom: 3px; display: flex; align-items: center; padding: 0 10px 0 20px; font-size: 13px; color: var(--pf-mist); background: var(--pf-well); border: 1px solid var(--pf-line); position: relative; }
+  .node.child { margin-left: 20px; }
+  .node.hot { background: var(--pf-plate-hi); border-color: var(--pf-frame); color: var(--pf-white); }
+  .node.sel { background: var(--pf-viridian); border-color: var(--pf-viridian-edge); color: var(--pf-ice); }
+  .node.sel::before { content: ""; position: absolute; left: 5px; top: 11px; width: 6px; height: 6px; background: var(--pf-amber); }
+  .node .ar { margin-left: auto; color: var(--pf-cyan); }
+  .node .ar svg.i { width: 10px; height: 10px; }
+
+  .page { flex: 1; min-width: 0; padding: 20px 28px 0; overflow: hidden; background: var(--pf-hull); }
+  .h1 { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font: 600 14px "Sora", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-ice); }
+  .h1 b { color: var(--pf-amber); font-weight: 700; letter-spacing: -.1em; }
+  .h1::after { content: ""; flex: 1; height: 1px; background: var(--pf-line-dim); }
+  .tabs { display: flex; gap: 2px; margin-bottom: 14px; }
+  .tab { height: 30px; padding: 0 18px; display: flex; align-items: center; font: 600 11px "Sora", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--pf-mist); background: var(--pf-well); border: 1px solid var(--pf-line); }
+  .tab.cur { background: var(--pf-olive); border-color: var(--pf-olive-edge); color: var(--pf-white); }
+  .row { display: flex; align-items: center; gap: 16px; min-height: 40px; }
+  .row > label { width: 168px; flex: none; font-size: 13px; color: var(--pf-white); }
+
+  .input { width: 276px; height: 32px; background: var(--pf-well); border: 1px solid var(--pf-line); padding: 0 10px; display: flex; align-items: center; font-size: 13px; color: var(--pf-white); }
+  .input.focus { border-color: var(--pf-cyan); }
+  .combo { padding-right: 36px; position: relative; }
+  .combo .ar { position: absolute; right: 12px; top: 10px; width: 12px; height: 12px; color: var(--pf-amber); }
+  .combo .ar svg.i { width: 12px; height: 12px; }
+  .chk { width: 18px; height: 18px; background: var(--pf-well); border: 1px solid var(--pf-frame); display: flex; align-items: center; justify-content: center; color: var(--pf-amber-hot); }
+  .chk svg.i { width: 12px; height: 12px; }
+  .radios { display: flex; gap: 22px; align-items: center; font-size: 13px; }
+  .radios span { display: flex; gap: 9px; align-items: center; }
+  .rd { width: 16px; height: 16px; position: relative; background: var(--pf-well); border: 1px solid var(--pf-frame); transform: rotate(45deg) scale(.8); }
+  .rd.on::after { content: ""; position: absolute; inset: 3px; background: var(--pf-amber); }
+  .slider { width: 276px; height: 20px; display: flex; align-items: center; gap: 6px; color: var(--pf-cyan); }
+  .slider svg.i { width: 14px; height: 14px; }
+  .slider .rail { position: relative; flex: 1; height: 4px; background: var(--pf-line); }
+  .slider .rail i { position: absolute; left: 0; top: 0; bottom: 0; width: 58%; background: var(--pf-cyan); }
+  .slider .rail b { position: absolute; left: 58%; top: -7px; width: 10px; height: 18px; margin-left: -5px; background: var(--pf-cyan); border: 1px solid var(--pf-ice); }
+  .bar { width: 276px; height: 8px; background: var(--pf-well); border: 1px solid var(--pf-line); position: relative; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 62%; background: var(--pf-cyan); border-right: 2px solid var(--pf-ice); }
+  .btn { height: 32px; padding: 0 20px; display: flex; align-items: center; background: var(--pf-plate); border: 1px solid var(--pf-line); color: var(--pf-white); font: 600 11px "Sora", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+  .btn.hot { background: var(--pf-plate-hi); border-color: var(--pf-cyan); color: var(--pf-ice); }
+  .btn.brass { background: var(--pf-brass); border-color: var(--pf-brass-edge); color: var(--pf-brass-text); box-shadow: inset 0 0 0 2px var(--pf-brass), inset 0 0 0 3px var(--pf-brass-dim); }
+  .btns { display: flex; gap: 8px; }
+  .bottom { height: 52px; flex: none; border-top: 1px solid var(--pf-line-dim); background: var(--pf-void); display: flex; align-items: center; padding: 0 14px; gap: 8px; }
+  .note { margin-right: auto; font-size: 12px; color: var(--pf-dim); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="IconMainMenu" viewBox="0 0 24 24"><path d="M18.83,5.44 L21.1,6.75 21.1,17.25 12,22.5 2.9,17.25 2.9,6.75 12,1.5 15.19,3.34 14.49,5.24 12,3.8 4.9,7.9 4.9,16.1 12,20.2 19.1,16.1 19.1,7.9 17.33,6.88Z M19.2,1.2 L18.36,5.55 10.8,14.6 15.64,3.85Z"/></symbol>
+    <symbol id="IconWindowClose" viewBox="0 0 24 24"><path d="M4,6.5 L6.5,4 12,9.5 17.5,4 20,6.5 14.5,12 20,17.5 17.5,20 12,14.5 6.5,20 4,17.5 9.5,12Z"/></symbol>
+    <symbol id="IconDropDown" viewBox="0 0 24 24"><path d="M5,8 L19,8 12,16Z"/></symbol>
+    <symbol id="IconSubmenu" viewBox="0 0 24 24"><path d="M8,5 L17,12 8,19Z"/></symbol>
+    <symbol id="IconCheck" viewBox="0 0 24 24"><path d="M3,12.5 L5.5,10 10,14.5 18.5,6 21,8.5 10,19.5Z"/></symbol>
+  </defs>
+</svg>
+<div class="window" data-part="settings-window">
+  <div class="band">
+    <div class="capbar"><i class="rv"></i><div class="notch"></div><i class="lamp a" style="left:calc(50% - 26px)"></i><i class="lamp w" style="left:calc(50% - 6px)"></i><i class="lamp a" style="left:calc(50% + 14px)"></i></div>
+    <div class="t"><b>//</b>Settings</div>
+    <div class="ghost"><svg class="i"><use href="#IconMainMenu"/></svg></div>
+    <div class="x"><svg class="i"><use href="#IconWindowClose"/></svg></div>
+    <div class="brass"></div>
+  </div>
+  <div class="body">
+    <div class="tree" data-part="settings-nav">
+      <div class="node">General</div>
+      <div class="node">Appearance<span class="ar"><svg class="i"><use href="#IconDropDown"/></svg></span></div>
+      <div class="node child sel">General</div>
+      <div class="node child hot">Advanced</div>
+      <div class="node child">Details View</div>
+      <div class="node child">Grid View</div>
+      <div class="node child">List View</div>
+      <div class="node child">Layout</div>
+      <div class="node child">Top panel</div>
+      <div class="node">Search</div>
+      <div class="node">Updating</div>
+      <div class="node">Metadata</div>
+      <div class="node">Sorting</div>
+      <div class="node">Backup</div>
+      <div class="node">Input</div>
+      <div class="node">Advanced<span class="ar"><svg class="i"><use href="#IconSubmenu"/></svg></span></div>
+      <div class="lane"></div>
+    </div>
+    <div class="page" data-part="settings-content">
+      <div class="h1"><b>//</b>Appearance</div>
+      <div class="tabs"><div class="tab cur">General</div><div class="tab">Fonts</div><div class="tab">Advanced</div></div>
+      <div class="row"><label>Theme</label><div class="input combo">Hexfall<span class="ar"><svg class="i"><use href="#IconDropDown"/></svg></span></div></div>
+      <div class="row"><label>Application font</label><div class="input focus">Segoe UI</div></div>
+      <div class="row"><label>Font size</label><div class="slider"><svg class="i" style="transform:scaleX(-1)"><use href="#IconSubmenu"/></svg><div class="rail"><i></i><b></b></div><svg class="i"><use href="#IconSubmenu"/></svg></div></div>
+      <div class="card cut">
+        <div class="gh"><b>//</b>Window background</div>
+        <div class="row" style="min-height:34px"><label style="width:152px">Use game background image as window background</label><div class="chk"><svg class="i"><use href="#IconCheck"/></svg></div></div>
+        <div class="row" style="min-height:34px"><label style="width:152px">Blur background image</label><div class="chk"></div></div>
+        <div class="row" style="min-height:34px"><label style="width:152px">Darken background image</label><div class="radios"><span><i class="rd on"></i>Light</span><span><i class="rd"></i>Heavy</span></div></div>
+      </div>
+      <div class="row"><label>Metadata download</label><div class="bar"><i></i></div></div>
+      <div class="row"><label>Backup</label><div class="btns"><div class="btn">Browse...</div><div class="btn hot">Restore</div></div></div>
+    </div>
+  </div>
+  <div class="bottom" data-part="settings-buttons">
+    <div class="note">* Requires restart to apply</div>
+    <div class="btn brass cut" style="--cutc:var(--pf-brass-edge)">Save</div>
+    <div class="btn">Cancel</div>
+  </div>
+</div>
+<div class="note2">Unofficial replica. No game art or logo.</div>
+</body>
+</html>

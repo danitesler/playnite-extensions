@@ -3,7 +3,8 @@
 # There is no hosted CI. Run this before merging or releasing.
 #
 #   scripts/check-all.sh            # everything
-#   scripts/check-all.sh --quick    # skip the plugin and theme builds and the layout render
+#   scripts/check-all.sh --quick    # skip artifact builds and browser checks
+#   scripts/check-all.sh --quick -Keys hallowtide,emberline
 #
 # Needs: PowerShell 7 (pwsh), the .NET 8 SDK, Mono (runs the net462 tests), Node 22.
 #   curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0
@@ -12,7 +13,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH" DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
-[[ -d node_modules ]] || npm ci
-args=()
-[[ "${1:-}" == "--quick" ]] && args+=(-Quick)
-exec pwsh -NoProfile -File scripts/check-all.ps1 "${args[@]}"
+if [[ "${1:-}" == "--quick" ]]; then
+    shift
+    set -- -Quick "$@"
+fi
+exec pwsh -NoProfile -File scripts/check-all.ps1 "$@"

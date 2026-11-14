@@ -24,7 +24,7 @@ param(
     # 2.9.0 = Playnite 10.45+. Raise it only when the theme starts using something newer.
     [string]$ThemeApiVersion = "2.9.0",
 
-    # Creative ambition written into BRIEF.md (.claude/skills/playnite-theme-dev/creative-direction.md):
+    # Creative ambition written into BRIEF.md (docs/themes/creative-direction.md):
     # Showcase = games, films, fictional UIs; Faithful = real design systems and OS UIs; Hybrid = a game whose UI is a clean system.
     [ValidateSet("Showcase", "Hybrid", "Faithful")]
     [string]$Ambition = "Showcase"
@@ -36,8 +36,8 @@ param(
 # key names are shared (scripts/data/theme-keys.json).
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
-. (Join-Path $PSScriptRoot "theme-tools.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/theme-tools.ps1")
 
 $repoRoot = Get-RepoRoot
 # "Material UI" -> MaterialUi: all-caps words become Pascal case, like the existing folders.
@@ -189,7 +189,7 @@ $sharedBlock = $sharedLines -join "`n"
        Use a Playnite key whenever the design uses that key's token for the role; a shared key otherwise.
     Each TODO placeholder fails the build until it names a token. Theme XAML reads brushes only, never Color keys.
 
-    Placeholder syntax: .claude/skills/playnite-theme-dev/reference.md. Keep double braces out of comments here: the build renders
+    Placeholder syntax: docs/themes/reference.md. Keep double braces out of comments here: the build renders
     them too.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -279,11 +279,11 @@ $sharedBlock
 
 Playnite **$Mode** theme (``ThemeApiVersion`` $ThemeApiVersion) in the style of **$DesignSystem**. TODO: version and dark variant.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **``../AGENTS.md``**. Loading rules and build checks: **``.claude/skills/playnite-theme-dev/reference.md``**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **``../AGENTS.md``**. Loading rules and build checks: **``docs/themes/reference.md``**.
 
 ## Sources
 
-Reference notes, measurements, and asset sources are documented in [``RESEARCH.md``](RESEARCH.md). Creative brief (ambition, source DNA, game element map, signature moments, motion language, branding, review scores): [``BRIEF.md``](BRIEF.md).
+Reference notes, measurements, and asset sources are documented in [``RESEARCH.md``](RESEARCH.md). Creative brief (ambition, source DNA, game element map, signature moments, motion language, branding): [``BRIEF.md``](BRIEF.md).
 
 ## Tokens
 
@@ -323,7 +323,7 @@ Apply the responsive game-page breakpoints in both overview files. Keep metadata
 
 ## Previews
 
-``art/preview-details.html`` and ``art/preview-settings.html`` are scaffold placeholders until rewritten (see ``.claude/skills/playnite-theme-dev/previews.md``). Signature motifs drawn: TODO. Stand-in fonts: TODO.
+``art/preview-details.html`` and ``art/preview-settings.html`` are scaffold placeholders until rewritten (see ``docs/themes/previews.md``). Signature motifs drawn: TODO. Stand-in fonts: TODO.
 
 ## Deviations
 
@@ -342,71 +342,19 @@ Apply the responsive game-page breakpoints in both overview files. Keep metadata
 | Icons | TODO (license file in ``info/``) |
 "@ | Set-Content -Path (Join-Path $themeRoot "RESEARCH.md") -Encoding utf8
 
-# Creative brief: what the theme does with the research. Sections and bar: .claude/skills/playnite-theme-dev/creative-direction.md.
+# Creative brief: what the theme does with the research. Sections and bar: docs/themes/creative-direction.md.
 @"
 # $Name — creative brief
 
-Ambition: **$Ambition** (creative-direction.md -> Ambition modes). Written after ``RESEARCH.md``, before the XAML. Numbers and element names, not adjectives.
+Mode: **$Ambition**. Short working notes (``docs/themes/creative-direction.md``); the reviewed previews are the real spec.
 
-## 1. Source DNA
-
-| Trait | Evidence (RESEARCH.md) | Lands on |
-|-------|------------------------|----------|
-| TODO shape | | |
-| TODO light | | |
-| TODO texture | | |
-| TODO type | | |
-| TODO motion | | |
-
-## 2. Game element map
-
-8+ rows, 3+ a player names on sight (Faithful: map the system's own components instead).
-
-| Source element | Playnite surface | How |
-|----------------|------------------|-----|
-| TODO | | |
-
-## 3. Signature moments
-
-| Moment | Trigger | Layers | In / out | Easing | Brush |
-|--------|---------|--------|----------|--------|-------|
-| Hero: TODO | | | | | |
-| TODO | | | | | |
-
-Ambient loops (sparse areas only): TODO
-
-## 4. Motion language
-
-- Durations: fast TODO ms, base TODO ms, slow TODO ms; idle TODO s
-- Easing personality: TODO
-- Entrance direction: TODO
-- Stagger: TODO ms
-
-## 5. Branding system
-
-- Name candidates and pick: TODO
-- Mark (vector motif, not the owner's logo): TODO
-- Title band graphic: TODO
-- Empty game page motif and idle: TODO
-- Type voice (case, tracking, numerals, display face): TODO
-- Preview staging (hero moment end state, mark in title band): TODO
-
-## 6. Restraint
-
-- Library list and cover grid backgrounds: TODO
-- Metadata text: TODO
-- Dense settings pages: TODO
-
-## Review
-
-| Criterion | Score 1-5 | Evidence | Fix |
-|-----------|-----------|----------|-----|
-| Recognition | | | |
-| Game element map | | | |
-| Hero moment | | | |
-| Motion coherence | | | |
-| Brand cohesion | | | |
-| Restraint and legibility | | | |
+- Source DNA (5 traits -> where each lands): TODO
+- Game element map (8+ source UI parts -> Playnite surfaces): TODO
+- Hero moment: TODO
+- Secondary moments (5+): TODO
+- Motion (durations, easing, entrance, stagger): TODO
+- Brand (name, mark, title band, empty page, ``GameBannerTintBrush``): TODO
+- Kept calm: TODO
 "@ | Set-Content -Path (Join-Path $themeRoot "BRIEF.md") -Encoding utf8
 
 # Previews start from scripts/templates (generic placeholders: rewrite per playnite-theme-dev/previews.md).
@@ -416,7 +364,7 @@ foreach ($previewName in @("details", "settings")) {
 }
 
 # Playnite hard-codes 24px on these controls and no theme template reaches them: each overlay gives them the shared
-# field height (ControlHeight in Common.xaml; root AGENTS.md -> Form field height).
+# field height (ControlHeight in Common.xaml; src/themes/AGENTS.md -> Form field height).
 function New-FieldOverlay([string]$Relative, [string]$What, [string[]]$Types, [string[]]$Setters) {
     $styles = foreach ($type in $Types) {
         $body = ($Setters | ForEach-Object { "        $_" }) -join "`n"
@@ -485,18 +433,19 @@ $index.extensions += $newProfile
 Save-ExtensionIndex -Index $index
 
 Write-Host "Created theme '$Name' at $themeRoot"
-Write-Host "Next steps (details: .claude/skills/playnite-theme-dev/SKILL.md):"
+Write-Host "Next steps (details: .agents/skills/playnite-theme-dev/SKILL.md):"
 Write-Host "  1. Fill RESEARCH.md: $DesignSystem's token package, component specs, icon set, interface parts and motion."
-Write-Host "     Then BRIEF.md ($Ambition): source DNA, game element map, signature moments, motion, branding (.claude/skills/playnite-theme-dev/creative-direction.md)."
+Write-Host "     Then a short BRIEF.md ($Ambition; docs/themes/creative-direction.md)."
 Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own names."
-Write-Host "  3. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
-Write-Host "  4. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
+Write-Host "  3. Before any XAML: rewrite art/preview-details.html and art/preview-settings.html as the full design (var(--token) colors;"
+Write-Host "     they are generic placeholders), .\scripts\take-screenshots.ps1 -Extension $Key, then check them yourself against"
+Write-Host "     docs/themes/theme-preview-review.md. Fix blocking findings before implementing the XAML. Do not spawn a reviewer."
+Write-Host "  4. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
+Write-Host "  5. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
 Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
-Write-Host "     In DefaultControls/Button.xaml add the ThemeModifier icon-button trigger: Width == 41 -> internal Height/MinWidth/MinHeight/MaxWidth/MaxHeight 41, Padding 0, content Center, FontSize 16, uniform LayoutTransform ScaleX/ScaleY 0.7804878048780488 (32/41) for 32x32 with proportional content (AGENTS.md ThemeModifier Icon Buttons; validate-extension.ps1 enforces it)."
-Write-Host "     Window background (AGENTS.md): Views/Library.xaml shows PART_ImageBackground at full strength (no scrim, tint, mask, blur); a"
+Write-Host "     In DefaultControls/Button.xaml add the ThemeModifier icon-button trigger: Width == 41 -> internal Height/MinWidth/MinHeight/MaxWidth/MaxHeight 41, Padding 0, content Center, FontSize 16, uniform LayoutTransform ScaleX/ScaleY 0.7804878048780488 (32/41) for 32x32 with proportional content (src/themes/AGENTS.md: Control corner radii and shapes; validate-extension.ps1 enforces it)."
+Write-Host "     Window background (src/themes/AGENTS.md): Views/Library.xaml shows PART_ImageBackground at full strength (no scrim, tint, mask, blur); a"
 Write-Host "     {Settings ShowBackgroundImageOnWindow} trigger turns the top bar, side panels and game pages see-through and collapses HeroArt;"
 Write-Host "     DefaultControls/Slider.xaml disables ThemeModifier's GameBannerHeight slider while it is on."
-Write-Host "  5. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key -Deploy and restart Playnite."
-Write-Host "  6. Rewrite art/preview-details.html and art/preview-settings.html from the research, with var(--token) colors from src/tokens.css"
-Write-Host "     (they are generic placeholders), then .\scripts\take-screenshots.ps1 -Extension $Key. After token changes: .\scripts\validate-extension.ps1 lists preview colors that drifted."
+Write-Host "  6. Add info/icon.png (512x512), then .\scripts\build-theme.ps1 -Extension $Key (deploys and restarts Playnite if running)."
 

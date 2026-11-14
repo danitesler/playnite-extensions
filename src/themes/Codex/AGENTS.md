@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named Codex, taking inspiration from the menus of the RPG-era **Assassin's Creed** games (Origins, Odyssey, Valhalla, Mirage): near-black charcoal surfaces, warm ivory text, one gold accent, hairline rules, diamonds and corner brackets on whatever is current, a serif for headings, tabs along the top, and a game info screen laid out like an entry screen. Unofficial and standalone: every file it ships lives in this folder, and no Ubisoft asset is in it. Resource keys are the shared theme vocabulary (Playnite's palette plus `scripts/data/theme-keys.json`), the same as every theme here; the theme's own token names stay in `tokens.css`.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -37,13 +37,13 @@ Layers, deepest first: `void` (window and icon rail), `night` (library), `slate`
 | `Views/TopPanel.xaml` | The top bar: 48px on `slate`, 146px clear on the right for the caption buttons. Search (`TopPanelSearchBox`, 320px inset field) at the left; view buttons, filter, notifications (gold count badge) on the right; a running task's caption and 2px progress bar in between. `PART_ElemMainMenu` shows here only while the sidebar is hidden. |
 | `CustomControls/TopPanelItem.xaml` | 34px icon button on the top bar; veil on hover; toggled = gold on a gold wash with a 2px gold underline. |
 | `CustomControls/SearchBox.xaml` | The inset field with a search icon and a clear icon; `PART_SeachIcon` carries the "Search" placeholder. |
-| `Views/Library.xaml` | Game art behind the content layer below the solid top bar only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). Side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
+| `Views/Library.xaml` | Game art across the whole window (under the top bar and the icon rail too) only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). Side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Side panels on `slate` with a hairline on the inner edge; filter captions in small caps; preset buttons use `IconRemove` / `IconEdit` / `IconAdd`. |
 | `Views/SearchView.xaml` | Playnite's Ctrl+F window with its three hard-coded colors moved onto the palette. |
 
 ## Game info screens
 
-Both panels keep every `PART_` name of Playnite's Default files; the property list is not a `GridEx` here but one pane of six groups (see `.claude/skills/playnite-theme-dev/reference.md`).
+Both panels keep every `PART_` name of Playnite's Default files; the property list is not a `GridEx` here but one pane of six groups (see `docs/themes/reference.md`).
 
 | File | Layout |
 |------|--------|
@@ -63,6 +63,10 @@ More and Edit are icon-only 40 x 40 squares (`IconOptions`, `IconEdit`, tooltips
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+
+| Playnite file | Drawn as |
+|---------------|----------|
+| Running game (`RunningIndicatorBrush` = `--animus`, a cold glitch blue added for this) | The Animus sync, cold against the gold, square. Every surface carries a tint, a frame (rows and covers 2px, the Play / RUNNING plate 1px), a segmented foot line (a row of 5px cells, 2px apart), three bits and a twitching fragment (rows: bits down the far edge; covers: on a dark tape along the foot; the plate: bits on the far edge and the fragment at the top left). **Launching:** a data block with a bright leading line (`RunningScan`, hard edged, 0.85s in a 1.4s loop, hard ease in and out; on covers it scans downward) crosses the item while the cells fill, and as it lands the three bits light in turn and the fragment twitches. The plate holds a 0.3 `ShellBackgroundBrush` layer under the block (`ScrimBrush` is not a Codex key). **Running:** the cells stay full, the frame breathes 0.72 to 1, the bits idle one after another and the fragment twitches once per cycle (3s); the plate's layer breathes 0.1 to 0.3 under the dark ink. **Hover on RUNNING:** the label turns to Cancel in ivory on a darker plate (a second layer); the gold hover plate and the blade hairlines are off while launching or running, and the hover binding is `Self`. The gold bar and brackets keep the selection. |
 
 ## Deviations and limits
 

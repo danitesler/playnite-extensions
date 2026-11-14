@@ -15,7 +15,7 @@ param(
 # using Chromium. Does not start Playnite.
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
 $profile = Get-ExtensionProfile -Extension $Extension
 if ((Get-ExtensionKind $profile) -ne "theme") {

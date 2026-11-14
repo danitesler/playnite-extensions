@@ -90,7 +90,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
 $packsPath = Join-Path $PSScriptRoot "data/icon-packs.json"
 $packs = (Get-Content -Raw $packsPath | ConvertFrom-Json).packs

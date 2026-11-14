@@ -541,11 +541,14 @@ def details_view():
         </DockPanel>
         <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top"
                     Orientation="Horizontal" Margin="0,18,0,0">
-            <Button Name="PART_ButtonPlayAction"
-                    Width="150" Height="40" Style="{{DynamicResource PlayButton}}" />
-            <Button Name="PART_ButtonContextAction"
-                    Width="150" Height="40" />
-{indent(icon_button("PART_ButtonMoreActions", "", "IconOptions", "LOCMoreAction"), 12)}
+            <Grid>
+                <Button Name="PART_ButtonPlayAction"
+                        Width="150" Height="40" Style="{{DynamicResource PlayButton}}" />
+                <Button Name="PART_ButtonContextAction" Tag="ContextAction" Style="{{DynamicResource PlayButton}}"
+                        Width="150" Height="40" />
+                <Control Style="{{DynamicResource RunningActionIndicator}}" />
+            </Grid>
+{indent(icon_button("PART_ButtonMoreActions", "","IconOptions", "LOCMoreAction"), 12)}
 {indent(icon_button("PART_ButtonEditGame", "", "IconEdit", "LOCEditGame", ' Focusable="False"'), 12)}
         </StackPanel>
     </StackPanel>
@@ -620,7 +623,11 @@ CLOSE = '''<Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBanne
         Command="{MainViewModel CloseGameSideBarCommand}">
 <Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
     <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Collapsed` : `Visible`'}" />
-    <Style.Triggers><DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+    <Style.Triggers>
+            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
 </Style></Button.Style>
     <!-- Close: a 28x28 plate that reads at rest (the theme's red button plate, a rim and a bright glyph) and turns the danger color on hover. -->
     <Button.Template>
@@ -659,8 +666,17 @@ CLOSE = '''<Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBanne
 INLINE_CLOSE = '''<Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
         Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
         ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
-        Template="{Binding Template, ElementName=SidePanelCloseButton}"
-        Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}">
+        Template="{Binding Template, ElementName=SidePanelCloseButton}">
+    <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Visibility" Value="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? `Visible` : `Collapsed`'}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Button.Style>
             <Button.RenderTransform>
                 <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
             </Button.RenderTransform>
@@ -740,10 +756,11 @@ def grid_view():
     </Grid.ColumnDefinitions>
     <Button Name="PART_ButtonPlayAction" Grid.Column="0"
             Height="40" Style="{{DynamicResource PlayButton}}" />
-    <Button Name="PART_ButtonContextAction"
+    <Button Name="PART_ButtonContextAction" Tag="ContextAction" Style="{{DynamicResource PlayButton}}"
             Height="40" Grid.Column="0" />
 {indent(icon_button("PART_ButtonMoreActions", ' Grid.Column="1"', "IconOptions", "LOCMoreAction"), 4)}
 {indent(icon_button("PART_ButtonEditGame", ' Grid.Column="2"', "IconEdit", "LOCEditGame", ' Focusable="False"'), 4)}
+    <Control Grid.Column="0" Style="{{DynamicResource RunningActionIndicator}}" />
 </Grid>'''
     body = responsive_body(text_column(' Grid.Column="0" Margin="0,0,0,16"'),
         details_panel(True, ' Grid.Column="2" Margin="0,0,0,16" VerticalAlignment="Top"'), attrs='VerticalAlignment="Top"')

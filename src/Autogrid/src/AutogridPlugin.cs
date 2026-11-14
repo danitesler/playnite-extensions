@@ -479,8 +479,11 @@ namespace Autogrid
         /// Runs right after a cover size write, before the layout pass that re-measures the tiles,
         /// so the grid's wrap panel lays rows out with the new tile size instead of its cached one.
         /// </summary>
+        private int tileCacheResetCalls;
+
         private void ResetGridTileSizeCache(Window window)
         {
+            tileCacheResetCalls++;
             if (wrapPanelResetBroken)
             {
                 return;
@@ -654,6 +657,9 @@ namespace Autogrid
             settings.HasSavedUserLayout = true;
             settings.SavedUserGridItemWidth = currentWidth;
             settings.SavedUserGridItemSpacing = currentSpacing;
+            // Playnite's width is saved 250ms later. Persist the original here, or a kill
+            // after that save makes the next launch snapshot the computed width.
+            settings.PersistPluginSettings();
         }
 
         private void RestoreUserCoverSize()
@@ -683,6 +689,9 @@ namespace Autogrid
                 Logger.Warn("Autogrid restored cover width but could not write GridItemSpacing.");
             }
 
+            // Same cache clear as an enabled write. A restore is a width jump; a scrolled
+            // grid otherwise keeps the old tile size until item 0 is realized.
+            ResetGridTileSizeCache(window);
             GridLayoutService.TrySaveAppSettings(appSettings);
             CancelPendingAppSettingsSave();
             settings.HasSavedUserLayout = false;

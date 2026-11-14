@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **
 
 **Unofficial fan theme.** No GSC assets: the rust and grain are procedural (`art/textures.py`), the mark is an original trefoil, the icons are Phosphor. The game's bitmap fonts (Letterica, Graffiti) are not shipped; the theme names them first and falls back to Bahnschrift SemiCondensed, Arial Narrow and Tahoma. S.T.A.L.K.E.R. is a trademark of GSC Game World (`info/NOTICE-Cordon.txt`).
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -88,11 +88,12 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 | ListBox, DetailsViewItemStyle, Menu, ComboBoxItem | Engine selection bar (warm brown, no outline); details rows add an amber lamp |
 | GroupBox, Separator | Cream header over the broken line; dashed menu separator |
 | GridViewItem* | Inventory cell: thin dim frame on hover, 2px amber when selected; steel tile buttons |
+| Running game (`RunningIndicatorBrush` = `zone-good` 87b774) | the anomaly detector's green lamp, in the Options screen's square bevel language: a detector needle (a narrow bar with a hard leading edge and a short wake, `RunningScan`) crosses details rows, list rows, covers and the bevel plate at a steady speed. **Launching:** the needle takes 1.2s (1.8s loop), a tick-ruler foot (2px ticks, 3px gaps) fills behind it and the lamp in its housing double-beeps as the needle lands. **Running:** the ticks stay full, the frame breathes 0.68 to 1 and the lamp blinks irregularly like a Geiger counter (3s). The plate holds a 0.88 scrim over the green while launching and breathes 0.55 to 0.68 while running under a bright label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the lit plate and lamp halo are off while launching or running. The amber selection lamp keeps the near edge. |
 | PropertyItemButton | Value links in the combo value color; chips as small worn plates |
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are the only sources of `art/screenshot-details.png` and `art/screenshot-settings.png` (`.\scripts\take-screenshots.ps1 -Extension cordon`); both are 1280x720, hand-written HTML with the Phosphor icons inlined as `<symbol>`s, colors as `var(--zone-*)` from `src/tokens.css`, textures from `../src/Images`. They are replicas, not Playnite captures. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md`: the top bar runs search, icon-only view switches / group / sort / view settings / random, filter, notifications (the order of `src/Views/TopPanel.xaml`); the settings preview is Playnite's Settings window (tree left, Appearance / General page, `* Requires restart to apply` with Save then Cancel).
+`art/preview-details.html` and `art/preview-settings.html` are the only sources of `art/screenshot-details.png` and `art/screenshot-settings.png` (`.\scripts\take-screenshots.ps1 -Extension cordon`); both are 1280x720, hand-written HTML with the Phosphor icons inlined as `<symbol>`s, colors as `var(--zone-*)` from `src/tokens.css`, textures from `../src/Images`. They are replicas, not Playnite captures. `data-part` tags follow `docs/themes/previews.md`: the top bar runs search, icon-only view switches / group / sort / view settings / random, filter, notifications (the order of `src/Views/TopPanel.xaml`); the settings preview is Playnite's Settings window (tree left, Appearance / General page, `* Requires restart to apply` with Save then Cancel).
 
 Signature motifs drawn: (1) rusted, riveted steel plates with a grain overlay for the rail, caption band and buttons (`BevelTemplate`); (2) square amber lamp checkboxes and round radio lamps with a halo; (3) the warm brown engine selection bar with a 2px amber edge; (4) cream headings over the dashed "broken line" rule; (5) the lit tab / Play plate with an amber lamp.
 

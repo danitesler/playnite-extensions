@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the interface o
 
 **Unofficial fan theme.** No Valve assets: the mark, every icon and the screenshots' mock game are original. The game's fonts (TF2 Build, TF2 Secondary) are proprietary and not shipped; the theme uses Verdana and Trebuchet MS, which Valve's own scheme lists as fallbacks. Team Fortress, TF2, RED, BLU and Mann Co. are trademarks of Valve Corporation (`info/NOTICE-MannCo.txt`).
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -95,6 +95,7 @@ Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fad
 | `DefaultControls/ToolTip` | A paper note: tan fill, ink text, 1px ink edge. |
 | `DefaultControls/TabControl`, `GroupBox`, `ListBox` | Paper tabs (current = tan with ink text and a 3px RED base, hover = rust); cards on `ExpanderBackgroundBrush`; list rows rust on hover and tan when selected. |
 | `DerivedStyles/DetailsViewItemStyle`, `GridViewItemStyle`, `PropertyItemButton`, `HighlightBorder` | Library rows like the server browser (rust hover, tan selected row with ink text); cover tiles get a 3px orange outline on hover and tan when selected; tags are small square chips. |
+| Running game (`RunningIndicatorBrush` = `team-blu` 5885a2) | the payload cart on its track: two parallel rail bars (a hard-edged double block, `RunningScan`) cross details rows, list rows, covers and the plate, a tie-marked foot (4px ties) fills behind them and the cart (`RunningIndicatorCartShift`) rolls along its own short track. **Launching:** the bars take 1.15s (1.8s loop) and the cart reaches the end of its track as they land. **Running:** the foot stays full, the frame breathes 0.72 to 1 and the cart idles with a slow 3px roll (3.4s). The plate holds a 0.88 scrim over the plate while launching and breathes 0.55 to 0.68 while running under a light label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the idle hover fill is off while launching or running. |
 
 ## Deviations
 
@@ -105,7 +106,7 @@ Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fad
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` render to 1280x720 (`screenshot-details.png`, `screenshot-settings.png`) per `.claude/skills/playnite-theme-dev/previews.md`: the details preview draws the 44px rail, the 52px top bar in the order of `Views/TopPanel.xaml` (search, icon-only view switches / group / sort / view settings / filter presets, filter, notifications), the game list on the left and the game page (340 banner, left column, 340px metadata pane); the settings preview is Playnite's Settings window (section tree, page, bottom bar with Save then Cancel) at 920x680 on a dark backdrop. Colors are `var(--token)` from `src/tokens.css`; art placeholders (banner gradient, screenshot thumbnails) use literal colors.
+`art/preview-details.html` and `art/preview-settings.html` render to 1280x720 (`screenshot-details.png`, `screenshot-settings.png`) per `docs/themes/previews.md`: the details preview draws the 44px rail, the 52px top bar in the order of `Views/TopPanel.xaml` (search, icon-only view switches / group / sort / view settings / filter presets, filter, notifications), the game list on the left and the game page (340 banner, left column, 340px metadata pane); the settings preview is Playnite's Settings window (section tree, page, bottom bar with Save then Cancel) at 920x680 on a dark backdrop. Colors are `var(--token)` from `src/tokens.css`; art placeholders (banner gradient, screenshot thumbnails) use literal colors.
 
 Signature motifs drawn:
 

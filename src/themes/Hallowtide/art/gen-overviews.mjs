@@ -318,7 +318,7 @@ const empty = (viewportHost, margin) => `<Grid VerticalAlignment="Top" Height="{
 <Rectangle x:Name="EmptyBloom" Width="150" Height="150" Opacity="0.22" Fill="{DynamicResource PrimaryButtonGlowBrush}">
 <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/mote.png'}" /></Rectangle.OpacityMask>
 </Rectangle>
-<ContentControl Width="84" Height="84" Focusable="False" IsTabStop="False" Foreground="{DynamicResource TextBrushDarker}" Content="{DynamicResource EmptyGameIcon}" ContentTemplate="{DynamicResource IconTemplate}"><ContentControl.LayoutTransform><ScaleTransform ScaleX="3" ScaleY="3" /></ContentControl.LayoutTransform></ContentControl>
+<Viewbox Width="96" Height="96" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"><Canvas Width="24" Height="24"><Path Data="{DynamicResource EmptyGameIcon}" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Stroke="{DynamicResource TextBrushDarker}" /></Canvas></Viewbox>
 <Rectangle x:Name="EmptySpark" Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="40,-4,0,0" Opacity="0.5" Fill="{DynamicResource FocusBrush}">
 <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/mote.png'}" /></Rectangle.OpacityMask>
 </Rectangle>
@@ -406,7 +406,8 @@ ${spacer('DetailsBannerSpacer', '100 / 320', 8)}
 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="16,0,0,0">
 <Grid>
 <Button x:Name="PART_ButtonPlayAction" Style="{DynamicResource PlayButton}" />
-<Button x:Name="PART_ButtonContextAction" Style="{DynamicResource PlayButton}" />
+<Button x:Name="PART_ButtonContextAction" Tag="ContextAction" Style="{DynamicResource PlayButton}" />
+<Control Style="{DynamicResource RunningActionIndicator}" />
 </Grid>
 <Grid Margin="10,0,0,0">${iconBtn('PART_ButtonMoreActions', 'LOCMoreAction', 'IconOptions')}</Grid>
 <Grid Margin="8,0,0,0">${iconBtn('PART_ButtonEditGame', 'LOCEditGame', 'IconEdit').replace('<Button ', '<Button Focusable="False" ')}</Grid>
@@ -497,8 +498,17 @@ ${spacer('GridBannerSpacer', '72 / 320', 24).replace('<Border IsHitTestVisible',
 <DockPanel Panel.ZIndex="2">
 <Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,10,0" Width="28" Height="28" Padding="0"
         Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
-        Template="{Binding Template, ElementName=SidePanelCloseButton}"
-        Visibility="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Visible\` : \`Collapsed\`'}">
+        Template="{Binding Template, ElementName=SidePanelCloseButton}">
+    <Button.Style>
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Visibility" Value="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Visible\` : \`Collapsed\`'}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Button.Style>
 <Button.RenderTransform><TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" /></Button.RenderTransform>
 </Button>
 <Image x:Name="PART_ImageIcon" MaxHeight="32" MaxWidth="32" DockPanel.Dock="Left" Margin="0,0,12,0" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="Fant" />
@@ -509,7 +519,8 @@ ${title('{DynamicResource FontSizeLargest}')}
 <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="170" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
 <Grid>
 <Button x:Name="PART_ButtonPlayAction" Style="{DynamicResource PlayButton}" />
-<Button x:Name="PART_ButtonContextAction" Style="{DynamicResource PlayButton}" />
+<Button x:Name="PART_ButtonContextAction" Tag="ContextAction" Style="{DynamicResource PlayButton}" />
+<Control Style="{DynamicResource RunningActionIndicator}" />
 </Grid>
 <Grid Grid.Column="1" Margin="10,0,0,0">${iconBtn('PART_ButtonMoreActions', 'LOCMoreAction', 'IconOptions')}</Grid>
 <Grid Grid.Column="2" Margin="8,0,0,0">${iconBtn('PART_ButtonEditGame', 'LOCEditGame', 'IconEdit').replace('<Button ', '<Button Focusable="False" ')}</Grid>
@@ -529,7 +540,10 @@ ${body('Grid', pad)}
 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
 <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Collapsed\` : \`Visible\`'}" />
 <Style.Triggers>
-<DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
 </Style.Triggers>
 </Style>
 </Button.Style>

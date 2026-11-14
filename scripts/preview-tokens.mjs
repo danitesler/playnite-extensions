@@ -138,9 +138,10 @@ function* colorLiterals(html) {
   }
 }
 
-export function getThemeDirs(themeArg) {
-  if (themeArg && themeArg !== '--all') {
-    return [path.resolve(themeArg)];
+export function getThemeDirs(themeArgs) {
+  themeArgs = [].concat(themeArgs ?? []);
+  if (themeArgs.length && !themeArgs.includes('--all')) {
+    return themeArgs.map((dir) => path.resolve(dir));
   }
   const here = path.dirname(fileURLToPath(import.meta.url));
   const repoRoot = path.resolve(here, '..');
@@ -218,14 +219,14 @@ async function processTheme(cmd, themeDir, browser, isMulti) {
 }
 
 async function main() {
-  let [cmd, themeArg] = process.argv.slice(2);
+  let [cmd, ...themeArgs] = process.argv.slice(2);
   if (cmd && !['check', 'link'].includes(cmd)) {
-    themeArg = cmd;
+    themeArgs.unshift(cmd);
     cmd = 'check';
   }
   if (!cmd) cmd = 'check';
 
-  const themeDirs = getThemeDirs(themeArg);
+  const themeDirs = getThemeDirs(themeArgs);
   if (themeDirs.length === 0) {
     console.error('No themes found.');
     process.exit(1);

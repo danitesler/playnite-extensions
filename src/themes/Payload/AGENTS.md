@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the **Overwatch
 
 **Unofficial fan theme.** No Blizzard assets. The tile mark (a slanted plate with a forward chevron) and the slanted plates are original. The icons are Google's Material Symbols. The game's display face (BigNoodleTooOblique) and menu face (Config) are not shipped. Display text uses the bundled Barlow Condensed Bold Italic (`src/Typography/`); body text names Config first and falls back to Bahnschrift and Segoe UI. Overwatch is a trademark of Blizzard Entertainment.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -82,6 +82,7 @@ Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the l
 | PlayButton | PLAY: orange plate slanted 15 degrees; hover fades the lighter orange in (0.2s) and sends one slanted slash across the plate; pressed is its own deep-orange layer with a 1px label nudge |
 | Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | content hidden; the mark's slanted plate with three forward chevrons lighting in turn (1.5s loop, only while shown) above `LOCErrorNoGameSelected` in the oblique display face |
 | PropertyItemButton | Links turn cyan; chips are stat-tile plates |
+| Running game (`RunningIndicatorBrush` = `ow-status` 3DDC84) | The payload moving, in status green `ow-status`. **Launching** (1.4s loop, 0.9s travel, snappy ease-out): a double bar, skewed 15 degrees like the plate, crosses the row, cover or Play slab; a marching-dash foot (`StrokeDashOffset`) fills in step under a growing mask (rows and covers at the foot, slab at its foot, ahead of the chevrons) and the three ultimate-charge chevrons light in turn as the bars land. **Running:** frame, tint and chevrons breathe 0.72 to 1 over 3.2s, the chevrons push in turn and the dashes keep marching slowly (one period per 3.2s); the foot stays full. Slab: skewed green plate with a light `RunningBreath` scrim (0.08-0.2) and dark ink label (7.2:1 worst); Cancel only on RUNNING + hover of the button (`Self`), hover plate and slash off while launching or running. Details row and list row frames keep their radii; the cover's chevron plate sits right of the foot. |
 
 ## Deviations
 

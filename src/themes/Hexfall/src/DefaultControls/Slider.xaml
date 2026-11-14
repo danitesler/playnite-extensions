@@ -1,0 +1,183 @@
+<!--
+    Hexfall: Slider. The source's options slider: a 4px dark rail, a cyan run up to the value, a 10x18 cyan plate for a
+    thumb in a pale edge, and a small chevron button at each end (the arrows step by one). Hover lights the run;
+    dragging lights the thumb (100ms in, 320ms out). Track.Thumb is set last. Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="SliderTrackButton" TargetType="{x:Type RepeatButton}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SliderRangeButton" TargetType="RepeatButton" BasedOn="{StaticResource SliderTrackButton}" />
+
+    <Style x:Key="SliderThumb" TargetType="Thumb">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="Plate" Width="10" Height="18" Background="{DynamicResource SliderThumbBackgroundBrush}"
+                                BorderBrush="{DynamicResource HeadingForegroundBrush}" BorderThickness="1" />
+                        <Rectangle x:Name="Heat" Width="10" Height="18" Fill="{DynamicResource SliderThumbHoverBorderBrush}" Opacity="0" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Plate" Property="BorderBrush" Value="{DynamicResource SliderThumbHoverBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Heat" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Heat" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.32" FillBehavior="Stop" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource SliderThumbBackgroundBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Slider}">
+                    <Grid x:Name="GridRoot">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TickBar x:Name="TopTick" Visibility="Collapsed" Height="4" Placement="Top"
+                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Fill="{DynamicResource NormalBorderBrush}" />
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <RepeatButton Grid.Column="0" x:Name="ChevronDecrease" Command="Slider.DecreaseSmall" Width="16" Focusable="False" IsTabStop="False" OverridesDefaultStyle="True">
+                                <RepeatButton.Template>
+                                    <ControlTemplate TargetType="RepeatButton">
+                                        <Border Background="Transparent">
+                                            <Path x:Name="Glyph" Width="5" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource SliderThumbBackgroundBrush}" Data="M5,0 L5,8 L0,4Z" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Glyph" Property="Fill" Value="{DynamicResource SliderHoverForegroundBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                            <Grid Grid.Column="1">
+                                <!-- The rail: 4px dark line; the run up to the thumb is the cyan fill. -->
+                                <Border x:Name="Border" Height="4" Margin="5,0" VerticalAlignment="Center" Background="{DynamicResource SliderTrackBrush}" />
+                                <Border x:Name="Fill" Margin="5,0,0,0" Height="4" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                        Background="{TemplateBinding Foreground}" Width="{Binding ActualWidth, ElementName=ButtonDecrease}" />
+                                <Track x:Name="PART_Track" Height="{TemplateBinding Height}">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton x:Name="ButtonDecrease" Style="{DynamicResource SliderRangeButton}" Command="Slider.DecreaseLarge" />
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton x:Name="ButtonIncrease" Style="{StaticResource SliderTrackButton}" Command="Slider.IncreaseLarge" />
+                                    </Track.IncreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb Style="{DynamicResource SliderThumb}" />
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                            <RepeatButton Grid.Column="2" x:Name="ChevronIncrease" Command="Slider.IncreaseSmall" Width="16" Focusable="False" IsTabStop="False" OverridesDefaultStyle="True">
+                                <RepeatButton.Template>
+                                    <ControlTemplate TargetType="RepeatButton">
+                                        <Border Background="Transparent">
+                                            <Path x:Name="Glyph" Width="5" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{DynamicResource SliderThumbBackgroundBrush}" Data="M0,0 L5,4 L0,8Z" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Glyph" Property="Fill" Value="{DynamicResource SliderHoverForegroundBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </RepeatButton.Template>
+                            </RepeatButton>
+                        </Grid>
+                        <TickBar x:Name="BottomTick" Visibility="Collapsed" Grid.Row="2" Height="4" Placement="Bottom"
+                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Fill="{DynamicResource NormalBorderBrush}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Fill" Property="Background" Value="{DynamicResource SliderHoverForegroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="PART_Track" Property="FocusManager.FocusedElement" Value="{Binding ElementName=PART_Track}" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource SliderHoverForegroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="TopLeft">
+                            <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="BottomRight">
+                            <Setter Property="Visibility" Value="Visible" TargetName="BottomTick" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="Both">
+                            <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="BottomTick" />
+                        </Trigger>
+                        <Trigger Property="Orientation" Value="Vertical">
+                            <Setter Property="LayoutTransform" TargetName="GridRoot">
+                                <Setter.Value>
+                                    <RotateTransform Angle="-90" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="PART_Track" Property="Orientation" Value="Horizontal" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <!-- ThemeModifier's banner height and banner darkening sliders (each row label is the Grid's first child, Tag = the key) are off while Playnite
+             draws the game art behind the whole window: the game pages collapse the banner then (AGENTS.md "Window background"). -->
+        <Style.Triggers>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Children[0].Tag, RelativeSource={RelativeSource AncestorType=Grid}}" Value="GameBannerHeight" />
+                    <Condition Binding="{Settings ShowBackgroundImageOnWindow}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="Opacity" Value="0.4" />
+            </MultiDataTrigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Children[0].Tag, RelativeSource={RelativeSource AncestorType=Grid}}" Value="GameBannerDarken" />
+                    <Condition Binding="{Settings ShowBackgroundImageOnWindow}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="Opacity" Value="0.4" />
+            </MultiDataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

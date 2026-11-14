@@ -145,8 +145,11 @@ namespace Autogrid
             plugin.SavePluginSettings(this);
         }
 
+        internal int UserLayoutPersistCount { get; private set; }
+
         internal void PersistPluginSettings()
         {
+            UserLayoutPersistCount++;
             plugin?.SavePluginSettings(this);
         }
 

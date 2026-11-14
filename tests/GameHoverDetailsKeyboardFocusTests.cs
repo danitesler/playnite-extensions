@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Controls;
 using GameHoverDetails;
@@ -77,6 +79,24 @@ namespace PlayniteExtensions.Tests
             {
                 throw new Exception(caught.Message, caught);
             }
+        }
+
+        [Fact]
+        public void PointerClickReleasesKeyboardFollow()
+        {
+            var service = (GameHoverDetailsHoverService)FormatterServices.GetUninitializedObject(
+                typeof(GameHoverDetailsHoverService));
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var type = typeof(GameHoverDetailsHoverService);
+            type.GetField("keyboardFollowActive", flags).SetValue(service, true);
+            type.GetField("pendingShowFromKeyboard", flags).SetValue(service, true);
+
+            var release = type.GetMethod("ReleaseKeyboardFollowForPointer", flags);
+            Assert.NotNull(release);
+            release.Invoke(service, null);
+
+            Assert.False((bool)type.GetField("keyboardFollowActive", flags).GetValue(service));
+            Assert.False((bool)type.GetField("pendingShowFromKeyboard", flags).GetValue(service));
         }
 
         private sealed class GameHolder

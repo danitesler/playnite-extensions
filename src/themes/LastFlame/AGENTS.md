@@ -4,7 +4,7 @@
 
 Standalone dark Playnite Desktop theme, `ThemeApiVersion` 2.9.0, inspired by the interface of *Darkest Dungeon II* (Red Hook Studios): gothic, engraved, distressed. One dark variant. Unofficial; not affiliated with, endorsed by or sponsored by Red Hook Studios. No game art, icon, logo or font ships; the tile mark (`art/mark.svg`: a torch flame in a broken diamond), icons, sprites and preview art are original. See `info/NOTICE-LastFlame.txt`.
 
-Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `.claude/skills/playnite-theme-dev/reference.md`.
+Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `docs/themes/reference.md`.
 
 ## Sources
 
@@ -90,6 +90,7 @@ Empty state: an iron brazier with a flickering flame and breathing torchlight, `
 | `GroupBox` | Soot panel in the broken double frame, content-sized |
 | `TabControl`, `ListBox`, `TreeView`, `Menu`, `ToolTip` | Torn ribbon under the current tab; wine fill and tan bar for selection; black skill card with a crimson bar |
 | `GridViewItemStyle`, `DetailsViewItemStyle` | Selected cover: static tan outline, ticks, ribbon below. Hover: torchlight fades up and flickers, brass outline, ticks spread with BackEase. Selected row lies on the torn ribbon |
+| Running game (`RunningIndicatorBrush` = `lf-verdigris` 7fae78) | Verdigris `lf-verdigris`, the cold patina opposite the flame; a slow burn rather than a sweep. **Launching** (2.0s loop, 1.5s travel, `SineEase`-like spline): a wide smoke-soft band (0.55 tail) drifts across the row or plate and rises from the foot of the cover, an engraved rule grows from its centre outwards (row foot; the cover's head rule and the plate's rule with their lozenge), the three tally scratches on rows light in turn and the lozenge flares as the band lands. **Running:** the rule stays full, the scratches flicker irregularly like a bonfire (3.6s, three different patterns) and the lozenge and frame breathe. Slab: pennant sprite plate (scan, `RunningBreath` and hover dim are sibling layers with the same `pennant.png` mask on the layer or its parent; they were nested inside the plate Rectangle before) in verdigris with a faint scrim (0.05-0.14) and dark ink label; Cancel only on RUNNING + hover of the button (`Self`). Slab contrast not measured: the harness does not load `ThemeFile` masks, so the plate does not render there. |
 | `GridViewItemTemplate` (+ `GridTileButton`) | 58px double-lined diamonds, hand-cut glyphs; shade fades, buttons rise 10px and scale 0.84 to 1, Info 60ms after Play; hover inks a tan line around the diamond (dash offset 106 to 0) and lights it crimson |
 
 ## Previews

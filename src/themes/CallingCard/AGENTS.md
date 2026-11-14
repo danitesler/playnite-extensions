@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) after the 
 
 **Unofficial fan theme.** Not affiliated with or endorsed by ATLUS or SEGA. No game files, logos, fonts or artwork are included (`info/NOTICE-CallingCard.txt`). The star mark, plates, sawtooth edge and halftone are drawn for this theme.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 **Intended layout: the sidebar on the left** (Playnite's default; repo rule). Right mirrors it; top and bottom are fallback strips.
 
@@ -92,6 +92,7 @@ Empty state (no game selected): both overviews hide the page and show a slanted 
 | `PropertyItemButton` | Links paper, red on hover; chips are slanted paper labels with ink text, red with sliver on hover. |
 | `GridViewItemStyle` | Selected: static 3px red frame with a blue frame echoed 4px down-right. Hover: 3px paper frame settles in from 6% too large with overshoot and a red slab is thrown out from behind the cover to 6px down-right (0.16s), wobbling while hovered; leaving 0.14s. |
 | `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover controls as slanted 46x40 command plates (ink, 2px paper edge, Play red) with the blue sliver behind and chunky solid glyphs (`IconPlay` cut arrowhead, `IconInfo` slanted plate with the i knocked out, `IconDownload` arrow over a slanted slab; 24 grid in `Media.xaml`); shade fades in, buttons rise 10px and scale 0.8 to 1 with a back-ease overshoot (Info 0.05s later); hover pops the plate, flips it to paper with an ink glyph and throws the sliver out; pressed squeezes it and washes it red |
+| Running game (`RunningIndicatorBrush` = `--hp-teal`, the HP gauge) | a Calling Card cut: a bold slash with a thin one behind it (`RunningScan`, hard-edged, masked inside the -12 degree skew so it follows the row and plate), an HP-gauge foot and the card's four-point star. **Launching:** the cut crosses details rows, list rows, covers (inside a skewed tape) and the slab in 1.05s (1.65s loop), the gauge fills behind it and the star turns half a revolution (it is four-fold symmetric, so the loop is seamless) as the cut lands. **Running:** the gauge stays full, the frame breathes 0.72 to 1 and the star turns a quarter once per 3.6s while its glow rises and falls. The slab holds a 0.88 scrim over the plate while launching and breathes 0.55 to 0.68 while running under a light label; hover on RUNNING (button only, `Self`) swaps the label (unskewed) for Cancel, and the hover plate and white slash are off while launching or running. |
 
 ## Deviations
 
@@ -104,7 +105,7 @@ Empty state (no game selected): both overviews hide the page and show a slanted 
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are 1280x720 HTML replicas (not Playnite captures) rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension callingcard`. Colors are `var(--token)` from `src/tokens.css`; icons are the theme's own `Media.xaml` Heroicons paths. `data-part` tags follow `.claude/skills/playnite-theme-dev/previews.md` (top bar in the order of `Views/TopPanel.xaml`: search, icon-only view switches / group / sort, filter, notifications; the main menu button lives in the rail).
+`art/preview-details.html` and `art/preview-settings.html` are 1280x720 HTML replicas (not Playnite captures) rendered to `art/screenshot-details.png` and `art/screenshot-settings.png` by `.\scripts\take-screenshots.ps1 -Extension callingcard`. Colors are `var(--token)` from `src/tokens.css`; icons are the theme's own `Media.xaml` Heroicons paths. `data-part` tags follow `docs/themes/previews.md` (top bar in the order of `Views/TopPanel.xaml`: search, icon-only view switches / group / sort, filter, notifications; the main menu button lives in the rail).
 
 Game page actions: Play (plate, text) then More and Edit as equal 40 x 40 icon-only paper-edged squares, Edit always visible. ComboBox values keep 40px clear on the right for the chevron.
 

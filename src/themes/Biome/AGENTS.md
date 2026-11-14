@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the sty
 
 **Unofficial fan theme.** Not affiliated with or endorsed by Re-Logic. No Re-Logic logos, icons, fonts, textures or game files are included (see `info/NOTICE-Biome.txt`). The tree mark is hand-drawn (`art/icons.py`).
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -45,6 +45,10 @@ Follows the shared skeleton. Differences: the page sits on the list panel blue; 
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+
+| Playnite file | Drawn as |
+|---------------|----------|
+| Running game (`RunningIndicatorBrush` = `--rarity-green`) | Terraria's rarity green in pixels. Every surface carries a 0.16 tint, a 2px frame with a dark keyline in the item's own shape (rows square, covers in `CornerRadiusSmall`, the plate in `ControlCornerRadius`; the gold bar and blue selection stay under it), a chain of 6px pixel blocks as the foot line and the buff cross as the mark. **Launching (1.5s loop, 0.95s travel):** a hard block of pixels (`RunningScanBand`: a 6px cell mask under a short-tailed band, so the sweep steps like a bar of blocks) crosses rows and the plate and rises from the foot of a cover, the chain fills in step, and as the block lands the cross flares and pings an expanding copy. The plate is solid green under a `ScrimBrush` layer held at 0.5. **Running:** chain full, frame breathes 0.72 to 1 and the cross idles with a faint ping every 3.2s; the plate's scrim breathes 0.22 to 0.42 (black label on green: 6.0:1 launching, 7.1:1 running at worst). **Hover on RUNNING:** the label turns to Cancel and a 0.3 scrim fades in; the gold hover plate and glint are off while launching or running, and the hover binding is `Self`. |
 
 ## Deviations
 

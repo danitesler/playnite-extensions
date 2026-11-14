@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the sty
 
 **Unofficial fan theme.** Not affiliated with or endorsed by CD PROJEKT RED. No game logos, icons, fonts, images or files are included (see `info/NOTICE-Medallion.txt`). The medallion mark (`art/mark.svg`, `IconMainMenu`), the brush edge and the double frame are drawn for this theme.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -46,6 +46,10 @@ Follows the shared skeleton. Differences: the page is black (`GameOverviewBackgr
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+
+| Playnite file | Drawn as |
+|---------------|----------|
+| Running game (`RunningIndicatorBrush` = `objective-green`) | The medallion hums, objective green. The far-edge diamond is the source. **Launching** (1.8s loop, 1.3s travel): a hard-edged typewriter wipe (tail and head offsets travel separately, so the block grows out of the diamond leftward, then slides off) crosses the row, plate or, diagonally from the corner diamond, the cover, a foot rule grows leftward from the diamond in step, and the diamond trembles 1px side to side while the wipe runs. **Running:** the rule stays full, the diamond hums slowly (0.6px drift over 3.2s) and frame, tint and diamond breathe 0.72 to 1. Plate: green plate under a faint `RunningBreath` scrim (0.05-0.14), black ink label (4.8:1 worst); Cancel only on RUNNING + hover of the button (`Self`); the hover wash, label swap and hot frame are idle-hover only. |
 
 ## Deviations
 

@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the sty
 
 **Unofficial fan theme.** Not affiliated with or endorsed by Naughty Dog or Sony Interactive Entertainment. No logos, icons, fonts, images or game files are included (see `info/NOTICE-Libertalia.txt`). The compass mark is hand-drawn.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -47,6 +47,10 @@ Follows the shared skeleton. Differences:
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+
+| Playnite file | Uncharted element |
+|---------------|-------------------|
+| Running game (`RunningIndicatorBrush` = `positive` 8a9a5b) | the menu's glint and a brushed pass, in treasure-map gold: a wide feathered band (`RunningScan`, its mask slides by translating a `RelativeTransform`, so the band has no hard edge) sweeps details rows, list rows, covers and the smudge plate (inside the plate's own radial feather); two sparkles (`RunningSparkA/B`) are the mark. **Launching:** the pass takes 1.3s (2s loop, a sine ease), a foot line fills behind it and the sparkles flare as it lands. **Running:** the foot stays full, the frame breathes 0.72 to 1 and the sparkles twinkle in turn (3.4s). The plate holds a 0.88 scrim over the running colour while launching and breathes 0.55 to 0.68 while running under a light label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the idle hover fill is off while launching or running. |
 
 ## Deviations
 

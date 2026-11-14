@@ -5,12 +5,13 @@ param(
     [ValidateSet("Ci", "Package")]
     [string]$Mode = "Ci",
     [string]$Configuration = "Release",
-    [switch]$RequireBuildOutput
+    [switch]$RequireBuildOutput,
+    [switch]$SkipPreviewChecks
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
-. (Join-Path $PSScriptRoot "theme-tools.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/theme-tools.ps1")
 
 function Get-XmlProperty {
     param(
@@ -486,7 +487,7 @@ function Test-PathDataSyntax {
 
 function Test-FormControlHeight {
     <#
-        AGENTS.md "Form field height": every form field and button is the same height in every theme, ControlHeight (32).
+        src/themes/AGENTS.md "Form field height": every form field and button is the same height in every theme, ControlHeight (32).
         Text boxes, dropdowns, Playnite's list dropdowns, date pickers, number and path boxes and buttons line up on one row.
         A padding applied twice (on PART_ContentHost or the Border around it) makes text boxes taller than their neighbours.
     #>
@@ -502,28 +503,28 @@ function Test-FormControlHeight {
     $common = & $read "Common.xaml"
     $height = if ($common) { $common.SelectSingleNode("//*[@*[local-name()='Key']='ControlHeight']") } else { $null }
     if (-not $height -or $height.InnerText.Trim() -ne "32") {
-        $errors.Add("Common.xaml: ControlHeight must be 32, the shared form field height (AGENTS.md Form field height).") | Out-Null
+        $errors.Add("Common.xaml: ControlHeight must be 32, the shared form field height (src/themes/AGENTS.md Form field height).") | Out-Null
     }
     foreach ($item in @(@("DefaultControls/TextBox.xaml", "TextBox"), @("DefaultControls/PasswordBox.xaml", "PasswordBox"), @("DefaultControls/ComboBox.xaml", "ComboBox"), @("DefaultControls/Button.xaml", "Button"))) {
         $doc = & $read $item[0]
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $item[0]
-        if (-not $doc) { $errors.Add("${where}: missing; every theme restyles $($item[1]) so it can take ControlHeight (AGENTS.md Form field height).") | Out-Null; continue }
+        if (-not $doc) { $errors.Add("${where}: missing; every theme restyles $($item[1]) so it can take ControlHeight (src/themes/AGENTS.md Form field height).") | Out-Null; continue }
         $style = $null
         foreach ($candidate in $doc.SelectNodes("//*[local-name()='Style']")) {
             if ($candidate.GetAttribute("TargetType") -match "^(\{x:Type $($item[1])\}|$($item[1]))$" -and -not $candidate.GetAttribute("Key", "http://schemas.microsoft.com/winfx/2006/xaml")) { $style = $candidate; break }
         }
         if (-not $style) { continue }
         if (-not $style.SelectSingleNode(".//*[local-name()='Setter'][@Property='MinHeight' and @Value='$value']")) {
-            $errors.Add("${where}: the base $($item[1]) style needs MinHeight = ControlHeight, so it matches the other fields (AGENTS.md Form field height).") | Out-Null
+            $errors.Add("${where}: the base $($item[1]) style needs MinHeight = ControlHeight, so it matches the other fields (src/themes/AGENTS.md Form field height).") | Out-Null
         }
         foreach ($setter in $style.SelectNodes("./*[local-name()='Setter'][(@Property='MinHeight' or @Property='Height') and @Value!='$value']")) {
-            $errors.Add("${where}: the base $($item[1]) style sets $($setter.GetAttribute('Property')) to $($setter.GetAttribute('Value')); use ControlHeight only (AGENTS.md Form field height).") | Out-Null
+            $errors.Add("${where}: the base $($item[1]) style sets $($setter.GetAttribute('Property')) to $($setter.GetAttribute('Value')); use ControlHeight only (src/themes/AGENTS.md Form field height).") | Out-Null
         }
         $host_ = $style.SelectSingleNode(".//*[@*[local-name()='Name']='PART_ContentHost']")
         if ($host_) {
             $parent = $host_.ParentNode
             if ($host_.GetAttribute("Margin") -match "TemplateBinding Padding" -or $parent.GetAttribute("Padding") -match "TemplateBinding Padding") {
-                $errors.Add("${where}: Padding is applied twice. WPF already applies it to PART_ContentHost, so remove it from the host's Margin and from the Border around it (AGENTS.md Form field height).") | Out-Null
+                $errors.Add("${where}: Padding is applied twice. WPF already applies it to PART_ContentHost, so remove it from the host's Margin and from the Border around it (src/themes/AGENTS.md Form field height).") | Out-Null
             }
         }
     }
@@ -531,7 +532,7 @@ function Test-FormControlHeight {
         $path = Join-Path $Directory $relative
         if (-not (Test-Path $path) -or -not ((Get-Content -Raw $path) -match "ControlHeight")) {
             $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
-            $errors.Add("${where}: must set ControlHeight on Playnite's control (it defaults to 24). new-theme.ps1 scaffolds this file (AGENTS.md Form field height).") | Out-Null
+            $errors.Add("${where}: must set ControlHeight on Playnite's control (it defaults to 24). new-theme.ps1 scaffolds this file (src/themes/AGENTS.md Form field height).") | Out-Null
         }
     }
     return @($errors | Select-Object -Unique)
@@ -604,7 +605,7 @@ function Test-SettingsChrome {
     $treePath = Join-Path $Directory $treeRel
     $treeWhere = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $treeRel
     if (-not (Test-Path $treePath)) {
-        $errors.Add("${treeWhere}: missing. The Settings section list must be restyled (full-width plates, hover and selected states, fixed width in the Settings window): .claude/skills/playnite-theme-dev/settings-screens.md.") | Out-Null
+        $errors.Add("${treeWhere}: missing. The Settings section list must be restyled (full-width plates, hover and selected states, fixed width in the Settings window): docs/themes/settings-screens.md.") | Out-Null
     }
     else {
         $doc = Read-XamlDocument $treePath
@@ -622,7 +623,8 @@ function Test-SettingsChrome {
                 if (-not $hover) { $errors.Add("${treeWhere}: the TreeViewItem template has no IsMouseOver trigger, so rows give no hover cue.") | Out-Null }
                 if (-not $selected) { $errors.Add("${treeWhere}: the TreeViewItem template has no IsSelected trigger, so the current section is not marked.") | Out-Null }
                 if ($selected -and $hover) {
-                    $cues = @($selected.SelectNodes("./*[local-name()='Setter'][@TargetName]")).Count
+                    $cueNames = @($selected.SelectNodes("./*[local-name()='Setter'][@TargetName]") | ForEach-Object { $_.GetAttribute("TargetName") }) + @($selected.SelectNodes(".//*[@*[local-name()='Storyboard.TargetName']]") | ForEach-Object { $_.GetAttribute("Storyboard.TargetName") })
+                    $cues = @($cueNames | Where-Object { $_ } | Select-Object -Unique).Count
                     if ($cues -lt 2) { $notes.Add("settings chrome: $treeWhere the IsSelected trigger changes fewer than 2 named parts. Mark the current row with a plate plus a bar, notch or glyph, not a text colour alone.") | Out-Null }
                 }
                 $minHeights = @($itemStyle.SelectNodes(".//@MinHeight") | ForEach-Object { $n = 0.0; if ([double]::TryParse($_.Value, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$n)) { $n } })
@@ -661,7 +663,7 @@ function Test-SettingsChrome {
     $winPath = Join-Path $Directory $winRel
     $winWhere = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $winRel
     if (-not (Test-Path $winPath)) {
-        $errors.Add("${winWhere}: missing. Dialog windows (Settings, game editor, add-ons) need the theme's own title band: .claude/skills/playnite-theme-dev/settings-screens.md.") | Out-Null
+        $errors.Add("${winWhere}: missing. Dialog windows (Settings, game editor, add-ons) need the theme's own title band: docs/themes/settings-screens.md.") | Out-Null
     }
     else {
         $doc = Read-XamlDocument $winPath
@@ -670,6 +672,12 @@ function Test-SettingsChrome {
                 if (-not $doc.SelectSingleNode("//*[@*[local-name()='Name' and namespace-uri()='$xamlNs' and .='$part']]")) {
                     $errors.Add("${winWhere}: missing $part. Playnite binds the dialog's title and caption buttons by these names.") | Out-Null
                 }
+            }
+            # Playnite switches PART_TextTitle to Visible once a window has a Title (ThemeModifier Settings, Settings): a hidden copy that is only
+            # Collapsed itself then draws bare default text over the band's top-left corner. Hide it through a Collapsed parent.
+            $titleNode = $doc.SelectSingleNode("//*[@*[local-name()='Name' and namespace-uri()='$xamlNs' and .='PART_TextTitle']]")
+            if ($titleNode -and $titleNode.GetAttribute("Visibility") -match "Collapsed|Hidden" -and -not $titleNode.SelectSingleNode("ancestor::*[@Visibility='Collapsed']")) {
+                $errors.Add("${winWhere}: PART_TextTitle is hidden only by its own Visibility. Playnite makes it visible again and it draws unstyled text over the title band; put it in a parent with Visibility=Collapsed (docs/themes/settings-screens.md, Title band).") | Out-Null
             }
             $chrome = $doc.SelectSingleNode("//*[local-name()='WindowChrome' and @CaptionHeight]")
             if ($chrome) {
@@ -721,8 +729,8 @@ function Test-TileButtonHitArea {
 
 function Test-SidePanelCloseButton {
     <#
-        AGENTS.md "Side panel close button": the grid view's side panel close button (CloseGameSideBarCommand) is a
-        28x28 plate in the panel's top-left corner, or left of the game icon when GameBannerHeight < 120.
+        src/themes/AGENTS.md "Side panel close button": the grid view's side panel close button (CloseGameSideBarCommand) is a
+        28x28 plate in the panel's top-left corner, or left of the game icon when GameBannerHeight < 120 or the game background image setting is on.
         Both placements share the same template. It reads at rest (a plate, a rim, a bright glyph) and has a clear
         hover state (an IsMouseOver trigger). A bare glyph on the art, or a button under 28px, disappears into the banner.
     #>
@@ -740,7 +748,7 @@ function Test-SidePanelCloseButton {
     }
     $errors = [System.Collections.Generic.List[string]]::new()
     if ($button.GetAttribute("Width") -ne "28" -or $button.GetAttribute("Height") -ne "28") {
-        $errors.Add("${where}: the close button is $($button.GetAttribute('Width'))x$($button.GetAttribute('Height')); it must be 28x28 (AGENTS.md Side panel close button).") | Out-Null
+        $errors.Add("${where}: the close button is $($button.GetAttribute('Width'))x$($button.GetAttribute('Height')); it must be 28x28 (src/themes/AGENTS.md Side panel close button).") | Out-Null
     }
     if ($button.GetAttribute("HorizontalAlignment") -ne "Left" -or $button.GetAttribute("VerticalAlignment") -ne "Top") {
         $errors.Add("${where}: the close button must sit in the panel's top-left corner (HorizontalAlignment Left, VerticalAlignment Top).") | Out-Null
@@ -763,22 +771,36 @@ function Test-SidePanelCloseButton {
             $errors.Add("${where}: pin the inline close using the physical content offset of PART_ScrollViewHost.") | Out-Null
         }
     }
-    $visibilitySetter = $button.SelectSingleNode("./*[local-name()='Button.Style']/*[local-name()='Style']/*[local-name()='Setter'][@Property='Visibility']")
-    $emptyTrigger = $button.SelectSingleNode("./*[local-name()='Button.Style']/*[local-name()='Style']/*[local-name()='Style.Triggers']/*[local-name()='DataTrigger'][contains(@Binding, 'Game') and contains(@Binding, 'FallbackValue={x:Null}')][@Value='{x:Null}']/*[local-name()='Setter'][@Property='Visibility' and @Value='Visible']")
+    $styleRoot = "./*[local-name()='Button.Style']/*[local-name()='Style']"
+    $visibilitySetter = $button.SelectSingleNode("$styleRoot/*[local-name()='Setter'][@Property='Visibility']")
+    $emptyTrigger = $button.SelectSingleNode("$styleRoot/*[local-name()='Style.Triggers']/*[local-name()='DataTrigger'][contains(@Binding, 'Game') and contains(@Binding, 'FallbackValue={x:Null}')][@Value='{x:Null}']/*[local-name()='Setter'][@Property='Visibility' and @Value='Visible']")
     if ($button.HasAttribute('Visibility') -or -not $emptyTrigger) {
         $errors.Add("${where}: the corner close must stay visible for Game=null and null DataContext, independent of banner height. Put its normal visibility binding in a style setter so the empty-state trigger can override it.") | Out-Null
     }
     if ($button.GetAttribute('Tag') -ne '{DynamicResource GameBannerHeight}' -or -not $visibilitySetter -or
-        $visibilitySetter.GetAttribute('Value') -notmatch 'x\s*<\s*120\s*\?\s*`Collapsed`\s*:\s*`Visible`' -or
-        ($inline -and $inline.GetAttribute('Visibility') -notmatch 'x\s*<\s*120\s*\?\s*`Visible`\s*:\s*`Collapsed`')) {
+        $visibilitySetter.GetAttribute('Value') -notmatch 'x\s*<\s*120\s*\?\s*`Collapsed`\s*:\s*`Visible`') {
         $errors.Add("${where}: use configured GameBannerHeight to show only the inline close below 120px and only the corner close at 120px and above.") | Out-Null
+    }
+    # While "Use game background image as window background" is on, the banner is collapsed, so the close stays inline at any banner height.
+    $inlineSetter = if ($inline) { $inline.SelectSingleNode("$styleRoot/*[local-name()='Setter'][@Property='Visibility']") }
+    $inlineBackgroundTrigger = if ($inline) { $inline.SelectSingleNode("$styleRoot/*[local-name()='Style.Triggers']/*[local-name()='DataTrigger'][@Binding='{Settings ShowBackgroundImageOnWindow}'][@Value='True']/*[local-name()='Setter'][@Property='Visibility' and @Value='Visible']") }
+    $cornerBackgroundTrigger = $button.SelectSingleNode("$styleRoot/*[local-name()='Style.Triggers']/*[local-name()='DataTrigger'][@Binding='{Settings ShowBackgroundImageOnWindow}'][@Value='True']/*[local-name()='Setter'][@Property='Visibility' and @Value='Collapsed']")
+    $triggers = @($button.SelectNodes("$styleRoot/*[local-name()='Style.Triggers']/*[local-name()='DataTrigger']"))
+    $backgroundFirst = $cornerBackgroundTrigger -and $triggers.Count -gt 1 -and [object]::ReferenceEquals($triggers[0], $cornerBackgroundTrigger.ParentNode)
+    if (-not $inline -or $inline.HasAttribute('Visibility') -or -not $inlineSetter -or
+        $inlineSetter.GetAttribute('Value') -notmatch 'ElementName=SidePanelCloseButton' -or
+        $inlineSetter.GetAttribute('Value') -notmatch 'x\s*<\s*120\s*\?\s*`Visible`\s*:\s*`Collapsed`') {
+        $errors.Add("${where}: the inline close needs a style setter that shows it below 120px (bound to SidePanelCloseButton.Tag).") | Out-Null
+    }
+    if (-not $inlineBackgroundTrigger -or -not $backgroundFirst) {
+        $errors.Add("${where}: with {Settings ShowBackgroundImageOnWindow} on, show the inline close and collapse the corner close at any banner height (the corner DataTrigger goes before the Game=null trigger so an empty view can still be closed).") | Out-Null
     }
     return @($errors)
 }
 
 function Test-WindowBackground {
     <#
-        AGENTS.md "Window background": Playnite's "Use game background image as window background" is the only way a
+        src/themes/AGENTS.md "Window background": Playnite's "Use game background image as window background" is the only way a
         theme shows game art behind the library. Library.xaml shows PART_ImageBackground at full strength (no Opacity,
         Visibility or Effect on it, no OpacityMask around it, no ScrimBrush/ArtTintBrush layer after it; a fade at its own bottom edge is fine):
         Playnite's darken and blur are the only treatment. With the setting off, GameBannerDarken (ThemeModifier) darkens the banner. Both game pages collapse the banner while the setting is on, so
@@ -799,16 +821,16 @@ function Test-WindowBackground {
         if ($image) {
             foreach ($attribute in @('Opacity', 'Visibility')) {
                 if ($image.GetAttribute($attribute)) {
-                    $errors.Add("${where}: PART_ImageBackground sets $attribute. Show the window art at full strength; Playnite's darken and blur settings are the only treatment (AGENTS.md Window background).") | Out-Null
+                    $errors.Add("${where}: PART_ImageBackground sets $attribute. Show the window art at full strength; Playnite's darken and blur settings are the only treatment (src/themes/AGENTS.md Window background).") | Out-Null
                 }
             }
             if ($image.SelectSingleNode("./*[local-name()='FadeImage.Effect']")) {
-                $errors.Add("${where}: PART_ImageBackground has an Effect. Playnite's blur setting blurs the window art; drop the theme's own (AGENTS.md Window background).") | Out-Null
+                $errors.Add("${where}: PART_ImageBackground has an Effect. Playnite's blur setting blurs the window art; drop the theme's own (src/themes/AGENTS.md Window background).") | Out-Null
             }
             $ancestor = $image.ParentNode
             while ($ancestor -and $ancestor.LocalName -ne 'ControlTemplate') {
                 if ($ancestor.SelectSingleNode("./*[local-name()='$($ancestor.LocalName).OpacityMask']")) {
-                    $errors.Add("${where}: PART_ImageBackground sits inside an OpacityMask ($($ancestor.LocalName)). Show the whole art; no fades or feathering (AGENTS.md Window background).") | Out-Null
+                    $errors.Add("${where}: PART_ImageBackground sits inside an OpacityMask ($($ancestor.LocalName)). Show the whole art; no fades or feathering (src/themes/AGENTS.md Window background).") | Out-Null
                     break
                 }
                 $ancestor = $ancestor.ParentNode
@@ -816,7 +838,7 @@ function Test-WindowBackground {
             $sibling = $image.NextSibling
             while ($sibling) {
                 if ($sibling.NodeType -eq 'Element' -and $sibling.OuterXml -match '\{DynamicResource (ScrimBrush|ArtTintBrush)\}' -and $sibling.LocalName -notin @('TopPanel', 'DockPanel')) {
-                    $errors.Add("${where}: a $($sibling.LocalName) in $($Matches[1]) covers PART_ImageBackground. No theme scrim or tint over the window art: Playnite's darken setting is the tint (AGENTS.md Window background).") | Out-Null
+                    $errors.Add("${where}: a $($sibling.LocalName) in $($Matches[1]) covers PART_ImageBackground. No theme scrim or tint over the window art: Playnite's darken setting is the tint (src/themes/AGENTS.md Window background).") | Out-Null
                     break
                 }
                 $sibling = $sibling.NextSibling
@@ -833,17 +855,17 @@ function Test-WindowBackground {
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
         $banners = @($doc.SelectNodes("//*[@Height='{DynamicResource GameBannerHeight}' or @MaxHeight='{DynamicResource GameBannerHeight}']"))
         if ($banners.Count -gt 0 -and -not $doc.SelectSingleNode("//*[@Opacity='0.5' and @Tag='{DynamicResource GameBannerDarken}']")) {
-            $errors.Add("${where}: no banner darkening floor. After the darkening layer add the same brush at Opacity=`"0.5`" with Tag=`"{DynamicResource GameBannerDarken}`", collapsed by a DataTrigger on Tag = 0, so any value above 0 starts at 50% (AGENTS.md Window background).") | Out-Null
+            $errors.Add("${where}: no banner darkening floor. After the darkening layer add the same brush at Opacity=`"0.5`" with Tag=`"{DynamicResource GameBannerDarken}`", collapsed by a DataTrigger on Tag = 0, so any value above 0 starts at 50% (src/themes/AGENTS.md Window background).") | Out-Null
         }
         if ($banners.Count -gt 0 -and -not $doc.SelectSingleNode("//*[@Opacity='{DynamicResource GameBannerDarken}']")) {
-            $errors.Add("${where}: no banner darkening layer. Add <Rectangle Fill=`"{DynamicResource GameBannerTintBrush}`" Opacity=`"{DynamicResource GameBannerDarken}`" IsHitTestVisible=`"False`" /> right after the banner's PART_ImageBackground (AGENTS.md Window background).") | Out-Null
+            $errors.Add("${where}: no banner darkening layer. Add <Rectangle Fill=`"{DynamicResource GameBannerTintBrush}`" Opacity=`"{DynamicResource GameBannerDarken}`" IsHitTestVisible=`"False`" /> right after the banner's PART_ImageBackground (src/themes/AGENTS.md Window background).") | Out-Null
         }
         foreach ($banner in $banners) {
             $name = $banner.GetAttribute("Name", $xamlNs)
             $collapses = $banner.SelectSingleNode("./*[local-name()='$($banner.LocalName).Style']//*[local-name()='DataTrigger'][@Binding='$setting' and @Value='True']/*[local-name()='Setter'][@Property='Visibility' and @Value='Collapsed']")
             if (-not $collapses) {
                 $label = if ($name) { $name } else { $banner.LocalName }
-                $errors.Add("${where}: the banner ($label, GameBannerHeight) does not collapse while Playnite draws the game art behind the window. Add a DataTrigger Binding=`"$setting`" Value=`"True`" setting Visibility Collapsed to its Style (AGENTS.md Window background).") | Out-Null
+                $errors.Add("${where}: the banner ($label, GameBannerHeight) does not collapse while Playnite draws the game art behind the window. Add a DataTrigger Binding=`"$setting`" Value=`"True`" setting Visibility Collapsed to its Style (src/themes/AGENTS.md Window background).") | Out-Null
             }
         }
     }
@@ -863,11 +885,200 @@ function Test-WindowBackground {
             }
         }
         if (-not $ok) {
-            $errors.Add("${where}: the Slider style does not disable ThemeModifier's $key slider while Playnite's window background is on (MultiDataTrigger: Children[0].Tag of the ancestor Grid = $key and $setting = True -> IsEnabled False, Opacity 0.4; AGENTS.md Window background).") | Out-Null
+            $errors.Add("${where}: the Slider style does not disable ThemeModifier's $key slider while Playnite's window background is on (MultiDataTrigger: Children[0].Tag of the ancestor Grid = $key and $setting = True -> IsEnabled False, Opacity 0.4; src/themes/AGENTS.md Window background).") | Out-Null
         }
         }
     }
+
+    # The art runs under the whole window: a rail, a track or a header plate that is a solid brush turns see-through while it is on.
+    $rail = Join-Path $Directory "Views/Sidebar.xaml"
+    if (Test-Path $rail) {
+        $text = Get-Content -Raw $rail
+        if ($text -match '<(Grid|Border)\b[^>]*\bBackground="\{DynamicResource (ShellBackgroundBrush|TopPanelBackgroundBrush)\}"' -and -not $text.Contains($setting)) {
+            $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative "Views/Sidebar.xaml"
+            $errors.Add("${where}: the rail keeps a solid background while Playnite's window background is on. Add a DataTrigger Binding=`"$setting`" Value=`"True`" to the Sidebar template setting that fill's Background Transparent, so the art shows under the rail (src/themes/AGENTS.md Window background).") | Out-Null
+        }
+    }
+    $scroll = Join-Path $Directory "DefaultControls/ScrollViewer.xaml"
+    if (Test-Path $scroll) {
+        $text = Get-Content -Raw $scroll
+        if ($text -match '<(Border|Rectangle)\b[^>]*ScrollBarTrackBrush' -and -not $text.Contains($setting)) {
+            $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative "DefaultControls/ScrollViewer.xaml"
+            $errors.Add("${where}: the scroll bar track stays opaque while Playnite's window background is on. Name the track fill and add a DataTrigger Binding=`"$setting`" Value=`"True`" in the ScrollBar template setting its Opacity to 0.4 (src/themes/AGENTS.md Window background).") | Out-Null
+        }
+    }
+    $expander = Join-Path $Directory "DefaultControls/Expander.xaml"
+    $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative "DefaultControls/Expander.xaml"
+    if (-not (Test-Path $expander) -or -not (Get-Content -Raw $expander).Contains($setting)) {
+        $errors.Add("${where}: Expander headers keep their plate while Playnite's window background is on. Overlay the Expander style with a DataTrigger Binding=`"$setting`" Value=`"True`" setting Background Transparent (src/themes/AGENTS.md Window background).") | Out-Null
+    }
     return @($errors)
+}
+
+function Test-RunningIndicator {
+    <#
+        docs/themes/reference.md "Running game indicator": the running or launching game carries a quiet, animated mark in
+        the details list row, the cover tile, the list view row and over the game page's Play / context action cell. Each
+        template has a non-hit-testable element named RunningIndicator, shown by DataTriggers on IsRunning and IsLaunching
+        whose named storyboards are removed on exit (no clock left running), drawn with RunningIndicatorBrush, and never
+        touched by the selected or hover triggers, so it stays visible on a selected row.
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml"
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $targets = @(
+        @{ File = "DerivedStyles/DetailsViewItemStyle.xaml"; Key = "DetailsViewItemStyle"; Target = $null },
+        @{ File = "DerivedStyles/GridViewItemStyle.xaml"; Key = "GridViewItemStyle"; Target = $null },
+        @{ File = "DefaultControls/ListView.xaml"; Key = $null; Target = "ListViewItem" },
+        @{ File = "DerivedStyles/PlayButton.xaml"; Key = "RunningActionIndicator"; Target = $null }
+    )
+    foreach ($t in $targets) {
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $t.File
+        $path = Join-Path $Directory $t.File
+        $doc = if (Test-Path $path) { Read-XamlDocument $path } else { $null }
+        $style = $null
+        if ($doc) {
+            foreach ($candidate in $doc.SelectNodes("//*[local-name()='Style']")) {
+                if ($t.Key -and $candidate.GetAttribute("Key", $xamlNs) -eq $t.Key) { $style = $candidate; break }
+                if ($t.Target -and -not $candidate.GetAttribute("Key", $xamlNs) -and $candidate.GetAttribute("TargetType") -match "\b$($t.Target)\}") { $style = $candidate; break }
+            }
+        }
+        $label = if ($t.Key) { $t.Key } else { "$($t.Target) style" }
+        if (-not $style) {
+            $errors.Add("${where}: no $label with a running game indicator (docs/themes/reference.md Running game indicator).") | Out-Null
+            continue
+        }
+        $indicator = $style.SelectSingleNode(".//*[@*[local-name()='Name']='RunningIndicator']")
+        if (-not $indicator) {
+            $errors.Add("${where}: ${label} has no element named RunningIndicator.") | Out-Null
+            continue
+        }
+        # The whole item is highlighted, not only the motif: a frame around it, and on rows and the action cell a tint.
+        $frame = $indicator.SelectSingleNode(".//*[@*[local-name()='Name']='RunningFrame']")
+        if (-not $frame) {
+            $errors.Add("${where}: ${label}'s RunningIndicator has no RunningFrame (the running colour framing the whole row, cover or button, inside RunningIndicator).") | Out-Null
+        }
+        elseif ($frame.OuterXml -notmatch "(BorderBrush|Stroke|Foreground)=`"\{DynamicResource RunningIndicatorBrush\}`"") {
+            $errors.Add("${where}: ${label}'s RunningFrame must draw its edge with {DynamicResource RunningIndicatorBrush}.") | Out-Null
+        }
+        if ($t.Key -ne "GridViewItemStyle" -and -not $indicator.SelectSingleNode(".//*[@*[local-name()='Name']='RunningWash']")) {
+            $errors.Add("${where}: ${label}'s RunningIndicator has no RunningWash (the running colour tinting the whole row or button background).") | Out-Null
+        }
+        $hitOff = $indicator.GetAttribute("IsHitTestVisible") -eq "False" -or
+            $style.SelectSingleNode("./*[local-name()='Setter'][@Property='IsHitTestVisible' and @Value='False']")
+        if (-not $hitOff) {
+            $errors.Add("${where}: ${label}'s RunningIndicator must set IsHitTestVisible=`"False`".") | Out-Null
+        }
+        if ($style.OuterXml -notmatch "\{DynamicResource RunningIndicatorBrush\}") {
+            $errors.Add("${where}: ${label} never uses {DynamicResource RunningIndicatorBrush}.") | Out-Null
+        }
+        foreach ($state in @("IsRunning", "IsLaunching")) {
+            $trigger = $style.SelectSingleNode(".//*[local-name()='DataTrigger'][@Binding='{Binding $state}' and @Value='True']")
+            if (-not $trigger) {
+                $errors.Add("${where}: ${label} has no DataTrigger on {Binding $state} = True.") | Out-Null
+                continue
+            }
+            $begin = $trigger.SelectSingleNode(".//*[local-name()='DataTrigger.EnterActions']/*[local-name()='BeginStoryboard']")
+            $name = if ($begin) { $begin.GetAttribute("Name") } else { "" }
+            if (-not $name) {
+                $errors.Add("${where}: ${label}'s $state trigger needs a named BeginStoryboard in EnterActions (the ambient motion).") | Out-Null
+            }
+            elseif (-not $trigger.SelectSingleNode(".//*[local-name()='DataTrigger.ExitActions']/*[local-name()='RemoveStoryboard'][@BeginStoryboardName='$name']")) {
+                $errors.Add("${where}: ${label}'s $state trigger must remove storyboard '$name' in ExitActions, so no clock keeps running after the game stops.") | Out-Null
+            }
+        }
+        # Launching is a smooth pulse or sweep, never a blink: stepped keyframes read as an error.
+        $launch = $style.SelectSingleNode(".//*[local-name()='BeginStoryboard'][@Name='RunningIndicatorLaunching' or @*[local-name()='Name']='RunningIndicatorLaunching']")
+        if ($launch -and $launch.SelectSingleNode(".//*[local-name()='DiscreteDoubleKeyFrame' or local-name()='DiscreteObjectKeyFrame']")) {
+            $errors.Add("${where}: ${label}'s launching storyboard steps (Discrete keyframes). Launching is a smooth pulse (RunningIndicator Opacity 0.55 to 1, 0.8s, SineEase, AutoReverse) or a smooth sweep, never a blink.") | Out-Null
+        }
+        # Launching shows progress, not only a pulse: something sweeps, fills or travels (a gradient stop Offset, a ScaleX, a translate, a dash offset).
+        # An opacity pulse of the whole layer is the old motion and reads as "something is on", not "something is loading".
+        if ($launch) {
+            $travel = @($launch.SelectNodes(".//*[@*[local-name()='Storyboard.TargetProperty']]") | Where-Object {
+                    $prop = $_.GetAttribute("Storyboard.TargetProperty")
+                    $prop -match '^(Offset|ScaleX|ScaleY|X|Y|Angle|StrokeDashOffset|Rect|Width|Height)$' -or $prop -match '\((TranslateTransform|ScaleTransform|RotateTransform|SkewTransform)\.'
+                })
+            if ($travel.Count -eq 0) {
+                $errors.Add("${where}: ${label}'s launching storyboard only pulses opacity. Launching must show progress: sweep a RunningScan band (animate its mask's GradientStop Offset), fill a foot line (ScaleX) or move a mark. See docs/themes/running-motion.md.") | Out-Null
+            }
+        }
+        # Selection and hover layers must not draw over the running layer (they hid it on selected items), except accents above the content.
+        if ($t.Key -ne "RunningActionIndicator") {
+            $named = @($style.SelectNodes(".//*[local-name()='ControlTemplate']//*[@*[local-name()='Name']] | .//*[local-name()='ControlTemplate']//*[local-name()='ContentPresenter' or local-name()='GridViewRowPresenter']"))
+            $names = @($named | ForEach-Object { if ($_.LocalName -in 'ContentPresenter', 'GridViewRowPresenter') { '#presenter' } else { $n = $_.GetAttribute('Name', $xamlNs); if (-not $n) { $n = $_.GetAttribute('Name') }; $n } })
+            $ri = [array]::IndexOf($names, 'RunningIndicator')
+            $pi = [array]::IndexOf($names, '#presenter'); if ($pi -lt 0) { $pi = $names.Count }
+            $stateTargets = @($style.SelectNodes(".//*[local-name()='Trigger'][@Property='IsSelected' or @Property='Selector.IsSelected' or @Property='IsMouseOver']//*[@TargetName]") | ForEach-Object { $_.GetAttribute('TargetName') } | Select-Object -Unique)
+            foreach ($target in $stateTargets) {
+                $ti = [array]::IndexOf($names, $target)
+                if ($ri -ge 0 -and $ti -gt $ri -and $ti -lt $pi) {
+                    $node = $named[$ti]; $inside = $false
+                    while ($node) { if ($node -eq $named[$ri]) { $inside = $true; break }; $node = $node.ParentNode }
+                    $holdsContent = $named[$ti].SelectSingleNode(".//*[local-name()='ContentPresenter' or local-name()='GridViewRowPresenter']")
+                    if (-not $inside -and -not $holdsContent) { $errors.Add("${where}: ${label}'s selection/hover layer '$target' is drawn above RunningIndicator, so selecting the item hides the running frame. Move RunningIndicator after it (and inset the frame where both outline the same edge).") | Out-Null }
+                }
+            }
+        }
+        foreach ($setter in $style.SelectNodes(".//*[local-name()='Trigger'][@Property='IsSelected' or @Property='Selector.IsSelected' or @Property='IsMouseOver']/*[local-name()='Setter'][@TargetName='RunningIndicator']")) {
+            $errors.Add("${where}: ${label}'s selected or hover trigger changes RunningIndicator; the mark must stay the same on a selected or hovered item.") | Out-Null
+        }
+    }
+    # The RUNNING button's Cancel label follows the BUTTON's own pointer state. The button sits inside the game page's ControlTemplate, so a
+    # TemplatedParent binding is the whole page's IsMouseOver: Cancel appeared with the pointer anywhere on the page (and a TemplatedParent
+    # hover trigger on Play lit it the same way). RelativeSource Self is the button.
+    $playPath = Join-Path $Directory "DerivedStyles/PlayButton.xaml"
+    if (Test-Path $playPath) {
+        $playText = Get-Content -Raw -LiteralPath $playPath
+        $playWhere = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative "DerivedStyles/PlayButton.xaml"
+        if ($playText -match 'Binding\s+IsMouseOver\s*,\s*RelativeSource=\{RelativeSource\s+TemplatedParent\}') {
+            $errors.Add("${playWhere}: a pointer binding uses RelativeSource TemplatedParent, which is the whole game page's IsMouseOver (Cancel shows with the pointer anywhere on the page). Use {RelativeSource Self}.") | Out-Null
+        }
+        # The slab itself (not only the overlay) shows progress while launching: its launching trigger animates a sweep, fill or travelling mark.
+        $playDoc = Read-XamlDocument $playPath
+        $playStyle = if ($playDoc) { $playDoc.SelectSingleNode("//*[local-name()='Style'][@*[local-name()='Key']='PlayButton']") } else { $null }
+        if ($playStyle) {
+            $slabLaunch = $playStyle.SelectSingleNode(".//*[local-name()='ControlTemplate.Triggers']/*[local-name()='DataTrigger'][@Binding='{Binding IsLaunching}' and @Value='True']")
+            $slabTravel = if ($slabLaunch) {
+                @($slabLaunch.SelectNodes(".//*[@*[local-name()='Storyboard.TargetProperty']]") | Where-Object {
+                        $prop = $_.GetAttribute("Storyboard.TargetProperty")
+                        $prop -match '^(Offset|ScaleX|ScaleY|X|Y|Angle|StrokeDashOffset|Rect|Width|Height)$' -or $prop -match '\((TranslateTransform|ScaleTransform|RotateTransform|SkewTransform)\.'
+                    })
+            }
+            else { @() }
+            if (-not $slabLaunch) {
+                $errors.Add("${playWhere}: PlayButton has no {Binding IsLaunching} DataTrigger in its ControlTemplate (the slab shows LAUNCHING with progress: a scan, fill or travelling mark in its own shape).") | Out-Null
+            }
+            elseif ($slabTravel.Count -eq 0) {
+                $errors.Add("${playWhere}: PlayButton's launching trigger only pulses. Sweep a band across the slab's own shape (RunningScan), fill it, or move a mark; see docs/themes/running-motion.md.") | Out-Null
+            }
+            if ($slabLaunch -and -not $slabLaunch.SelectSingleNode(".//*[local-name()='DataTrigger.ExitActions']/*[local-name()='RemoveStoryboard']")) {
+                $errors.Add("${playWhere}: PlayButton's launching trigger must remove its named storyboards in ExitActions.") | Out-Null
+            }
+        }
+        if ($playText -match 'CancelLabel') {
+            $cancelSetter = [regex]::Match($playText, '<MultiDataTrigger>(?:(?!</MultiDataTrigger>)[\s\S])*?TargetName="CancelLabel"(?:(?!</MultiDataTrigger>)[\s\S])*?</MultiDataTrigger>')
+            if (-not $cancelSetter.Success -or $cancelSetter.Value -notmatch 'Binding\s+IsRunning\}' -or $cancelSetter.Value -notmatch 'Binding\s+IsMouseOver\s*,\s*RelativeSource=\{RelativeSource\s+Self\}' -or $cancelSetter.Value -notmatch 'TargetName="PlayContent"') {
+                $errors.Add("${playWhere}: the Cancel label must be shown by one MultiDataTrigger on {Binding IsRunning} = True and {Binding IsMouseOver, RelativeSource={RelativeSource Self}} = True, which also hides PlayContent. It never shows while launching, idle or with the pointer elsewhere.") | Out-Null
+            }
+        }
+    }
+    foreach ($view in @("Views/DetailsViewGameOverview.xaml", "Views/GridViewGameOverview.xaml")) {
+        $path = Join-Path $Directory $view
+        if (-not (Test-Path $path)) { continue }
+        $viewText = Get-Content -Raw -LiteralPath $path
+        $ctxTag =[regex]::Match($viewText, '<Button\b[^>]*Name="PART_ButtonContextAction"[^>]*>')
+        if ($ctxTag.Success -and ($ctxTag.Value -notmatch 'Style="\{DynamicResource PlayButton\}"' -or $ctxTag.Value -notmatch 'Tag="ContextAction"')) {
+            $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $view
+            $errors.Add("${where}: PART_ButtonContextAction must use Style=`"{DynamicResource PlayButton}`" and Tag=`"ContextAction`", so the RUNNING / INSTALL button keeps Play's form (PlayButton hides its Play-only glyphs on that Tag).") | Out-Null
+        }
+        if ($viewText -notmatch "\{DynamicResource RunningActionIndicator\}") {
+            $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $view
+            $errors.Add("${where}: no <Control Style=`"{DynamicResource RunningActionIndicator}`" /> over the Play / context action cell.") | Out-Null
+        }
+    }
+    return @($errors | Select-Object -Unique)
 }
 
 function Test-FilterActiveIndicator {
@@ -907,7 +1118,7 @@ function Test-FilterActiveIndicator {
 
 function Test-ThemeModifierIconButtons {
     <#
-        AGENTS.md "ThemeModifier icon buttons": ThemeModifier hardcodes its pick (pencil) and restore (X) buttons at
+        src/themes/AGENTS.md "ThemeModifier icon buttons": ThemeModifier hardcodes its pick (pencil) and restore (X) buttons at
         Width=41 (editor XAML and constants code), inside two fixed 41px columns, with no Height. A Width=41 style
         trigger pins an internal 41x41 square and uniformly layout-scales it by 32/41. The resulting button and its
         content occupy 32x32px, including explicitly sized child glyphs and theme decoration. Auto-width buttons keep
@@ -928,7 +1139,7 @@ function Test-ThemeModifierIconButtons {
 
         $trigger = $style.SelectSingleNode("*[local-name()='Style.Triggers']/*[local-name()='Trigger'][@Property='Width'][@Value='41']")
         if (-not $trigger) {
-            $errors.Add("${where}: no Width=41 trigger for ThemeModifier's icon buttons. Add it to the base Button style with a uniform 32/41 LayoutTransform for a rendered 32x32 square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            $errors.Add("${where}: no Width=41 trigger for ThemeModifier's icon buttons. Add it to the base Button style with a uniform 32/41 LayoutTransform for a rendered 32x32 square (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
             continue
         }
 
@@ -939,7 +1150,7 @@ function Test-ThemeModifierIconButtons {
         $paddingIsZero = ($null -ne $paddingNumbers -and @($paddingNumbers | Where-Object { $_ -ne 0 }).Count -eq 0)
         if (-not $paddingIsZero) {
             $shown = if ($padding) { "'$padding'" } else { "not set" }
-            $errors.Add("${where}: the Width=41 trigger does not set Padding=""0"" ($shown). A 41px button with the body padding leaves a few pixels for the glyph and clips it (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            $errors.Add("${where}: the Width=41 trigger does not set Padding=""0"" ($shown). A 41px button with the body padding leaves a few pixels for the glyph and clips it (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
         }
 
         foreach ($property in @("HorizontalContentAlignment", "VerticalContentAlignment")) {
@@ -947,7 +1158,7 @@ function Test-ThemeModifierIconButtons {
             $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='$property']")
             if ($setter) { $value = $setter.GetAttribute("Value") }
             if ($value -notmatch "Center") {
-                $errors.Add("${where}: the Width=41 trigger does not set $property to Center. The glyph then draws in a corner instead of the middle of the 41x41 square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+                $errors.Add("${where}: the Width=41 trigger does not set $property to Center. The glyph then draws in a corner instead of the middle of the 41x41 square (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
             }
         }
 
@@ -959,7 +1170,7 @@ function Test-ThemeModifierIconButtons {
             [void][double]::TryParse($minHeightShown, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$minHeight)
         }
         if ($minHeight -ne 41) {
-            $errors.Add("${where}: the Width=41 trigger must pin internal MinHeight to 41 before scaling to 32px; got '$minHeightShown' (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            $errors.Add("${where}: the Width=41 trigger must pin internal MinHeight to 41 before scaling to 32px; got '$minHeightShown' (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
         }
 
         $minWidth = 0.0
@@ -970,13 +1181,13 @@ function Test-ThemeModifierIconButtons {
             [void][double]::TryParse($minWidthShown, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$minWidth)
         }
         if ($minWidth -ne 41) {
-            $errors.Add("${where}: the Width=41 trigger sets MinWidth '$minWidthShown'; pin it to 41. A theme's own MinWidth (MUI-style buttons use 64) coerces the plugin's 41px buttons wider and the two overlap in Edit constants (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            $errors.Add("${where}: the Width=41 trigger sets MinWidth '$minWidthShown'; pin it to 41. A theme's own MinWidth (MUI-style buttons use 64) coerces the plugin's 41px buttons wider and the two overlap in Edit constants (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
         }
 
         foreach ($property in @("Height", "MaxWidth", "MaxHeight")) {
             $setter = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='$property']")
             if (-not $setter -or $setter.GetAttribute("Value") -ne "41") {
-                $errors.Add("${where}: the Width=41 trigger must pin internal $property to 41 so uniform 32/41 layout scaling produces a 32x32 square (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+                $errors.Add("${where}: the Width=41 trigger must pin internal $property to 41 so uniform 32/41 layout scaling produces a 32x32 square (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
             }
         }
         $scale = $trigger.SelectSingleNode("*[local-name()='Setter'][@Property='LayoutTransform']/*[local-name()='Setter.Value']/*[local-name()='ScaleTransform']")
@@ -984,7 +1195,7 @@ function Test-ThemeModifierIconButtons {
             $value = 0.0
             if ($scale) { [void][double]::TryParse($scale.GetAttribute($axis), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$value) }
             if ([Math]::Abs($value - 32.0 / 41.0) -gt 0.000000001) {
-                $errors.Add("${where}: the Width=41 trigger must set LayoutTransform ScaleTransform $axis to 0.7804878048780488 (32/41), scaling the button and its content proportionally to 32px (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+                $errors.Add("${where}: the Width=41 trigger must set LayoutTransform ScaleTransform $axis to 0.7804878048780488 (32/41), scaling the button and its content proportionally to 32px (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
             }
         }
 
@@ -993,7 +1204,7 @@ function Test-ThemeModifierIconButtons {
         if ($setter) { [void][double]::TryParse($setter.GetAttribute("Value"), [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$fontSize) }
         if ($fontSize -lt 12 -or $fontSize -gt 24) {
             $shown = if ($setter) { $setter.GetAttribute("Value") } else { "not set" }
-            $errors.Add("${where}: the Width=41 trigger sets FontSize $shown, outside the small-icon 12-24 range. Use 16 so the glyph sits square in its container with breathing room (AGENTS.md ThemeModifier icon buttons).") | Out-Null
+            $errors.Add("${where}: the Width=41 trigger sets FontSize $shown, outside the small-icon 12-24 range. Use 16 so the glyph sits square in its container with breathing room (src/themes/AGENTS.md ThemeModifier icon buttons).") | Out-Null
         }
     }
     return @($errors | Select-Object -Unique)
@@ -1119,7 +1330,7 @@ if ($isTheme) {
                 $errors.Add("Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')")
             }
             $themeSourceRoot = "$($profile.dir)/src"
-            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-WindowBackground -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $scratch -SourceRoot $themeSourceRoot)) {
+            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-RunningIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-WindowBackground -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $scratch -SourceRoot $themeSourceRoot)) {
                 $errors.Add($ruleError)
             }
             foreach ($ruleError in @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot -Advisory)) {
@@ -1275,7 +1486,7 @@ if ($RequireBuildOutput) {
 # Preview drift: colors the HTML previews hard-code that are not in src/tokens.css, and layout that departs from the
 # theme's own top panel, details view and Playnite's settings window. Advisory only; the screenshots are rendered from
 # these files, so a stale color or layout here ships as a stale screenshot.
-if ($isTheme -and (Get-Command node -ErrorAction SilentlyContinue)) {
+if ($isTheme -and -not $SkipPreviewChecks -and (Get-Command node -ErrorAction SilentlyContinue)) {
     $themeRoot = Join-RepoPath $profile.dir
     if (Test-Path (Join-Path $themeRoot "art/preview-details.html")) {
         try {

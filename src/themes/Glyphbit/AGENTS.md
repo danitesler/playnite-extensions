@@ -4,7 +4,7 @@
 
 Standalone dark Playnite Desktop theme, `ThemeApiVersion` 2.9.0, inspired by the interface of *Hyper Light Drifter* (Heart Machine, 2016): the HUD, the inventory and the settings screen. One dark variant. Unofficial; not affiliated with, endorsed by or sponsored by Heart Machine. No game art, logo, font or glyph ships: icons, rune columns and the tile mark are original and generated. See `info/NOTICE-Glyphbit.txt`.
 
-Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `.claude/skills/playnite-theme-dev/reference.md`.
+Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `docs/themes/reference.md`.
 
 ## Sources
 
@@ -80,6 +80,7 @@ Empty state: an inventory slot with bracket marks holding a stepped-diamond modu
 | `ComboBox`, `ListBox`, `TreeView`, `Menu`, `TabControl`, details rows | selection and hover as the full magenta bar with white text |
 | `GroupBox` | label above a thin frame, rune column, corner pip; content-sized (runes in a Canvas) |
 | `GridViewItemStyle` | selected: static magenta frame and white pip. Hover: the slot's brackets close on the cover in three hard steps |
+| Running game (`RunningIndicatorBrush` = `gb-cyan`) | The dash, in the ramp's cyan (never the magenta bar or the mint of Play and focus). Every surface carries a 0.16 tint, a 2px frame with a dark keyline in the item's own shape (rows square, covers inside their edge, the plate's stepped chamfer), the stepped banded wash at the far end of rows and a stepped diamond as the mark. **Launching (1.6s loop, 1.0s travel):** `RunningScan` is a leaning dash, a hard lead bar with a fainter afterimage behind it (eight gradient stops, a slant on the mask's end point; the plate's copy is a `Control` with `ChamferTemplate` and the mask on the control itself), quick start and soft landing; four stepped pips (a four-segment gauge across the foot, not a hairline) charge one by one as the dash passes each quarter; as it lands the diamond spins a quarter turn (a square is the same after 90 degrees, so the loop is seamless) and its core flares. The plate is solid cyan under a `ScrimBrush` layer held at 0.36. **Running:** pips full, frame breathes 0.7 to 1 and the diamond turns slowly over 2.8s; the plate's scrim breathes 0.3 to 0.12 and its stepped right-end ramp turns dark instead of magenta (dark ink on cyan: 5.8:1 launching, 6.2:1 running at worst). **Hover on RUNNING:** the label turns to Cancel and a 0.22 scrim fades in; the mint hover plate, the magenta afterimages and the charging pips are off while launching or running, and the hover binding is `Self`. The running layer sits above the selection layers, so it stays visible on a selected item. |
 | `GridViewItemTemplate` (+ `GridTileButton`) | 40px chamfered slots with `IconPlay` / `IconDownload` / `IconInfo`; shade steps in, buttons rise 8px in hard steps, Info 60ms later; hover fills mint |
 
 ## Previews

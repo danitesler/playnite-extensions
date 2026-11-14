@@ -19,11 +19,44 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                    <Border x:Name="Row" Margin="4,1,4,1" Padding="{TemplateBinding Padding}"
-                            Background="Transparent"
-                            CornerRadius="{DynamicResource CornerRadiusSmall}">
-                        <ContentPresenter />
-                    </Border>
+                    <Grid Margin="4,1,4,1">
+                        <Border x:Name="Row" Background="Transparent" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                        <!-- Running game (ayywi): the success colour as presence. LAUNCHING: a soft symmetric glow bar (RunningScan) glides across with an ease-out while the hairline foot fills in step; as it lands the status dot lights and a ring pings out of it (1.8s loop, 0.55s rest). RUNNING: the foot stays full, the layer breathes 0.72 to 1 and the dot pings slowly (3.4s). -->
+                        <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                            <Border x:Name="RunningWash" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.16" />
+                            <Border x:Name="RunningScan" Visibility="Collapsed" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.4">
+                                <Border.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.47" />
+                                        <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="-0.25" />
+                                        <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="-0.03" />
+                                    </LinearGradientBrush>
+                                </Border.OpacityMask>
+                            </Border>
+                            <Grid Height="2" Margin="10,0,10,3" VerticalAlignment="Bottom">
+                                <Rectangle Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.3" RadiusX="1" RadiusY="1" />
+                                <Rectangle x:Name="RunningFill" Fill="{DynamicResource RunningIndicatorBrush}" RenderTransformOrigin="0,0.5" RadiusX="1" RadiusY="1">
+                                    <Rectangle.RenderTransform>
+                                        <ScaleTransform x:Name="RunningFillScale" ScaleX="0" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Grid>
+                            <Border x:Name="RunningFrame" CornerRadius="{DynamicResource CornerRadiusSmall}" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2">
+                                <Border CornerRadius="{DynamicResource CornerRadiusSmall}" BorderBrush="{DynamicResource TextBrushDark}" BorderThickness="1" Opacity="0.7" />
+                            </Border>
+                            <Grid Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0">
+                                <Ellipse x:Name="RunningPing" Width="6" Height="6" Stroke="{DynamicResource RunningIndicatorBrush}" StrokeThickness="1.5" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <ScaleTransform x:Name="RunningPingScale" ScaleX="1" ScaleY="1" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                                <Ellipse x:Name="RunningDot" Width="6" Height="6" Fill="{DynamicResource RunningIndicatorBrush}" />
+                            </Grid>
+                        </Grid>
+                        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+                            <ContentPresenter />
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsInstalled}" Value="True">
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -39,6 +72,111 @@
                             <Setter TargetName="Row" Property="Background" Value="{DynamicResource ListItemSelectedBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.47" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1.03" KeySpline="0.3,0.7 0.2,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1.03" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.25" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1.25" KeySpline="0.3,0.7 0.2,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1.25" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.03" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1.47" KeySpline="0.3,0.7 0.2,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1.47" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1" KeySpline="0.3,0.7 0.2,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="0" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot" Storyboard.TargetProperty="Opacity" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.3" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.85" Value="0.3" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="0.3" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPing" Storyboard.TargetProperty="Opacity" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.95" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1" Value="0.75" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="0" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPingScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.95" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="3.2" KeySpline="0.3,0.7 0.2,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPingScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:1.8">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.95" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="3.2" KeySpline="0.3,0.7 0.2,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:3.4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:3.4" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPing" Storyboard.TargetProperty="Opacity" Duration="0:0:3.4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.7" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:3.4" Value="0" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPingScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:3.4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="3.2" KeySpline="0.3,0.7 0.2,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.52" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:3.4" Value="1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPingScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="3.2" KeySpline="0.3,0.7 0.2,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.52" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:3.4" Value="1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.45">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) inspired b
 
 Unofficial and fan-made: not affiliated with, endorsed by or sponsored by Lucasfilm, Disney, or the game's developer or publisher. It ships no game art, logo, font or capture (`info/NOTICE-Slipstream.txt`). The name only echoes the source.
 
-Shared anatomy: **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy: **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -77,6 +77,7 @@ Skeleton and metadata pane as in `../AGENTS.md`. Differences: the banner is blea
 | `Menu`, `ContextMenu`, `ToolTip` | Paper sheet with an ink edge; tooltip is the ink info panel |
 | `PlayButton` | 40px vermilion capsule; hover fades a lighter plate in and sweeps three slanted stripes across, looping while hovered; separate pressed plate |
 | `GridViewItemStyle` | Selected: 3px vermilion outline. Hover: teal outline fades in, a blue/sage/mustard bar wipes along the cover's bottom edge |
+| Running game (`RunningIndicatorBrush` = `ss-green`) | a whoosh past the pit wall: an ease-out comet (fast, then settling, `RunningScan`, in each surface's own corner radius, the plate's 20px pill included) crosses details rows, list rows, covers and the pill, and the two-bar speed streak stream backwards past the item. **Launching:** the comet takes 0.9s (1.5s loop), a rounded foot fills behind it and the streaks whoosh through as it lands. **Running:** the foot stays full, the frame breathes 0.72 to 1 and the streaks drift gently (3.2s). The page is paper and `ScrimBrush` is paper too, so the plate is darkened with an ink layer (`TextBrush`): 0.6 while launching, breathing 0.38 to 0.55 while running, under the paper-white label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the lit plate, pressed plate and stripe sweep are off while launching or running. |
 | `GridViewItemTemplate` | Poster tile (4px corners with a transparent mask), paper scrim on hover, 44px disc buttons: vermilion Play, teal Info |
 | Empty game page (both overviews) | Orbit plot (dashed and solid orbits, cross hairs, teal body, vermilion marker circling it via `ControlTemplate.Triggers`), `LOCErrorNoGameSelected`, a racing stripe |
 | `NotificationMessage` | Plate card with a ghost close glyph |

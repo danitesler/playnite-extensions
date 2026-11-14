@@ -43,6 +43,7 @@ Search → filter → sorting at the left. Sorting is explicitly ordered. Indepe
 | Settings | Flat page with an orbital sun behind a heavy cream title with an orange glow; tree rows are bare muted text (30px, body-size Semibold); hover fades in a maroon capsule with an orange rim and the lens wobble, selected is a cream capsule with a bead and glow, and only the focused row (not its parents) shows the cyan focus ring; the title sun is clipped to the 56px band; dropdowns keep 16px left and 38px right room, fields 14-18px |
 | Statistics | Content-sized rounded GroupBoxes: violet card, lilac rim, heavy white heading |
 | Metadata | Rounded pane with body-size aligned labels, 4px row margins and six collapsing groups |
+| Running game (`RunningIndicatorBrush` = `dream-spark`) | A dream spark in mint, slow and soft. **Launching** (2.6s loop, 1.9s travel, `SineEase`-like spline): a wide, very soft cloud (0.45 each side, symmetric mask) drifts across the row, cover or capsule, the orbit ring draws itself as an arc (`StrokeDashOffset` on a dashed ring, starting at the top) while the mote makes two turns and lands. **Running:** the ring stays whole, the mote takes one slow turn per 3.6s and frame, tint and orbit breathe 0.72 to 1. Capsule: mint plate under a faint `ScrimBrush` layer (0.05-0.14), brown ink label (6.5:1 worst); Cancel only on RUNNING + hover of the button (`Self`); the hover and press plates lift while launching or running. Plate scan, scrim and hover dim are siblings of `PlayFill` in the capsule's radius. |
 
 Generate both game overviews:
 

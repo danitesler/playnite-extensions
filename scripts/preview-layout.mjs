@@ -1,6 +1,6 @@
 // Checks that a theme's HTML previews lay out like the theme itself (advisory; exit code is always 0).
 //   node scripts/preview-layout.mjs <ThemeDir>
-// Previews tag the regions that matter with data-part (rules: .claude/skills/playnite-theme-dev/previews.md):
+// Previews tag the regions that matter with data-part (rules: docs/themes/previews.md):
 //   top bar:   PART_ElemMainMenu PART_TextMainSearch PART_PanelMainItems PART_ToggleFilter PART_ToggleNotifications
 //              PART_PanelMainPluginItems   (the x:Name values of Views/TopPanel.xaml)
 //   details:   game-list, game-page, metadata
@@ -10,7 +10,9 @@
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { launchBrowser, tokenStyle, fontFaceCss } from './preview-tokens.mjs';
+import { launchBrowser, tokenStyle, fontFaceCss, getThemeDirs } from './preview-tokens.mjs';
+
+export { getThemeDirs };
 
 const VIEWPORT = { width: 1280, height: 720 };
 const TOP_PARTS = ['PART_ElemMainMenu', 'PART_TextMainSearch', 'PART_PanelMainItems', 'PART_ToggleFilter', 'PART_ToggleNotifications', 'PART_PanelMainPluginItems'];
@@ -113,23 +115,8 @@ function checkInside(parts, notes) {
 
 const short = (p) => p.replace('PART_', '');
 
-export function getThemeDirs(themeArg) {
-  if (themeArg && themeArg !== '--all') {
-    return [path.resolve(themeArg)];
-  }
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const repoRoot = path.resolve(here, '..');
-  const themesDir = path.join(repoRoot, 'src', 'themes');
-  if (!fs.existsSync(themesDir)) return [];
-  return fs.readdirSync(themesDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory() && fs.existsSync(path.join(themesDir, d.name, 'info', 'theme.yaml')))
-    .map((d) => path.join(themesDir, d.name))
-    .sort();
-}
-
 async function main() {
-  const themeArg = process.argv[2];
-  const themeDirs = getThemeDirs(themeArg);
+  const themeDirs = getThemeDirs(process.argv.slice(2));
   if (themeDirs.length === 0) {
     console.error('No themes found.');
     process.exit(1);

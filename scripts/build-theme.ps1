@@ -31,9 +31,9 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
-. (Join-Path $PSScriptRoot "theme-tools.ps1")
-. (Join-Path $PSScriptRoot "playnite-runtime.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/theme-tools.ps1")
+. (Join-Path $PSScriptRoot "lib/playnite-runtime.ps1")
 
 if ($NoDeploy -and ($Deploy -or $Restart -or $Launch -or $SetTheme)) { throw "-NoDeploy cannot be combined with deployment/activation flags." }
 if ($NoRestart -and ($Restart -or $Launch)) { throw "-NoRestart cannot be combined with -Restart or -Launch." }

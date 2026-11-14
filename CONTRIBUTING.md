@@ -5,11 +5,9 @@ focused PRs are easiest to review.
 
 ## Before you start
 
-> **Windows-only builds.** Playnite runs on Windows only, so validation,
-> builds, packaging, and in-app testing require Windows. On macOS/Linux
-> you can still contribute docs, `tokens.css`, HTML previews, and static
-> XAML — but a Windows run (`validate-extension.ps1`, build, screenshots)
-> must pass before merge. Say in your PR what you could and could not run.
+> Playnite and the WPF regression scripts require Windows. The local gate can
+> validate and build artifacts on other supported platforms. For add-on changes,
+> also verify the Windows build before merging. Say in your PR which checks ran.
 
 - For bugs and ideas, [open an issue](https://github.com/danitesler/playnite-extensions/issues) first.
 - For security issues, see [SECURITY.md](SECURITY.md) — do not open a public issue.
@@ -17,20 +15,25 @@ focused PRs are easiest to review.
 
 ## Setup
 
-- Windows for building (Playnite is Windows-only).
+- PowerShell 7 for the local gate.
 - .NET 8 SDK (`dotnet test` uses `tests/Tests.csproj`).
-- Node 20 for `npm run check:readmes` and theme preview scripts.
+- Node 22+ and Chrome, Edge, or Chromium for preview checks. Set `CHROMIUM` to use a specific browser executable.
 - Full agent conventions live in [AGENTS.md](AGENTS.md).
 
 ## All checks
 
 ```pwsh
 pwsh scripts/check-all.ps1          # Windows: validate + build every plugin and theme, unit tests, READMEs, preview checks
+pwsh scripts/check-all.ps1 -Quick -Keys hallowtide,emberline
+pwsh scripts/check-all.ps1 -PlaynitePath 'D:\Apps\Playnite'
 scripts/check-all.sh                # Linux: the same through PowerShell 7, .NET 8 and Mono (WPF-dependent tests skipped)
 ```
 
-`-Quick` / `--quick` skips the builds and the layout render. There is no hosted CI: this is the gate
-before merging or releasing.
+`-Quick` skips artifact builds and browser checks. Static theme validation still builds a temporary copy for its XAML checks.
+`-Keys` accepts comma-separated add-on keys and scopes validation, builds and preview checks. Shared regression suites and generated README checks still cover the repository.
+On Windows, the gate looks for `MathConverter.dll` in the default Playnite install. If it is missing, the gate reports the affected WPF tests and returns a failure. Use `-PlaynitePath` for a portable install. Run the full gate before merging or releasing.
+
+WPF regressions live under `tests/wpf/`. Run an individual script there with `pwsh -STA -File`. Use `npm test` for the Node preview tooling tests.
 
 ## Plugins (`src/<Name>/`)
 

@@ -30,7 +30,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
 if (-not (Test-Path $Svg)) { throw "No such file: $Svg" }
 if ($Extension -and -not $Out) {

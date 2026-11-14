@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) named Ques
 
 Fan-made and unofficial: **no game files are included**. Every icon, texture and placeholder is original artwork drawn for this theme (`art/`), and the client font is not bundled (see Tokens). `info/NOTICE-Questlog.txt` ships in the package.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -90,6 +90,7 @@ Radii: 2 / 3 / 5. `FrameThickness` is 1 (the frame is three 1px lines: black, me
 | `PlayButton.xaml` | The Login / Accept button |
 | `GridViewItemStyle.xaml`, `GridViewItemTemplate.xaml` | Item slot highlight; 48px red Play and charcoal Info cover buttons |
 | `ProgressBar.xaml` | Casting bar |
+| Running game (`RunningIndicatorBrush` = `GREEN_FONT_COLOR`) | The channeling bar in `GREEN_FONT_COLOR`, as a real cast. **Launching** (1.9s loop, 1.5s travel, ease-in spline like the game's cast): the casting bar (56x7 on rows, across the cover's foot and the plate's foot, spark at its end) fills from empty while a long-tailed green fill with a hard leading edge (`RunningScan`, 0.9 tail) travels behind it across the row, cover (rising) or plate; the bar rests full for the last 0.4s, then the next cast starts. **Running:** the bar ebbs to 30% and refills (`SineEase`, 3.2s) with frame and tint breathing 0.72 to 1. Plate: channel-green plate under a faint `RunningBreath` layer (`ShellBackgroundBrush`, the theme has no `ScrimBrush`, 0.05-0.14), black label (12:1 worst); Cancel only on RUNNING + hover of the button (`Self`). |
 
 ## Deviations from the client
 

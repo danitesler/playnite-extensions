@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the interface o
 
 **Unofficial fan theme.** It contains no Blizzard assets. The tile mark, the ornamented divider, the medallion and every gem shape are original; the icons are Phosphor. Belwe (Bitstream, commercial) is not shipped. The theme names it first and falls back to Bookman Old Style, which ships with Office, then to Georgia. The body face is Franklin Gothic Medium, which ships with Windows. Hearthstone and Blizzard are trademarks of Blizzard Entertainment.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -97,6 +97,7 @@ Differences from the skeleton:
 | GroupBox | Gold Belwe title above a wood panel in a brass ring |
 | ToolTip | Parchment card |
 | GridViewItemStyle | Gold frame with a soft halo around the selected cover; brass on hover |
+| Running game (`RunningIndicatorBrush` = `hs-mana` 669ee1) | Mana crystal blue `hs-mana`: the mana tray refilling. **Launching** (1.8s loop, 1.25s travel): a narrow slanted glint (symmetric soft mask, like a card's legendary shine) crosses the row, cover or End Turn plate while five mana diamonds light one after another (rows: right of the far crystal, covers and the plate: centred at the foot) and stay lit until the loop ends. **Running:** the diamonds stay lit and breathe in a stagger over 3.2s with the frame and tint (0.72 to 1); the far crystal and the cover's cost-corner crystal keep their place. Plate: mana-blue under a faint `RunningBreath` scrim (0 to 0.1), dark wood label (`WindowBackgourndBrush`, 4.6:1 worst); Cancel only on RUNNING + hover of the button (`Self`), halo and glow only when idle. The Chrome border now wraps its layers in a Grid (a Border takes one child). |
 | PropertyItemButton | Text links in cream that turn gold; chips are small wood tokens with a brass edge |
 
 ## Deviations

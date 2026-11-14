@@ -4,7 +4,7 @@
 
 Standalone dark Playnite Desktop theme, `ThemeApiVersion` 2.9.0, inspired by the interface of *Transistor* (Supergiant Games, 2014): the Functions screen, the Turn() planning bar and the pause menu. One dark variant. Unofficial; not affiliated with, endorsed by or sponsored by Supergiant Games. No game art, function icon, logo or font ships; the tile mark (`art/mark.svg`: an upgrade-slot hexagon in selection brackets), the glow sprites and the preview art are original. See `info/NOTICE-Cloudbank.txt`.
 
-Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `.claude/skills/playnite-theme-dev/reference.md`.
+Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `docs/themes/reference.md`.
 
 ## Sources
 
@@ -87,6 +87,7 @@ Empty state (no game selected): content hidden; a 96x84 slot hexagon in the sele
 | `GroupBox`, `TabControl`, `TreeView`, `ListBox`, `Menu`, `ToolTip` | section headers and panels; selection = glow fill plus a 2px aqua bar |
 | `GridViewItemStyle`, `DetailsViewItemStyle` | selected function tile: static cyan brackets and bloom; hover is an animated target lock (brackets close in from 8% outside while fading in, mint outline and bloom fade in, the bloom breathes, all fade out over 0.25s); selected row bar with light bleeding into the row |
 | `GridViewItemTemplate` (+ `GridTileButton`) | cover hover controls as 48x42 upgrade-slot hexagons with Cloudbank glyphs (`IconPlay` outlined triangle with circuit stubs, `IconInfo` diamond pip over a serifed bar, `IconDownload` outlined arrow over a split base, all custom in `Media.xaml`); entrance: shade fades in, buttons rise 10px and scale 0.86 to 1 (BackEase), Info 60ms after Play; hover traces an aqua outline around the hexagon (dash offset 97 to 0), lights the slot and pops the glyph |
+| Running game (`RunningIndicatorBrush` = `--tr-func`, the Function orange) | The powered circuit, warm against the cyan: every surface carries an orange tint, a frame (2px; 1px on the button) and a trace of memory pips (the theme's own 4px-lit, 2px-gap progress cells, a tiled mask) running into a node, an upgrade-slot hexagon (covers: a dark tape at the foot holds both; the cyan bars, brackets and the selection stay outside). **Launching:** a block of lit cells (`RunningScan`: pip mask under a hard-edged block) crosses the item at a steady, mechanical pace while the pip trace fills behind it with a hard edge; as it lands the node lights and turns 120 degrees (1.7s loop, 0.5s rest). The slab holds a `ScrimBrush` scrim (0.2) under the cells and swaps the aqua bloom for an orange one. **Running:** the trace stays full, the node turns slowly (60 degrees per 3.2s) and the layer breathes 0.72 to 1; the slab scrim and orange bloom breathe, dark ink on the orange plate stays above 4.5:1. **Hover on RUNNING:** the plate darkens (second scrim 0.5), the label reads Cancel in the light text colour; the aqua hover plate, arcs and pressed plate are off while launching or running; hover binding is `Self`. Levers: block of cells band, linear pace, segmented pip trace, turning hexagon mark. |
 
 ## Previews
 

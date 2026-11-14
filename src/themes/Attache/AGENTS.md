@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the **Resident 
 
 Unofficial fan theme. It is not affiliated with Capcom and includes no Capcom logos, fonts, textures or game files (`info/NOTICE-Attache.txt`). The colors were measured on screenshots. The smoke texture and the tile mark are original (`art/`).
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -56,6 +56,10 @@ It follows the skeleton in `../AGENTS.md`. Differences:
 ## Components
 
 *(Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and `src/DerivedStyles/`)*
+
+| Playnite file | Drawn as |
+|---------------|----------|
+| Running game (`RunningIndicatorBrush` = `completed`, the status "Fine" green) | the health gauge's green, square like the menus; an ECG is the mark. **Launching:** a symmetric glow bar (soft both sides, `RunningScan`) crosses details rows, list rows and the slab in 1s (SineEase, 1.5s loop), covers get it rising from the foot; a foot line fills in step and the ECG blip spikes as the bar lands. **Running:** the foot stays full, the frame breathes 0.7 to 1 and the ECG beats twice and rests (lub-dub, 3s). The slab holds a 0.88 scrim over the green plate while launching and breathes 0.55 to 0.66 while running, so the warm-white label keeps 5:1; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the pewter hover layers (`HoverFx`, tab mark) are off while launching or running. Selected items keep the running layer above the selection plate. |
 
 ## Deviations
 

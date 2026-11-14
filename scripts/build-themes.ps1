@@ -1,4 +1,4 @@
-# Batch build for every registered theme (docs/theme-patch-workflow.md).
+# Batch build for every registered theme (docs/themes/theme-patch-workflow.md).
 # Builds never deploy: deploying sets Playnite's active theme, so only one theme can be active.
 # Pass -DeployKey <key> to deploy + restart just that theme after all builds succeed
 # (root AGENTS.md: "build each, then deploy+restart only the theme currently being worked on").
@@ -15,18 +15,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
 $index = Get-ExtensionIndex
-$themes = @($index.extensions | Where-Object { $_.kind -eq "theme" })
-if ($Keys.Count -gt 0) {
-    $wanted = @($Keys | ForEach-Object { $_.ToLowerInvariant() })
-    $themes = @($themes | Where-Object { $wanted -contains $_.key.ToLowerInvariant() })
-    $missing = @($wanted | Where-Object { $key = $_; @($themes | Where-Object { $_.key.ToLowerInvariant() -eq $key }).Count -eq 0 })
-    if ($missing.Count -gt 0) {
-        throw "Unknown theme key(s): $($missing -join ', '). Available: $(($index.extensions | Where-Object { $_.kind -eq 'theme' } | ForEach-Object { $_.key }) -join ', ')"
-    }
-}
+$themes = @(Select-RegisteredExtensions -Extensions ($index.extensions | Where-Object kind -eq theme) -Keys $Keys)
 if ($DeployKey) {
     $match = @($index.extensions | Where-Object { $_.kind -eq "theme" -and $_.key -eq $DeployKey })
     if ($match.Count -eq 0) {

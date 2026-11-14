@@ -1,0 +1,192 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Visorline: details view</title><style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { width: 1280px; height: 720px; overflow: hidden; background: var(--vs-void); color: var(--vs-mint);
+       font: 14px/1.4 Bahnschrift, "Segoe UI"; position: relative; }
+.h { font-family: "Rajdhani"; font-weight: 700; text-transform: uppercase; }
+.i { display: block; flex: none; }
+.abs { position: absolute; }
+/* hex mesh, grain, scanlines, bloom: the theme's white-mask sprites, filled with brushes */
+.mesh { position: absolute; inset: 0; pointer-events: none; background: var(--vs-rule); opacity: .07;
+        -webkit-mask: url(../src/Images/fx/hex.png); mask: url(../src/Images/fx/hex.png); }
+.grain { position: absolute; inset: 0; pointer-events: none; background: var(--vs-hud); opacity: .13;
+         -webkit-mask: url(../src/Images/fx/grain.png); mask: url(../src/Images/fx/grain.png); }
+.scan { position: absolute; inset: 0; pointer-events: none; background: var(--vs-void); opacity: .35;
+        -webkit-mask: url(../src/Images/fx/scan.png); mask: url(../src/Images/fx/scan.png); }
+.bloom { position: absolute; pointer-events: none; background: var(--vs-rule); opacity: .5;
+         -webkit-mask: url(../src/Images/fx/bloom.png) center / 100% 100% no-repeat; mask: url(../src/Images/fx/bloom.png) center / 100% 100% no-repeat; }
+.rulev { position: absolute; top: 0; bottom: 0; width: 8px; background: var(--vs-edge-lit);
+         -webkit-mask: url(../src/Images/fx/ruler-v.png) repeat-y; mask: url(../src/Images/fx/ruler-v.png) repeat-y; }
+.ruleh { position: absolute; left: 0; right: 0; height: 8px; background: var(--vs-edge-lit);
+         -webkit-mask: url(../src/Images/fx/ruler-h.png) repeat-x; mask: url(../src/Images/fx/ruler-h.png) repeat-x; }
+/* the selected band: grey-green, grained, between two lit rules */
+.band { position: relative; background: linear-gradient(to bottom, var(--vs-band), var(--vs-band-dim)); color: var(--vs-hud); }
+.band > .grain { opacity: .12; }
+.band::after { content: ""; position: absolute; inset: 0; border-top: 1px solid var(--vs-rule); pointer-events: none;
+               border-bottom: 1px solid color-mix(in srgb, var(--vs-rule) 55%, transparent); }
+.band > *:not(.grain):not(.bloom) { position: relative; }
+/* a plate cut at 45 degrees: rim = the clipped outer shape, fill = the same shape inset 1px */
+.plate { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 32px; padding: 0 16px;
+         color: var(--vs-mint); background: var(--vs-edge-lit); white-space: nowrap;
+         clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px), 0 7px); }
+.plate::before { content: ""; position: absolute; inset: 1px; background: var(--vs-slab);
+                 clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+.plate > * { position: relative; }
+.plate.hot { background: var(--vs-rule); color: var(--vs-hud); }
+.plate.hot::before { background: var(--vs-slab-lit); }
+.plate.dark::before { background: var(--vs-void); }
+.plate.sq { padding: 0; width: 44px; height: 44px; }
+/* angled corner brackets (the source's chamfered corner lines) */
+.br { position: absolute; color: var(--vs-rule); overflow: visible; }
+.br.tl { left: -4px; top: -4px; } .br.tr { right: -4px; top: -4px; }
+.br.bl { left: -4px; bottom: -4px; } .br.brr { right: -4px; bottom: -4px; }
+.cap { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--vs-rule); color: var(--vs-hud);
+       font: 700 11px Rajdhani; padding: 0 5px; height: 18px; }
+/* segmented bar: cells 8 lit + 2 gap, from seg.png */
+.segbar { position: relative; height: 12px; }
+.segbar i { position: absolute; left: 0; top: 0; bottom: 0; -webkit-mask: url(../src/Images/fx/seg.png) repeat-x; mask: url(../src/Images/fx/seg.png) repeat-x; }
+.segbar .t { right: 0; background: var(--vs-edge); }
+.segbar .f { width: var(--p); background: var(--vs-rule); }
+.segbar.red .f { background: var(--vs-alert); }
+.hexbox { position: relative; display: inline-block; width: 18px; height: 20px; flex: none; background: var(--vs-edge-lit);
+          clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.hexbox::before { content: ""; position: absolute; inset: 1px; background: var(--vs-void);
+                  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.hexbox.on { background: var(--vs-rule); } .hexbox.on::before { background: var(--vs-slab-lit); }
+.hexbox svg { position: absolute; left: 2px; top: 3px; color: var(--vs-hud); }
+
+.rail { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; background: var(--vs-void); }
+.rail .rline { position: absolute; right: 0; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--vs-rule), var(--vs-edge-lit) 40%, var(--vs-edge)); }
+.rail .rulev { right: 1px; opacity: .45; }
+.menu { position: relative; width: 44px; height: 52px; display: flex; align-items: center; justify-content: center; }
+.menu .hexcell { width: 32px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--vs-hud); background: var(--vs-slab);
+                 clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.ritem { position: relative; width: 43px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--vs-label); }
+.ritem.cur { color: var(--vs-hud); }
+.main { position: absolute; left: 44px; top: 0; right: 0; bottom: 0; background: var(--vs-panel); }
+.top { position: absolute; left: 0; right: 0; top: 0; height: 52px; background: var(--vs-void); }
+.top .mesh { opacity: .05; -webkit-mask-position: 0 0; }
+.top .rule { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--vs-edge-lit); }
+.top .endl, .top .endr { position: absolute; bottom: 0; width: 40px; height: 10px; color: var(--vs-rule); }
+.top .endl { left: 0; } .top .endr { right: 132px; }
+.tcell { position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--vs-label); }
+.tcell.on { color: var(--vs-hud); }
+.tcell.on .band { position: absolute; inset: 0; }
+.search { position: relative; display: flex; align-items: center; gap: 8px; width: 250px; height: 32px; padding: 0 10px; color: var(--vs-label);
+          background: var(--vs-edge-lit); clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 calc(100% - 7px), 0 7px); }
+.search::before { content: ""; position: absolute; inset: 1px; background: var(--vs-void);
+                  clip-path: polygon(6px 0, 100% 0, 100% 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+.search > * { position: relative; }
+.mark { position: absolute; right: -2px; top: -2px; width: 8px; height: 8px; background: var(--vs-star); transform: rotate(45deg) scale(.8); }
+.win { position: absolute; right: 0; top: 0; height: 32px; display: flex; color: var(--vs-label); }
+.win div { width: 40px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.list { position: absolute; left: 0; top: 52px; bottom: 0; width: 276px; background: var(--vs-panel); border-right: 1px solid var(--vs-edge); }
+.grow { position: relative; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 14px; color: var(--vs-mint); font-size: 13px; }
+.grow .ico { width: 18px; height: 18px; background: var(--vs-pit); border: 1px solid var(--vs-edge-lit); flex: none; }
+.grow .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.grow.sel { color: var(--vs-hud); }
+.grow.sel .ico { border-color: var(--vs-rule); }
+.page { position: absolute; left: 277px; top: 52px; right: 0; bottom: 0; overflow: hidden; background: var(--vs-panel); }
+.banner { position: absolute; left: 0; right: 0; top: 0; height: 300px; overflow: hidden;
+          background: radial-gradient(60% 80% at 78% 38%, #2b4a40 0%, transparent 70%), radial-gradient(40% 60% at 30% 20%, #1a2f29 0%, transparent 75%),
+                      linear-gradient(180deg, #0c1a16 0%, #0a1613 60%, var(--vs-panel) 100%); }
+.banner .towers { position: absolute; left: 0; right: 0; bottom: 60px; height: 130px; opacity: .55;
+  background: linear-gradient(90deg, transparent 0 4%, #07100d 4% 9%, transparent 9% 12%, #07100d 12% 20%, transparent 20% 23%, #07100d 23% 27%, transparent 27% 41%,
+              #07100d 41% 46%, transparent 46% 50%, #07100d 50% 62%, transparent 62% 66%, #07100d 66% 71%, transparent 71% 100%);
+  -webkit-mask: linear-gradient(to top, #000 30%, transparent); mask: linear-gradient(to top, #000 30%, transparent); }
+.banner .mesh { opacity: .1; left: 38%; -webkit-mask-position: 0 0; }
+.banner .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 170px; background: linear-gradient(to bottom, transparent, var(--vs-panel) 88%); }
+.strip { position: absolute; left: 30px; right: 30px; top: 243px; height: 16px; }
+.strip .ruleh { top: 8px; background: var(--vs-rule); opacity: .45; }
+.strip .line { position: absolute; left: 0; right: 0; top: 8px; height: 1px; background: var(--vs-rule); opacity: .6; }
+.strip .pip { position: absolute; top: 4px; width: 9px; height: 9px; background: var(--vs-star); transform: rotate(45deg); }
+.title { position: absolute; left: 30px; top: 183px; height: 48px; display: flex; align-items: center; gap: 12px; font: 700 34px/1 Rajdhani; text-transform: uppercase; color: var(--vs-hud); }
+.title i.hx { display: block; width: 14px; height: 16px; background: var(--vs-rule); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.title .bloom { left: -30px; top: -14px; width: 360px; height: 70px; opacity: .22; }
+.acts { position: absolute; right: 30px; top: 183px; display: flex; gap: 12px; align-items: center; }
+.play { position: relative; width: 210px; height: 48px; }
+.play .pcap { position: absolute; left: 14px; top: 13px; width: 18px; height: 18px; border: 1px solid var(--vs-rule); display: flex; align-items: center; justify-content: center; color: var(--vs-hud); }
+.play .plate { width: 100%; height: 100%; padding: 0; justify-content: flex-start; background: var(--vs-rule); }
+.play .plate::before { background: linear-gradient(to bottom, var(--vs-slab-lit), var(--vs-slab)); }
+.play .lbl { position: absolute; left: 0; right: 0; top: 7px; text-align: center; font: 700 20px/1 Rajdhani; color: var(--vs-hud); }
+.play .segbar { position: absolute; left: 14px; right: 14px; bottom: 7px; height: 6px; }
+.play .segbar i { -webkit-mask: url(../src/Images/fx/seg.png) 0 0 / 10px 6px repeat-x; mask: url(../src/Images/fx/seg.png) 0 0 / 10px 6px repeat-x; }
+.play .segbar .f { background: var(--vs-hud); }
+.play .bloom { left: 20px; right: 20px; top: 4px; height: 40px; opacity: .22; }
+.play .br { color: var(--vs-rule); }
+.play .br.tl { left: -7px; top: -7px; } .play .br.tr { right: -7px; top: -7px; } .play .br.bl { left: -7px; bottom: -7px; } .play .br.brr { right: -7px; bottom: -7px; }
+.body { position: absolute; left: 30px; right: 30px; top: 271px; bottom: 0; }
+.cols { display: flex; gap: 24px; }
+.left { flex: 1; min-width: 0; }
+.shots { display: flex; gap: 10px; margin-bottom: 16px; }
+.shot { position: relative; width: 138px; height: 78px; border: 1px solid var(--vs-edge-lit); }
+.shot.hov { border-color: var(--vs-rule); }
+.sec { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; color: var(--vs-hud); font: 700 14px Rajdhani; text-transform: uppercase; }
+.sec i { display: block; width: 7px; height: 8px; background: var(--vs-rule); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.sec b { flex: 1; height: 1px; background: linear-gradient(to right, var(--vs-edge-lit), transparent); }
+.desc { font-size: 14px; line-height: 1.55; color: var(--vs-mint); max-width: 520px; }
+.meta { position: relative; width: 322px; flex: none; background: var(--vs-pit); border: 1px solid var(--vs-edge-lit); padding: 6px 10px; }
+.mg { padding: 7px 0; border-top: 1px solid var(--vs-edge); }
+.mg:first-child { border-top: 0; }
+.mr { display: flex; gap: 12px; align-items: baseline; padding: 2px 0; font-size: 13px; }
+.mr .k { width: 40%; flex: none; color: var(--vs-label); }
+.mr .v { flex: 1; color: var(--vs-mint); }
+.score { display: flex; align-items: center; gap: 10px; flex: 1; }
+.score .segbar { flex: 1; height: 9px; }
+.score .segbar i { -webkit-mask: url(../src/Images/fx/seg.png) 0 0 / 10px 9px repeat-x; mask: url(../src/Images/fx/seg.png) 0 0 / 10px 9px repeat-x; }
+.score b { font: 700 15px Rajdhani; color: var(--vs-hud); width: 22px; text-align: right; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { position: relative; height: 22px; padding: 0 9px; display: inline-flex; align-items: center; font-size: 12px; color: var(--vs-mint); background: var(--vs-edge-lit);
+        clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+.chip::before { content: ""; position: absolute; inset: 1px; background: var(--vs-pit); clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+.chip span { position: relative; }
+.metabr { color: var(--vs-edge-lit); }
+.scanwrap { position: absolute; inset: 0; pointer-events: none; }
+</style></head><body><div class="rail" data-part="sidebar"><i class="mesh" style="opacity:.05"></i><i class="rulev"></i><i class="rline"></i><div class="menu" data-part="PART_ElemMainMenu"><div class="hexcell"><svg class="i " style="" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M16.17,5.43 19.80,7.52 19.80,16.48 12,20.96 4.20,16.48 4.20,7.52 12,3.04 14.59,4.53 15.49,2.97 12,0.96 2.40,6.48 2.40,17.52 12,23.04 21.60,17.52 21.60,6.48 17.06,3.87Z M11.10,8.10 12.90,8.10 12.90,11.10 15.90,11.10 15.90,12.90 12.90,12.90 12.90,15.90 11.10,15.90 11.10,12.90 8.10,12.90 8.10,11.10 11.10,11.10Z"/></svg></div></div><div class="ritem cur band"><i class="grain"></i><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M3.10,4.90 9.40,4.90 9.40,3.10 3.10,3.10Z M7.60,3.10 7.60,20.90 9.40,20.90 9.40,3.10Z M9.40,19.10 3.10,19.10 3.10,20.90 9.40,20.90Z M4.90,20.90 4.90,3.10 3.10,3.10 3.10,20.90Z M9.60,4.90 15.90,4.90 15.90,3.10 9.60,3.10Z M14.10,3.10 14.10,20.90 15.90,20.90 15.90,3.10Z M15.90,19.10 9.60,19.10 9.60,20.90 15.90,20.90Z M11.40,20.90 11.40,3.10 9.60,3.10 9.60,20.90Z M16.35,6.59 22.09,5.15 21.65,3.41 15.91,4.85Z M20.10,3.60 20.10,19.90 21.90,19.90 21.90,3.60Z M21.65,17.91 15.91,19.35 16.35,21.09 22.09,19.65Z"/></svg></div><div class="ritem"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M3.10,12.90 8.90,12.90 8.90,11.10 3.10,11.10Z M7.10,11.10 7.10,20.90 8.90,20.90 8.90,11.10Z M8.90,19.10 3.10,19.10 3.10,20.90 8.90,20.90Z M4.90,20.90 4.90,11.10 3.10,11.10 3.10,20.90Z M9.10,5.90 14.90,5.90 14.90,4.10 9.10,4.10Z M13.10,4.10 13.10,20.90 14.90,20.90 14.90,4.10Z M14.90,19.10 9.10,19.10 9.10,20.90 14.90,20.90Z M10.90,20.90 10.90,4.10 9.10,4.10 9.10,20.90Z M15.10,9.90 20.90,9.90 20.90,8.10 15.10,8.10Z M19.10,8.10 19.10,20.90 20.90,20.90 20.90,8.10Z M20.90,19.10 15.10,19.10 15.10,20.90 20.90,20.90Z M16.90,20.90 16.90,8.10 15.10,8.10 15.10,20.90Z"/></svg></div><div class="ritem"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M16.88,6.62 18.77,9.39 20.26,8.37 18.36,5.61Z M17.83,7.67 19.15,10.75 20.80,10.04 19.48,6.96Z M18.55,8.88 19.26,12.16 21.02,11.78 20.31,8.50Z M19.03,10.20 19.09,13.56 20.89,13.53 20.83,10.17Z M19.25,11.60 18.65,14.90 20.43,15.22 21.02,11.92Z M19.19,13.01 17.97,16.13 19.64,16.79 20.86,13.66Z M18.86,14.38 17.05,17.21 18.57,18.18 20.38,15.35Z M18.27,15.66 15.95,18.09 17.25,19.33 19.57,16.90Z M17.44,16.80 14.70,18.74 15.74,20.21 18.48,18.28Z M16.41,17.77 13.34,19.13 14.08,20.78 17.14,19.41Z M15.21,18.51 11.94,19.26 12.34,21.01 15.61,20.26Z M13.89,19.01 10.54,19.11 10.59,20.91 13.94,20.81Z M12.50,19.24 9.19,18.69 8.89,20.47 12.20,21.02Z M11.09,19.20 7.95,18.02 7.31,19.71 10.46,20.89Z M9.71,18.89 6.86,17.12 5.91,18.66 8.77,20.42Z M8.42,18.32 5.96,16.03 4.74,17.35 7.20,19.64Z M7.27,17.50 5.30,14.79 3.84,15.85 5.81,18.56Z M6.29,16.49 4.89,13.44 3.25,14.20 4.66,17.24Z M5.53,15.30 4.74,12.04 2.99,12.46 3.78,15.72Z M5.02,13.98 4.87,10.63 3.07,10.71 3.22,14.06Z M4.77,12.60 5.27,9.28 3.49,9.01 2.99,12.32Z M4.79,11.19 5.92,8.03 4.23,7.42 3.09,10.58Z M5.08,9.81 6.81,6.93 5.26,6 3.54,8.88Z M5.64,8.51 7.89,6.02 6.55,4.81 4.30,7.30Z M6.43,7.34 9.12,5.34 8.04,3.89 5.36,5.90Z M7.44,6.35 10.46,4.91 9.69,3.28 6.66,4.73Z M15.84,2.98 17.98,8.56 19.66,7.92 17.52,2.34Z M19.31,6.42 13.42,6.99 13.59,8.78 19.48,8.21Z"/></svg></div><div class="ritem"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.10,6.90 10.90,6.90 10.90,5.10 2.10,5.10Z M8.73,5.86 11.86,9.77 13.27,8.64 10.14,4.73Z M11.10,9.40 21.90,9.40 21.90,7.60 11.10,7.60Z M20.10,7.60 20.10,19.90 21.90,19.90 21.90,7.60Z M21.90,18.10 2.10,18.10 2.10,19.90 21.90,19.90Z M3.90,19.90 3.90,5.10 2.10,5.10 2.10,19.90Z"/></svg></div></div><div class="main"><div class="top" data-part="top-panel"><i class="mesh" style="right:132px"></i><div class="abs" style="left:12px;top:9px;display:flex;gap:6px;align-items:center"><div class="search" data-part="PART_TextMainSearch"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M16.31,9.50 15.94,12.76 17.73,12.96 18.10,9.71Z M16.38,10.82 15.30,13.92 17,14.51 18.08,11.42Z M16.16,12.12 14.42,14.90 15.94,15.86 17.69,13.08Z M15.66,13.34 13.34,15.66 14.62,16.93 16.93,14.62Z M14.90,14.42 12.12,16.16 13.08,17.69 15.86,15.94Z M13.92,15.30 10.82,16.38 11.42,18.08 14.51,17Z M12.76,15.94 9.50,16.31 9.71,18.10 12.96,17.73Z M11.50,16.31 8.24,15.94 8.04,17.73 11.29,18.10Z M10.18,16.38 7.08,15.30 6.49,17 9.58,18.08Z M8.88,16.16 6.10,14.42 5.14,15.94 7.92,17.69Z M7.66,15.66 5.34,13.34 4.07,14.62 6.38,16.93Z M6.58,14.90 4.84,12.12 3.31,13.08 5.06,15.86Z M5.70,13.92 4.62,10.82 2.92,11.42 4,14.51Z M5.06,12.76 4.69,9.50 2.90,9.71 3.27,12.96Z M4.69,11.50 5.06,8.24 3.27,8.04 2.90,11.29Z M4.62,10.18 5.70,7.08 4,6.49 2.92,9.58Z M4.84,8.88 6.58,6.10 5.06,5.14 3.31,7.92Z M5.34,7.66 7.66,5.34 6.38,4.07 4.07,6.38Z M6.10,6.58 8.88,4.84 7.92,3.31 5.14,5.06Z M7.08,5.70 10.18,4.62 9.58,2.92 6.49,4Z M8.24,5.06 11.50,4.69 11.29,2.90 8.04,3.27Z M9.50,4.69 12.76,5.06 12.96,3.27 9.71,2.90Z M10.82,4.62 13.92,5.70 14.51,4 11.42,2.92Z M12.12,4.84 14.90,6.58 15.86,5.06 13.08,3.31Z M13.34,5.34 15.66,7.66 16.93,6.38 14.62,4.07Z M14.42,6.10 16.16,8.88 17.69,7.92 15.94,5.14Z M15.30,7.08 16.38,10.18 18.08,9.58 17,6.49Z M15.94,8.24 16.31,11.50 18.10,11.29 17.73,8.04Z M14.13,15.40 21,22.27 22.27,21 15.40,14.13Z"/></svg><span style="font-size:13px">Search</span></div><div style="width:6px"></div><div class="tcell" data-part="PART_ToggleFilter"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.10,5.90 21.90,5.90 21.90,4.10 2.10,4.10Z M20.92,3.73 12.73,13.08 14.08,14.27 22.27,4.92Z M13.10,12.10 13.10,20.90 14.90,20.90 14.90,12.10Z M15.21,19.60 9.60,16.79 8.79,18.40 14.40,21.21Z M10.90,18.90 10.90,12.10 9.10,12.10 9.10,18.90Z M11.27,13.08 3.08,3.73 1.73,4.92 9.92,14.27Z"/></svg><i class="mark"></i></div><div style="display:flex;gap:0" data-part="PART_PanelMainItems"><div class="tcell"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M6.10,3.10 6.10,20.90 7.90,20.90 7.90,3.10Z M4,8.27 8.27,4 7,2.73 2.73,7Z M5.73,4 10,8.27 11.27,7 7,2.73Z M16.10,3.10 16.10,20.90 17.90,20.90 17.90,3.10Z M12.73,17 17,21.27 18.27,20 14,15.73Z M17,21.27 21.27,17 20,15.73 15.73,20Z"/></svg></div><div class="tcell"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.10,5.90 21.90,5.90 21.90,4.10 2.10,4.10Z M4.10,7.10 4.10,17.90 5.90,17.90 5.90,7.10Z M4.10,17.90 8.90,17.90 8.90,16.10 4.10,16.10Z M4.10,12.90 8.90,12.90 8.90,11.10 4.10,11.10Z M9.10,12.90 21.90,12.90 21.90,11.10 9.10,11.10Z M9.10,17.90 21.90,17.90 21.90,16.10 9.10,16.10Z"/></svg></div><div class="tcell on band"><i class="grain"></i><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.10,6.90 11.90,6.90 11.90,5.10 2.10,5.10Z M2.10,12.90 11.90,12.90 11.90,11.10 2.10,11.10Z M2.10,18.90 11.90,18.90 11.90,17.10 2.10,17.10Z M13.10,4.90 21.90,4.90 21.90,3.10 13.10,3.10Z M20.10,3.10 20.10,20.90 21.90,20.90 21.90,3.10Z M21.90,19.10 13.10,19.10 13.10,20.90 21.90,20.90Z M14.90,20.90 14.90,3.10 13.10,3.10 13.10,20.90Z"/></svg></div><div class="tcell"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M3.10,4.90 10.90,4.90 10.90,3.10 3.10,3.10Z M9.10,3.10 9.10,10.90 10.90,10.90 10.90,3.10Z M10.90,9.10 3.10,9.10 3.10,10.90 10.90,10.90Z M4.90,10.90 4.90,3.10 3.10,3.10 3.10,10.90Z M13.10,4.90 20.90,4.90 20.90,3.10 13.10,3.10Z M19.10,3.10 19.10,10.90 20.90,10.90 20.90,3.10Z M20.90,9.10 13.10,9.10 13.10,10.90 20.90,10.90Z M14.90,10.90 14.90,3.10 13.10,3.10 13.10,10.90Z M3.10,14.90 10.90,14.90 10.90,13.10 3.10,13.10Z M9.10,13.10 9.10,20.90 10.90,20.90 10.90,13.10Z M10.90,19.10 3.10,19.10 3.10,20.90 10.90,20.90Z M4.90,20.90 4.90,13.10 3.10,13.10 3.10,20.90Z M13.10,14.90 20.90,14.90 20.90,13.10 13.10,13.10Z M19.10,13.10 19.10,20.90 20.90,20.90 20.90,13.10Z M20.90,19.10 13.10,19.10 13.10,20.90 20.90,20.90Z M14.90,20.90 14.90,13.10 13.10,13.10 13.10,20.90Z"/></svg></div><div class="tcell"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M8.10,6.90 21.90,6.90 21.90,5.10 8.10,5.10Z M8.10,12.90 21.90,12.90 21.90,11.10 8.10,11.10Z M8.10,18.90 21.90,18.90 21.90,17.10 8.10,17.10Z M2.10,5.90 6.40,5.90 6.40,4.10 2.10,4.10Z M4.60,4.10 4.60,7.90 6.40,7.90 6.40,4.10Z M6.40,6.10 2.10,6.10 2.10,7.90 6.40,7.90Z M3.90,7.90 3.90,4.10 2.10,4.10 2.10,7.90Z M2.10,11.90 6.40,11.90 6.40,10.10 2.10,10.10Z M4.60,10.10 4.60,13.90 6.40,13.90 6.40,10.10Z M6.40,12.10 2.10,12.10 2.10,13.90 6.40,13.90Z M3.90,13.90 3.90,10.10 2.10,10.10 2.10,13.90Z M2.10,17.90 6.40,17.90 6.40,16.10 2.10,16.10Z M4.60,16.10 4.60,19.90 6.40,19.90 6.40,16.10Z M6.40,18.10 2.10,18.10 2.10,19.90 6.40,19.90Z M3.90,19.90 3.90,16.10 2.10,16.10 2.10,19.90Z"/></svg></div><div class="tcell"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.10,7.90 21.90,7.90 21.90,6.10 2.10,6.10Z M2.10,17.90 21.90,17.90 21.90,16.10 2.10,16.10Z M8.10,2.60 8.10,11.40 9.90,11.40 9.90,2.60Z M14.10,12.60 14.10,21.40 15.90,21.40 15.90,12.60Z"/></svg></div></div></div><div class="abs" style="right:140px;top:9px"><div class="tcell" data-part="PART_ToggleNotifications"><svg class="i " style="" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M3.88,19.27 8.27,15.62 7.12,14.23 2.73,17.88Z M7.90,16.40 7.90,9.10 6.10,9.10 6.10,16.40Z M7.40,11.21 10.21,5.60 8.60,4.79 5.79,10.40Z M8.43,7.14 13.14,5.57 12.57,3.86 7.86,5.43Z M10.86,5.57 15.57,7.14 16.14,5.43 11.43,3.86Z M13.79,5.60 16.60,11.21 18.21,10.40 15.40,4.79Z M16.10,9.10 16.10,16.40 17.90,16.40 17.90,9.10Z M15.73,15.62 20.12,19.27 21.27,17.88 16.88,14.23Z M20.90,17.10 3.10,17.10 3.10,18.90 20.90,18.90Z M9.10,21.90 14.90,21.90 14.90,20.10 9.10,20.10Z"/></svg></div></div><div class="win"><div><svg class="i " style="" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M5.10,18.90 18.90,18.90 18.90,17.10 5.10,17.10Z"/></svg></div><div><svg class="i " style="" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M4.10,5.90 19.90,5.90 19.90,4.10 4.10,4.10Z M18.10,4.10 18.10,19.90 19.90,19.90 19.90,4.10Z M19.90,18.10 4.10,18.10 4.10,19.90 19.90,19.90Z M5.90,19.90 5.90,4.10 4.10,4.10 4.10,19.90Z"/></svg></div><div><svg class="i " style="" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M3.73,5 19,20.27 20.27,19 5,3.73Z M19,3.73 3.73,19 5,20.27 20.27,5Z"/></svg></div></div><div class="rule"></div><svg class="endl" width="40" height="10"><path d="M0,0 L0,1 L26,1 L36,10" fill="none" stroke="currentColor"/></svg><svg class="endr" width="40" height="10"><path d="M40,1 L14,1 L4,10" fill="none" stroke="currentColor"/></svg></div><div class="list" data-part="game-list"><div class="grow"><span class="ico"></span><span class="nm">Ashfall Relay</span></div><div class="grow"><span class="ico"></span><span class="nm">Brink of Static</span></div><div class="grow"><span class="ico"></span><span class="nm">Cinder Orbit</span><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path fill="var(--vs-star)" d="M12,2 L14.9,8.6 L22,9.3 L16.6,14 L18.2,21 L12,17.3 L5.8,21 L7.4,14 L2,9.3 L9.1,8.6Z"/></svg></div><div class="grow sel band"><i class="grain"></i><i class="bloom" style="left:20px;top:3px;width:160px;height:26px;opacity:.28"></i><span class="ico"></span><span class="nm">Concrete Meridian</span><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path fill="var(--vs-star)" d="M12,2 L14.9,8.6 L22,9.3 L16.6,14 L18.2,21 L12,17.3 L5.8,21 L7.4,14 L2,9.3 L9.1,8.6Z"/></svg></div><div class="grow"><span class="ico"></span><span class="nm">Dust Protocol</span></div><div class="grow"><span class="ico"></span><span class="nm">Echo Harbor</span></div><div class="grow"><span class="ico"></span><span class="nm">Fault Line 2</span></div><div class="grow"><span class="ico"></span><span class="nm">Glass Reservoir</span><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path fill="var(--vs-star)" d="M12,2 L14.9,8.6 L22,9.3 L16.6,14 L18.2,21 L12,17.3 L5.8,21 L7.4,14 L2,9.3 L9.1,8.6Z"/></svg></div><div class="grow"><span class="ico"></span><span class="nm">Hollow Array</span></div><div class="grow"><span class="ico"></span><span class="nm">Iron Lantern</span></div><div class="grow"><span class="ico"></span><span class="nm">Kilo District</span></div><div class="grow"><span class="ico"></span><span class="nm">Lost Frequency</span></div><div class="grow"><span class="ico"></span><span class="nm">Mesh Runner</span></div><div class="grow"><span class="ico"></span><span class="nm">Night Telemetry</span><svg class="i" width="14" height="14" viewBox="0 0 24 24"><path fill="var(--vs-star)" d="M12,2 L14.9,8.6 L22,9.3 L16.6,14 L18.2,21 L12,17.3 L5.8,21 L7.4,14 L2,9.3 L9.1,8.6Z"/></svg></div><div class="grow"><span class="ico"></span><span class="nm">Orbital Yard</span></div><div class="grow"><span class="ico"></span><span class="nm">Pale Signal</span></div><div class="grow"><span class="ico"></span><span class="nm">Quarry Zero</span></div><div class="grow"><span class="ico"></span><span class="nm">Relic District</span></div><div class="grow"><span class="ico"></span><span class="nm">Salt Terminal</span></div><div class="grow"><span class="ico"></span><span class="nm">Tidal Ledger</span></div></div>
+<div class="page" data-part="game-page">
+  <div class="banner"><i class="mesh"></i><div class="towers"></div><div class="fade"></div><svg class="abs" style="left:120px;top:36px;color:var(--vs-rule);opacity:.35" width="15" height="15"><path d="M7.5,0 L7.5,15 M0,7.5 L15,7.5" stroke="currentColor" fill="none"/></svg><svg class="abs" style="left:470px;top:120px;color:var(--vs-rule);opacity:.35" width="15" height="15"><path d="M7.5,0 L7.5,15 M0,7.5 L15,7.5" stroke="currentColor" fill="none"/></svg><svg class="abs" style="left:780px;top:52px;color:var(--vs-rule);opacity:.35" width="15" height="15"><path d="M7.5,0 L7.5,15 M0,7.5 L15,7.5" stroke="currentColor" fill="none"/></svg><svg class="abs" style="left:24px;top:14px;color:var(--vs-rule);opacity:.4" width="64" height="14"><path d="M0,14 L14,0 L64,0" stroke="currentColor" fill="none"/></svg><svg class="abs" style="right:24px;top:96px;color:var(--vs-rule);opacity:.4" width="64" height="14"><path d="M0,0 L50,0 L64,14" stroke="currentColor" fill="none"/></svg></div>
+  <div class="strip"><i class="ruleh"></i><i class="line"></i><i class="pip" style="left:62%"></i></div>
+  <div class="title"><i class="hx"></i>Concrete Meridian<i class="bloom"></i></div>
+  <div class="acts">
+    <div class="play"><i class="bloom"></i><div class="plate hot"></div>
+      <span class="pcap"><svg class="i " style="" width="11" height="11" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M5.75,4.25 19.25,13.25 20.25,11.75 6.75,2.75Z M19.25,10.75 5.75,19.75 6.75,21.25 20.25,12.25Z M7.90,20.90 7.90,3.10 6.10,3.10 6.10,20.90Z"/></svg></span><div class="lbl">PLAY</div>
+      <div class="segbar" style="--p:100%"><i class="t"></i><i class="f"></i></div><svg class="br tl" width="34" height="10"><path d="M0,10 L10,0 L34,0" fill="none" stroke="currentColor"/></svg><svg class="br tr" width="34" height="10"><path d="M0,0 L24,0 L34,10" fill="none" stroke="currentColor"/></svg><svg class="br bl" width="34" height="10"><path d="M0,0 L10,10 L34,10" fill="none" stroke="currentColor"/></svg><svg class="br brr" width="34" height="10"><path d="M0,10 L24,10 L34,0" fill="none" stroke="currentColor"/></svg></div>
+    <div class="plate sq"><svg class="i " style="" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M3.10,12.90 6.90,12.90 6.90,11.10 3.10,11.10Z M10.10,12.90 13.90,12.90 13.90,11.10 10.10,11.10Z M17.10,12.90 20.90,12.90 20.90,11.10 17.10,11.10Z"/></svg></div>
+    <div class="plate sq"><svg class="i " style="" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M4.90,20.90 4.90,15.10 3.10,15.10 3.10,20.90Z M4,17.27 16.27,5 15,3.73 2.73,16Z M13.73,5 19,10.27 20.27,9 15,3.73Z M19,7.73 6.73,20 8,21.27 20.27,9Z M8.90,19.10 3.10,19.10 3.10,20.90 8.90,20.90Z M10.73,8 16,13.27 17.27,12 12,6.73Z"/></svg></div>
+  </div>
+  <div class="body">
+    <div class="cols">
+      <div class="left">
+        <div class="shots"><div class="shot hov" style="background:radial-gradient(60% 80% at 70% 40%, #35574b, #0c1714)"><svg class="br tl" width="20" height="7"><path d="M0,7 L7,0 L20,0" fill="none" stroke="currentColor"/></svg><svg class="br tr" width="20" height="7"><path d="M0,0 L13,0 L20,7" fill="none" stroke="currentColor"/></svg><svg class="br bl" width="20" height="7"><path d="M0,0 L7,7 L20,7" fill="none" stroke="currentColor"/></svg><svg class="br brr" width="20" height="7"><path d="M0,7 L13,7 L20,0" fill="none" stroke="currentColor"/></svg></div><div class="shot" style="background:radial-gradient(60% 80% at 30% 50%, #3b4d43, #0b1411)"></div><div class="shot" style="background:radial-gradient(70% 90% at 60% 30%, #2c4a43, #09110f)"></div></div>
+        <div class="sec"><i></i>About<b></b></div>
+        <p class="desc">Four hours before the district goes dark, a courier's last signal pings from beneath the harbor line. Move through flooded
+        service tunnels, read the city's failing grid and decide who gets the power back first. A single-player campaign with open approach
+        paths and a suit that rewards patience.</p>
+      </div>
+      
+<div class="meta" data-part="metadata">
+  <svg class="metabr abs" style="left:-1px;top:-1px" width="20" height="7"><path d="M0,7 L7,0 L20,0" fill="none" stroke="currentColor"/></svg>
+  <svg class="metabr abs" style="right:-1px;bottom:-1px" width="20" height="7"><path d="M0,7 L13,7 L20,0" fill="none" stroke="currentColor"/></svg>
+  <div class="mg">
+    <div class="mr"><span class="k">Completion Status</span><span class="v">Playing</span></div>
+    <div class="mr"><span class="k">Time Played</span><span class="v">48h 12m</span></div>
+    <div class="mr"><span class="k">Last Played</span><span class="v">Yesterday</span></div>
+  </div>
+  <div class="mg">
+    <div class="mr"><span class="k">Community Score</span><span class="score"><span class="segbar" style="--p:86%"><i class="t"></i><i class="f"></i></span><b>86</b></span></div>
+    <div class="mr"><span class="k">Critic Score</span><span class="score"><span class="segbar" style="--p:78%"><i class="t"></i><i class="f"></i></span><b>78</b></span></div>
+    <div class="mr"><span class="k">User Score</span><span class="score"><span class="segbar" style="--p:92%"><i class="t"></i><i class="f"></i></span><b>92</b></span></div>
+  </div>
+  <div class="mg">
+    <div class="mr"><span class="k">Developers</span><span class="v">Fault Line Works</span></div>
+    <div class="mr"><span class="k">Release Date</span><span class="v">2025</span></div>
+  </div>
+  <div class="mg">
+    <div class="mr"><span class="k">Genres</span><span class="chips"><span class="chip"><span>Shooter</span></span><span class="chip"><span>Stealth</span></span><span class="chip"><span>Sci-Fi</span></span></span></div>
+  </div>
+  <div class="mg">
+    <div class="mr"><span class="k">Library</span><span class="v">Steam</span></div>
+  </div>
+</div>
+    </div>
+  </div>
+</div></div></body></html>

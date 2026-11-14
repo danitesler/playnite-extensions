@@ -18,6 +18,52 @@
                                 BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" />
                         <Rectangle x:Name="SelectionPip" Width="6" Height="6" Margin="0,-2,-2,0" HorizontalAlignment="Right" VerticalAlignment="Top"
                                    IsHitTestVisible="False" Visibility="Collapsed" Fill="{DynamicResource TextBrush}" />
+                        <!-- Running game: Hyper Light Drifter's cyan. A 2px frame inside the cover's edge over a 6px band and the stepped low light. LAUNCHING: a leaning dash (hard lead bar, fainter afterimage)
+                             crosses the cover while four pips along its foot charge one by one; as it lands the diamond spins a quarter turn (1.6s loop). RUNNING: pips full, frame breathes, diamond turns slowly. -->
+                        <Grid x:Name="RunningIndicator" Margin="4" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                            <Border x:Name="RunningWash" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="6" Opacity="0.16" />
+                            <Rectangle x:Name="RunningScan" Visibility="Collapsed" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.32">
+                                <Rectangle.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.3"><GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.19" /><GradientStop x:Name="RunningScanA1" Color="#B3000000" Offset="-0.188" /><GradientStop x:Name="RunningScanA2" Color="#B3000000" Offset="-0.14" /><GradientStop x:Name="RunningScanA3" Color="#00000000" Offset="-0.138" /><GradientStop x:Name="RunningScanA4" Color="#00000000" Offset="-0.07" /><GradientStop x:Name="RunningScanLead" Color="#FF000000" Offset="-0.068" /><GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" /><GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" /></LinearGradientBrush>
+                                </Rectangle.OpacityMask>
+                            </Rectangle>
+                            <Border x:Name="RunningFrame" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2" />
+                            <Rectangle Height="12" VerticalAlignment="Bottom" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25">
+                                <Rectangle.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                                        <GradientStop Color="#FF000000" Offset="0" />
+                                        <GradientStop Color="#FF000000" Offset="0.34" />
+                                        <GradientStop Color="#60000000" Offset="0.34" />
+                                        <GradientStop Color="#60000000" Offset="0.67" />
+                                        <GradientStop Color="#00000000" Offset="0.67" />
+                                    </LinearGradientBrush>
+                                </Rectangle.OpacityMask>
+                            </Rectangle>
+                            <Grid Height="4" Margin="8,0,30,9" VerticalAlignment="Bottom">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" Margin="0,0,3,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.35" />
+                                <Rectangle Grid.Column="1" Margin="0,0,3,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.35" />
+                                <Rectangle Grid.Column="2" Margin="0,0,3,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.35" />
+                                <Rectangle Grid.Column="3" Margin="0,0,0,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.35" />
+                                <Rectangle x:Name="RunningPip1" Grid.Column="0" Margin="0,0,3,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0" />
+                                <Rectangle x:Name="RunningPip2" Grid.Column="1" Margin="0,0,3,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0" />
+                                <Rectangle x:Name="RunningPip3" Grid.Column="2" Margin="0,0,3,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0" />
+                                <Rectangle x:Name="RunningPip4" Grid.Column="3" Margin="0,0,0,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0" />
+                            </Grid>
+                            <Grid Margin="0,0,10,5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="14" Height="14">
+                                <Rectangle x:Name="RunningMark" Width="9" Height="9" Stroke="{DynamicResource RunningIndicatorBrush}" StrokeThickness="2" RenderTransformOrigin="0.5,0.5">
+                                    <Rectangle.RenderTransform><RotateTransform x:Name="RunningMarkTurn" Angle="45" /></Rectangle.RenderTransform>
+                                </Rectangle>
+                                <Rectangle x:Name="RunningCore" Width="3" Height="3" Fill="{DynamicResource RunningIndicatorBrush}" RenderTransformOrigin="0.5,0.5">
+                                    <Rectangle.RenderTransform><RotateTransform Angle="45" /></Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Grid>
+                        </Grid>
                         <Control x:Name="HoverMarks" Template="{DynamicResource CornerMarksTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
                                  Foreground="{DynamicResource GridViewItemHoverBorderBrush}" Margin="-6" Opacity="0" />
                     </Grid>
@@ -64,6 +110,150 @@
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningScan" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.19" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.21" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.21" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanA1" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.188" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.212" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.212" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanA2" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.14" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.26" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.26" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanA3" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.138" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.262" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.262" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanA4" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.07" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.33" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.33" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanLead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.068" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.332" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.332" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.4" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.4" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1" Value="1.402" KeySpline="0.3,0.2 0.35,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.402" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPip1" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.14" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.22" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPip2" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.31" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.39" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPip3" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.48" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.56" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningPip4" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.68" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.76" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.25" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningMarkTurn" Storyboard.TargetProperty="Angle" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.75" Value="45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="135" KeySpline="0.2,0.8 0.3,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="135" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningMark" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.5" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.8" Value="0.5" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.95" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.5" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningCore" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.25" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.95" Value="0.25" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.07" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.25" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:2.8">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.7" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.8" Value="0.7" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningMarkTurn" Storyboard.TargetProperty="Angle" Duration="0:0:2.8">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.8" Value="135" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningMark" Storyboard.TargetProperty="Opacity" Duration="0:0:2.8">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.6" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.8" Value="0.6" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningCore" Storyboard.TargetProperty="Opacity" Duration="0:0:2.8">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.8" Value="0.35" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningPip1" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.0" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="RunningPip2" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="RunningPip3" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.2" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="RunningPip4" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.3" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                            </DataTrigger.ExitActions>
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -23,6 +23,9 @@ test('preview tools load HTML from paths containing spaces, # and %', () => {
     fs.writeFileSync(html, '<!doctype html><div data-part="game-page" style="width:100px;height:100px;background:red"></div>');
     const ordinaryHtml = path.join(scratch, 'preview.html');
     fs.copyFileSync(html, ordinaryHtml);
+    const secondTheme = path.join(scratch, 'second theme');
+    fs.mkdirSync(path.join(secondTheme, 'art'), { recursive: true });
+    fs.copyFileSync(html, path.join(secondTheme, 'art', 'preview-details.html'));
     const expectedOutput = path.join(scratch, 'expected.png');
     const baseline = spawnSync(process.execPath, [path.join(scratch, 'scripts/render-theme-preview.mjs'), ordinaryHtml, expectedOutput], {
       encoding: 'utf8', timeout: 30000,
@@ -31,7 +34,7 @@ test('preview tools load HTML from paths containing spaces, # and %', () => {
     const output = path.join(scratch, 'screenshot-details.png');
     for (const [script, args] of [
       ['render-theme-preview.mjs', [html, output]],
-      ['preview-layout.mjs', [theme]],
+      ['preview-layout.mjs', [theme, secondTheme]],
     ]) {
       const result = spawnSync(process.execPath, [path.join(scratch, 'scripts', script), ...args], {
         encoding: 'utf8', timeout: 30000,
@@ -41,6 +44,8 @@ test('preview tools load HTML from paths containing spaces, # and %', () => {
         assert.deepEqual(fs.readFileSync(output).subarray(0, 8), Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
         assert.ok(fs.readFileSync(output).equals(fs.readFileSync(expectedOutput)), 'special-character path must render the same page');
       } else {
+        assert.match(result.stdout, /theme #100%\/preview-details\.html:/);
+        assert.match(result.stdout, /second theme\/preview-details\.html:/);
         assert.doesNotMatch(result.stdout, /no data-part tags/, 'layout checker must measure the fixture HTML');
       }
     }

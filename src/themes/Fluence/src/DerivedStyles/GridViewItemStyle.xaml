@@ -26,6 +26,50 @@
                         <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-4" IsHitTestVisible="False"
                                 CornerRadius="{DynamicResource CornerRadiusSmall}" />
                         <ContentPresenter />
+                        <!-- Running game (Fluent 2 progress): a 2px success frame inside the cover's edge over a 6px band, a dark tape at the foot holding the indeterminate bar and the progress ring. LAUNCHING: a reveal spot crosses the cover, the bar glides a beat behind it and the ring completes a turn (1.9s). RUNNING: bar full, ring turns once per breath, frame breathes (4s). -->
+                        <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                            <Border x:Name="RunningWash" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="6" Opacity="0.16" />
+                            <Border x:Name="RunningScan" Visibility="Collapsed" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.3">
+                                <Border.OpacityMask>
+                                    <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.35" RadiusY="1.2">
+                                        <RadialGradientBrush.RelativeTransform>
+                                            <TranslateTransform x:Name="RunningRevealShift" X="-0.87" />
+                                        </RadialGradientBrush.RelativeTransform>
+                                        <GradientStop Color="#FF000000" Offset="0" />
+                                        <GradientStop Color="#99000000" Offset="0.45" />
+                                        <GradientStop Color="#00000000" Offset="1" />
+                                    </RadialGradientBrush>
+                                </Border.OpacityMask>
+                            </Border>
+                            <Border x:Name="RunningFrame" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2" />
+                            <Grid Height="16" Margin="8,0,8,6" VerticalAlignment="Bottom">
+                                <Border CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource WindowBackgourndBrush}" Opacity="0.82" />
+                                <Grid Height="2" Margin="6,0,26,0" VerticalAlignment="Center">
+                                    <Border CornerRadius="1" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.3" />
+                                    <Border x:Name="RunningFill" CornerRadius="1" Background="{DynamicResource RunningIndicatorBrush}" RenderTransformOrigin="0,0.5">
+                                        <Border.RenderTransform>
+                                            <ScaleTransform x:Name="RunningFillScale" ScaleX="0" />
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Border x:Name="RunningGlide" Visibility="Collapsed" CornerRadius="1" Background="{DynamicResource RunningIndicatorBrush}">
+                                        <Border.OpacityMask>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop x:Name="RunningGlideTail" Color="#00000000" Offset="-0.3" />
+                                                <GradientStop x:Name="RunningGlideHead" Color="#FF000000" Offset="-0.25" />
+                                                <GradientStop x:Name="RunningGlideTrail" Color="#FF000000" Offset="-0.07" />
+                                                <GradientStop x:Name="RunningGlideEdge" Color="#00000000" Offset="-0.02" />
+                                            </LinearGradientBrush>
+                                        </Border.OpacityMask>
+                                    </Border>
+                                </Grid>
+                                <Grid x:Name="RunningMark" Width="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0" RenderTransformOrigin="0.5,0.5">
+                                    <Grid.RenderTransform>
+                                        <RotateTransform x:Name="RunningRingTurn" Angle="0" />
+                                    </Grid.RenderTransform>
+                                    <Path Data="M 6,1 A 5,5 0 1 1 1,6" Stroke="{DynamicResource RunningIndicatorBrush}" StrokeThickness="1.75" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                </Grid>
+                            </Grid>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -51,6 +95,94 @@
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningGlide" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningRevealShift" Storyboard.TargetProperty="X" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.87" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="0.87" KeySpline="0.33,0 0.67,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0.87" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningGlideTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.3" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-0.3" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.02" KeySpline="0.33,0 0.67,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="1.02" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningGlideHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.25" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-0.25" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.07" KeySpline="0.33,0 0.67,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="1.07" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningGlideTrail" Storyboard.TargetProperty="Offset" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.07" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-0.07" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.25" KeySpline="0.33,0 0.67,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="1.25" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningGlideEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.02" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="-0.02" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.3" KeySpline="0.33,0 0.67,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="1.3" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningMark" Storyboard.TargetProperty="Opacity" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.45" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="0.45" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0.45" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningRingTurn" Storyboard.TargetProperty="Angle" Duration="0:0:1.9">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="360" KeySpline="0.33,0 0.67,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:4" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningMark" Storyboard.TargetProperty="Opacity" Duration="0:0:4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.6" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:4" Value="0.6" KeySpline="0.4,0 0.6,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningRingTurn" Storyboard.TargetProperty="Angle" Duration="0:0:4">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        <SplineDoubleKeyFrame KeyTime="0:0:4" Value="360" KeySpline="0.33,0 0.67,1" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.45">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                            </DataTrigger.ExitActions>
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

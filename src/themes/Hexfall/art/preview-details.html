@@ -1,0 +1,245 @@
+<!doctype html>
+<!-- Hexfall: HTML replica of Playnite's Game Details view (1280x720). Colors are var(--pf-*) from src/tokens.css
+     (injected at render). Icons are the Media.xaml geometries. Rules: docs/themes/previews.md.
+     Staged: Play hovered (brackets locked, hex ping, lit brass), the selected list row, a toggled view switch,
+     filter mark on. The banner and covers are CSS paintings, not game art. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hexfall - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--pf-void); color: var(--pf-white); font-family: "Segoe UI", sans-serif; font-size: 14px; display: flex; }
+  svg.i { fill: currentColor; fill-rule: evenodd; display: block; width: 16px; height: 16px; flex: none; }
+  .cut { position: relative; clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+  .cut::before, .cut::after { content: ""; position: absolute; width: 7px; height: 7px; pointer-events: none; background: linear-gradient(to bottom right, transparent calc(50% - .8px), var(--pf-frame) calc(50% - .8px), var(--pf-frame) calc(50% + .8px), transparent calc(50% + .8px)); }
+  .cut::before { left: 0; top: 0; } .cut::after { right: 0; bottom: 0; }
+  .k1 { background: linear-gradient(135deg, color-mix(in srgb, var(--pf-cyan) 55%, var(--pf-void)), var(--pf-void)); }
+  .k2 { background: linear-gradient(135deg, color-mix(in srgb, var(--pf-brass) 80%, var(--pf-void)), var(--pf-void)); }
+  .k3 { background: linear-gradient(135deg, color-mix(in srgb, var(--pf-frame) 70%, var(--pf-void)), var(--pf-void)); }
+  .k4 { background: linear-gradient(135deg, color-mix(in srgb, var(--pf-go) 55%, var(--pf-void)), var(--pf-void)); }
+  .k5 { background: linear-gradient(135deg, color-mix(in srgb, var(--pf-amber-dim) 70%, var(--pf-void)), var(--pf-void)); }
+  .k6 { background: linear-gradient(135deg, color-mix(in srgb, var(--pf-cosmite) 45%, var(--pf-void)), var(--pf-void)); }
+  .capbar .rv { position: absolute; left: 8px; right: 8px; top: 2px; height: 2px; background: repeating-linear-gradient(90deg, var(--pf-gunmetal-hi) 0 2px, transparent 2px 14px); }
+  .note { position: absolute; left: 60px; bottom: 6px; font-size: 10px; color: var(--pf-dim); z-index: 5; }
+  .cap-font { font-family: "Sora", "Segoe UI", sans-serif; text-transform: uppercase; }
+
+  /* Rail: 44px, items 44x40, 16px glyphs. Current = deep green plate, cyan edge bar, amber pointer. */
+  .rail { width: 44px; flex: none; background: var(--pf-void); border-right: 1px solid var(--pf-line-dim); display: flex; flex-direction: column; align-items: center; padding-top: 6px; position: relative; z-index: 3; }
+  .menu { width: 32px; height: 32px; margin-bottom: 8px; background: var(--pf-gunmetal); clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); display: flex; align-items: center; justify-content: center; color: var(--pf-cyan); }
+  .menu svg.i { width: 20px; height: 20px; }
+  .rail-item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--pf-mist); position: relative; }
+  .rail-item.cur { background: var(--pf-viridian); color: var(--pf-ice); box-shadow: inset 0 0 0 1px var(--pf-viridian-edge); }
+  .rail-item.cur::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--pf-cyan); }
+  .rail-item.cur::after { content: ""; position: absolute; right: 5px; top: 18px; width: 4px; height: 4px; background: var(--pf-amber); }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  /* Top bar: 52px, search, filter toggle, then the main items (view switches, group, sort), caption buttons right. */
+  .top { height: 52px; flex: none; background: var(--pf-void); display: flex; align-items: center; gap: 6px; padding: 0 0 0 10px; }
+  .search { width: 260px; height: 32px; background: var(--pf-well); border: 1px solid var(--pf-line); color: var(--pf-dim); font-size: 13px; display: flex; align-items: center; gap: 8px; padding: 0 10px; }
+  .search svg.i { color: var(--pf-dim); }
+  .cell { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--pf-mist); border: 1px solid transparent; position: relative; }
+  .cell.hot { background: var(--pf-plate-hi); color: var(--pf-ice); }
+  .cell.on { background: var(--pf-olive); border-color: var(--pf-olive-edge); color: var(--pf-white); }
+  .cell .pip { position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; background: var(--pf-badge); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .cell .count { position: absolute; top: 2px; right: 1px; min-width: 14px; height: 14px; background: var(--pf-badge); color: var(--pf-void); font: 700 9px/14px "Sora", sans-serif; text-align: center; clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px); }
+  .items { display: flex; gap: 2px; margin-left: 2px; }
+  .sp { flex: 1; }
+  .win { display: flex; height: 52px; }
+  .win div { width: 44px; height: 52px; display: flex; align-items: center; justify-content: center; color: var(--pf-mist); }
+  .win svg.i { width: 12px; height: 12px; }
+  /* Gunmetal cap strip under the bar with three lamps. */
+  .capbar { height: 6px; flex: none; position: relative; z-index: 2; background: linear-gradient(var(--pf-gunmetal-hi) 0, var(--pf-gunmetal) 1px, var(--pf-gunmetal) 5px, var(--pf-void) 6px); }
+  .capbar .lamp { position: absolute; top: 2px; width: 12px; height: 4px; z-index: 1; }
+  .lamp.a { background: var(--pf-amber-hot); } .lamp.w { background: var(--pf-ice); }
+  .capbar .notch { position: absolute; top: 0; left: calc(50% - 40px); width: 80px; height: 10px; background: var(--pf-gunmetal); clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 7px 100%); }
+
+  .view { flex: 1; min-height: 0; display: flex; background: var(--pf-hull); }
+  /* Details list: 36px rows, amber pointer square; selected = green plate in its green edge. */
+  .list { width: 280px; flex: none; background: var(--pf-hull); border-right: 1px solid var(--pf-line-dim); padding: 8px 8px; overflow: hidden; }
+  .row { height: 34px; margin-bottom: 2px; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 12px; color: var(--pf-mist); font-size: 13px; position: relative; border: 1px solid transparent; }
+  .row::before { content: ""; width: 4px; height: 4px; background: var(--pf-amber-dim); flex: none; }
+  .row b { width: 22px; height: 22px; flex: none; border: 1px solid var(--pf-line); }
+  .row.hot { background: var(--pf-plate); color: var(--pf-white); }
+  .row.sel { background: var(--pf-viridian); border-color: var(--pf-viridian-edge); color: var(--pf-ice); }
+  .row.sel::before { width: 6px; height: 6px; background: var(--pf-amber); margin-left: -1px; }
+
+  .page { flex: 1; min-width: 0; position: relative; overflow: hidden; background: var(--pf-hull); }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 320px; background:
+      radial-gradient(ellipse 30% 62% at 86% 98%, color-mix(in srgb, var(--pf-cyan) 50%, var(--pf-void)) 0 64%, color-mix(in srgb, var(--pf-cyan) 80%, var(--pf-void)) 65% 67%, transparent 68%),
+      radial-gradient(ellipse 28% 36% at 14% 18%, color-mix(in srgb, var(--pf-cosmite) 30%, transparent), transparent),
+      linear-gradient(180deg, var(--pf-void) 0, color-mix(in srgb, var(--pf-frame) 38%, var(--pf-void)) 72%, var(--pf-hull)); }
+  .banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 20%, var(--pf-hull) 96%); }
+  .body { position: relative; padding: 92px 28px 0; }
+  .title { display: flex; align-items: center; gap: 12px; font: 600 28px/1.1 "Sora", sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--pf-ice); }
+  .title .slash { color: var(--pf-amber); font-weight: 700; letter-spacing: -.12em; }
+  .meta-line { margin: 6px 0 26px 29px; font-size: 12px; color: var(--pf-mist); }
+  .actions { display: flex; align-items: center; gap: 10px; margin-left: 4px; }
+
+  /* Play: lit brass plate with cut corners, four brackets locked, a hex ping behind. */
+  .play { position: relative; width: 190px; height: 48px; margin-right: 8px; }
+  .play svg.plate { position: absolute; inset: 0; width: 190px; height: 48px; overflow: visible; }
+  .play .label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--pf-brass-text); font: 600 14px "Sora", sans-serif; letter-spacing: .14em; }
+  .play .label svg.i { width: 14px; height: 14px; }
+  .play .br { position: absolute; width: 10px; height: 10px; border: 0 solid var(--pf-brass-hot); }
+  .br.tl { left: -7px; top: -7px; border-width: 2px 0 0 2px; } .br.tr { right: -7px; top: -7px; border-width: 2px 2px 0 0; }
+  .br.bl { left: -7px; bottom: -7px; border-width: 0 0 2px 2px; } .br.brr { right: -7px; bottom: -7px; border-width: 0 2px 2px 0; }
+  .play .ping { position: absolute; left: -26px; top: -22px; width: 242px; height: 92px; fill: none; stroke: var(--pf-brass-hot); stroke-width: 1; opacity: .38; }
+  .sq { width: 44px; height: 44px; background: var(--pf-plate); border: 1px solid var(--pf-line); color: var(--pf-mist); display: flex; align-items: center; justify-content: center; position: relative; }
+  .sq svg.i { width: 18px; height: 18px; }
+
+  .cols { display: flex; gap: 24px; margin-top: 20px; align-items: flex-start; }
+  .left { flex: 1; min-width: 0; }
+  .h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font: 600 11px "Sora", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--pf-mist); }
+  .h2 b { color: var(--pf-amber); font-weight: 700; }
+  .h2::after { content: ""; flex: 1; height: 1px; background: var(--pf-line-dim); }
+  .shots { display: flex; gap: 8px; margin-bottom: 18px; }
+  .shot { flex: 1; height: 92px; border: 1px solid var(--pf-line); position: relative; }
+  .shot.hot { border-color: var(--pf-cyan); }
+  .shot .b { position: absolute; width: 10px; height: 10px; border: 0 solid var(--pf-cyan); }
+  .b.tl { left: -4px; top: -4px; border-width: 2px 0 0 2px; } .b.tr { right: -4px; top: -4px; border-width: 2px 2px 0 0; }
+  .b.bl { left: -4px; bottom: -4px; border-width: 0 0 2px 2px; } .b.br { right: -4px; bottom: -4px; border-width: 0 2px 2px 0; }
+  .desc { font-size: 13px; line-height: 1.6; color: var(--pf-white); }
+  .desc p + p { margin-top: 8px; }
+  .desc a { color: var(--pf-link); }
+
+  /* Metadata pane: cap with lamps, then Planet-scan style rows. */
+  .meta { width: 334px; flex: none; background: var(--pf-well); border: 1px solid var(--pf-line); border-top: 0; }
+  .meta .capbar { height: 6px; }
+  .grp { padding: 9px 16px; border-top: 1px solid var(--pf-line-dim); }
+  .grp:first-of-type { border-top: 0; }
+  .f { display: flex; gap: 12px; padding: 3px 0; font-size: 13px; align-items: baseline; }
+  .f > span:first-child { width: 96px; flex: none; font: 600 10px "Sora", sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--pf-mist); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { height: 22px; padding: 0 8px; background: var(--pf-plate); border: 1px solid var(--pf-line); color: var(--pf-mist); font-size: 12px; display: flex; align-items: center; }
+  .score { color: var(--pf-white); font-weight: 700; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="IconSearch" viewBox="0 0 24 24"><path d="M10,1.5 L17.36,5.75 17.36,14.25 10,18.5 2.64,14.25 2.64,5.75Z M10,4.4 L5.14,7.2 5.14,12.8 10,15.6 14.86,12.8 14.86,7.2Z M15.2,16.6 L17.2,14.6 22.5,19.9 20.5,21.9Z"/></symbol>
+    <symbol id="IconMainMenu" viewBox="0 0 24 24"><path d="M18.83,5.44 L21.1,6.75 21.1,17.25 12,22.5 2.9,17.25 2.9,6.75 12,1.5 15.19,3.34 14.49,5.24 12,3.8 4.9,7.9 4.9,16.1 12,20.2 19.1,16.1 19.1,7.9 17.33,6.88Z M19.2,1.2 L18.36,5.55 10.8,14.6 15.64,3.85Z"/></symbol>
+    <symbol id="IconLibrary" viewBox="0 0 24 24"><path d="M3,3 L7,3 7,21 3,21Z M9,3 L13,3 13,21 9,21Z M15,5.5 L18.5,4.5 22,18.5 18.5,19.5Z"/></symbol>
+    <symbol id="IconStatistics" viewBox="0 0 24 24"><path d="M2,14.5 L3.5,13 7,13 7,22 2,22Z M9.5,8.5 L11,7 14.5,7 14.5,22 9.5,22Z M17,3.5 L18.5,2 22,2 22,22 17,22Z"/></symbol>
+    <symbol id="IconFilter" viewBox="0 0 24 24"><path d="M2,3 L22,3 22,6 14.5,13 14.5,21 9.5,18 9.5,13 2,6Z"/></symbol>
+    <symbol id="IconSort" viewBox="0 0 24 24"><path d="M2,4 L13,4 13,6.5 2,6.5Z M2,10.5 L10,10.5 10,13 2,13Z M2,17 L7,17 7,19.5 2,19.5Z M17,3 L19,3 19,14 22,14 18,21 14,14 17,14Z"/></symbol>
+    <symbol id="IconGroup" viewBox="0 0 24 24"><path d="M2,3 L22,3 22,6 2,6Z M5,9 L22,9 22,12 5,12Z M8,15 L22,15 22,18 8,18Z M11,21 L22,21 22,23 11,23Z"/></symbol>
+    <symbol id="IconViewSettings" viewBox="0 0 24 24"><path d="M2,6 L6,6 6,8 2,8Z M10,6 L22,6 22,8 10,8Z M6,3.5 L10,3.5 10,10.5 6,10.5Z M2,16 L14,16 14,18 2,18Z M18,16 L22,16 22,18 18,18Z M14,13.5 L18,13.5 18,20.5 14,20.5Z"/></symbol>
+    <symbol id="IconDetailsView" viewBox="0 0 24 24"><path d="M2,3 L8,3 8,6 2,6Z M2,9 L8,9 8,12 2,12Z M2,15 L8,15 8,18 2,18Z M11,3 L22,3 22,21 11,21Z M13.5,5.5 L13.5,18.5 19.5,18.5 19.5,5.5Z"/></symbol>
+    <symbol id="IconGridView" viewBox="0 0 24 24"><path d="M3.5,2 L10.5,2 10.5,10.5 2,10.5 2,3.5Z M13.5,2 L20.5,2 22,3.5 22,10.5 13.5,10.5Z M3.5,13.5 L10.5,13.5 10.5,22 2,22 2,15Z M13.5,13.5 L22,13.5 22,20.5 20.5,22 13.5,22Z"/></symbol>
+    <symbol id="IconListView" viewBox="0 0 24 24"><path d="M2,4 L5,4 5,7 2,7Z M8,4.5 L22,4.5 22,6.5 8,6.5Z M2,10.5 L5,10.5 5,13.5 2,13.5Z M8,11 L22,11 22,13 8,13Z M2,17 L5,17 5,20 2,20Z M8,17.5 L22,17.5 22,19.5 8,19.5Z"/></symbol>
+    <symbol id="IconNotifications" viewBox="0 0 24 24"><path d="M12,1.5 L21.1,6.75 21.1,17.25 12,22.5 2.9,17.25 2.9,6.75Z M12,3.8 L4.9,7.9 4.9,16.1 12,20.2 19.1,16.1 19.1,7.9Z M10.8,6.5 L13.2,6.5 12.8,14 11.2,14Z M10.8,15.8 L13.2,15.8 13.2,18.2 10.8,18.2Z"/></symbol>
+    <symbol id="IconWindowMinimize" viewBox="0 0 24 24"><path d="M4,17 L20,17 20,19.5 4,19.5Z"/></symbol>
+    <symbol id="IconWindowMaximize" viewBox="0 0 24 24"><path d="M4,4 L20,4 20,20 4,20Z M6.5,6.5 L6.5,17.5 17.5,17.5 17.5,6.5Z"/></symbol>
+    <symbol id="IconWindowClose" viewBox="0 0 24 24"><path d="M4,6.5 L6.5,4 12,9.5 17.5,4 20,6.5 14.5,12 20,17.5 17.5,20 12,14.5 6.5,20 4,17.5 9.5,12Z"/></symbol>
+    <symbol id="IconPlay" viewBox="0 0 24 24"><path d="M6,3.5 L20,12 6,20.5Z"/></symbol>
+    <symbol id="IconOptions" viewBox="0 0 24 24"><path d="M5,9.5 L7.5,12 5,14.5 2.5,12Z M12,9.5 L14.5,12 12,14.5 9.5,12Z M19,9.5 L21.5,12 19,14.5 16.5,12Z"/></symbol>
+    <symbol id="IconEdit" viewBox="0 0 24 24"><path d="M16,3 L21,8 9,20 3.5,20.5 4,15Z M6.4,15.9 L6,18 8.1,17.6Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="note">Unofficial replica. No game art or logo.</div>
+<div class="rail" data-part="sidebar">
+  <div class="menu" data-part="PART_ElemMainMenu"><svg class="i"><use href="#IconMainMenu"/></svg></div>
+  <div class="rail-item cur"><svg class="i"><use href="#IconLibrary"/></svg></div>
+  <div class="rail-item"><svg class="i"><use href="#IconStatistics"/></svg></div>
+</div>
+<div class="main">
+  <div class="top" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="i"><use href="#IconSearch"/></svg>Search</div>
+    <div class="cell hot" data-part="PART_ToggleFilter" title="Filter"><svg class="i"><use href="#IconFilter"/></svg><span class="pip"></span></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="cell" title="Sort"><svg class="i"><use href="#IconSort"/></svg></div>
+      <div class="cell" title="Group"><svg class="i"><use href="#IconGroup"/></svg></div>
+      <div class="cell on" title="Details view"><svg class="i"><use href="#IconDetailsView"/></svg></div>
+      <div class="cell" title="Grid view"><svg class="i"><use href="#IconGridView"/></svg></div>
+      <div class="cell" title="List view"><svg class="i"><use href="#IconListView"/></svg></div>
+      <div class="cell" title="View settings"><svg class="i"><use href="#IconViewSettings"/></svg></div>
+    </div>
+    <div class="sp"></div>
+    <div class="cell" data-part="PART_ToggleNotifications" title="Notifications"><svg class="i"><use href="#IconNotifications"/></svg><span class="count">2</span></div>
+    <div class="win"><div><svg class="i"><use href="#IconWindowMinimize"/></svg></div><div><svg class="i"><use href="#IconWindowMaximize"/></svg></div><div><svg class="i"><use href="#IconWindowClose"/></svg></div></div>
+  </div>
+  <div class="capbar"><i class="rv"></i><div class="notch"></div><i class="lamp a" style="left:calc(50% - 26px)"></i><i class="lamp w" style="left:calc(50% - 6px)"></i><i class="lamp a" style="left:calc(50% + 14px)"></i></div>
+  <div class="view">
+    <div class="list" data-part="game-list">
+      <div class="row"><b class="k1"></b>Aether Drift</div>
+      <div class="row"><b class="k2"></b>Brass Harbor</div>
+      <div class="row"><b class="k3"></b>Cinder Vale</div>
+      <div class="row sel"><b class="k4"></b>Cyber Strike: Genesis</div>
+      <div class="row hot"><b class="k5"></b>Dust Meridian</div>
+      <div class="row"><b class="k6"></b>Ember Keep</div>
+      <div class="row"><b class="k1"></b>Hollow Signal</div>
+      <div class="row"><b class="k2"></b>Iron Lantern</div>
+      <div class="row"><b class="k3"></b>Lost Orbit</div>
+      <div class="row"><b class="k4"></b>Moss Circuit</div>
+      <div class="row"><b class="k5"></b>Nova Foundry</div>
+      <div class="row"><b class="k6"></b>Quiet Static</div>
+      <div class="row"><b class="k1"></b>Rust Atlas</div>
+      <div class="row"><b class="k2"></b>Salt Frontier</div>
+      <div class="row"><b class="k3"></b>Tidal Ruin</div>
+      <div class="row"><b class="k4"></b>Vector Reef</div>
+      <div class="row"><b class="k5"></b>Wild Cipher</div>
+    </div>
+    <div class="page" data-part="game-page">
+      <div class="banner"></div>
+      <div class="body">
+        <div class="title"><span class="slash">//</span>Cyber Strike: Genesis</div>
+        <div class="meta-line">Vector Shift Studios &middot; 2024 &middot; 48 hours played</div>
+        <div class="actions">
+          <div class="play" data-part="PART_ButtonPlayAction">
+            <svg class="ping" viewBox="0 0 242 92"><polygon points="121,1 240,24 240,68 121,91 2,68 2,24"/></svg>
+            <svg class="plate" viewBox="0 0 190 48"><defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--pf-brass-mid)"/><stop offset="1" style="stop-color:var(--pf-brass)"/></linearGradient></defs><polygon points="8.5,0.5 189.5,0.5 189.5,39.5 181,47.5 0.5,47.5 0.5,8.5" style="fill:url(#pg);stroke:var(--pf-brass-hot);stroke-width:1"/><polygon points="10,3 187,3 187,38.5 179.5,45 3,45 3,10.5" style="fill:none;stroke:var(--pf-brass-edge);stroke-width:1"/></svg>
+            <div class="label"><svg class="i"><use href="#IconPlay"/></svg>PLAY</div>
+            <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br brr"></i>
+          </div>
+          <div class="sq" data-part="PART_ButtonMoreActions" title="More"><svg class="i"><use href="#IconOptions"/></svg></div>
+          <div class="sq" data-part="PART_ButtonEditGame" title="Edit"><svg class="i"><use href="#IconEdit"/></svg></div>
+        </div>
+        <div class="cols">
+          <div class="left">
+            <div class="h2"><b>/</b>Screenshots</div>
+            <div class="shots">
+              <div class="shot hot k1"><i class="b tl"></i><i class="b tr"></i><i class="b bl"></i><i class="b br"></i></div>
+              <div class="shot k6"></div>
+              <div class="shot k2"></div>
+            </div>
+            <div class="h2"><b>/</b>About</div>
+            <div class="desc" data-part="PART_HtmlDescription">
+              <p>A hard sci-fi campaign about a colony ship that arrives a century late. Command a squad of exosuit troopers across a planet the survey missed, <a>research salvaged technology</a> and decide which of the three surviving factions deserves the beacon.</p>
+              <p>Turn-based tactics on hex terrain, with cover, overwatch and a deep upgrade tree.</p>
+            </div>
+          </div>
+          <div class="meta cut" data-part="metadata">
+            <div class="capbar"><i class="rv"></i><div class="notch"></div><i class="lamp a" style="left:calc(50% - 26px)"></i><i class="lamp w" style="left:calc(50% - 6px)"></i><i class="lamp a" style="left:calc(50% + 14px)"></i></div>
+            <div class="grp">
+              <div class="f"><span>Play time</span>48 hours</div>
+              <div class="f"><span>Last played</span>Yesterday</div>
+              <div class="f"><span>Completion</span>Playing</div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Community</span><span class="score">92</span></div>
+              <div class="f"><span>Critics</span><span class="score">88</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Developer</span>Vector Shift Studios</div>
+              <div class="f"><span>Publisher</span>Orbital Press</div>
+              <div class="f"><span>Release</span>2024</div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Genres</span><span class="chips"><span class="chip">Strategy</span><span class="chip">Sci-Fi</span><span class="chip">Tactical</span></span></div>
+              <div class="f"><span>Features</span><span class="chips"><span class="chip">Single-player</span><span class="chip">Controller</span></span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Library</span>Steam</div>
+              <div class="f"><span>Install size</span>38.2 GB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

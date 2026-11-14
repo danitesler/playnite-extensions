@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the sty
 
 **Unofficial fan theme.** Not affiliated with or endorsed by Valve. No Valve logos, icons, fonts, images or game files are included (see `info/NOTICE-Clutch.txt`). The crosshair mark is hand-drawn.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -58,6 +58,7 @@ Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and 
 | `GridViewItemStyle` | Map tile: selected = static 3px frame (`maptile-selected`); hover = a 2px white-40% edge fading in over 0.25s; inside the item spacing |
 | `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover as the map tile: the cover image zooms 1 to 1.02 (0.25s, clipped), the 50% black tile blur fades in, two IconButtons (40px squares, Material Symbols glyphs `IconPlay` / `IconDownload` / `IconInfo` already in `Media.xaml`) rise 8px, Info 60ms after Play. Hover on a button: white 10% wash, lit edge, glyph washes to `selectedNavColor` (Play: GO greens, glyph to white) |
 | Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | Content hidden; the crosshair with its arms breathing out and in (1.4s) above `LOCErrorNoGameSelected` in uppercase heading face; the loop runs only while it shows |
+| Running game (`RunningIndicatorBrush` = `--t-color`, the T side gold) | the C4 and its LED, in T gold: a thin symmetric laser beam (`RunningScan`, 0.07 of the width each side) slams across details rows, list rows, covers and the plate with an ease-in (it accelerates like the bomb's beeps), a hairline foot fills behind it, and the LED at the far end beeps faster and faster. **Launching:** five accelerating beeps, then the LED holds lit as the beam lands (1.3s travel, 1.9s loop). **Running:** the foot stays full, the frame breathes 0.72 to 1 and the LED gives one slow beep per 3.2s. The plate holds a 0.88 scrim over the gold while launching and breathes 0.55 to 0.68 while running under a light label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the lit plate, white label copy, bar and glow are off while launching or running. |
 
 ## Deviations
 

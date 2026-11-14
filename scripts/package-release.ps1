@@ -12,7 +12,19 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-. (Join-Path $PSScriptRoot "extension-profiles.ps1")
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
+
+function Test-OnlyUnreachablePackageUrl([string]$Text) {
+    if ($Text -notmatch "PackageUrl doesn't point to reachable HTTP location") { return $false }
+    foreach ($line in ($Text -split '\r?\n')) {
+        $trim = $line.Trim()
+        if (-not $trim) { continue }
+        if ($trim -match "PackageUrl doesn't point to reachable HTTP location") { continue }
+        if ($trim -match "didn't pass verification") { continue }
+        return $false
+    }
+    return $true
+}
 
 if ($VerifyOnly) {
     $VerifyInstaller = $true
@@ -44,7 +56,7 @@ try {
         $verifyText = $verifyOutput | Out-String
         Write-Host $verifyText.Trim()
         if ($LASTEXITCODE -ne 0 -or $verifyText -match "didn't pass verification") {
-            if ($AllowUnpublishedPackageUrl -and $verifyText -match "PackageUrl doesn't point to reachable HTTP location") {
+            if ($AllowUnpublishedPackageUrl -and (Test-OnlyUnreachablePackageUrl $verifyText)) {
                 Write-Warning "Installer manifest PackageUrl is not reachable yet. Continuing because package-only builds may run before the GitHub Release asset is uploaded."
             }
             else {
@@ -61,7 +73,7 @@ try {
         $addonText = $addonOutput | Out-String
         Write-Host $addonText.Trim()
         if ($LASTEXITCODE -ne 0 -or $addonText -match "didn't pass verification|Failed to parse") {
-            if ($AllowUnpublishedPackageUrl -and $addonText -match "PackageUrl doesn't point to reachable HTTP location" -and $addonText -notmatch "Failed to parse") {
+            if ($AllowUnpublishedPackageUrl -and (Test-OnlyUnreachablePackageUrl $addonText)) {
                 Write-Warning "Addon manifest PackageUrl is not reachable yet. Continuing because package-only builds may run before the GitHub Release asset is uploaded."
             }
             else {
@@ -82,6 +94,21 @@ try {
         throw "Build output folder not found at $buildOutput. Run build-plugin.ps1 first."
     }
 
+    $dropManifestName = if ($isTheme) { "theme.yaml" } else { "extension.yaml" }
+    $dropManifest = Join-Path $buildOutput $dropManifestName
+    if (-not (Test-Path -LiteralPath $dropManifest)) {
+        throw "Build drop is missing $dropManifestName. Rebuild before packaging."
+    }
+    $dropLines = @(Get-Content -LiteralPath $dropManifest)
+    $dropVersion = Get-YamlScalar -Lines $dropLines -Key "Version"
+    $dropId = Get-YamlScalar -Lines $dropLines -Key "Id"
+    if ($dropVersion -ne $manifest.Version) {
+        throw "Build drop version '$dropVersion' does not match source version '$($manifest.Version)'. Rebuild before packaging."
+    }
+    if ($manifest.Id -and $dropId -ne $manifest.Id) {
+        throw "Build drop Id '$dropId' does not match source Id '$($manifest.Id)'. Rebuild before packaging."
+    }
+
     $releaseSub = if ($isTheme) { "themes/$($profile.slug)" } else { $profile.slug }
     $releaseDrop = Join-Path $repoRoot "artifacts/releases/$releaseSub"
     New-Item -ItemType Directory -Path $releaseDrop -Force | Out-Null
@@ -98,6 +125,10 @@ try {
     }
 
     $packageUrl = Get-ExpectedPackageUrl -Profile $profile -AddonId $manifest.Id -Version $version
+    $packagePath = Join-Path $releaseDrop (Split-Path -Leaf $packageUrl)
+    if (-not (Test-Path -LiteralPath $packagePath)) {
+        throw "Toolbox did not write '$packagePath'."
+    }
 
     Write-Host ""
     Write-Host "Release artifacts created:"

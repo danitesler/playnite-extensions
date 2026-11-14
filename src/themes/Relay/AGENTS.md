@@ -4,7 +4,7 @@
 
 Standalone dark Playnite Desktop theme, `ThemeApiVersion` 2.9.0, inspired by the Mass Effect 2 menus (BioWare, 2010): the Options screen, the codex, squad selection and research. One dark variant. Unofficial; not affiliated with, endorsed by or sponsored by BioWare or Electronic Arts. No game art, logo, font or capture ships: icons, plate shapes, the glow sprite and the tile mark are original. The name echoes the mass relays without using the game's name. See `info/NOTICE-Relay.txt`.
 
-Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `.claude/skills/playnite-theme-dev/reference.md`.
+Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rules: `docs/themes/reference.md`.
 
 ## Sources
 
@@ -27,7 +27,7 @@ Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rul
 | `me-new` | `HeadingMarkerAltBrush` |
 | `me-yellow`, `me-renegade` | `WarningBrush`; `DangerBrush`, `NegativeRatingBrush` |
 
-Unused for now: `me-steel`, `me-teal`, `me-paragon` (kept for disabled plates and dialogue colours). Radii are all 0: corners are cut by `ChamferTemplate`. Fonts: `Segoe UI` body; headings `./Typography/#Orbitron`, then `Orbitron, Eurostile Extended, Microgramma, Bahnschrift SemiBold, Segoe UI` (Korataki in the game; Orbitron Regular is bundled in `src/Typography/`). Scale 12 / 14 / 15 / 20 / 28.
+`me-paragon` is `RunningIndicatorBrush` (the running game). Unused for now: `me-steel`, `me-teal` (kept for disabled plates and dialogue colours). Radii are all 0: corners are cut by `ChamferTemplate`. Fonts: `Segoe UI` body; headings `./Typography/#Orbitron`, then `Orbitron, Eurostile Extended, Microgramma, Bahnschrift SemiBold, Segoe UI` (Korataki in the game; Orbitron Regular is bundled in `src/Typography/`). Scale 12 / 14 / 15 / 20 / 28.
 
 ## Component spacing (`src/Common.xaml`)
 
@@ -82,6 +82,7 @@ Empty state: a codex panel waiting for a target. The relay mark (`EmptyGameIcon`
 | `TextBox`, `PasswordBox`, `SearchBox`, `HighlightBorder` | sunken wells with amber rims, orange on hover, gold on focus with an orange tick |
 | `GroupBox` | codex panel card: lime heading, cut-corner copper-rimmed plate, orange "+" (content-sized) |
 | `ContextMenu`, `Menu`, `ToolTip` | warm black panels in copper rims; menu hover = dark amber plate with an orange tick |
+| Running game (`RunningIndicatorBrush` = `me-paragon`) | The paragon scanner in `me-paragon` blue, the cold opposite of the orange, lime and amber selection. **Launching** (1.5s loop, 0.95s travel, fast-out ping): an angled slash (`EndPoint` 1,0.35, short tail) crosses the row, cover or chamfered Play plate, a tick ruler (1px ticks every 5px under a tiled mask: rows at the foot, covers along the top edge, the slab at its foot) fills in step with it, and on rows the seam on the far edge flares as a bright 12px segment travels down it. **Running:** frame, tint and seam breathe 0.72 to 1 over 3.2s, the ruler stays full, the cover's top ruler carries a segment that sweeps across and the row seam segment drifts down. Slab: chamfered plate in the paragon blue under a `RunningBreath` scrim (0.38-0.52 running, 0.68 launching), lime label (4.7:1 worst), overlay frame drawn as a cut-corner path (the chamfer template's honeycomb would sit over the label); Cancel only on RUNNING + hover of the button (`Self`), and the omni-tool hover charge (bloom, plate, light band) is off while launching or running. |
 
 ## Previews
 

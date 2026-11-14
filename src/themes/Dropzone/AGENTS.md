@@ -8,7 +8,7 @@ The brief was "follow the game closely, but stay minimal like the other themes":
 
 **Unofficial fan theme.** Not affiliated with or endorsed by Epic Games. No Epic logos, icons, fonts, images or game files are included (see `info/NOTICE-Dropzone.txt`). The parachute mark (`art/mark.svg`) is original.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -50,6 +50,7 @@ Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and 
 |---------------|----------------|
 | `PlayButton` | PLAY: hover pops to 1.04 (0.15s ease-out), lighter plate, yellow halo and a one-shot 0.5s flash; while hovered the halo breathes; pressed is its own deep-yellow layer with a 0.97 squash |
 | `GridViewItemStyle` | Discover tile: selected = static 3px focus ring; hover = a pale-cyan ring fading in with an overshoot pop (0.96 to 1); the tile mask and its bitmap cache stay |
+| Running game (`RunningIndicatorBrush` = `success` 5dd48a) | the lobby's loading language, chunky and rounded: a diagonal soft slash (`RunningScan`, an angled mask with a small overshoot) sweeps details rows, list rows, covers (rising from the foot) and the slab, in each surface's own corner radius. **Launching:** the slash crosses in 1s (1.6s loop), a pill foot fills behind it and three dots hop in turn as it lands. **Running:** the pill stays full, the frame breathes 0.7 to 1 and the dots hop in a slow wave (2.8s). The slab holds a 0.88 scrim over the plate while launching and breathes 0.55 to 0.68 while running under a bright label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the lit plate, flash and halo are off while launching or running. |
 | `GridViewItemTemplate` (+ `GridTileButton`) | cover hover controls as the round icon buttons of the Chapter 5 and 6 menus (44px circles, Material Rounded glyphs `IconPlay` / `IconInfo` / `IconDownload` from `Media.xaml`): the cover zooms 1.04 with a one-shot flash, the navy shade fades in, buttons rise 10px and scale 0.86 to 1 with an overshoot, Info 60ms later; hover pops a button to 1.1 and lights the pale-cyan ring; Play yellow, Info the translucent lobby pill |
 | Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | content hidden; the parachute mark drifting down (bob and sway) onto a breathing drop-zone ring above `LOCErrorNoGameSelected` in heavy condensed capitals; the loops run only while it shows |
 

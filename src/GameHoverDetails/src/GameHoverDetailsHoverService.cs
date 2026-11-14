@@ -213,6 +213,7 @@ namespace GameHoverDetails
             visibilityWatchdogTimer.Tick += VisibilityWatchdogOnTick;
 
             mainWindow.PreviewMouseMove += MainWindowOnPreviewMouseMove;
+            mainWindow.PreviewMouseDown += MainWindowOnPreviewMouseDown;
             mainWindow.PreviewMouseWheel += MainWindowOnPreviewMouseWheel;
             mainWindow.PreviewKeyDown += MainWindowOnPreviewKeyDown;
             mainWindow.AddHandler(Keyboard.GotKeyboardFocusEvent, keyboardFocusHandler, true);
@@ -256,6 +257,7 @@ namespace GameHoverDetails
             }
 
             mainWindow.PreviewMouseMove -= MainWindowOnPreviewMouseMove;
+            mainWindow.PreviewMouseDown -= MainWindowOnPreviewMouseDown;
             mainWindow.PreviewMouseWheel -= MainWindowOnPreviewMouseWheel;
             mainWindow.PreviewKeyDown -= MainWindowOnPreviewKeyDown;
             mainWindow.RemoveHandler(Keyboard.GotKeyboardFocusEvent, keyboardFocusHandler);
@@ -635,6 +637,20 @@ namespace GameHoverDetails
                     return;
                 }
 
+                if (mouseDown && hasTile && keyboardFollowActive)
+                {
+                    // A click focuses the tile the pointer is on, including a tile that already
+                    // had focus. Leave keyboard-follow so a later mouse-leave still hides.
+                    ReleaseKeyboardFollowForPointer();
+                    hideDebounceTimer?.Stop();
+                    if (pointerOnSame && !ShouldBlockHover() && !IsAlreadyShowing(focusedGame, focusedAnchor))
+                    {
+                        ScheduleShowAfterDelay(focusedGame, focusedAnchor);
+                    }
+
+                    return;
+                }
+
                 if (hasTile && pointerOnSame && !mouseDown && !oldInMenu && !ShouldBlockHover()
                     && (movedFromAnotherTile || navigationKeyDown))
                 {
@@ -821,6 +837,43 @@ namespace GameHoverDetails
         private void MainWindowOnPreviewMouseMove(object sender, MouseEventArgs e)
         {
             TryHandlePointerHover();
+        }
+
+        /// <summary>
+        /// A click on the already-focused tile does not raise <see cref="Keyboard.GotKeyboardFocusEvent"/>.
+        /// </summary>
+        private void MainWindowOnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (broken || !attached || !keyboardFollowActive)
+            {
+                return;
+            }
+
+            try
+            {
+                TryResolveGameAndAnchor(e.OriginalSource as DependencyObject, playniteApi, out var game, out var anchor);
+                if (game == null)
+                {
+                    return;
+                }
+
+                ReleaseKeyboardFollowForPointer();
+                hideDebounceTimer?.Stop();
+                if (!ShouldBlockHover() && !IsAlreadyShowing(game, anchor))
+                {
+                    ScheduleShowAfterDelay(game, anchor);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleHoverError(ex);
+            }
+        }
+
+        private void ReleaseKeyboardFollowForPointer()
+        {
+            keyboardFollowActive = false;
+            pendingShowFromKeyboard = false;
         }
 
         /// <summary>

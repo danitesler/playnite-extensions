@@ -6,7 +6,7 @@ Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the menus of **
 
 **Unofficial fan theme.** No Rockstar assets: the paint splash, torn bar ends and the tile mark are original paths; icons are Phosphor. The game's title face (Chinese Rocks, Typodermic: free for desktop use, not embeddable) is not shipped; the theme bundles Anton (OFL) in its place. The body face is a light condensed sans the game never names; the theme bundles Oswald Light (OFL). Both are in `src/Typography/`. Rockstar and Red Dead Redemption are trademarks of Rockstar Games.
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -73,6 +73,7 @@ Empty state (no game selected, both overviews, shown when `{Binding Game, Fallba
 | GridViewItemStyle | White 2px frame around the selected cover, rule grey on hover |
 | PlayButton | Header bar ("ORGANIZE AND COMPARE") with torn ends. Hover: a copy of the slab in the brighter maroon is wiped across it from the left (clip rectangle, 0.24s) while the label steps 3px right; leaving wipes it off in 0.2s; pressed fades in a dark-red copy. No loops |
 | PropertyItemButton | Values link-style; chips as the store's price tags |
+| Running game (`RunningIndicatorBrush` = `rdr1-wire`) | The telegraph, in a theme-made wire blue (the menus have no cold colour; the radar draws allies in blue). Every surface carries a wire tint, a frame and a dash-dot-dash (10, 3, 10px keys) in the game's flat square shapes (the Play slab keeps its torn ends); the selected outline and the red selection wash stay outside or under it. **Launching:** a paint swipe (`RunningScan`, a soft-tailed band with a hard leading edge, like the hover's fresh coat of paint) crosses the row, the cover or the slab in 1.15s, a wire line along the foot (a black tape along the cover's foot) fills in step with it, and as it lands the three keys tap in turn (1.6s loop, 0.45s rest). The slab holds a 0.5 black scrim over the wire plate so the swipe reads. **Running:** the foot line stays full, the frame breathes 0.72 to 1 and the keys tap slowly one after another over 3.2s; the slab's scrim breathes 0.22 to 0.42 (white label on the wire plate: 4.6:1 at worst). **Hover on RUNNING:** the label turns to Cancel and a second scrim fades in; the red hover wipe is off while launching or running, and the hover binding is `Self`. Selected rows and covers keep the white or maroon selection outside the wire frame. |
 
 ## Deviations
 

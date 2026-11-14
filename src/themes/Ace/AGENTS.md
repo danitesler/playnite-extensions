@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.60 Default files) in the style of **Counter-Strike 1.6's VGUI menus** and the Steam / GoldSrc olive skin of the same era. One dark variant. Unofficial fan theme: no Valve assets, original pixel icons and mark (`info/NOTICE-Ace.txt`).
 
-Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`.claude/skills/playnite-theme-dev/reference.md`**.
+Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
 ## Sources
 
@@ -77,6 +77,7 @@ Skeleton as in `../AGENTS.md`. Black page, amber bold title, gold captions over 
 | `GridViewItemTemplate` (+ `GridTileButton`) | cover hover controls as 36px bevelled VGUI plates with the pixel glyphs `IconPlay` / `IconInfo` / `IconDownload`; the shade pops in at half then full strength, the buttons step up 8, 4, 0px in 40ms frames, no scaling (it would blur the pixel glyphs); hover and press swap the plate in steps like Play |
 | Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | content hidden; the GoldSrc console prompt (`]`, `LOCErrorNoGameSelected`, a block cursor blinking in whole frames) in a sunken box |
 | `PropertyItemButton` | amber link; square chip when the list has `Tag="Chip"` |
+| Running game (`RunningIndicatorBrush` = `--cs-team-ct`) | CS 1.6 radar, square VGUI, no easing (linear). **Launching** (1.6s loop): a narrow radar needle (symmetric mask, 0.07 each side) bounces out to the far edge in 0.7s and back, across the row, plate or (vertically) the cover; a flat 2px foot bar fills in step and the square blip (bevelled, bottom-right of the cover, far end of rows and the plate) lights as the needle reaches it. **Running:** the foot stays full, the blip drops to 45% and back in whole-frame ramps over 3.2s and frame and tint breathe 0.72 to 1. Plate: CT-blue Bevel plate under a faint `RunningBreath` scrim (0.05-0.15), dark label (9:1 worst); Cancel only on RUNNING + hover of the button (`Self`), hover plate lifted while launching or running. |
 
 ## Previews
 
