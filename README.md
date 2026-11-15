@@ -64,6 +64,7 @@ I'm a product designer, and these are what I make when I'm not doing that. They'
 | <a href="src/themes/Visorline/README.md"><img src="src/themes/Visorline/art/screenshot-details.png" alt="Visorline details" width="280" /></a> | **Visorline**<br>Crysis 2 inspired. Honeycomb and mint ink.<br>[Details](src/themes/Visorline/README.md) · _not released yet_ |
 | <a href="src/themes/Rumpus/README.md"><img src="src/themes/Rumpus/art/screenshot-details.png" alt="Rumpus details" width="280" /></a> | **Rumpus**<br>Party Animals inspired. Light orange, confetti Play.<br>[Details](src/themes/Rumpus/README.md) · _not released yet_ |
 | <a href="src/themes/Gumshoe/README.md"><img src="src/themes/Gumshoe/art/screenshot-details.png" alt="Gumshoe details" width="280" /></a> | **Gumshoe**<br>Mouse: P.I. inspired. A paper detective desk.<br>[Details](src/themes/Gumshoe/README.md) · _not released yet_ |
+| <a href="src/themes/GildedRift/README.md"><img src="src/themes/GildedRift/art/screenshot-details.png" alt="Gilded Rift details" width="280" /></a> | **Gilded Rift**<br>League of Legends inspired. Navy and hextech gold.<br>[Details](src/themes/GildedRift/README.md) · _not released yet_ |
 
 ## Installation
 
