@@ -38,6 +38,11 @@ State indicator rules that keep coming back (details in [Running game indicator]
 - **The mark never overlaps the label.** The mark gets its own strip: on the button `PlayContent` sits in `PlayRoom` and the launching / running triggers pad it (and `CancelLabel`) by the mark's footprint; on rows the presenter sits in `RowRoom` padded the same way, with a `RunningMarkPlate` gradient strip behind the mark. The Cancel trigger hides `PlayContent` (`Hidden`, never `Collapsed`, or the button resizes on hover). Size the strip from `pwsh -STA -File tests/wpf/RunningLabelOverlapRegressionTests.ps1 -Keys <key> -Report <csv>` (`NeedLeft` / `NeedRight`), never from one English string. Details in [running-motion.md](../../../docs/themes/running-motion.md#label-and-mark-never-overlap).
 - **Look at it.** Run `pwsh -STA -File tests/wpf/RunningMotionFrames.ps1 -Keys <key> -OutDir <scratch>` and read `<key>-motion.png`: launching frames every 200ms (one band crossing), running frames, selected variants, the button under hover, and the label's worst-frame contrast. The validator enforces layer order, progress motion, the Cancel binding and the frame and tint.
 
+Top bar progress rules that keep coming back (the global loading bar, `PART_ProgressGlobal` in `Views/TopPanel.xaml`):
+
+- **The label is never tight.** The task text ("Importing Epic games...") is drawn over the bar, so give it room: at least 12px of side margin on `PART_TextProgressText` and a bar tall enough that the text does not touch the track edges (10-12px, not 6-8). Check a long label.
+- **Make the bar taller from the top bar, not the control.** The shared `ProgressBar` template takes its height from `Height` with an 8px `MinHeight` (`Height="{TemplateBinding Height}"`), so one `Height="12"` on `PART_ProgressGlobal` changes only that bar; dialogs keep the standard 8px.
+
 Settings window rules that keep coming back (details in [Settings screens](../../../docs/themes/settings-screens.md)):
 
 - **No stray title text.** If the title band draws its own title and hides `PART_TextTitle`, put `PART_TextTitle` in a `Visibility="Collapsed"` parent. Collapsed on the element alone is not enough: Playnite makes it visible when a window has a Title and it draws bare text at the band's top-left. Check ThemeModifier Settings and Settings. The validator fails this.
