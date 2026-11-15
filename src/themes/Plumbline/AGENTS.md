@@ -8,7 +8,7 @@ orange lozenge over the running game. No dark variant. Unofficial fan theme, not
 Electronic Arts or Maxis; it carries no game art, logo or font ([notice](info/NOTICE-Plumbline.txt)). The name only
 echoes the source (a plumb line hangs from a plumb bob) and the mark is an original plumb bob, not EA's plumbob.
 
-**Status: design phase done, XAML phase not started.** Read [`HANDOFF.md`](HANDOFF.md) first.
+**Status: XAML phase written 2026-11-16: validator and layout tests pass, deployed; not yet reviewed live in Playnite (play hover bloom, sheen, gem animation, settings window).** Read [`HANDOFF.md`](HANDOFF.md) first.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**.
 Loading rules and build checks: **`docs/themes/reference.md`**.
