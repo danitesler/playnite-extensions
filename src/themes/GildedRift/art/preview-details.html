@@ -1,0 +1,309 @@
+<!doctype html>
+<!-- Gilded Rift: HTML replica of Playnite's Game Details view (1280x720), the full design the XAML translates.
+     Unofficial fan theme inspired by the League of Legends client: no Riot logo, art or font.
+     Colors are var(--gr-*) from src/tokens.css (injected at render). Fonts: Cinzel (bundled, stands in for Beaufort)
+     and Segoe UI (drawn with the bundled Selawik, stands in for Spiegel).
+     Hero moment staged in its hovered end state: the winged Play plate with its pale-gold bloom and shine band.
+     The selected row, a hovered row and a running (launching) row are shown in the list. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Gilded Rift - Details Preview</title>
+<style>
+  :root {
+    --page: var(--gr-abyss);
+    --head: "Cinzel", "Palatino Linotype", Georgia, serif;
+    --body: "Segoe UI", sans-serif;
+    --gold-wash: rgba(200,170,110,.16);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--page); color: var(--gr-gold-pale); font-family: var(--body); font-size: 14px; display: flex; }
+  svg { display: block; }
+  .ic { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; stroke-linejoin: miter; }
+
+  /* ---- Rail: 44px void, closed by a gold line; current item = gold notch on the edge + wash fading to the left ---- */
+  .rail { width: 44px; flex: none; background: var(--gr-void); position: relative; z-index: 10; display: flex; flex-direction: column; box-shadow: inset -1px 0 0 var(--gr-gold-dim), inset -2px 0 0 var(--gr-gold-dark); }
+  .menu { width: 44px; height: 52px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .crest { width: 32px; height: 32px; position: relative; display: flex; align-items: center; justify-content: center; color: var(--gr-gold); }
+  .crest::before { content: ""; position: absolute; inset: 0; background: var(--gr-gold-dim); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .crest::after { content: ""; position: absolute; inset: 1px; background: var(--gr-void); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .crest svg { position: relative; z-index: 1; width: 26px; height: 26px; }
+  .item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--gr-ash); position: relative; }
+  .item svg { width: 16px; height: 16px; }
+  .item.cur { color: var(--gr-gold-pale); background: linear-gradient(270deg, var(--gold-wash), transparent 85%); }
+  .item.cur::after { content: ""; position: absolute; right: 2px; top: 14px; border: 6px solid transparent; border-right: 7px solid var(--gr-gold); border-left: 0; }
+  .item.cur::before { content: ""; position: absolute; left: 0; right: 3px; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--gr-gold-dim)); }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* ---- Top bar: 52px navy, closed by a gold hairline with a keystone diamond ---- */
+  .top-bar { height: 52px; flex: none; background: var(--gr-navy); position: relative; display: flex; align-items: center; padding: 0 12px 0 18px; gap: 8px; }
+  .top-bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, var(--gr-gold-dim), var(--gr-gold-dim) 40%, var(--gr-gold-dark)); }
+  .top-bar::before { content: ""; position: absolute; left: 14px; bottom: -3px; width: 7px; height: 7px; background: var(--gr-gold); transform: rotate(45deg); z-index: 2; }
+  .search { width: 232px; height: 34px; background: var(--gr-void); border: 1px solid var(--gr-gold-dark); border-radius: var(--radius); padding: 0 10px; color: var(--gr-ash); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .search svg { width: 14px; height: 14px; }
+  .cell { width: 34px; height: 34px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--gr-ash); position: relative; flex: none; }
+  .cell svg { width: 16px; height: 16px; }
+  .cell.hov { background: var(--gr-slate); color: var(--gr-gold-lit); }
+  .cell.on { background: var(--gr-bronze); color: var(--gr-gold-pale); }
+  .cell.on::after { content: ""; position: absolute; left: 7px; right: 7px; bottom: 2px; height: 2px; background: var(--gr-gold); box-shadow: 0 0 6px var(--gr-gold-dim); }
+  .mark { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--gr-gold-rich); transform: rotate(45deg); }
+  .items { display: flex; gap: 2px; align-items: center; }
+  .sep { width: 1px; height: 18px; background: var(--gr-gold-dark); margin: 0 4px; }
+  .badge { position: absolute; top: 2px; right: 1px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; background: var(--gr-hex); color: var(--gr-void); font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .grow { flex: 1; }
+  .win { display: flex; gap: 2px; margin-right: 0; }
+  .win .cell { width: 38px; height: 30px; }
+
+  .view { flex: 1; min-height: 0; display: flex; }
+
+  /* ---- Roster: champion-select rows. Selected = bronze wash + 3px gold bar + cream; running = teal frame, wash, foot line ---- */
+  .game-list { width: 280px; flex: none; background: var(--page); overflow: hidden; padding: 6px 0; position: relative; box-shadow: inset -1px 0 0 var(--gr-gold-dark); }
+  .row { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 14px; color: var(--gr-ash); font-size: 14px; position: relative; }
+  .ico { width: 28px; height: 28px; flex: none; position: relative; }
+  .ico::before { content: ""; position: absolute; inset: 0; background: var(--gr-gold-dark); clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px); }
+  .ico i { position: absolute; inset: 1px; clip-path: polygon(3.4px 0, 100% 0, 100% calc(100% - 3.4px), calc(100% - 3.4px) 100%, 0 100%, 0 3.4px); }
+  .row.hov { background: var(--gr-slate); color: var(--gr-gold-lit); }
+  .row.hov .ico::before { background: var(--gr-gold-dim); }
+  .row.sel { color: var(--gr-gold-pale); background: linear-gradient(90deg, var(--gr-bronze), rgba(50,40,30,.25) 85%, transparent); }
+  .row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gr-gold); box-shadow: 0 0 8px var(--gr-gold-dim); }
+  .row.sel .ico::before { background: var(--gr-gold); }
+  .row.run { color: var(--gr-gold-pale); background: linear-gradient(90deg, rgba(10,50,60,.85), rgba(10,50,60,.35) 70%, rgba(10,50,60,.1)); box-shadow: inset 0 0 0 1px var(--gr-hex-mid); }
+  .row.run::after { content: ""; position: absolute; left: 1px; bottom: 1px; width: 62%; height: 2px; background: var(--gr-hex); box-shadow: 0 0 6px var(--gr-hex-mid); }
+  .row.run .scan { position: absolute; top: 1px; bottom: 1px; left: 46%; width: 54px; background: linear-gradient(90deg, transparent, rgba(10,200,185,.28), transparent); }
+  .gem { margin-left: auto; width: 18px; height: 18px; position: relative; flex: none; }
+  .gem::before { content: ""; position: absolute; inset: 2px; border: 1.5px solid var(--gr-hex); transform: rotate(45deg); }
+  .gem::after { content: ""; position: absolute; inset: 6px; background: var(--gr-hex); transform: rotate(45deg); box-shadow: 0 0 6px var(--gr-hex); }
+
+  /* ---- Game page ---- */
+  .page { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 300px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 340px 240px at 74% 28%, rgba(10,200,185,.38), rgba(3,151,171,.12) 55%, transparent 75%),
+      radial-gradient(ellipse 520px 160px at 30% 72%, rgba(120,90,40,.28), transparent 70%),
+      linear-gradient(180deg, #0d2438 0%, #0a1c30 45%, #08182a 100%); }
+  .banner .shaft { position: absolute; left: 66%; top: -20px; width: 120px; height: 340px; background: linear-gradient(180deg, rgba(205,250,250,.34), rgba(10,200,185,.06) 80%, transparent); transform: skewX(-8deg); filter: blur(6px); }
+  .banner .ridge { position: absolute; left: 0; right: 0; bottom: 0; background: var(--gr-navy); }
+  .banner .r1 { height: 150px; opacity: .55; clip-path: polygon(0 62%, 7% 40%, 14% 56%, 22% 30%, 31% 52%, 40% 36%, 49% 58%, 58% 28%, 66% 50%, 76% 34%, 86% 54%, 94% 38%, 100% 52%, 100% 100%, 0 100%); }
+  .banner .r2 { height: 110px; opacity: .8; clip-path: polygon(0 70%, 9% 52%, 19% 66%, 28% 44%, 39% 64%, 48% 48%, 60% 68%, 69% 46%, 80% 64%, 90% 50%, 100% 66%, 100% 100%, 0 100%); }
+  .banner .spire { position: absolute; left: 68%; bottom: 74px; width: 34px; height: 130px; background: #07121f; clip-path: polygon(50% 0, 62% 38%, 100% 100%, 0 100%, 38% 38%); opacity: .9; }
+  .wash { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 38%, var(--page) 96%); }
+  .motes i { position: absolute; width: 2px; height: 2px; background: var(--gr-hex-pale); opacity: .6; border-radius: 1px; }
+
+  .body { position: relative; padding: 0 28px 0 28px; }
+  .head { position: absolute; left: 28px; right: 28px; top: 150px; display: flex; align-items: flex-end; gap: 16px; }
+  .gicon { width: 72px; height: 72px; position: relative; flex: none; }
+  .gicon::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gr-gold-lit), var(--gr-gold-dim) 55%, var(--gr-gold-dark)); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+  .gicon i { position: absolute; inset: 2px; background: radial-gradient(circle at 35% 30%, #5fd8d0, #0b4b62 55%, #071a2b); clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px); }
+  .titlebox { flex: 1; min-width: 0; padding-bottom: 2px; }
+  .title { font-family: var(--head); font-weight: 700; font-size: 34px; letter-spacing: 2.5px; line-height: 1.05; text-transform: uppercase; color: var(--gr-gold-pale); text-shadow: 0 2px 14px var(--gr-void), 0 0 2px var(--gr-void); white-space: nowrap; }
+  .flourish { display: flex; align-items: center; gap: 0; margin-top: 8px; width: 340px; height: 9px; }
+  .flourish .ln { height: 1px; flex: 1; background: linear-gradient(90deg, var(--gr-gold), var(--gr-gold-dim) 60%, transparent); }
+  .flourish .dm { width: 7px; height: 7px; background: var(--gr-gold); transform: rotate(45deg); flex: none; margin: 0 6px 0 0; }
+  .actions { display: flex; gap: 10px; align-items: center; flex: none; margin-bottom: 2px; }
+
+  /* Play: void plate, notched gold bevel, wings, bloom + shine (hovered end state) */
+  .play { position: relative; width: 196px; height: 46px; flex: none; margin: 0 14px; }
+  .play svg.frame { position: absolute; left: -16px; top: -3px; width: 228px; height: 52px; overflow: visible; }
+  .play .bloom { position: absolute; left: 6px; right: 6px; top: 4px; bottom: 4px; background: radial-gradient(ellipse 80% 120% at 50% 130%, rgba(240,230,210,.62), rgba(200,170,110,.32) 45%, rgba(70,55,20,.4) 80%); clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px); }
+  .play .shine { position: absolute; top: 4px; bottom: 4px; left: 58%; width: 38px; background: linear-gradient(100deg, transparent, rgba(240,230,210,.42), transparent); transform: skewX(-18deg); }
+  .play .label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--head); font-weight: 700; font-size: 17px; letter-spacing: 4px; color: var(--gr-gold-pale); text-shadow: 0 1px 6px var(--gr-void); }
+  .play .label svg { width: 11px; height: 11px; fill: currentColor; stroke: none; }
+  .sq { width: 40px; height: 40px; position: relative; color: var(--gr-gold); display: flex; align-items: center; justify-content: center; }
+  .sq::before { content: ""; position: absolute; inset: 0; background: var(--gr-gold-dim); clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+  .sq::after { content: ""; position: absolute; inset: 1px; background: var(--gr-slate); clip-path: polygon(5.4px 0, 100% 0, 100% calc(100% - 5.4px), calc(100% - 5.4px) 100%, 0 100%, 0 5.4px); }
+  .sq svg { position: relative; z-index: 1; width: 16px; height: 16px; }
+  .tip { position: absolute; z-index: 20; right: 28px; top: 232px; width: 150px; padding: 7px 10px 8px; background: var(--gr-void); border: 1px solid var(--gr-gold-dim); box-shadow: inset 0 0 0 1px var(--gr-gold-dark), 0 6px 18px rgba(0,0,0,.6); }
+  .tip b { display: block; font-family: var(--head); font-weight: 700; font-size: 12px; letter-spacing: 1.5px; color: var(--gr-gold); text-transform: uppercase; }
+  .tip span { display: block; margin-top: 2px; font-size: 12px; color: var(--gr-ash); }
+
+  .cols { position: absolute; left: 28px; right: 28px; top: 238px; display: flex; gap: 24px; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; margin-bottom: 16px; }
+  .shot { flex: 1; height: 112px; position: relative; background: var(--gr-gold-dark); clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+  .shot i { position: absolute; inset: 1px; clip-path: polygon(5.4px 0, 100% 0, 100% calc(100% - 5.4px), calc(100% - 5.4px) 100%, 0 100%, 0 5.4px); }
+  .sec { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .sec h3 { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gr-gold-pale); white-space: nowrap; }
+  .sec .ln { flex: 1; height: 1px; background: linear-gradient(90deg, var(--gr-gold-dim), transparent); }
+  .sec .dm { width: 6px; height: 6px; background: var(--gr-gold); transform: rotate(45deg); flex: none; }
+  .desc { font-size: 13px; line-height: 1.62; color: var(--gr-ash); margin-bottom: 14px; }
+
+  /* Metadata pane: navy slab, two-line gold frame, notched top-left and bottom-right corners */
+  .meta { width: 338px; flex: none; position: relative; padding: 2px; background: var(--gr-gold-dim); clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+  .meta .in { background: var(--gr-navy); padding: 14px 19px 14px; clip-path: polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px); box-shadow: inset 0 0 0 1px var(--gr-gold-dark); }
+  .grp { padding: 8px 0; position: relative; }
+  .grp + .grp::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, var(--gr-gold-dim), var(--gr-gold-dark) 70%, transparent); }
+  .grp + .grp::after { content: ""; position: absolute; left: 0; top: -2px; width: 5px; height: 5px; background: var(--gr-gold); transform: rotate(45deg); }
+  .grp:first-child { padding-top: 0; }
+  .grp:last-child { padding-bottom: 0; }
+  .m { display: flex; gap: 10px; padding: 3px 0; font-size: 13px; align-items: baseline; min-height: 23px; }
+  .m .k { width: 96px; flex: none; color: var(--gr-ash); font-size: 12px; }
+  .m .v { flex: 1; min-width: 0; color: var(--gr-gold-pale); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { position: relative; padding: 2px 9px 3px; font-size: 12px; color: var(--gr-gold-lit); background: var(--gr-gold-dark); clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px); }
+  .chip::before { content: ""; position: absolute; inset: 1px; background: var(--gr-slate); clip-path: polygon(4.4px 0, 100% 0, 100% calc(100% - 4.4px), calc(100% - 4.4px) 100%, 0 100%, 0 4.4px); }
+  .chip span { position: relative; }
+  .score { display: inline-flex; align-items: center; gap: 4px; margin-right: 6px; font-size: 11px; white-space: nowrap; color: var(--gr-ash); }
+  .score b { color: var(--gr-leaf); font-size: 12px; padding: 0 5px; background: rgba(10,206,131,.12); border: 1px solid rgba(10,206,131,.5); }
+  .score b.mid { color: var(--gr-gold-rich); background: rgba(200,155,60,.12); border-color: rgba(200,155,60,.5); }
+  .status { display: inline-flex; align-items: center; gap: 7px; }
+  .status i { width: 7px; height: 7px; background: var(--gr-gold); transform: rotate(45deg); }
+  .link { color: var(--gr-hex); }
+
+  .foot { position: absolute; left: 28px; width: 640px; bottom: 8px; text-align: left; font-size: 10px; white-space: nowrap; letter-spacing: .5px; color: var(--gr-gold-dim); pointer-events: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M4 6h16M4 12h11M4 18h6"/></symbol>
+    <symbol id="i-details" viewBox="0 0 24 24"><path d="M4 5h16v6H4zM4 14h16v5H4z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h2M9 6h11M4 12h2M9 12h11M4 18h2M9 18h11"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><path d="M12 3.5l9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17v-6a6 6 0 0 1 12 0v6l2 2H4zM10 21.5h4"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16.5 5l3.5.9-3.5 14.2-3.5-.9z"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><path d="M5 20v-7M11 20V5M17 20v-10M3 21h18"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0zM12 18v3"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M6 17h12"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19zM14 6l4 4"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.4"/></symbol>
+    <!-- mark: a winged gem (own drawing, not Riot's logo) -->
+    <symbol id="mark" viewBox="0 0 32 32"><path d="M16 5l4.2 6L16 25l-4.2-14zM11.8 11h8.4M16 5v20"/><path d="M11 12.5C8 12 6 13.4 3.5 11.2 4.4 14 5.6 15.6 3 18.5 6.4 18 9.4 17.8 11.6 17M21 12.5C24 12 26 13.4 28.5 11.2 27.6 14 26.4 15.6 29 18.5 25.6 18 22.6 17.8 20.4 17"/><path d="M12.6 27.5L16 29.5l3.4-2"/></symbol>
+  </defs>
+</svg>
+
+<div class="rail" data-part="sidebar">
+  <div class="menu" data-part="PART_ElemMainMenu"><div class="crest"><svg class="ic" style="stroke-width:1.1"><use href="#mark"/></svg></div></div>
+  <div class="item cur"><svg class="ic"><use href="#i-library"/></svg></div>
+  <div class="item"><svg class="ic"><use href="#i-stats"/></svg></div>
+  <div class="item"><svg class="ic"><use href="#i-plug"/></svg></div>
+</div>
+
+<div class="main">
+  <div class="top-bar" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="ic"><use href="#i-search"/></svg>Search</div>
+    <div class="cell on" data-part="PART_ToggleFilter" title="Filter"><svg class="ic"><use href="#i-filter"/></svg><i class="mark"></i></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="cell hov" title="Sorting"><svg class="ic"><use href="#i-sort"/></svg></div>
+      <div class="sep"></div>
+      <div class="cell on" title="Details view"><svg class="ic"><use href="#i-details"/></svg></div>
+      <div class="cell" title="Grid view"><svg class="ic"><use href="#i-grid"/></svg></div>
+      <div class="cell" title="List view"><svg class="ic"><use href="#i-list"/></svg></div>
+      <div class="sep"></div>
+      <div class="cell" title="Group"><svg class="ic"><use href="#i-group"/></svg></div>
+    </div>
+    <div class="grow"></div>
+    <div class="cell" data-part="PART_ToggleNotifications" title="Notifications"><svg class="ic"><use href="#i-bell"/></svg><span class="badge">3</span></div>
+    <div class="win">
+      <div class="cell"><svg class="ic"><use href="#i-min"/></svg></div>
+      <div class="cell"><svg class="ic"><use href="#i-max"/></svg></div>
+      <div class="cell"><svg class="ic"><use href="#i-close"/></svg></div>
+    </div>
+  </div>
+
+  <div class="view">
+    <div class="game-list" data-part="game-list">
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#3a6b8c,#16304a)"></i></span>Ashen Frontier</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#7a5a2a,#2a1c0c)"></i></span>Brightwater Keep</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#2f7a6e,#0f2c34)"></i></span>Cinderfall Vale</div>
+      <div class="row sel"><span class="ico"><i style="background:radial-gradient(circle at 35% 30%,#5fd8d0,#0b4b62 55%,#071a2b)"></i></span>Shattered Spire</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#6a3a52,#201020)"></i></span>Dawnbreaker Rite</div>
+      <div class="row hov"><span class="ico"><i style="background:linear-gradient(135deg,#4a5a2a,#161e0c)"></i></span>Emberwild Pact</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#34507a,#101a30)"></i></span>Frostmere Gate</div>
+      <div class="row run"><span class="scan"></span><span class="ico"><i style="background:linear-gradient(135deg,#8a4a2a,#2a1208)"></i></span>Ironwake Siege<span class="gem"></span></div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#5a3a7a,#1a1030)"></i></span>Lanternfall</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#2a6a4a,#0c2018)"></i></span>Mosswatch Crown</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#7a3a3a,#240e0e)"></i></span>Nightbloom Court</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#3a6a7a,#10242c)"></i></span>Oathbound Tide</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#6a6a2a,#1e1e0a)"></i></span>Pale Standard</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#3a3a7a,#10102c)"></i></span>Quillspire Run</div>
+      <div class="row"><span class="ico"><i style="background:linear-gradient(135deg,#7a5a3a,#241a0e)"></i></span>Ravenmoor Gambit</div>
+    </div>
+
+    <div class="page" data-part="game-page">
+      <div class="banner">
+        <div class="shaft"></div>
+        <div class="ridge r1"></div>
+        <div class="spire"></div>
+        <div class="ridge r2"></div>
+        <div class="motes"><i style="left:61%;top:70px"></i><i style="left:70%;top:120px"></i><i style="left:77%;top:60px"></i><i style="left:58%;top:150px"></i><i style="left:84%;top:130px"></i><i style="left:66%;top:34px"></i><i style="left:73%;top:176px"></i></div>
+        <div class="wash"></div>
+      </div>
+      <div class="body">
+        <div class="head">
+          <div class="gicon"><i></i></div>
+          <div class="titlebox">
+            <div class="title">Shattered Spire</div>
+            <div class="flourish"><i class="dm"></i><i class="ln"></i></div>
+          </div>
+          <div class="actions">
+            <div class="play">
+              <svg class="frame" viewBox="0 0 228 52" aria-hidden="true">
+                <!-- wings: swept feathers off both sides -->
+                <path d="M16 18 C10 17 5 19 0 15 C2 20 4 22 1 28 C6 27 11 27 16 29" fill="none" stroke="var(--gr-gold)" stroke-width="1.2"/>
+                <path d="M16 23 C11 23 7 24 3 22" fill="none" stroke="var(--gr-gold-dim)" stroke-width="1"/>
+                <path d="M212 18 C218 17 223 19 228 15 C226 20 224 22 227 28 C222 27 217 27 212 29" fill="none" stroke="var(--gr-gold)" stroke-width="1.2"/>
+                <path d="M212 23 C217 23 221 24 225 22" fill="none" stroke="var(--gr-gold-dim)" stroke-width="1"/>
+                <!-- plate: void fill, outer bevel (lit top-left), inner hairline -->
+                <path d="M26 3 H202 L212 13 V39 L202 49 H26 L16 39 V13 Z" fill="var(--gr-void)"/>
+                <path d="M26 3 H202 L212 13 V39 L202 49 H26 L16 39 V13 Z" fill="none" stroke="var(--gr-gold-lit)" stroke-width="1.5"/>
+                <path d="M28 7 H200 L208 15 V37 L200 45 H28 L20 37 V15 Z" fill="none" stroke="var(--gr-gold-dark)" stroke-width="1"/>
+                <path d="M16 20 L12 26 L16 32 M212 20 L216 26 L212 32" fill="none" stroke="var(--gr-gold)" stroke-width="1.2"/>
+              </svg>
+              <div class="bloom"></div><div class="shine"></div>
+              <div class="label"><svg viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z"/></svg>Play</div>
+            </div>
+            <div class="sq" title="More"><svg class="ic"><use href="#i-more"/></svg></div>
+            <div class="sq" title="Edit"><svg class="ic"><use href="#i-edit"/></svg></div>
+          </div>
+        </div>
+
+        <div class="cols">
+          <div class="left">
+            <div class="shots">
+              <div class="shot"><i style="background:radial-gradient(circle at 60% 35%,#1f6f7a,#0b2233 60%,#06121e)"></i></div>
+              <div class="shot"><i style="background:radial-gradient(circle at 35% 55%,#7a5a2a,#1c1a22 60%,#06121e)"></i></div>
+              <div class="shot"><i style="background:radial-gradient(circle at 50% 40%,#3a5a8a,#0c1a30 60%,#06121e)"></i></div>
+            </div>
+            <div class="sec"><i class="dm"></i><h3>Description</h3><i class="ln"></i></div>
+            <p class="desc">A fallen watchtower looms over a splintered frontier. Gather a warband, claim the high ground and hold the spire through three nights of siege. Every ridge you capture opens a new line of supply, and every loss lights a beacon the enemy can see.</p>
+            <div class="sec"><i class="dm"></i><h3>Notes</h3><i class="ln"></i></div>
+            <p class="desc">Finished the northern campaign. Skirmish ladder next.</p>
+          </div>
+
+          <div class="meta" data-part="metadata"><div class="in">
+            <div class="grp">
+              <div class="m"><span class="k">Completion</span><span class="v"><span class="status"><i></i>Playing</span></span></div>
+              <div class="m"><span class="k">Play time</span><span class="v">48 h 12 min</span></div>
+              <div class="m"><span class="k">Last played</span><span class="v">Yesterday</span></div>
+            </div>
+            <div class="grp">
+              <div class="m"><span class="k">Scores</span><span class="v"><span class="score">Critic <b>88</b></span><span class="score">User <b>92</b></span><span class="score">Fans <b class="mid">74</b></span></span></div>
+            </div>
+            <div class="grp">
+              <div class="m"><span class="k">Developer</span><span class="v">Vantage Forge</span></div>
+              <div class="m"><span class="k">Publisher</span><span class="v">Lanternlight Games</span></div>
+              <div class="m"><span class="k">Release date</span><span class="v">14 Mar 2024</span></div>
+            </div>
+            <div class="grp">
+              <div class="m"><span class="k">Genres</span><span class="v chips"><span class="chip"><span>Strategy</span></span><span class="chip"><span>Fantasy</span></span><span class="chip"><span>Team-based</span></span></span></div>
+              <div class="m"><span class="k">Features</span><span class="v chips"><span class="chip"><span>Co-op</span></span><span class="chip"><span>Controller</span></span></span></div>
+            </div>
+            <div class="grp">
+              <div class="m"><span class="k">Source</span><span class="v">Steam</span></div>
+              <div class="m"><span class="k">Links</span><span class="v"><span class="link">Store page</span> &nbsp; <span class="link">Wiki</span></span></div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+      <div class="foot">Unofficial fan-made theme inspired by the League of Legends client. Not affiliated with or endorsed by Riot Games.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
