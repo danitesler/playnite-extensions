@@ -1,0 +1,470 @@
+<!--
+    Gilded Rift: spacing, focus and the shared ornament templates. Measurements: ../HANDOFF.md, ../BRIEF.md and the two
+    previews in ../art. Neither the League of Legends client nor Wild Rift publishes a spec, so the sizes come from the previews.
+    Shared templates draw thin gold bevels, notched corners and diamonds. Sprites (Images/fx: rays.png, glow.png, spark.png)
+    are white masks filled with theme brushes, so ThemeModifier edits reach them. Everything stretches; no template reports a
+    wide desired size of its own (Statistics cards stay compact).
+
+    CONTRACT. Every template below is a ControlTemplate for TargetType Control. Use it on a plain Control (or any Control
+    subclass) as Template = DynamicResource of the key and read only the host properties listed here. All are
+    IsHitTestVisible False. None has a content slot: the host overlays its own content in the same Grid cell (inside a margin
+    of about half the cut where the plate is notched). Fixed pieces are 56px or less, the rest stretches to the host.
+    Brushes are the host's Foreground unless the row names Background or BorderBrush. Where a row reads a theme brush
+    directly it is a DynamicResource of that key, so ThemeModifier edits still apply.
+
+    Key                    Reads                          Size behaviour                                  Example use
+    DividerTemplate        Foreground                     Height 9; width free. 6px diamond at the left,  Rule between metadata groups, popup
+                                                          1px rule from its centre fading to clear        separators. Foreground FrameBrush
+    ChamferTemplate        Background, BorderBrush, Tag   Fills the host. Tag = cut size in px (double,   Play plate, chips, panels. Hosts keep
+                                                          default 6); top-left and bottom-right cut,      their content in the same Grid cell
+                                                          1px edge, corner cells are the Tag size
+    BevelTemplate          Background, BevelLightBrush,   Fills the host. 1px lit top and left edges,     Raised plates
+                           BevelShadowBrush               1px shadow bottom and right, faint inner line
+    BevelInsetTemplate     Background, BevelLightBrush,   Fills the host. The inverse: shadow top and     Wells, inputs
+                           BevelShadowBrush               left, lit bottom and right
+    CornerMarksTemplate    Foreground                     Fills the host. 6px L-marks, 1.5px thick,       Cover hover (host animates its Margin
+                                                          inset 2px from each corner                      3px inward), keyboard focus (FocusVisual)
+    DoubleFrameTemplate    BorderBrush                    Fills the host. Outer 1px line (notch 6) and    Hovered or selected tile frame
+                                                          an inner hairline inset 3px (notch 4) at 55%,
+                                                          top-left and bottom-right corners notched
+    BloomTemplate          Foreground                     Fills the host, no desired size. glow.png mask  Soft light behind a plate or glyph; host
+                                                                                                          sets Opacity
+    GlowFrameTemplate      Foreground                     Fills the host. Blurred stroked rectangle       Soft glow around a plate. Host sits at
+                                                          inset 10px, bloom reaches about 8px outside     Margin -10 around it. Uses a BlurEffect
+                                                          the plate                                       on one small rectangle, never on a row
+    SelectionBarTemplate   Background (wash fading right  Fills the host. 3px bar at the left edge       Roster rows, tree rows, list items.
+                           to clear at 85 percent),       with an 8px blurred copy, hairlines top and     The host's own content goes over it
+                           BorderBrush (bar and glow),    bottom that fade to the right
+                           Foreground (hairline sheen)
+    TabItemIndicatorTemplate  Foreground                  Height 6; width free. 2px line fading to both   Under the selected tab header
+                                                          ends and a soft light above it
+    BrandMarkTemplate      Foreground                     Uniform scale to the host (natural 64x64).      Main menu crest, title band, empty page.
+                                                          The winged gem of art/mark.svg, filled          Aspect is square; Background unused
+    RingGlowTemplate       Foreground                     Fills the host. 1px ring plus a blurred copy,   Chosen slot or cover. Host sits at
+                                                          ring inset 8px from the host edge               Margin -8 around the lit element
+    GlowLineTemplate       Foreground                     Height 6; width free. Hot 1px core in           Light rule: running foot line, banner
+                                                          HeadingForegroundBrush, 2px line, bloom         seam. Host sets Opacity
+    WingsTemplate          Foreground (centre diamond     Height 40; width stretches (natural 360).       Settings title band, centred; the host
+                           and outer feathers),           Three tapering feathers fan out of a 10x14      sets Width, desired width alone is about
+                           BorderBrush (inner feathers)   diamond, mirrored                               240
+    EmptyGameTemplate      Foreground (gold), BorderBrush Uniform scale to the host (natural 320x320).    The empty game page. Idle motion runs
+                           (teal crystal light),          rays.png burst, glow.png core, faceted crystal  only while IsVisible; none of it goes
+                           Background (plate behind the   that breathes (glow 0.7 to 1 over 4s), two     through a RenderTransform
+                           rings)                         counter-marching dashed rings
+
+    Details.
+    ChamferTemplate: the cut cells are Path elements sized from Tag, so any size works and nothing is painted in a page colour.
+    Tag may be written as plain text (Tag="8"); unset or not a number it falls back to 6. A host narrower than 2 x Tag squeezes the
+    corner cells; keep plates at least 14px in each direction.
+    PopupBorder is a plain Border style (PopupBackgroundBrush, 1px PopupBorderBrush, ControlCornerRadius). Popups and menus add the
+    inner hairline themselves, the way ToolTip.xaml does: a child Border with Margin 1, BorderThickness 1 and BorderBrush
+    FrameInnerBrush, so the hairline sits 2px in from the edge. Menu and list rows are 32px (MenuItemPadding, ComboBoxItemPadding).
+    DoubleFrameTemplate and CornerMarksTemplate keep their cuts and arms at a fixed size, so a host below 16px squeezes them.
+    GlowFrameTemplate and RingGlowTemplate draw outside the plate: the host needs a negative margin and a parent that does not
+    clip. BlurEffect is used on small rectangles only, never on the host that holds text.
+    WingsTemplate: columns are 62 star, 104 star, 28, 104 star, 62 star so that the natural 360px host keeps the previews' proportions.
+    EmptyGameTemplate: the 480 unit rays sit in a Canvas so WPF's layout clip does not cut them to the 320 stage.
+    The dashed rings turn by animating StrokeDashOffset (a dash pattern marching round the circle) and the
+    breath animates Opacity, so no transform is animated. The ring diameters make the circumference a whole number of dash
+    periods: do not change a diameter without changing its dash array.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <Style x:Key="PopupBorder" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource PopupBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    </Style>
+
+    <!-- Spacing. Buttons: a 12px semibold label with a 20px inset on a 32px plate (the preview's .btn). Inputs: 10px inset.
+         Menu and list rows are 32px (14px of text and 7px above and below); the left inset leaves room for the 2-3px gold bar. -->
+    <Thickness x:Key="ButtonPadding">20,5</Thickness>
+    <Thickness x:Key="InputPadding">10,5</Thickness>
+    <Thickness x:Key="MenuPadding">4</Thickness>
+    <Thickness x:Key="MenuItemPadding">14,7</Thickness>
+    <Thickness x:Key="ComboBoxDropDownPadding">4</Thickness>
+    <Thickness x:Key="ComboBoxItemPadding">14,7</Thickness>
+    <Thickness x:Key="ListBoxItemPadding">14,6</Thickness>
+    <Thickness x:Key="GroupBoxPadding">16,12,16,14</Thickness>
+    <Thickness x:Key="GroupBoxHeaderMargin">0,0,0,8</Thickness>
+    <Thickness x:Key="TooltipPadding">10,5</Thickness>
+    <!-- Every form field and button: one height across all themes (validate-extension.ps1, FormControlHeight). -->
+    <sys:Double x:Key="ControlHeight">32</sys:Double>
+    <sys:Double x:Key="IconSize">16</sys:Double>
+    <sys:Double x:Key="GameBannerHeight">300</sys:Double>
+    <!-- Banner darkening (ThemeModifier slider, 0 = none; above 0 the tint is 50% + 50% x the value): GameBannerTintBrush over the banner art, under the
+         theme's own fade. Off while Playnite draws the art behind the window (the banner collapses then). -->
+    <sys:Double x:Key="GameBannerDarken">0</sys:Double>
+
+    <!-- Keyboard focus: the four gold-white corner marks of the champion grid, one pixel outside the control. -->
+    <Style x:Key="FocusVisual" TargetType="Control">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Control Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource FocusBrush}" Margin="-3" Focusable="False" IsHitTestVisible="False" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== shared ornament templates ===== -->
+
+    <!-- Divider: a 6px diamond with a 1px rule running right from its centre, fading to clear. Height 9. Foreground. -->
+    <ControlTemplate x:Key="DividerTemplate" TargetType="Control">
+        <Grid Height="9" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle Height="1" Margin="3,0,0,0" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Path Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Data="M3,0 L6,3 L3,6 L0,3 Z" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Plate with the top-left and bottom-right corners cut by Tag px (default 6). Background = the body, BorderBrush = the 1px edge.
+         A 3x3 grid whose corner cells are the Tag size: rectangles for the body, borders for the sides, a triangle and a diagonal
+         stroke per cut, so it fits any size and paints nothing in a page colour. The host overlays its content in the same cell. -->
+    <ControlTemplate x:Key="ChamferTemplate" TargetType="Control">
+        <Grid SnapsToDevicePixels="True" UseLayoutRounding="True" IsHitTestVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Path Grid.Row="0" Grid.Column="0" Stretch="Fill" Data="M1,0 L1,1 L0,1 Z" Fill="{TemplateBinding Background}"
+                  Width="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}"
+                  Height="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}" />
+            <Path Grid.Row="2" Grid.Column="2" Stretch="Fill" Data="M0,0 L1,0 L0,1 Z" Fill="{TemplateBinding Background}"
+                  Width="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}"
+                  Height="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}" />
+            <Rectangle Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Fill="{TemplateBinding Background}" />
+            <Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Fill="{TemplateBinding Background}" />
+            <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Fill="{TemplateBinding Background}" />
+            <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding BorderBrush}" />
+            <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" BorderThickness="0,0,1,0" BorderBrush="{TemplateBinding BorderBrush}" />
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0,0,0,1" BorderBrush="{TemplateBinding BorderBrush}" />
+            <Border Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" BorderThickness="1,0,0,0" BorderBrush="{TemplateBinding BorderBrush}" />
+            <Path Grid.Row="0" Grid.Column="0" Stretch="Fill" Data="M0,1 L1,0" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1"
+                  Width="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}"
+                  Height="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}" />
+            <Path Grid.Row="2" Grid.Column="2" Stretch="Fill" Data="M1,0 L0,1" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1"
+                  Width="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}"
+                  Height="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=6, TargetNullValue=6}" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Raised plate: Background body, a lit 1px edge top and left (BevelLightBrush), a shadow edge bottom and right (BevelShadowBrush),
+         and a fainter inner line on each pair so the plate reads as bevelled and not just outlined. -->
+    <ControlTemplate x:Key="BevelTemplate" TargetType="Control">
+        <Grid SnapsToDevicePixels="True" IsHitTestVisible="False">
+            <Rectangle Fill="{TemplateBinding Background}" />
+            <Rectangle Height="1" Margin="1,1,1,0" VerticalAlignment="Top" Fill="{DynamicResource BevelLightBrush}" Opacity="0.3" />
+            <Rectangle Width="1" Margin="1,1,0,1" HorizontalAlignment="Left" Fill="{DynamicResource BevelLightBrush}" Opacity="0.3" />
+            <Rectangle Height="1" Margin="1,0,1,1" VerticalAlignment="Bottom" Fill="{DynamicResource BevelShadowBrush}" Opacity="0.3" />
+            <Rectangle Width="1" Margin="0,1,1,1" HorizontalAlignment="Right" Fill="{DynamicResource BevelShadowBrush}" Opacity="0.3" />
+            <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{DynamicResource BevelShadowBrush}" />
+            <Rectangle Width="1" HorizontalAlignment="Right" Fill="{DynamicResource BevelShadowBrush}" />
+            <Rectangle Height="1" VerticalAlignment="Top" Fill="{DynamicResource BevelLightBrush}" />
+            <Rectangle Width="1" HorizontalAlignment="Left" Fill="{DynamicResource BevelLightBrush}" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Sunken plate (wells): the inverse of BevelTemplate. Shadow top and left, lit bottom and right. -->
+    <ControlTemplate x:Key="BevelInsetTemplate" TargetType="Control">
+        <Grid SnapsToDevicePixels="True" IsHitTestVisible="False">
+            <Rectangle Fill="{TemplateBinding Background}" />
+            <Rectangle Height="1" Margin="1,1,1,0" VerticalAlignment="Top" Fill="{DynamicResource BevelShadowBrush}" Opacity="0.3" />
+            <Rectangle Width="1" Margin="1,1,0,1" HorizontalAlignment="Left" Fill="{DynamicResource BevelShadowBrush}" Opacity="0.3" />
+            <Rectangle Height="1" Margin="1,0,1,1" VerticalAlignment="Bottom" Fill="{DynamicResource BevelLightBrush}" Opacity="0.3" />
+            <Rectangle Width="1" Margin="0,1,1,1" HorizontalAlignment="Right" Fill="{DynamicResource BevelLightBrush}" Opacity="0.3" />
+            <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{DynamicResource BevelLightBrush}" />
+            <Rectangle Width="1" HorizontalAlignment="Right" Fill="{DynamicResource BevelLightBrush}" />
+            <Rectangle Height="1" VerticalAlignment="Top" Fill="{DynamicResource BevelShadowBrush}" />
+            <Rectangle Width="1" HorizontalAlignment="Left" Fill="{DynamicResource BevelShadowBrush}" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Corner marks: four L shapes, arm 6, 1.5px thick, inset 2px from the host's corners. Foreground. Hosts animate their Margin
+         for the cover hover (the marks tighten 3px inward); FocusVisual puts them 3px outside the control. -->
+    <ControlTemplate x:Key="CornerMarksTemplate" TargetType="Control">
+        <Grid Margin="2" SnapsToDevicePixels="True" IsHitTestVisible="False">
+            <Path Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{TemplateBinding Foreground}" Data="M0,6 L0,0 L6,0 L6,1.5 L1.5,1.5 L1.5,6 Z" />
+            <Path Width="6" Height="6" HorizontalAlignment="Right" VerticalAlignment="Top" Fill="{TemplateBinding Foreground}" Data="M0,0 L6,0 L6,6 L4.5,6 L4.5,1.5 L0,1.5 Z" />
+            <Path Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Bottom" Fill="{TemplateBinding Foreground}" Data="M0,0 L1.5,0 L1.5,4.5 L6,4.5 L6,6 L0,6 Z" />
+            <Path Width="6" Height="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Fill="{TemplateBinding Foreground}" Data="M4.5,0 L6,0 L6,6 L0,6 L0,4.5 L4.5,4.5 Z" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Double frame: an outer 1px line with the top-left and bottom-right corners cut 6px, and an inner hairline inset 3px
+         with its own cut of 4px (parallel to the outer diagonal) at 55%. BorderBrush draws both. No fill. Each frame is edge
+         rectangles that stop short of the cuts plus a diagonal stroke per cut. -->
+    <ControlTemplate x:Key="DoubleFrameTemplate" TargetType="Control">
+        <Grid SnapsToDevicePixels="True" IsHitTestVisible="False">
+            <Grid>
+                <Rectangle Height="1" Margin="6,0,0,0" VerticalAlignment="Top" Fill="{TemplateBinding BorderBrush}" />
+                <Rectangle Width="1" Margin="0,0,0,6" HorizontalAlignment="Right" Fill="{TemplateBinding BorderBrush}" />
+                <Rectangle Height="1" Margin="0,0,6,0" VerticalAlignment="Bottom" Fill="{TemplateBinding BorderBrush}" />
+                <Rectangle Width="1" Margin="0,6,0,0" HorizontalAlignment="Left" Fill="{TemplateBinding BorderBrush}" />
+                <Path Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Top" Data="M0,6.5 L6.5,0" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+                <Path Width="6" Height="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Data="M-0.5,6 L6,-0.5" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+            </Grid>
+            <Grid Margin="3" Opacity="0.55">
+                <Rectangle Height="1" Margin="4,0,0,0" VerticalAlignment="Top" Fill="{TemplateBinding BorderBrush}" />
+                <Rectangle Width="1" Margin="0,0,0,4" HorizontalAlignment="Right" Fill="{TemplateBinding BorderBrush}" />
+                <Rectangle Height="1" Margin="0,0,4,0" VerticalAlignment="Bottom" Fill="{TemplateBinding BorderBrush}" />
+                <Rectangle Width="1" Margin="0,4,0,0" HorizontalAlignment="Left" Fill="{TemplateBinding BorderBrush}" />
+                <Path Width="4" Height="4" HorizontalAlignment="Left" VerticalAlignment="Top" Data="M0,4.5 L4.5,0" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+                <Path Width="4" Height="4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Data="M-0.5,4 L4,-0.5" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+            </Grid>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Bloom: the white glow.png mask stretched over the host and filled with Foreground. No desired size. The host sets Opacity. -->
+    <ControlTemplate x:Key="BloomTemplate" TargetType="Control">
+        <Rectangle Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask>
+                <ImageBrush ImageSource="{ThemeFile 'Images/fx/glow.png'}" Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Glow frame: a 3px stroked rectangle inset 10px from the host, blurred 8px, so the light reaches about 8px outside the plate it
+         lights. The host sits at Margin -10 around that plate and may set Opacity. Foreground. The blur is on this one rectangle only. -->
+    <ControlTemplate x:Key="GlowFrameTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False">
+            <Rectangle Margin="10" Stroke="{TemplateBinding Foreground}" StrokeThickness="3" RadiusX="3" RadiusY="3">
+                <Rectangle.Effect>
+                    <BlurEffect Radius="8" />
+                </Rectangle.Effect>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- The selection plate (roster rows, tree rows, list items): a wash from Background that is full at the left edge and clear by 85 percent of
+         the width, hairlines of Foreground along the top and bottom that fade to the right, and a 3px bar of BorderBrush at the left edge with a
+         blurred copy of the bar beside it (the glow is the copy, not an effect on the row). Fills the host. -->
+    <ControlTemplate x:Key="SelectionBarTemplate" TargetType="Control">
+        <Grid SnapsToDevicePixels="True" IsHitTestVisible="False">
+            <Rectangle Fill="{TemplateBinding Background}">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="0.85" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Height="1" VerticalAlignment="Top" Fill="{TemplateBinding Foreground}" Opacity="0.5">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="0.9" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{TemplateBinding Foreground}" Opacity="0.5">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="0.9" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Width="3" HorizontalAlignment="Left" Fill="{TemplateBinding BorderBrush}" Opacity="0.75">
+                <Rectangle.Effect>
+                    <BlurEffect Radius="8" />
+                </Rectangle.Effect>
+            </Rectangle>
+            <Rectangle Width="3" HorizontalAlignment="Left" Fill="{TemplateBinding BorderBrush}" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Tab indicator under the selected header: a 2px line of Foreground that fades out toward both ends, with a soft light rising above it
+         (a radial mask centred on the foot). Height 6, the width follows the host. -->
+    <ControlTemplate x:Key="TabItemIndicatorTemplate" TargetType="Control">
+        <Grid Height="6" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.35">
+                <Rectangle.OpacityMask>
+                    <RadialGradientBrush Center="0.5,1" GradientOrigin="0.5,1" RadiusX="0.5" RadiusY="1">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </RadialGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Height="2" VerticalAlignment="Bottom" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Transparent" Offset="0" />
+                        <GradientStop Color="Black" Offset="0.2" />
+                        <GradientStop Color="Black" Offset="0.8" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- The brand mark on a 64 unit square: a diamond centre stone (two narrow facets over a long point), three swept feathers on each side
+         and a small base chevron. Same geometry as art/mark.svg, filled in the host Foreground. Square aspect. -->
+    <ControlTemplate x:Key="BrandMarkTemplate" TargetType="Control">
+        <Viewbox Stretch="Uniform" IsHitTestVisible="False">
+            <Canvas Width="64" Height="64">
+                <Path Fill="{TemplateBinding Foreground}"
+                      Data="M31,7 L23,20 L31,50 Z M33,7 L41,20 L33,50 Z M22,23 L2,14 L9,25 Z M22,28 L4,26 L11,34 Z M23,33 L8,38 L15,44 Z M42,23 L62,14 L55,25 Z M42,28 L60,26 L53,34 Z M41,33 L56,38 L49,44 Z M32,54 L36.5,57.5 L32,61 L27.5,57.5 Z" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
+    <!-- Ring glow: a 1px ring inset 8px from the host and a blurred 3px copy of it, in Foreground. The host sits at Margin -8 around the
+         element it marks, so the ring runs along that element's edge and the bloom reaches about 6px past it. -->
+    <ControlTemplate x:Key="RingGlowTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle Margin="8" Stroke="{TemplateBinding Foreground}" StrokeThickness="3" RadiusX="2" RadiusY="2" Opacity="0.7">
+                <Rectangle.Effect>
+                    <BlurEffect Radius="6" />
+                </Rectangle.Effect>
+            </Rectangle>
+            <Rectangle Margin="8" Stroke="{TemplateBinding Foreground}" StrokeThickness="1" RadiusX="2" RadiusY="2" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Light line, 6px tall: a bloom (radial mask over the whole strip), a 2px line and a 1px hot core in HeadingForegroundBrush, all fading
+         at the ends. Foreground draws the bloom and the line. No desired width. The host may set Opacity. -->
+    <ControlTemplate x:Key="GlowLineTemplate" TargetType="Control">
+        <Grid Height="6" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.35">
+                <Rectangle.OpacityMask>
+                    <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </RadialGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Height="2" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Opacity="0.85">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Transparent" Offset="0" />
+                        <GradientStop Color="Black" Offset="0.12" />
+                        <GradientStop Color="Black" Offset="0.88" />
+                        <GradientStop Color="Transparent" Offset="1" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Height="1" VerticalAlignment="Center" Fill="{DynamicResource HeadingForegroundBrush}" Opacity="0.9">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Transparent" Offset="0.1" />
+                        <GradientStop Color="Black" Offset="0.5" />
+                        <GradientStop Color="Transparent" Offset="0.9" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Wings: three tapering feathers fanning out of a centre diamond, mirrored. 40px tall, the width stretches (natural 360). Columns
+         62*, 104*, 28, 104*, 62* keep the preview's proportions at 360. A wing is a 104x22 drawing in a Viewbox stretched sideways only
+         (the drawing starts 10px down, so the diamond sits on the 21px centre line). Foreground = outer feather and diamond,
+         BorderBrush = the two inner feathers. The right wing is the left one flipped. -->
+    <ControlTemplate x:Key="WingsTemplate" TargetType="Control">
+        <Grid Height="40" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="62*" />
+                <ColumnDefinition Width="104*" />
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="104*" />
+                <ColumnDefinition Width="62*" />
+            </Grid.ColumnDefinitions>
+            <Viewbox Grid.Column="1" Stretch="Fill" Height="22" Margin="0,10,0,0" VerticalAlignment="Top">
+                <Canvas Width="104" Height="22">
+                    <Path Data="M104,11 C78,11 50,6 0,0" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.2" />
+                    <Path Data="M104,14 C80,15 54,15 14,11" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+                    <Path Data="M104,17 C84,19 64,22 36,22" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+                </Canvas>
+            </Viewbox>
+            <Viewbox Grid.Column="3" Stretch="Fill" Height="22" Margin="0,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5">
+                <Viewbox.RenderTransform>
+                    <ScaleTransform ScaleX="-1" ScaleY="1" />
+                </Viewbox.RenderTransform>
+                <Canvas Width="104" Height="22">
+                    <Path Data="M104,11 C78,11 50,6 0,0" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.2" />
+                    <Path Data="M104,14 C80,15 54,15 14,11" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+                    <Path Data="M104,17 C84,19 64,22 36,22" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" />
+                </Canvas>
+            </Viewbox>
+            <Path Grid.Column="2" Width="10" Height="14" Margin="0,14,0,0" HorizontalAlignment="Center" VerticalAlignment="Top" Fill="{TemplateBinding Foreground}" Data="M5,0 L10,7 L5,14 L0,7 Z" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- The empty game page: a 320 unit stage. Back to front: the rays.png burst (Foreground, 480 units so it spreads past the stage), a
+         Background plate disc, the glow.png core (BorderBrush, the crystal's light), two dashed rings marching in opposite directions
+         (Foreground), and a faceted gem (facets BorderBrush, edges Foreground, a lit facet in HeadingForegroundBrush). The glow and the gem breathe
+         between 0.7 and 1 over 4 seconds, the rings march one whole turn per 60 and 45 seconds. Everything runs from a Trigger on IsVisible
+         in the template, so nothing runs while the page is hidden, and nothing goes through a RenderTransform. -->
+    <ControlTemplate x:Key="EmptyGameTemplate" TargetType="Control">
+        <Viewbox Stretch="Uniform" IsHitTestVisible="False">
+            <Grid Width="320" Height="320" SnapsToDevicePixels="True">
+                <Canvas IsHitTestVisible="False">
+                    <Rectangle Canvas.Left="-80" Canvas.Top="-80" Width="480" Height="480" Fill="{TemplateBinding Foreground}" Opacity="0.3">
+                        <Rectangle.OpacityMask>
+                            <ImageBrush ImageSource="{ThemeFile 'Images/fx/rays.png'}" Stretch="Uniform" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                </Canvas>
+                <Ellipse Width="200" Height="200" Fill="{TemplateBinding Background}" />
+                <Rectangle x:Name="CoreGlow" Width="300" Height="300" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{TemplateBinding BorderBrush}" Opacity="0.85">
+                    <Rectangle.OpacityMask>
+                        <ImageBrush ImageSource="{ThemeFile 'Images/fx/glow.png'}" Stretch="Uniform" />
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+                <Ellipse x:Name="RingA" Width="254.6479" Height="254.6479" HorizontalAlignment="Center" VerticalAlignment="Center"
+                         Stroke="{TemplateBinding Foreground}" StrokeThickness="1" StrokeDashArray="2 6" Opacity="0.6" />
+                <Ellipse x:Name="RingB" Width="210.0845" Height="210.0845" HorizontalAlignment="Center" VerticalAlignment="Center"
+                         Stroke="{TemplateBinding Foreground}" StrokeThickness="1" StrokeDashArray="10 5 2 5" Opacity="0.8" />
+                <Canvas x:Name="Crystal" Width="320" Height="320" Opacity="0.85">
+                    <Path Fill="{TemplateBinding BorderBrush}" Opacity="0.5" Data="M160,92 L130,152 L160,232 Z" />
+                    <Path Fill="{TemplateBinding BorderBrush}" Opacity="0.9" Data="M160,92 L190,152 L160,232 Z" />
+                    <Path Fill="{DynamicResource HeadingForegroundBrush}" Opacity="0.35" Data="M160,92 L145,152 L160,152 Z" />
+                    <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1" Opacity="0.8" Data="M130,152 L190,152 M160,92 L160,232" />
+                    <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeLineJoin="Miter" Data="M160,92 L190,152 L160,232 L130,152 Z" />
+                    <Path Fill="{DynamicResource HeadingForegroundBrush}" Opacity="0.85" Data="M160,126 L166,144 L160,162 L154,144 Z" />
+                </Canvas>
+            </Grid>
+        </Viewbox>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="EmptyGameIdle">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="CoreGlow" Storyboard.TargetProperty="Opacity" From="0.7" To="1" Duration="0:0:2" AutoReverse="True" RepeatBehavior="Forever">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseInOut" />
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Crystal" Storyboard.TargetProperty="Opacity" From="0.7" To="1" Duration="0:0:2" AutoReverse="True" RepeatBehavior="Forever">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseInOut" />
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RingA" Storyboard.TargetProperty="StrokeDashOffset" From="0" To="96" Duration="0:1:0" RepeatBehavior="Forever" />
+                            <DoubleAnimation Storyboard.TargetName="RingB" Storyboard.TargetProperty="StrokeDashOffset" From="0" To="-66" Duration="0:0:45" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="EmptyGameIdle" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+</ResourceDictionary>

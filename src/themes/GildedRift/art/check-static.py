@@ -65,6 +65,14 @@ defined = set()
 for s in texts.values():
     defined |= set(re.findall(r'x:Key="([^"]+)"', s))
 known = defined | shared | palette | glob
+# Keys Playnite itself provides but the API snapshot does not list (BaseStyle, DetailsViewGroupStyle, ...): any key the
+# reference tree uses without defining it, or a key it defines itself as a Playnite name, counts as provided.
+ref_defined, ref_used = set(), set()
+for rel in files(REF):
+    t = open(os.path.join(REF, rel), encoding="utf-8-sig").read()
+    ref_defined |= set(re.findall(r'x:Key="([^"]+)"', t))
+    ref_used |= set(re.findall(r"\{(?:DynamicResource|StaticResource)\s+(?:ResourceKey=)?([A-Za-z_][\w.]*)", t))
+known |= (ref_used - ref_defined - shared)
 
 use = re.compile(r"\{(?:DynamicResource|StaticResource)\s+(?:ResourceKey=)?([A-Za-z_][\w.]*)")
 seen = {}
