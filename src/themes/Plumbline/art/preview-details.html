@@ -1,0 +1,261 @@
+<!doctype html>
+<!-- Plumbline: HTML replica of Playnite's Game Details view (1280x720), a Sims 4-inspired light theme.
+     Unofficial: no game art, logo or font. The green and orange gems are the theme's own plumb-bob mark, not EA's.
+     Colors are var(--token) from src/tokens.css (injected at render). Shadows are one layer each: in XAML they are the
+     soft sprites in src/Images (shadow-disc, shadow-plate) filled through an OpacityMask. The facets are
+     src/Images/facets-rail.png as a mask. data-part tags mirror Views/TopPanel.xaml and the details list. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Plumbline - Details Preview</title>
+<style>
+  :root {
+    --ctl-h: 32px; --cell: 34px; --rail-w: 44px;
+    --gloss-green: linear-gradient(to bottom, var(--pl-green-hi) 0%, var(--pl-green-bright) 48%, var(--pl-green) 100%);
+    --gloss-white: linear-gradient(to bottom, var(--pl-white) 0%, var(--pl-pill-hi) 55%, var(--pl-pill-lo) 100%);
+    --gloss-orange: linear-gradient(to bottom, var(--pl-orange-hi) 0%, var(--pl-orange) 100%);
+    --soft: 0 2px 3px rgba(8, 72, 168, .28);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--pl-paper); color: var(--pl-ink); font-family: "Segoe UI", sans-serif; font-size: 14px; display: flex; }
+  svg { display: block; }
+  .ic { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Rail: the menu field. Facets are a white mask over the blue; items are 32px discs on the 44x40 cell. */
+  .rail { width: var(--rail-w); flex: none; position: relative; background: var(--pl-sky); z-index: 10; box-shadow: 1px 0 0 var(--pl-sky-deep); }
+  .rail::before { content: ""; position: absolute; inset: 0; background: var(--pl-white); -webkit-mask: url(../src/Images/facets-rail.png) 0 0 / 44px 720px no-repeat; opacity: .95; }
+  .rail > * { position: relative; }
+  .rail-item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; }
+  .disc { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--pl-disc); color: var(--pl-white); }
+  .disc svg { width: 16px; height: 16px; }
+  .rail-item.cur .disc { background: var(--gloss-white); color: var(--pl-disc); box-shadow: var(--soft), 0 0 0 2px var(--pl-sky-pale); }
+  .rail-item.menu .disc { background: var(--gloss-white); box-shadow: var(--soft); }
+  .rail-item.menu { height: 46px; }
+  .rail-gap { height: 6px; }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* Top bar: a white strip, 52px, hairline below. Round white cells; toggled = green gloss; the filter mark is an orange lozenge. */
+  .top-bar { height: 52px; flex: none; background: var(--pl-white); border-bottom: 1px solid var(--pl-line); display: flex; align-items: center; padding: 0 12px; gap: 8px; position: relative; z-index: 5; box-shadow: 0 2px 3px rgba(8, 72, 168, .10); }
+  .search { width: 260px; height: var(--ctl-h); background: var(--pl-mist); border-radius: 16px; padding: 0 12px; color: var(--pl-ink-muted); font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: inset 0 1px 2px rgba(8, 72, 168, .22); }
+  .search svg { width: 15px; height: 15px; }
+  .items { display: flex; gap: 4px; }
+  .tool { width: var(--cell); height: var(--cell); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--pl-ink); background: var(--gloss-white); box-shadow: var(--soft); position: relative; flex: none; }
+  .tool svg { width: 16px; height: 16px; }
+  .tool.on { background: var(--gloss-green); color: var(--pl-ink-deep); }
+  .tool .mark { position: absolute; right: 2px; top: 2px; width: 8px; height: 8px; background: var(--pl-orange-mark); transform: rotate(45deg); box-shadow: 0 0 0 1.5px var(--pl-white); }
+  .spacer { flex: 1; }
+  .win { display: flex; gap: 6px; margin-right: 2px; }
+  .win .tool { width: 28px; height: 28px; box-shadow: none; background: var(--pl-mist); }
+  .win .tool svg { width: 12px; height: 12px; }
+  .win .tool.close { background: var(--pl-red); color: var(--pl-white); }
+
+  .view { flex: 1; min-height: 0; display: flex; }
+
+  /* Game list: white rows on the pale well. Selected = green gloss with deep ink; the running game = orange wash, frame and lozenge. */
+  .game-list { width: 292px; flex: none; background: var(--pl-mist); overflow: hidden; padding: 8px 8px 0; box-shadow: inset -1px 0 0 var(--pl-line); }
+  .game-row { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; color: var(--pl-ink); font-size: 13px; background: var(--pl-white); border-bottom: 1px solid var(--pl-line); position: relative; }
+  .game-row:first-child { border-radius: 6px 6px 0 0; }
+  .game-row i { width: 22px; height: 22px; border-radius: 5px; flex: none; font-style: normal; font-size: 11px; font-weight: 700; color: var(--pl-white); display: flex; align-items: center; justify-content: center; }
+  .game-row.hov { background: var(--pl-hover); }
+  .game-row.sel { background: var(--gloss-green); color: var(--pl-ink-deep); font-weight: 700; border-radius: 6px; border-bottom-color: transparent; margin: -1px -2px; height: 36px; box-shadow: 0 0 0 1px var(--pl-green), var(--soft); z-index: 2; }
+  .game-row.run { background: color-mix(in srgb, var(--pl-orange-mark) 10%, var(--pl-white)); box-shadow: inset 0 0 0 2px var(--pl-orange-mark); }
+  .game-row .gem { position: absolute; right: 12px; top: 3px; width: 18px; height: 26px; }
+  .game-row.run .name { padding-right: 22px; }
+  .game-row:last-child { border-radius: 0 0 6px 6px; }
+
+  .game-page { flex: 1; min-width: 0; position: relative; overflow: hidden; background: var(--pl-paper); }
+  .hero { position: absolute; left: 0; right: 0; top: 0; height: 300px; overflow: hidden; }
+  .hero svg { width: 100%; height: 100%; display: block; }
+  .hero-wash { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(246,246,246,0) 35%, var(--pl-paper) 97%); }
+  .page-body { position: relative; padding: 118px 28px 0; }
+  .header { display: flex; align-items: center; gap: 14px; }
+  .game-icon { width: 56px; height: 56px; border-radius: 10px; background: var(--pl-white); border: 1px solid var(--pl-line); box-shadow: var(--soft); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; color: var(--pl-disc); flex: none; }
+  .game-title { font-family: "Segoe UI Semibold", "Segoe UI", sans-serif; font-weight: 600; font-size: 30px; line-height: 1.1; color: var(--pl-ink); letter-spacing: .2px; }
+  .game-sub { font-size: 12px; color: var(--pl-ink-muted); margin-top: 3px; }
+  .action-row { display: flex; gap: 12px; align-items: center; margin-top: 16px; padding-left: 4px; }
+
+  /* Play: a 44px white capsule with the 56px disc over its left end; hovered end state = lifted, lit ring, sheen. */
+  .play { position: relative; height: 44px; padding: 0 26px 0 66px; border-radius: 22px; background: var(--gloss-white); border: 1px solid var(--pl-pill-rim); box-shadow: 0 4px 6px rgba(8, 72, 168, .30); display: flex; align-items: center; font-family: "Segoe UI Semibold", "Segoe UI", sans-serif; font-weight: 600; font-size: 17px; color: var(--pl-ink); margin-left: 16px; transform: translateY(-2px); overflow: visible; }
+  .play .sheen { position: absolute; inset: 0; border-radius: 22px; overflow: hidden; pointer-events: none; }
+  .play .sheen::after { content: ""; position: absolute; left: 62%; top: 0; width: 70px; height: 100%; background: var(--pl-white); -webkit-mask: url(../src/Images/sheen.png) center / 100% 100% no-repeat; opacity: .75; }
+  .play .label { position: relative; z-index: 2; }
+  .play .bloom { position: absolute; left: -26px; top: -22px; width: 100px; height: 100px; background: var(--pl-sky-pale); -webkit-mask: url(../src/Images/bloom.png) center / 100% 100% no-repeat; pointer-events: none; }
+  .play .pdisc { position: absolute; left: -18px; top: -7px; width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 50% 28%, var(--pl-white) 0%, var(--pl-pill-hi) 58%, var(--pl-pill-lo) 100%); border: 1px solid var(--pl-pill-rim); box-shadow: 0 3px 5px rgba(8, 72, 168, .32); display: flex; align-items: center; justify-content: center; }
+  .play .pdisc svg { width: 26px; height: 26px; margin-left: 3px; filter: none; }
+  .sub-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--gloss-white); border: 1px solid var(--pl-pill-rim); box-shadow: var(--soft); color: var(--pl-ink); display: flex; align-items: center; justify-content: center; }
+  .sub-btn svg { width: 18px; height: 18px; }
+
+  .columns { display: flex; gap: 20px; margin-top: 22px; align-items: flex-start; }
+  .left-col { flex: 1; min-width: 0; }
+  .screenshots-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .screen-thumb { flex: 1; height: 96px; border-radius: 6px; border: 1px solid var(--pl-line); overflow: hidden; background: var(--pl-white); }
+  .screen-thumb svg { width: 100%; height: 100%; }
+  .card { background: var(--pl-white); border: 1px solid var(--pl-line); border-radius: 6px; box-shadow: 0 2px 3px rgba(8, 72, 168, .12); overflow: hidden; }
+  .band { height: 24px; background: linear-gradient(to bottom, var(--pl-band-hi), var(--pl-band)); color: var(--pl-ink-deep); font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
+  .card .body { padding: 10px 14px 12px; }
+  .desc-text { color: var(--pl-ink); line-height: 1.5; font-size: 13px; }
+  .meta { width: 332px; flex: none; }
+  .meta .body { padding: 4px 16px 6px; }
+  .meta-group { padding: 10px 0; border-top: 1px solid var(--pl-line); }
+  .meta-group:first-child { border-top: 0; }
+  .meta-row { display: flex; gap: 12px; padding: 3px 0; font-size: 13px; align-items: center; }
+  .meta-label { width: 108px; flex: none; color: var(--pl-ink-muted); font-size: 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip { background: var(--pl-mist); border: 1px solid var(--pl-line); border-radius: 6px; padding: 2px 8px; font-size: 12px; color: var(--pl-ink); }
+  /* Needs bar: the score as a green pill with a round cap on the left and the darker decay segment on the right. */
+  .need { display: flex; align-items: center; flex: 1; }
+  .need .cap { width: 20px; height: 20px; border-radius: 50%; background: var(--gloss-green); border: 1px solid var(--pl-green-deep); display: flex; align-items: center; justify-content: center; margin-right: -6px; z-index: 1; color: var(--pl-ink-deep); font-size: 10px; font-weight: 800; }
+  .need .bar { flex: 1; height: 12px; border-radius: 6px; background: var(--pl-green-deep); position: relative; overflow: hidden; box-shadow: inset 0 1px 1px rgba(0, 0, 0, .25); }
+  .need .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(to bottom, var(--pl-green-hi), var(--pl-green-bright) 50%, var(--pl-green)); border-radius: 6px; }
+  .need .val { width: 28px; text-align: right; font-weight: 700; font-size: 13px; color: var(--pl-green-ink); }
+  .link { color: var(--pl-ink-label); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Notification: the blue card with a lighter footer and a red round close. */
+  .note { position: absolute; left: 28px; bottom: 28px; width: 332px; border-radius: 6px; overflow: hidden; background: var(--pl-note); color: var(--pl-white); box-shadow: 0 3px 6px rgba(8, 72, 168, .35); }
+  .note .top { padding: 10px 12px 10px 12px; display: flex; gap: 10px; }
+  .note .ico { width: 38px; height: 38px; border-radius: 6px; background: var(--pl-white); flex: none; display: flex; align-items: center; justify-content: center; }
+  .note h4 { font-family: "Segoe UI Semibold", "Segoe UI", sans-serif; font-weight: 600; font-size: 14px; letter-spacing: .5px; text-transform: uppercase; margin-top: 2px; }
+  .note p { font-size: 12px; line-height: 1.35; margin-top: 3px; }
+  .note .foot { background: var(--pl-note-foot); padding: 7px 12px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .note .x { position: absolute; right: 8px; top: 8px; width: 16px; height: 16px; border-radius: 50%; background: var(--pl-red); color: var(--pl-white); display: flex; align-items: center; justify-content: center; }
+  .note .x svg { width: 9px; height: 9px; stroke-width: 3.4; }
+  .footnote { position: absolute; left: 14px; bottom: 6px; font-size: 10px; color: var(--pl-ink-muted); }
+</style>
+</head>
+<body>
+<!-- gem: the Plumbline mark, 6 facets (art/mark-path.txt), in green or orange -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="gem-g" viewBox="0 0 48 64">
+      <g stroke="none"><path d="M14,26 L24,18 L24,26 Z" fill="var(--pl-green-hi)"/><path d="M24,18 L34,26 L24,26 Z" fill="var(--pl-green)"/>
+      <path d="M14,27.5 L24,27.5 L24,45 L18,45 Z" fill="var(--pl-green-hi)"/><path d="M24,27.5 L34,27.5 L30,45 L24,45 Z" fill="var(--pl-green)"/>
+      <path d="M18,46.5 L24,46.5 L24,60 Z" fill="var(--pl-green)"/><path d="M24,46.5 L30,46.5 L24,60 Z" fill="var(--pl-green-deep)"/></g>
+      <circle cx="24" cy="6.5" r="4.5" fill="none" stroke="var(--pl-green-deep)" stroke-width="2.5"/><path d="M24 11 V18" stroke="var(--pl-green-deep)" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="gem-o" viewBox="0 0 48 64">
+      <g stroke="none"><path d="M14,26 L24,18 L24,26 Z" fill="var(--pl-orange-hi)"/><path d="M24,18 L34,26 L24,26 Z" fill="var(--pl-orange-mark)"/>
+      <path d="M14,27.5 L24,27.5 L24,45 L18,45 Z" fill="var(--pl-orange-hi)"/><path d="M24,27.5 L34,27.5 L30,45 L24,45 Z" fill="var(--pl-orange-mark)"/>
+      <path d="M18,46.5 L24,46.5 L24,60 Z" fill="var(--pl-orange-mark)"/><path d="M24,46.5 L30,46.5 L24,60 Z" fill="var(--pl-orange-text)"/></g>
+      <circle cx="24" cy="6.5" r="4.5" fill="none" stroke="var(--pl-orange-text)" stroke-width="2.5"/><path d="M24 11 V18" stroke="var(--pl-orange-text)" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="rail" data-part="sidebar">
+  <div class="rail-item menu" data-part="PART_ElemMainMenu"><div class="disc"><svg viewBox="0 0 48 64" style="width:17px;height:23px"><use href="#gem-g"/></svg></div></div>
+  <div class="rail-item cur"><div class="disc"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="4.5" height="14" rx="1.2"/><rect x="10" y="3.5" width="4.5" height="15.5" rx="1.2"/><path d="M16.2 6.2l3.9-1 3.2 12.4-3.9 1z" transform="translate(-1.5 0)"/></svg></div></div>
+  <div class="rail-item"><div class="disc"><svg class="ic" viewBox="0 0 24 24"><path d="M5.5 20v-8M12 20V4.5M18.5 20v-5.5"/></svg></div></div>
+  <div class="rail-item"><div class="disc"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v11M7.5 11l4.5 4.5 4.5-4.5M5 20h14"/></svg></div></div>
+</div>
+<div class="main">
+  <div class="top-bar" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="ic" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>Search</div>
+    <div class="tool on" data-part="PART_ToggleFilter" title="Filter"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 5.5h15l-5.8 7v6l-3.4-2v-4z"/></svg><span class="mark"></span></div>
+    <!-- Sorting first, then view switches, group and view settings: icons only. -->
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool" title="Sort"><svg class="ic" viewBox="0 0 24 24"><path d="M7 20V4M3.5 7.5L7 4l3.5 3.5M17 4v16M13.5 16.5L17 20l3.5-3.5"/></svg></div>
+      <div class="tool on" title="Details view"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M14.5 4.5v15"/></svg></div>
+      <div class="tool" title="Grid view"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg></div>
+      <div class="tool" title="List view"><svg class="ic" viewBox="0 0 24 24"><path d="M9.5 6.5H20M9.5 12H20M9.5 17.5H20M4.5 6.5h.01M4.5 12h.01M4.5 17.5h.01"/></svg></div>
+      <div class="tool" title="Group"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3.5l8.5 4.6-8.5 4.6-8.5-4.6zM3.5 12.5l8.5 4.6 8.5-4.6M3.5 16.8L12 21.4l8.5-4.6"/></svg></div>
+      <div class="tool" title="View settings"><svg class="ic" viewBox="0 0 24 24"><path d="M4 8h8M18 8h2M4 16h2M12 16h8"/><circle cx="15" cy="8" r="2.4"/><circle cx="9" cy="16" r="2.4"/></svg></div>
+    </div>
+    <div class="tool" data-part="PART_ToggleNotifications" title="Notifications"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 17V11a5.5 5.5 0 0111 0v6l1.7 2.2H4.8zM10 21.2h4"/></svg></div>
+    <div class="spacer"></div>
+    <div class="win">
+      <div class="tool"><svg class="ic" viewBox="0 0 24 24"><path d="M6 12h12"/></svg></div>
+      <div class="tool"><svg class="ic" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+      <div class="tool close"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></div>
+    </div>
+  </div>
+  <div class="view">
+    <div class="game-list" data-part="game-list">
+      <div class="game-row"><i style="background:#e8a33a">A</i><span class="name">Aunt Mabel's Greenhouse</span></div>
+      <div class="game-row"><i style="background:#3a8fe8">B</i><span class="name">Brindlemoor Ferry</span></div>
+      <div class="game-row hov"><i style="background:#c9569b">C</i><span class="name">Candlewick Row</span></div>
+      <div class="game-row sel"><i style="background:#2f7f3a">C</i><span class="name">Cloudberry Court</span></div>
+      <div class="game-row"><i style="background:#7a5fc9">D</i><span class="name">Dandelion Lane</span></div>
+      <div class="game-row"><i style="background:#d2623a">F</i><span class="name">Fernhollow</span></div>
+      <div class="game-row"><i style="background:#2aa5a5">L</i><span class="name">Lanternfish</span></div>
+      <div class="game-row run"><i style="background:#e8a33a">M</i><span class="name">Marigold Mile</span><svg class="gem" viewBox="0 0 48 64"><use href="#gem-o"/></svg></div>
+      <div class="game-row"><i style="background:#3a8fe8">P</i><span class="name">Paperboat Cove</span></div>
+      <div class="game-row"><i style="background:#c9569b">S</i><span class="name">Sunroom Society</span></div>
+      <div class="game-row"><i style="background:#7a5fc9">T</i><span class="name">Tidepool Tavern</span></div>
+      <div class="game-row"><i style="background:#d2623a">W</i><span class="name">Willowbrook Weekend</span></div>
+      <div class="game-row"><i style="background:#2f7f3a">Z</i><span class="name">Zinnia &amp; Co.</span></div>
+    </div>
+    <div class="game-page" data-part="game-page">
+      <div class="hero">
+        <!-- placeholder art: a sunny lot -->
+        <svg viewBox="0 0 944 300" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fc3f7"/><stop offset="1" stop-color="#d9f1ff"/></linearGradient></defs>
+          <rect width="944" height="300" fill="url(#sky)"/>
+          <circle cx="760" cy="84" r="34" fill="#ffe9a3"/>
+          <ellipse cx="200" cy="300" rx="420" ry="90" fill="#7fcf63"/>
+          <ellipse cx="700" cy="310" rx="460" ry="80" fill="#5fb84d"/>
+          <rect x="360" y="150" width="150" height="100" fill="#f4e3c4"/><polygon points="344,152 435,92 526,152" fill="#d2623a"/><rect x="415" y="195" width="34" height="55" fill="#2377bd"/><rect x="376" y="172" width="26" height="26" fill="#9ed8ff"/><rect x="470" y="172" width="26" height="26" fill="#9ed8ff"/>
+        </svg>
+        <div class="hero-wash"></div>
+      </div>
+      <div class="page-body">
+        <div class="header">
+          <div class="game-icon">C</div>
+          <div><div class="game-title">Cloudberry Court</div><div class="game-sub">Cozy Life Sim · Windows</div></div>
+        </div>
+        <div class="action-row">
+          <div class="play" data-part="PART_ButtonPlayAction"><span class="bloom"></span><span class="sheen"></span>
+            <span class="pdisc"><svg viewBox="0 0 24 24"><path d="M7.5 4.5v15l12.5-7.5z" fill="var(--pl-green-play)" stroke="var(--pl-green-play)" stroke-width="2.4" stroke-linejoin="round"/></svg></span><span class="label">Play</span></div>
+          <div class="sub-btn" title="More"><svg class="ic" viewBox="0 0 24 24"><path d="M5.5 12h.01M12 12h.01M18.5 12h.01" stroke-width="3.6"/></svg></div>
+          <div class="sub-btn" title="Edit"><svg class="ic" viewBox="0 0 24 24"><path d="M4.5 19.5l1-4L16 5l3.5 3.5L9 19zM13.8 7.3l3 3"/></svg></div>
+        </div>
+        <div class="columns">
+          <div class="left-col">
+            <div class="screenshots-row">
+              <div class="screen-thumb"><svg viewBox="0 0 160 96" preserveAspectRatio="xMidYMid slice"><rect width="160" height="96" fill="#bfe6ff"/><ellipse cx="60" cy="100" rx="120" ry="40" fill="#7fcf63"/><rect x="88" y="44" width="46" height="34" fill="#f4e3c4"/><polygon points="82,46 111,24 140,46" fill="#d2623a"/></svg></div>
+              <div class="screen-thumb"><svg viewBox="0 0 160 96" preserveAspectRatio="xMidYMid slice"><rect width="160" height="96" fill="#ffe9c2"/><rect y="62" width="160" height="34" fill="#c98f5a"/><circle cx="50" cy="42" r="16" fill="#e8a33a"/><rect x="82" y="30" width="46" height="40" rx="4" fill="#2377bd"/></svg></div>
+              <div class="screen-thumb"><svg viewBox="0 0 160 96" preserveAspectRatio="xMidYMid slice"><rect width="160" height="96" fill="#d8f0d0"/><circle cx="40" cy="48" r="26" fill="#5fb84d"/><circle cx="104" cy="40" r="20" fill="#3a8fe8"/><circle cx="124" cy="74" r="14" fill="#c9569b"/></svg></div>
+            </div>
+            <div class="card"><div class="band">About this game</div>
+              <div class="body"><p class="desc-text">Move into a cottage at the edge of Cloudberry Court, plant the front garden and talk the neighbours into a very slow Sunday. Every day on the lot is short, every evening is long, and nobody minds if the kettle is still on.</p></div></div>
+          </div>
+          <div class="card meta" data-part="metadata">
+            <div class="body">
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Time played</span>38 hours 20 minutes</div>
+                <div class="meta-row"><span class="meta-label">Last played</span>Today</div>
+                <div class="meta-row"><span class="meta-label">Completion</span><span class="chip">Playing</span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Community</span><span class="need"><span class="cap">88</span><span class="bar"><i style="width:88%"></i></span></span></div>
+                <div class="meta-row"><span class="meta-label">Critics</span><span class="need"><span class="cap">82</span><span class="bar"><i style="width:82%"></i></span></span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Developer</span>Lanternfish Games</div>
+                <div class="meta-row"><span class="meta-label">Release date</span>2023</div>
+                <div class="meta-row"><span class="meta-label">Age rating</span>PEGI 3</div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Genres</span><span class="chips"><span class="chip">Life sim</span><span class="chip">Cozy</span></span></div>
+                <div class="meta-row"><span class="meta-label">Features</span><span class="chips"><span class="chip">Single player</span><span class="chip">Controller</span></span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Source</span>Steam</div>
+                <div class="meta-row"><span class="meta-label">Links</span><span class="link">Website</span> &nbsp;<span class="link">Wiki</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="note" data-part="notification">
+        <div class="top"><div class="ico"><svg viewBox="0 0 48 64" style="width:18px;height:24px"><use href="#gem-g"/></svg></div>
+          <div><h4>Library updated</h4><p>Marigold Mile finished its update and is ready to play.</p></div></div>
+        <div class="foot"><span>Marigold Mile</span><svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="x"><svg class="ic" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></div>
+      </div>
+      <div class="footnote">Unofficial fan theme. No game art, logo or font from The Sims 4 is used.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
