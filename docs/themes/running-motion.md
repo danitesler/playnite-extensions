@@ -49,12 +49,22 @@ The cell holds the theme's `PlayButton` (Tag `ContextAction`) with the overlay `
 | `RunningScan` | the swipe, a copy of the plate shape in `RunningIndicatorBrush`, Opacity 0.6-0.7, mask as in the kit |
 | `HoverPlate` / `HoverLayer` (idle hover fill) | `Visibility="Collapsed"` in both running triggers; the idle hover fill must never paint over a running plate |
 | `RunningHoverDim` | a second scrim, faded in (0.15s) only with the Cancel label; static `Opacity="0"` otherwise. **Below the label**, no `Panel.ZIndex` above content |
-| `PlayContent` / `CancelLabel` | Cancel is `Visibility="Collapsed"` at rest and shown by **one** `MultiDataTrigger`: `{Binding IsRunning}` = True and `{Binding IsMouseOver, RelativeSource={RelativeSource Self}}` = True, which also collapses `PlayContent`. Fade it in (`From="0" To="1"`, 0.12-0.15s) in the trigger's `EnterActions` |
+| `PlayContent` / `CancelLabel` | Cancel is `Visibility="Collapsed"` at rest and shown by **one** `MultiDataTrigger`: `{Binding IsRunning}` = True and `{Binding IsMouseOver, RelativeSource={RelativeSource Self}}` = True, which also hides `PlayContent` (`Visibility="Hidden"`: collapsing it would resize the button on hover). Fade it in (`From="0" To="1"`, 0.12-0.15s) in the trigger's `EnterActions` |
 
 - **Self, never TemplatedParent.** The button sits inside the game page's `ControlTemplate`, so `RelativeSource TemplatedParent` is the **page's** `IsMouseOver`: Cancel appeared with the pointer anywhere on the page. `validate-extension.ps1` fails any `IsMouseOver` binding on `TemplatedParent` in `PlayButton.xaml`.
 - **Animated values beat setters.** A `Setter` on a property an active storyboard animates is ignored. Keep hover/cancel layers separate from the layers the loops animate (`RunningBreath` loops, `RunningHoverDim` is faded by its own storyboard).
 - **Text stays readable.** Label and plate: at least 4.5:1 at the worst frame of the loop (3:1 is the floor for the large bold labels), with the label in `PrimaryButtonForegroundBrush` (or a dark ink the style sets on the running triggers when the running colour is light). Darken the plate with `RunningBreath`, never with transparency. `tests/wpf/RunningMotionFrames.ps1` prints the worst-frame contrast for launching and running.
 - Slabs built from sprites (`Control` with a mask template): the scan is a `Control` with the same `Template` and an `OpacityMask` on the control itself (it multiplies with the template's own mask). Paths: copy the `Data`. Chamfers and slants: copy the clip geometry.
+
+## Label and mark never overlap
+
+The mark (ping ring, bars, keys, embers, chevrons, lamps) sits at an edge of the surface; the label is whatever text Playnite shows (`Launching`, `Running`, `Cancel`, a longer translation, a long game name). A mark that was drawn "clear of the label" for one string lands on the glyphs for the next. The rule is about **room, not size**: the surface reserves a strip for the mark, and the label lives in the rest.
+
+- **Button**: wrap `PlayContent` in `<Border x:Name="PlayRoom">` and, in the launching and running `DataTrigger`s (the block starting `<!-- RunningMarkRoom left=".." right=".." -->`), set `PlayRoom` `Padding` and `CancelLabel` `Margin` to `L,0,R,0`. R is the strip on the side the mark sits on, wide enough for the mark at its largest frame (a ping at full scale counts) plus a 2px gap. The button grows by that strip only while launching or running, so idle Play keeps its size. A theme whose mark never reaches the label keeps `0,0,0,0`.
+- **No resize on hover.** The Cancel trigger sets `PlayContent` `Visibility="Hidden"`, never `Collapsed`: collapsing drops the label from layout and the button shrinks to the Cancel text when the pointer arrives.
+- **Rows** (details row `DerivedStyles/DetailsViewItemStyle.xaml`, list row `DefaultControls/ListView.xaml`): wrap the presenter in `<Border x:Name="RowRoom">` and set its `Padding` in the same two triggers, so a long game name ends before the mark instead of running under it. Behind the mark sits `RunningMarkPlate`: a strip of `RunningIndicatorBrush` (Opacity about 0.34) the width of the reserved room, hugging the mark's edge, faded to nothing on its inner side by an `OpacityMask` gradient. It ties the mark to the theme's running colour and keeps it readable over the selection fill, the hover wash and any icon the row draws. Cover tiles carry no text under the mark and need no room.
+- **Never fix an overlap by shrinking the label or the mark below legibility.** Move the label (room) or move the mark; keep the mark's size and motion.
+- **Test**: `pwsh -NoProfile -STA -File tests/wpf/RunningLabelOverlapRegressionTests.ps1 -Keys <key>` lays the real button out with `Launching` / `Running` / Cancel and a library row narrower than a long name, samples a full loop of each state (selected and not), and fails when any mark shape comes within 2px of the label's pixels. It prints `NeedLeft` / `NeedRight` (px of extra room) in `-Report` CSV: add them to the reserved strip and run again.
 
 ## Per surface
 
@@ -88,7 +98,8 @@ Match the idle pulse to the launching mark so the two read as one object: the ma
 2. `pwsh -NoProfile -File .\scripts\validate-extension.ps1 -Extension <key>` (progress motion, Cancel binding, contract).
 3. `pwsh -NoProfile -STA -File tests\wpf\RunningIndicatorRegressionTests.ps1 -Keys <key>` (items visible while running, selected, no clock left after stop).
 4. `pwsh -NoProfile -STA -File tests\wpf\RunningMotionFrames.ps1 -Keys <key> -OutDir <scratch>` writes `<key>-motion.png`: launching every 200ms (the sweep must read as one band crossing), running every 600ms (the pulse), selected variants, the button under hover (Cancel on the label; launching + hover shows no Cancel and no idle hover fill) and the label contrast numbers. **Read the PNG**; static checks passed while a sweep drew nothing. Use `-Surfaces "game page action"` to render one surface.
-5. Hover in the harness is emulated with keyboard focus, so the sheet shows the Cancel layout but not the real pointer; confirm once in Playnite after the build deploys.
+5. `pwsh -NoProfile -STA -File tests\wpf\RunningLabelOverlapRegressionTests.ps1 -Keys <key>`: the mark never touches the button label (Launching, Running, Cancel) or a long game name in a row.
+6. Hover in the harness is emulated with keyboard focus, so the sheet shows the Cancel layout but not the real pointer; confirm once in Playnite after the build deploys.
 
 ## Pitfalls
 

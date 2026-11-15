@@ -1,0 +1,332 @@
+<!--
+    Gumshoe: spacing, focus and the shared paper-craft motifs. Measurements: ../RESEARCH.md.
+    Sprites are white masks filled with theme brushes, so ThemeModifier edits reach them. None of the shared templates report a
+    desired width of their own (Statistics cards stay compact).
+    The shared motif templates below the marker comment are written alongside the sprites in src/Images/fx (art/sprites.py).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <Style x:Key="PopupBorder" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource PopupBorderThickness}" />
+        <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    </Style>
+
+    <!-- Menu rows are chalk plates with soft corners: 12px of text inset on a 32px row (the source: 22px on a 56px row at 1080p). -->
+    <Thickness x:Key="ButtonPadding">18,5</Thickness>
+    <Thickness x:Key="InputPadding">10,5</Thickness>
+    <Thickness x:Key="MenuPadding">6</Thickness>
+    <Thickness x:Key="MenuItemPadding">12,6</Thickness>
+    <Thickness x:Key="ComboBoxDropDownPadding">6</Thickness>
+    <Thickness x:Key="ComboBoxItemPadding">10,6</Thickness>
+    <Thickness x:Key="ListBoxItemPadding">10,6</Thickness>
+    <Thickness x:Key="GroupBoxPadding">14,12,14,14</Thickness>
+    <Thickness x:Key="GroupBoxHeaderMargin">0,0,0,0</Thickness>
+    <Thickness x:Key="TooltipPadding">10,5</Thickness>
+    <!-- Every form field and button: one height across all themes (validate-extension.ps1, FormControlHeight). -->
+    <sys:Double x:Key="ControlHeight">32</sys:Double>
+    <sys:Double x:Key="IconSize">16</sys:Double>
+    <sys:Double x:Key="GameBannerHeight">300</sys:Double>
+    <!-- Banner darkening (ThemeModifier slider, 0 = none; above 0 the tint is 50% + 50% x the value): GameBannerTintBrush over the banner art, under the
+         theme's own fade. Off while Playnite draws the art behind the window (the banner collapses then). -->
+    <sys:Double x:Key="GameBannerDarken">0</sys:Double>
+    <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
+    <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+
+    <!-- Keyboard focus: a dashed lamp-amber outline on a soft corner, like a pencilled ring around the option. -->
+    <Style x:Key="FocusVisual" TargetType="Control">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Stroke="{DynamicResource FocusBrush}" StrokeThickness="1.5" StrokeDashArray="3 2" RadiusX="6" RadiusY="6" Margin="-2" SnapsToDevicePixels="True" IsHitTestVisible="False" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===== shared motif templates (written with the sprites) ===== -->
+
+    <!--
+        CONTRACT. Every template below is a ControlTemplate for TargetType Control. Use it on a plain Control (or any
+        Control subclass) with Template = StaticResource of the key, and read only the host properties listed here.
+        All are IsHitTestVisible False. None report a wide desired width (Statistics cards stay compact): fixed pieces
+        are 56px or less, everything else stretches to the host. A sprite is a white mask in Images/fx, used as the
+        OpacityMask of a Rectangle filled with a host brush, so the colour is always the host's brush.
+        Brushes: Foreground unless the row says Background or BorderBrush.
+
+        Key                   Reads                      Size behaviour                                        Example use
+        GrainTemplate         Foreground, Opacity        Fills the host; grain.png tiles at 256px              Foreground TextBrush, Opacity 0.06, over a bar
+        TornPlateTemplate     Background                 Height fixed 30; width free. tape.png 14 | 92 | 14    Tape strip behind a label: host and TextBlock share a Grid cell
+        RibbonTemplate        Foreground                 Host sets width and height (natural 160x32).           Section header band; ends stay 28px, middle stretches
+        DividerTemplate       Foreground                 Height fixed 14; width free. 1px rules + 56px mark     Rule between menu groups; mark centred, 8px gap each side
+        BookmarkTemplate      Background, BorderBrush    Width and height free; notch fixed 8px at the foot    Hanging tab: opaque Background, BorderBrush as its edge
+        BrandMarkTemplate     Foreground                 Uniform scale to the host (72x72 box)                 Main menu disc, title band, empty stage; Background unused
+        UnderlineTemplate     Foreground                 Height fixed 16; width stretches (120 to 600px)       Under a page title; host is the title's width
+        SwagTemplate          Foreground                 Height fixed 14; width free; scallops tile every 48px   Valance under the title band; clipped at the right, not squeezed
+        SprocketStripTemplate Foreground, Tag            Tag unset: height 12, tiles every 28px horizontally   Film holes along a row. Tag V: width 12, tiles 28px vertically
+        CurtainTemplate       Foreground, Tag, Opacity   Fills the host (natural 160x320). Tag R mirrors it     Left curtain: Tag unset. Right curtain: Tag R
+        SpotlightTemplate     Foreground, Opacity        Fills the host (natural 256x340): narrow top, wide foot   Empty page stage; host sets Opacity, Foreground a pale paper brush
+        ImpactTemplate        Foreground                 Fixed 48x48; ticks fan from the bottom-left corner     Host sits with its bottom-left on the button's top-right corner
+        SplatTemplate         Foreground                 Fills the host (natural 128x72)                        Press splat under the Play sticker
+        DogEarTemplate        Foreground, BorderBrush    Fixed 28x28; shadow spills 6px left and 6px below      Page's top-right corner; Foreground fold paper, BorderBrush shadow
+        RingGlowTemplate      Foreground                 Host sets size; 9-slice, 24px corners, 10px bloom      Host sits at Margin -10 around the lit element (see below)
+        BulbRowTemplate       Foreground                 Height fixed 10; width free; bulbs tile every 20px     Marquee row along the empty page's top
+
+        Details.
+        TornPlateTemplate: only the ends are torn and they are 14px each; a host narrower than 28px squeezes the ends. Overlay text
+        in the same Grid cell, the template has no content slot. Use an opaque Background for solid tape (the body alpha is 0.9 to 1).
+        RibbonTemplate: a vertical stretch scales the V notch with the height. The fold lines sit 26px from each end.
+        BookmarkTemplate: body, 1px side edges and a swallowtail foot. The foot overlaps the body by 2px so no seam shows.
+        Use an opaque Background, a translucent one doubles up in the 2px overlap.
+        SwagTemplate and BulbRowTemplate start a tile at the host's left edge; size the host to a multiple of 48 or 20px to avoid a cut tile.
+        SprocketStripTemplate: the sprocket holes are the opaque part (host Foreground paints the holes); the film strip is the host's own
+        Background, which this template does not draw.
+        CurtainTemplate: the sprite is the left half, its inner edge is the right edge and the tie-back sits at the lower right.
+        Tag R flips it, so a right curtain has its tie-back at the lower left.
+        DogEarTemplate: the 28px sprite is the folded flap only (the lower-left triangle of the box, right angle at the folded tip).
+        The page's own top-right 28px triangle must be cut away or covered by the host page, the shadow falls on the page below the crease.
+        RingGlowTemplate: ring.png is 64px with the stroke centreline 10px in from each edge. The host sits at Margin -10 around the element it
+        lights (as Cloudbank does with its glow frame), so the 3px ring centres on the element's edge and the bloom runs 6px beyond it.
+        Corners are fixed 24px cells, so keep the lit element at least 28px in each direction. No fade built in: animate the host Opacity.
+        BrandMarkTemplate: a magnifying glass (ring, handle, keyhole, three whiskers). All parts use Foreground. Aspect is square.
+    -->
+
+    <!-- Grain: a seamless 256px film grain tile. The host sets Opacity (about 0.06). -->
+    <ControlTemplate x:Key="GrainTemplate" TargetType="Control">
+        <Rectangle Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask>
+                <ImageBrush ImageSource="{ThemeFile 'Images/fx/grain.png'}" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,256,256" Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Masking tape: tape.png 120x30 as three slices (14 torn end, 92 body, 14 torn end). Host Background is the tape colour. -->
+    <ControlTemplate x:Key="TornPlateTemplate" TargetType="Control">
+        <Grid Height="30" IsHitTestVisible="False" SnapsToDevicePixels="True" UseLayoutRounding="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="14" />
+            </Grid.ColumnDefinitions>
+            <Rectangle Grid.Column="0" Fill="{TemplateBinding Background}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/tape.png'}" ViewboxUnits="Absolute" Viewbox="0,0,14,30" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Column="1" Fill="{TemplateBinding Background}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/tape.png'}" ViewboxUnits="Absolute" Viewbox="14,0,92,30" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Column="2" Fill="{TemplateBinding Background}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/tape.png'}" ViewboxUnits="Absolute" Viewbox="106,0,14,30" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Swallowtail ribbon: ribbon.png 160x32 as three slices (28 tail, 104 body, 28 tail). Host Foreground colours it, the host sets the size. -->
+    <ControlTemplate x:Key="RibbonTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True" UseLayoutRounding="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="28" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="28" />
+            </Grid.ColumnDefinitions>
+            <Rectangle Grid.Column="0" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ribbon.png'}" ViewboxUnits="Absolute" Viewbox="0,0,28,32" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Column="1" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ribbon.png'}" ViewboxUnits="Absolute" Viewbox="28,0,104,32" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Column="2" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ribbon.png'}" ViewboxUnits="Absolute" Viewbox="132,0,28,32" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Divider: a 1px rule on each side of the flourish (flourish.png 56x14). Height 14. Foreground draws all three. -->
+    <ControlTemplate x:Key="DividerTemplate" TargetType="Control">
+        <Grid Height="14" IsHitTestVisible="False" SnapsToDevicePixels="True" UseLayoutRounding="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="56" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Rectangle Grid.Column="0" Height="1" Margin="0,6,8,0" VerticalAlignment="Top" Fill="{TemplateBinding Foreground}" />
+            <Rectangle Grid.Column="1" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/flourish.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Column="2" Height="1" Margin="8,6,0,0" VerticalAlignment="Top" Fill="{TemplateBinding Foreground}" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Hanging bookmark: a ribbon with a swallowtail foot, vector only. Background fills it, BorderBrush edges it (1px). The body takes the
+         host's height less the 10px foot; the foot's top 2px overlap the body so there is no seam. Notch about 8px deep. -->
+    <ControlTemplate x:Key="BookmarkTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="10" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1,0,1,0" />
+            <Path Grid.Row="1" Margin="0,-2,0,0" Stretch="Fill" Fill="{TemplateBinding Background}" Data="M0,0 L1,0 L1,1 L0.5,0.3 L0,1 Z" />
+            <Path Grid.Row="1" Margin="0,-2,0,0" Stretch="Fill" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" StrokeLineJoin="Round" Data="M0,0 L0,1 L0.5,0.3 L1,1 L1,0" />
+        </Grid>
+    </ControlTemplate>
+
+    <!-- The brand mark on a 72 unit square: a thick-stroke magnifying glass with a keyhole in the lens and three whiskers on its left.
+         Same geometry as art/mark.svg (generated by art/sprites.py). Everything is drawn in the host Foreground. -->
+    <ControlTemplate x:Key="BrandMarkTemplate" TargetType="Control">
+        <Viewbox Stretch="Uniform" IsHitTestVisible="False">
+            <Canvas Width="72" Height="72">
+                <Path Data="M62.5,31 A22.5,22.5 0 1 1 17.5,31 A22.5,22.5 0 1 1 62.5,31 Z" Stroke="{TemplateBinding Foreground}" StrokeThickness="7" />
+                <Path Data="M54.14,47.85 L64.75,60.49" Stroke="{TemplateBinding Foreground}" StrokeThickness="10.4" StrokeStartLineCap="Flat" StrokeEndLineCap="Round" />
+                <Path Data="M11.68,18.39 Q8.64,19.17 5.6,18.55 M9,31 Q5.7,33 2.4,33.6 M11.68,43.61 Q8.64,46.83 5.6,48.65" Stroke="{TemplateBinding Foreground}" StrokeThickness="3.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                <Path Data="F1 M35.4,27.4 A4.6,4.6 0 1 1 44.6,27.4 A4.6,4.6 0 1 1 35.4,27.4 Z M37.7,29.6 L42.3,29.6 L44.6,41.6 L35.4,41.6 Z" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+
+    <!-- Wobbly brush underline: underline.png 360x16 stretched to the host width. Height 16. Foreground. -->
+    <ControlTemplate x:Key="UnderlineTemplate" TargetType="Control">
+        <Rectangle Height="16" Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/underline.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Valance: swag.png 48x14 tiled along the host. Height 14. Foreground. -->
+    <ControlTemplate x:Key="SwagTemplate" TargetType="Control">
+        <Rectangle Height="14" Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask>
+                <ImageBrush ImageSource="{ThemeFile 'Images/fx/swag.png'}" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,48,14" Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Film sprocket holes. Tag unset: sprocket-h.png (28x12) tiles along the host, height 12. Tag V: sprocket-v.png (12x28) tiles down
+         the host, width 12. Foreground paints the holes. -->
+    <ControlTemplate x:Key="SprocketStripTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="StripH" Height="12" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask>
+                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/sprocket-h.png'}" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,28,12" Stretch="Fill" />
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="StripV" Width="12" Visibility="Collapsed" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask>
+                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/sprocket-v.png'}" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,12,28" Stretch="Fill" />
+                </Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Tag" Value="V">
+                <Setter TargetName="StripH" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="StripV" Property="Visibility" Value="Visible" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Pleated curtain, left half (curtain.png 160x320), stretched to the host. Foreground; the host may set Opacity.
+         Tag R shows the mirrored copy (a right curtain). -->
+    <ControlTemplate x:Key="CurtainTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="ClothLeft" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/curtain.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="ClothRight" Visibility="Collapsed" Fill="{TemplateBinding Foreground}" RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform><ScaleTransform ScaleX="-1" ScaleY="1" /></Rectangle.RenderTransform>
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/curtain.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Tag" Value="R">
+                <Setter TargetName="ClothLeft" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ClothRight" Property="Visibility" Value="Visible" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Theatre spotlight cone (spotlight.png 256x340), stretched to the host. Foreground; the host sets Opacity. -->
+    <ControlTemplate x:Key="SpotlightTemplate" TargetType="Control">
+        <Rectangle Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/spotlight.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Impact ticks (impact.png), fixed 48x48. Foreground. The ticks fan out from the bottom-left corner of the box. -->
+    <ControlTemplate x:Key="ImpactTemplate" TargetType="Control">
+        <Rectangle Width="48" Height="48" Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/impact.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Ink splat with droplets (splat.png 128x72), stretched to the host. Foreground. -->
+    <ControlTemplate x:Key="SplatTemplate" TargetType="Control">
+        <Rectangle Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/splat.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+
+    <!-- Dog-eared corner, fixed 28x28 at the page's top-right. Foreground = the folded paper, BorderBrush = the shadow it casts. The shadow
+         sprite is 34x34 and is laid 6px past the box on the left and below (negative margin), so a clipping parent would cut it. -->
+    <ControlTemplate x:Key="DogEarTemplate" TargetType="Control">
+        <Grid Width="28" Height="28" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle Margin="-6,0,0,-6" Fill="{TemplateBinding BorderBrush}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/dogear-shadow.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/dogear-fold.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Soft ring, the chosen slot: 9-slice of ring.png (64px, 24px corners; stroke centreline 10px in from each edge). The host sits at
+         Margin -10 around the element it lights, so the ring centres on that element's edge and the bloom reaches 6px past it.
+         Foreground. Corner cells are fixed 24px: the grid is 24 + star + 24 in both directions, no wide desired size. -->
+    <ControlTemplate x:Key="RingGlowTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" UseLayoutRounding="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="24" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="24" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="24" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="24" />
+            </Grid.RowDefinitions>
+            <Rectangle Grid.Row="0" Grid.Column="0" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="0,0,24,24" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="0" Grid.Column="1" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="24,0,16,24" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="0" Grid.Column="2" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="40,0,24,24" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="1" Grid.Column="0" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="0,24,24,16" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="1" Grid.Column="2" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="40,24,24,16" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="2" Grid.Column="0" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="0,40,24,24" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="2" Grid.Column="1" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="24,40,16,24" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Grid.Row="2" Grid.Column="2" Fill="{TemplateBinding Foreground}">
+                <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/ring.png'}" Viewbox="40,40,24,24" ViewboxUnits="Absolute" Stretch="Fill" /></Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+    </ControlTemplate>
+
+    <!-- Marquee bulbs: bulbs.png 20x10 tiled along the host. Height 10. Foreground. -->
+    <ControlTemplate x:Key="BulbRowTemplate" TargetType="Control">
+        <Rectangle Height="10" Fill="{TemplateBinding Foreground}" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle.OpacityMask>
+                <ImageBrush ImageSource="{ThemeFile 'Images/fx/bulbs.png'}" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,20,10" Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+    </ControlTemplate>
+</ResourceDictionary>

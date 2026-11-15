@@ -1,0 +1,141 @@
+<!--
+    Gumshoe: scroll bars, the pencil. A 14px lane holds a 2px line (ScrollBarTrackBrush) and a ridged paper capsule: 12px wide,
+    at least 34px tall, CornerRadius 6, ScrollBarThumbBrush (ScrollBarThumbHoverBrush on hover or drag) with a 2px StripeDeepBrush
+    rim and a row of 1px ridges. The horizontal bar is the same drawing rotated. While Playnite draws the game art behind the
+    window ({Settings ShowBackgroundImageOnWindow}) the line drops to 0.4 opacity so the art shows through
+    (AGENTS.md Window background). Part names and the ScrollBarThumb key are kept. Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <Style x:Key="ScrollBarTrackButton" TargetType="{x:Type RepeatButton}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ScrollBarThumb" TargetType="{x:Type Thumb}">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="MinHeight" Value="34" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                    <Border x:Name="Cap" CornerRadius="6" BorderThickness="2" SnapsToDevicePixels="True"
+                            Background="{DynamicResource ScrollBarThumbBrush}" BorderBrush="{DynamicResource StripeDeepBrush}">
+                        <Canvas Margin="0,4" ClipToBounds="True" IsHitTestVisible="False">
+                            <Path Data="M4,0 L4,3000" StrokeThickness="8" StrokeDashArray="0.125 0.5"
+                                  Stroke="{DynamicResource StripeDeepBrush}" />
+                        </Canvas>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Cap" Property="Background" Value="{DynamicResource ScrollBarThumbHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Cap" Property="Background" Value="{DynamicResource ScrollBarThumbHoverBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ScrollBar}">
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                    <Grid x:Name="Root" Width="14" Background="{TemplateBinding Background}">
+                        <Rectangle x:Name="TrackLine" Width="2" HorizontalAlignment="Center" IsHitTestVisible="False"
+                                   Fill="{DynamicResource ScrollBarTrackBrush}" />
+                        <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
+                            <Track.Resources>
+                                <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarButtonHeightKey}">34</sys:Double>
+                            </Track.Resources>
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton x:Name="UpButton" Style="{DynamicResource ScrollBarTrackButton}"
+                                              Command="ScrollBar.PageUpCommand" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton x:Name="DownButton" Style="{DynamicResource ScrollBarTrackButton}"
+                                              Command="ScrollBar.PageDownCommand" />
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Style="{StaticResource ScrollBarThumb}" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- Window art on: the line is half see-through so the art shows behind the scroll bar. -->
+                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                            <Setter Property="Opacity" Value="0.4" TargetName="TrackLine" />
+                        </DataTrigger>
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter Property="LayoutTransform" TargetName="Root">
+                                <Setter.Value>
+                                    <RotateTransform Angle="-90" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="UpButton" Property="Command" Value="ScrollBar.PageLeftCommand" />
+                            <Setter TargetName="DownButton" Property="Command" Value="ScrollBar.PageRightCommand" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ScrollViewer}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ScrollViewer}">
+                    <Border BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" Grid.Column="0" Grid.Row="0"
+                                                Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                CanContentScroll="{TemplateBinding CanContentScroll}" />
+                            <Rectangle Grid.Column="1" Grid.Row="1" Fill="{DynamicResource ControlBackgroundBrush}" />
+                            <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Column="0" Grid.Row="1"
+                                   Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}"
+                                   Value="{Binding Path=HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                   ViewportSize="{TemplateBinding ViewportWidth}"
+                                   Minimum="0" Maximum="{TemplateBinding ScrollableWidth}" Orientation="Horizontal"
+                                   AutomationProperties.AutomationId="HorizontalScrollBar" />
+                            <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Grid.Row="0"
+                                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                   Value="{Binding Path=VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                   ViewportSize="{TemplateBinding ViewportHeight}"
+                                   Minimum="0" Maximum="{TemplateBinding ScrollableHeight}" Orientation="Vertical"
+                                   AutomationProperties.AutomationId="VerticalScrollBar" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger SourceName="PART_VerticalScrollBar" Property="Visibility" Value="Visible">
+                            <Setter Property="IsTabStop" Value="True"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

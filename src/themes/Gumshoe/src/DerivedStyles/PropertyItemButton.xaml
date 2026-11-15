@@ -1,0 +1,97 @@
+<!--
+    Gumshoe: metadata values on the paper case file. Structure: Playnite Default 10.60 (PropertyItemButton).
+    Brushes: ParchmentLinkBrush (ink), SelectedBrush (lit strip), PropertyItemBackgroundBrush, PropertyItemHoverBackgroundBrush,
+    PropertyItemForegroundBrush, ParchmentEdgeBrush (the tag's hole), TextBrushDarker (disabled).
+    By default a text link: ink, a 1px underline, and a lit paper strip behind it on hover (fades in, 0.12s).
+    In a list tagged Tag="Chip" (RelativeSource AncestorType=ItemsControl) the value is a price tag: a plate with its left end
+    tapered to a point (a fixed 9px cap plus a body with square left and 4px right corners), a small hole dot, ink text.
+    Hover lights the tag to PropertyItemHoverBackgroundBrush and nudges it up (BackEase, 2px). Leaving fades back in 0.2s with
+    FillBehavior Stop. No setters on animated parts. The whole value is the hit area.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="PropertyItemButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />
+        <Setter Property="Margin" Value="0,1,10,1" />
+        <Setter Property="Foreground" Value="{DynamicResource ParchmentLinkBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <!-- Text link: lit strip, then the ink text with its hand underline. -->
+                        <Grid x:Name="LinkLayer">
+                            <Border x:Name="LinkStrip" Background="{DynamicResource SelectedBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" Margin="-3,0" Opacity="0" IsHitTestVisible="False" />
+                            <TextBlock x:Name="LinkText" Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}"
+                                       FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}" Foreground="{TemplateBinding Foreground}"
+                                       TextWrapping="Wrap" TextDecorations="Underline" IsHitTestVisible="False" />
+                        </Grid>
+                        <!-- Price tag: the tapered cap, the body, the hole and the ink text. -->
+                        <Grid x:Name="ChipLayer" Visibility="Collapsed" MinHeight="24" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="ChipNudge" Y="0" />
+                            </Grid.RenderTransform>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="9" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Path Data="M9,0 L9,24 L0,12 Z" Stretch="Fill" Fill="{DynamicResource PropertyItemBackgroundBrush}" />
+                            <Border Grid.Column="1" Background="{DynamicResource PropertyItemBackgroundBrush}" CornerRadius="0,4,4,0" />
+                            <Path x:Name="ChipCapLit" Data="M9,0 L9,24 L0,12 Z" Stretch="Fill" Fill="{DynamicResource PropertyItemHoverBackgroundBrush}" Opacity="0" />
+                            <Border x:Name="ChipBodyLit" Grid.Column="1" Background="{DynamicResource PropertyItemHoverBackgroundBrush}" CornerRadius="0,4,4,0" Opacity="0" />
+                            <Ellipse Width="4" Height="4" Margin="7,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Grid.ColumnSpan="2" Fill="{DynamicResource ParchmentEdgeBrush}" />
+                            <TextBlock Grid.Column="1" Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}"
+                                       FontFamily="{TemplateBinding FontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource PropertyItemForegroundBrush}"
+                                       TextWrapping="Wrap" VerticalAlignment="Center" Margin="7,0,10,1" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="Chip">
+                            <Setter TargetName="ChipLayer" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="LinkLayer" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="LinkStrip" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ChipCapLit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ChipBodyLit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ChipNudge" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction>
+                                                <BackEase EasingMode="EaseOut" Amplitude="0.5" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LinkStrip" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipCapLit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipBodyLit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipNudge" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction>
+                                                <QuadraticEase EasingMode="EaseIn" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="LinkText" Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="Chip">
+                <Setter Property="Margin" Value="0,2,6,2" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

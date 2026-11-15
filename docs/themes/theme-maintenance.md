@@ -42,6 +42,8 @@ Rules: [reference.md](reference.md#thememodifier) -> Window background and `src/
 
 Plain `build-theme.ps1` deploys and restarts Playnite; use `-NoDeploy` or `build-themes.ps1` for builds you do not want live, and `-Deploy -NoRestart` for the rest (it can still change the active theme: check `config.json`).
 
+- **Light themes:** text and glyphs sitting directly on the art (unselected list rows, Expander and group headers, the game title) switch to `WindowArtForegroundBrush` while the setting is on; plates keep dark ink. Check with a dark background image.
+
 ## Playnite update
 
 `.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <checkout> -PlayniteVersion <tag>`, then diff the Default theme against every file each theme ships.

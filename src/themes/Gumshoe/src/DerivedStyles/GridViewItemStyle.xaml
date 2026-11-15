@@ -1,0 +1,172 @@
+<!--
+    Gumshoe: cover tiles, the weapon wheel's slots. Structure: Playnite Default 10.60 (GridViewItemStyle).
+    Brushes: GridViewItemHoverBorderBrush (soft ring), GridViewItemSelectedBorderBrush (outline), SelectedBrush (tape),
+    TextBrushDark (ink name), ScrimBrush (film bands), RunningIndicatorBrush (lamp amber).
+    Selected, static: a 2px outline around the cover (radius 10, hugging the 8px cover) and a masking tape name strip held up
+    on the cover. Hover, animated both ways and never reading as selected: a soft ring (RingGlowTemplate) fades in around the
+    cover (0.12s), a tape strip with the game name rides up from below with a BackEase bounce (0.2s), and the cover lifts 3
+    percent on a named ScaleTransform inside the template (BackEase). Leaving fades and drops with QuadraticEase, no overshoot,
+    FillBehavior Stop. The tape hides while names are shown under covers. Everything is drawn inside the item spacing margin
+    and the covers are clipped to a rounded shape in GridViewItemTemplate, so no corner patches are painted.
+    Running game (docs/themes/reference.md): RunningIndicator is inset 4px so selection keeps the outer edge. It holds a thick
+    amber band, a 2px amber frame in the cover's own radius, and two strips of film on the top and the bottom edge with
+    sprocket holes marching in opposite directions: fast while launching, slow while running while the frame breathes. The
+    strips sit at the edges so the hover tape (above the bottom strip) and the cover art stay readable. Selected and hovered
+    items keep the indicator: nothing in the hover or selection triggers touches it.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="GridViewItemStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid">
+                        <ContentPresenter x:Name="CoverPresenter" RenderTransformOrigin="0.5,0.5">
+                            <ContentPresenter.RenderTransform>
+                                <ScaleTransform x:Name="CoverLift" ScaleX="1" ScaleY="1" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
+                        <!-- Hover, animated: the soft ring around the cover. -->
+                        <Control x:Name="HoverRing" Template="{DynamicResource RingGlowTemplate}" Foreground="{DynamicResource GridViewItemHoverBorderBrush}"
+                                 Opacity="0" IsHitTestVisible="False" Focusable="False" IsTabStop="False" />
+                        <!-- Selected, static: the outline and the held tape. -->
+                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-2" CornerRadius="10" IsHitTestVisible="False" />
+                        <Grid x:Name="SelectedTape" Visibility="Collapsed" Height="28" Margin="8,0,8,20" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                            <Control Template="{DynamicResource TornPlateTemplate}" Background="{DynamicResource SelectedBrush}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                            <TextBlock Text="{Binding DisplayName}" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}"
+                                       Foreground="{DynamicResource TextBrushDark}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0,18,2" />
+                        </Grid>
+                        <!-- Hover, animated: the tape name strip that rides up from below. -->
+                        <Grid x:Name="HoverTape" Opacity="0" Height="28" Margin="8,0,8,20" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="TapeRise" Y="30" />
+                            </Grid.RenderTransform>
+                            <Control Template="{DynamicResource TornPlateTemplate}" Background="{DynamicResource SelectedBrush}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                            <TextBlock Text="{Binding DisplayName}" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}"
+                                       Foreground="{DynamicResource TextBrushDark}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0,18,2" />
+                        </Grid>
+                        <Grid x:Name="RunningIndicator" Margin="4" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                            <Border x:Name="RunningWash" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="6" CornerRadius="4" Opacity="0.16" />
+                            <Border x:Name="RunningFrame" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2" CornerRadius="4" />
+                            <Grid Height="12" Margin="2,2,2,0" VerticalAlignment="Top" ClipToBounds="True">
+                                <Border Background="{DynamicResource ScrimBrush}" Opacity="0.8" CornerRadius="2,2,0,0" />
+                                <Canvas>
+                                    <Control Template="{DynamicResource SprocketStripTemplate}" Foreground="{DynamicResource RunningIndicatorBrush}"
+                                             Canvas.Left="-28" Canvas.Top="0" Width="900" Height="12" Focusable="False" IsTabStop="False">
+                                        <Control.RenderTransform>
+                                            <TranslateTransform x:Name="MarchTopShift" X="0" />
+                                        </Control.RenderTransform>
+                                    </Control>
+                                </Canvas>
+                            </Grid>
+                            <Grid Height="12" Margin="2,0,2,2" VerticalAlignment="Bottom" ClipToBounds="True">
+                                <Border Background="{DynamicResource ScrimBrush}" Opacity="0.8" CornerRadius="0,0,2,2" />
+                                <Canvas>
+                                    <Control Template="{DynamicResource SprocketStripTemplate}" Foreground="{DynamicResource RunningIndicatorBrush}"
+                                             Canvas.Left="-28" Canvas.Top="0" Width="900" Height="12" Focusable="False" IsTabStop="False">
+                                        <Control.RenderTransform>
+                                            <TranslateTransform x:Name="MarchBottomShift" X="0" />
+                                        </Control.RenderTransform>
+                                    </Control>
+                                </Canvas>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverTape" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="TapeRise" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleX" To="1.03" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleY" To="1.03" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverTape" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TapeRise" Storyboard.TargetProperty="Y" To="30" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="SelectedTape" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="HoverTape" />
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                        </Trigger>
+                        <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
+                            <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
+                        </DataTrigger>
+                        <!-- Names shown under covers already name the game: the tape strips step aside. -->
+                        <DataTrigger Binding="{Settings ShowNamesUnderCovers}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="SelectedTape" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="HoverTape" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchTopShift" Storyboard.TargetProperty="X" From="0" To="28" Duration="0:0:0.45" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchBottomShift" Storyboard.TargetProperty="X" From="0" To="-28" Duration="0:0:0.45" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.7" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.7" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="MarchTopShift" Storyboard.TargetProperty="X" From="0" To="28" Duration="0:0:2.4" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchBottomShift" Storyboard.TargetProperty="X" From="0" To="-28" Duration="0:0:2.4" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

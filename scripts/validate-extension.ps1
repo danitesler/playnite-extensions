@@ -1057,6 +1057,9 @@ function Test-RunningIndicator {
                 $errors.Add("${playWhere}: PlayButton's launching trigger must remove its named storyboards in ExitActions.") | Out-Null
             }
         }
+        if ($playText -match '(?s)<MultiDataTrigger>(?:(?!</MultiDataTrigger>).)*?TargetName="PlayContent"\s+Property="Visibility"\s+Value="Collapsed"') {
+            $errors.Add("${playWhere}: the Cancel trigger collapses PlayContent, so the button shrinks to the Cancel text when the pointer arrives. Use Visibility=`"Hidden`" (the label keeps its size).") | Out-Null
+        }
         if ($playText -match 'CancelLabel') {
             $cancelSetter = [regex]::Match($playText, '<MultiDataTrigger>(?:(?!</MultiDataTrigger>)[\s\S])*?TargetName="CancelLabel"(?:(?!</MultiDataTrigger>)[\s\S])*?</MultiDataTrigger>')
             if (-not $cancelSetter.Success -or $cancelSetter.Value -notmatch 'Binding\s+IsRunning\}' -or $cancelSetter.Value -notmatch 'Binding\s+IsMouseOver\s*,\s*RelativeSource=\{RelativeSource\s+Self\}' -or $cancelSetter.Value -notmatch 'TargetName="PlayContent"') {
