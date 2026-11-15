@@ -88,6 +88,13 @@ Both game overview files include a designed empty state using `LOCErrorNoGameSel
 - The previews draw the title band wings, crest and chamfers as CSS clip-paths and SVG; the XAML draws them as paths, so edges can differ by a pixel.
 - Riot's Beaufort and Spiegel are proprietary: Cinzel and Segoe UI stand in.
 - `gr-blood` and `gr-leaf` are additions (state only); the client's chrome is gold and navy.
+- Top bar: Playnite's two separator Canvases share one column, so only one rule is drawn (before the view switches); the gap before the group cell is 9px. The preview matches.
+- Row running frame is 2px with a void keyline (the shared rule), not the brief's 1px; the Play plate's running scrim is 0.46-0.58 so the label holds about 4.7:1 on the teal (the kit's 0.22-0.42 measured about 2.7:1 by hand).
+- Tree rows and chips use the `FontSize` / `FontSizeSmall` keys (14 / 12), check box labels inherit 14, not the previews' 13.
+- The Settings tree selection is drawn by hand (bar growing from the centre), not with `SelectionBarTemplate`. The title band wings sit in a 360px Canvas centred with `MathConverter` and hide under a 600px window.
+- Disabled controls use `BaseStyle`'s 0.5 opacity (the brief said 0.45). The indeterminate `ProgressBar` marches lit segments.
+- Overview banner fades and `Library.xaml` keep one `#00000000` gradient stop each: WPF's `Transparent` is white-alpha and hazes the art grey. Everything else reads brushes.
+- The details list's icon plate rim from the preview is Playnite's own item template; only the row is restyled. The preview's second view-switch separator is not drawn (see above).
 
 ## Not verified yet
 

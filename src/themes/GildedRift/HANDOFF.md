@@ -2,6 +2,15 @@
 
 Unofficial League of Legends / Wild Rift inspired theme. **This file is the working contract for whoever writes or finishes the XAML.** The visual spec is the two rendered previews (`art/screenshot-details.png`, `art/screenshot-settings.png`) and their sources (`art/preview-*.html`: exact sizes, colours as `var(--gr-*)`), plus `BRIEF.md` (moments, motion), `RESEARCH.md` (sources) and `src/tokens.css` / `src/Constants.template.xaml` (every colour role is already mapped; do not add colours, add roles only through the shared catalog).
 
+## State at handoff
+
+All 53 XAML overlays are written (four parallel passes, one per group in the Ownership table, each started from Gumshoe's structure and restyled) and `python3 -I art/check-static.py` reports 0 errors and 3 warnings (one `#00000000` gradient stop each in `Library.xaml` and the two generated overviews, kept on purpose). The previews, tokens, constants, sprites, font, mark, tile icon, manifests, README and root README row are done. **Nobody has looked at any of it in Playnite.** Checks the four authors asked Windows to make, on top of the list below:
+
+- Group A: `ChamferTemplate` `Tag` binding and fallback; the `BlurEffect` rectangles in `GlowFrameTemplate`, `RingGlowTemplate`, `SelectionBarTemplate`; the check box tick draw-in; the `EmptyGameTemplate` idle loop and ring seams; the `WingsTemplate` Viewbox stretch; hairline seams on the Button, ToggleButton and RepeatButton cut corners at 125% and 150% scaling; the default Button bloom; slider thumb halo and `Width == 41` scaling.
+- Group B: `TopPanelLayout`, `SearchGlyph`, `SearchClear`, `GridDetailsPanelWidth` tests; notch and keystone overflow (negative margins); the Canvas separator column; an add-on sidebar icon is visible; the Expander gem on Playnite group headers; `TabStripPlacement` Left in the edit dialog; Statistics GroupBox wrapping.
+- Group C: `RunningLabelOverlap` (size the 56px reserved strip from `NeedRight`); the gem ping is not clipped in 32px list rows; the wings Canvas bindings and a narrow dialog; cover hover marks with a small `ItemSpacingMargin`; hover colour of the name text; hover and focus on chips.
+- Group D: bloom and shine strength on Play; label contrast at the worst frame (`RunningMotionFrames`); the 36px gem room (`RunningLabelOverlap`); the `TextBlockGameScore` pill tint; the icon clip; Cinzel `LineHeight` 40 and the empty-state text offset; layout, close-button, breakpoint, Steam and running regression tests.
+
 ## Environment limits (why this is "unvalidated")
 
 The session that wrote this ran on Linux with Node and Python only: no PowerShell, .NET or WPF, and Playnite must never run there. So **nothing here has been built, validated by `validate-extension.ps1`, loaded in Playnite or covered by `tests/wpf`**. `art/check-static.py` catches text-visible mistakes only (XML well-formedness, missing files, unresolved resource keys, literal colours). Everything in "Windows follow-up" below still has to be run on Windows.
