@@ -1,5 +1,8 @@
 # Gilded Rift — implementation brief and handoff
 
+> **Windows check, 2026-11-16:** `validate-extension` (Ci and Package) passes, `build-theme -Launch` deployed and Playnite logged no theme error, and the WPF tests GridOverviewLayout, GamePageBreakpoints, GridDetailsPanelWidth, RunningIndicator and RunningLabelOverlap pass. TopPanelLayout passes for every theme reached, but the all-theme runners stop at Plumbline (no XAML yet), so DetailsViewLayout, SidePanelCloseButton, SearchGlyph, SearchClear and SteamScreenshots were not reached for Gilded Rift. Still unchecked: a look at the live theme, `RunningMotionFrames`, hand checks.
+
+
 Unofficial League of Legends / Wild Rift inspired theme. **This file is the working contract for whoever writes or finishes the XAML.** The visual spec is the two rendered previews (`art/screenshot-details.png`, `art/screenshot-settings.png`) and their sources (`art/preview-*.html`: exact sizes, colours as `var(--gr-*)`), plus `BRIEF.md` (moments, motion), `RESEARCH.md` (sources) and `src/tokens.css` / `src/Constants.template.xaml` (every colour role is already mapped; do not add colours, add roles only through the shared catalog).
 
 ## State at handoff
