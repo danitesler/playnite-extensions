@@ -67,6 +67,7 @@ I'm a product designer, and these are what I make when I'm not doing that. They'
 | <a href="src/themes/Plumbline/README.md"><img src="src/themes/Plumbline/art/screenshot-details.png" alt="Plumbline details" width="280" /></a> | **Plumbline**<br>The Sims 4 inspired. Sky-blue facets, green gloss.<br>[Details](src/themes/Plumbline/README.md) · _not released yet_ |
 | <a href="src/themes/GildedRift/README.md"><img src="src/themes/GildedRift/art/screenshot-details.png" alt="Gilded Rift details" width="280" /></a> | **Gilded Rift**<br>League of Legends inspired. Navy and hextech gold.<br>[Details](src/themes/GildedRift/README.md) · _not released yet_ |
 | <a href="src/themes/Stormrift/README.md"><img src="src/themes/Stormrift/art/screenshot-details.png" alt="Stormrift details" width="280" /></a> | **Stormrift**<br>Heroes of the Storm inspired. Cosmic indigo and hex rims.<br>[Details](src/themes/Stormrift/README.md) · _not released yet_ |
+| <a href="src/themes/GuidingWind/README.md"><img src="src/themes/GuidingWind/art/screenshot-details.png" alt="Guiding Wind details" width="280" /></a> | **Guiding Wind**<br>Ghost of Tsushima inspired. Misty washi and sumi ink.<br>[Details](src/themes/GuidingWind/README.md) · _not released yet_ |
 
 ## Installation
 

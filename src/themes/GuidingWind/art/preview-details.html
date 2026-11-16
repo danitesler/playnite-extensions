@@ -1,0 +1,557 @@
+<!doctype html>
+<!-- Guiding Wind: HTML replica of Playnite's Game Details view (1280x720). Colors are var(--gt-*) from src/tokens.css
+     (injected at render). Masks come from src/Images/fx/ (art/sprites.py). Icons match src/Media.xaml.
+     Staged: Play hovered (crimson brush flare over sumi dry-brush slab, outer bloom, diagonal wind sheen, gold diamond
+     corner ticks), keycap square More/Edit buttons, active gradient washi Details view tab with top-left crimson corner
+     triangle, gold diamond filter-active mark, crimson brush-stroke selected row, Firefly-jade running row with rising
+     motes, black sumi-e section banners, and dark Sayagata charcoal metadata card with antique gold accents. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Guiding Wind - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: var(--gt-mist); color: var(--gt-ink);
+    font-family: "Segoe UI", sans-serif; font-size: 14px;
+    display: flex; position: relative;
+  }
+  svg.i { fill: currentColor; fill-rule: evenodd; display: block; width: 16px; height: 16px; flex: none; }
+  .cap { font-family: "Sora", "Segoe UI", sans-serif; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* Subtle washi paper grain over misty workspace */
+  .washi-tex {
+    position: absolute; inset: 0; pointer-events: none;
+    background: var(--gt-ink); opacity: 0.035;
+    -webkit-mask: url("../src/Images/fx/washi-grain.png") 0 0 / 256px 256px repeat;
+    mask: url("../src/Images/fx/washi-grain.png") 0 0 / 256px 256px repeat;
+  }
+
+  /* Left 44px sumi-black sidebar rail */
+  .rail {
+    width: 44px; flex: none; background: var(--gt-sumi);
+    border-right: 1px solid var(--gt-sayagata-fret);
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 10px; position: relative; z-index: 4;
+  }
+  .menu-btn {
+    width: 32px; height: 32px; margin-bottom: 10px;
+    background: var(--gt-sayagata); border: 1px solid var(--gt-sayagata-rim);
+    border-radius: var(--gt-radius); display: flex; align-items: center; justify-content: center;
+    color: var(--gt-washi); position: relative;
+  }
+  .menu-btn svg { width: 18px; height: 18px; }
+  .rail-item {
+    width: 44px; height: 40px; display: flex; align-items: center; justify-content: center;
+    color: var(--gt-mist-plate); position: relative;
+  }
+  .rail-item.cur {
+    background: linear-gradient(180deg, var(--gt-tab-top) 0%, var(--gt-tab-mid) 52%, var(--gt-tab-bot) 100%);
+    color: var(--gt-ink-deep);
+  }
+  .rail-item.cur::before {
+    content: ""; position: absolute; left: 0; top: 0;
+    width: 8px; height: 8px; background: var(--gt-crimson-lit);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+
+  /* Top bar: 52px sumi-black, matching MAP | JOURNAL | GEAR | OPTIONS */
+  .top {
+    height: 52px; flex: none; background: var(--gt-sumi);
+    border-bottom: 1px solid var(--gt-sayagata-fret);
+    display: flex; align-items: center; padding: 0 0 0 12px; gap: 6px;
+    position: relative; z-index: 3;
+  }
+  .search {
+    width: 248px; height: 32px; background: var(--gt-sayagata);
+    border: 1px solid var(--gt-sayagata-rim); border-radius: var(--gt-radius);
+    display: flex; align-items: center; gap: 8px; padding: 0 10px;
+    color: var(--gt-mist-plate); font-size: 13px;
+  }
+  .search svg.i { width: 15px; height: 15px; color: var(--gt-gold); }
+  .cell {
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    color: var(--gt-mist-plate); border: 1px solid transparent; border-radius: var(--gt-radius);
+    position: relative;
+  }
+  /* Active view switch: GoT bright vertical gradient washi tab matching 34x34 plate height + crimson corner triangle */
+  .cell.on {
+    height: 34px; width: 34px; border-radius: var(--gt-radius); border: none;
+    background: linear-gradient(180deg, var(--gt-tab-top) 0%, var(--gt-tab-mid) 50%, var(--gt-tab-bot) 100%);
+    color: var(--gt-ink-deep);
+  }
+  .cell.on::before {
+    content: ""; position: absolute; left: 0; top: 0;
+    width: 8px; height: 8px; background: var(--gt-crimson-lit);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  /* Filter active diamond pip (DataChangeNotifBrush = gold diamond) */
+  .cell .pip {
+    position: absolute; top: 4px; right: 3px; width: 9px; height: 9px;
+    background: var(--gt-gold-mark);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    border: 1px solid var(--gt-sumi);
+  }
+  .cell .count {
+    position: absolute; top: 3px; right: 1px; min-width: 15px; height: 15px; padding: 0 3px;
+    background: var(--gt-gold-mark); color: var(--gt-ink-deep);
+    font: 700 9px/15px "Sora", sans-serif; text-align: center;
+    border-radius: var(--gt-radius-small);
+  }
+  .items { display: flex; align-items: center; gap: 3px; }
+  .pipe { width: 1px; height: 16px; background: var(--gt-sayagata-fret); margin: 0 4px; }
+  .win-btns { margin-left: auto; display: flex; align-items: stretch; height: 52px; }
+  .win-btn {
+    width: 44px; height: 52px; display: flex; align-items: center; justify-content: center;
+    color: var(--gt-mist-plate);
+  }
+  .win-btn svg.i { width: 11px; height: 11px; }
+
+  .view { flex: 1; min-height: 0; display: flex; position: relative; }
+
+  /* Details game list (248px calm misty washi) */
+  .game-list {
+    width: 248px; flex: none; background: var(--gt-mist);
+    border-right: 1px solid var(--gt-mist-line);
+    padding: 8px 6px; overflow: hidden; position: relative;
+  }
+  .scroll-rail {
+    position: absolute; right: 3px; top: 10px; bottom: 10px; width: 4px;
+    background: color-mix(in srgb, var(--gt-mist-line) 55%, transparent); border-radius: 2px;
+  }
+  .scroll-thumb {
+    position: absolute; right: 3px; top: 36px; width: 4px; height: 112px;
+    background: var(--gt-scroll-thumb); border-radius: 2px;
+  }
+  .game-row {
+    height: 30px; margin: 1px 8px 1px 10px; padding: 0 10px 0 8px;
+    display: flex; align-items: center; gap: 9px;
+    color: var(--gt-ink); font-size: 13px; position: relative;
+  }
+  .game-row.dim { color: var(--gt-ink-muted); }
+  .game-row i.ico {
+    width: 18px; height: 18px; flex: none; border-radius: var(--gt-radius);
+    background: var(--gt-sayagata); border: 1px solid var(--gt-sayagata-rim);
+    position: relative; z-index: 2;
+  }
+  .game-row span { position: relative; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Selected row: vermilion crimson dry-brush stroke (brush-plate.png) + gold diamond cursor */
+  .game-row.sel { color: var(--gt-washi); font-weight: 600; }
+  .game-row.sel::before {
+    content: ""; position: absolute; inset: -1px -8px; z-index: 1;
+    background: var(--gt-crimson-aa);
+    -webkit-mask-box-image: url("../src/Images/fx/brush-plate.png") 12 32 12 32 fill / 5px 14px 5px 14px;
+    mask-border: url("../src/Images/fx/brush-plate.png") 12 32 12 32 fill / 5px 14px 5px 14px;
+  }
+  .game-row.sel::after {
+    content: ""; position: absolute; left: -6px; top: 3px; bottom: 3px; width: 2px; z-index: 2;
+    background: var(--gt-gold-bright);
+  }
+
+  /* Running game row: Firefly Jade 2px frame + dark inner keyline + bottom jade foot line + RunningMarkPlate + 3 drifting motes */
+  .game-row.run {
+    border: 2px solid var(--gt-firefly); border-radius: var(--gt-radius);
+    background:
+      linear-gradient(90deg, transparent 58%, color-mix(in srgb, var(--gt-firefly) 34%, transparent) 100%),
+      color-mix(in srgb, var(--gt-firefly) 15%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gt-ink-deep) 60%, transparent);
+  }
+  .game-row.run::after {
+    content: ""; position: absolute; left: 4px; right: 4px; bottom: 1px; height: 2px;
+    background: var(--gt-firefly);
+  }
+  .motes {
+    margin-left: auto; display: flex; align-items: center; gap: 3px; position: relative; z-index: 2;
+  }
+  .mote {
+    width: 5px; height: 5px; background: var(--gt-firefly); transform: rotate(45deg);
+  }
+  .mote.lit { background: var(--gt-firefly-lit); width: 6px; height: 6px; }
+
+  /* Game page */
+  .game-page { flex: 1; min-width: 0; position: relative; overflow: hidden; background: var(--gt-mist); }
+
+  /* Atmospheric original misty Tsushima hero backdrop (zero game art) */
+  .hero {
+    position: absolute; left: 0; right: 0; top: 0; height: 268px; overflow: hidden;
+    background: linear-gradient(180deg,
+      var(--gt-slate-card) 0%,
+      color-mix(in srgb, var(--gt-slate-card) 58%, var(--gt-mist)) 52%,
+      var(--gt-mist) 100%);
+  }
+  .hero-art {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+  }
+  .hero-fade {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 22%, color-mix(in srgb, var(--gt-mist) 82%, transparent) 78%, var(--gt-mist) 100%);
+  }
+
+  .page-body { position: relative; padding: 118px 26px 0; z-index: 2; }
+  .head-row { display: flex; align-items: flex-end; gap: 16px; justify-content: space-between; }
+  .title-block { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+  .game-seal {
+    width: 44px; height: 44px; flex: none; border-radius: var(--gt-radius);
+    background: var(--gt-sayagata); border: 1px solid var(--gt-gold);
+    display: flex; align-items: center; justify-content: center; color: var(--gt-gold-bright);
+  }
+  .game-seal svg { width: 24px; height: 24px; }
+  .title-wrap { min-width: 0; flex: 1; }
+  .game-title {
+    font: 700 28px/1.1 "Sora", sans-serif; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--gt-ink-deep); margin-bottom: 6px;
+  }
+  /* Location discovery diamond-flanked hairline rule */
+  .title-rule { display: flex; align-items: center; gap: 6px; width: 320px; }
+  .title-rule .dm {
+    width: 7px; height: 7px; border: 1.5px solid var(--gt-ink-deep);
+    transform: rotate(45deg); flex: none; position: relative;
+  }
+  .title-rule .dm::after {
+    content: ""; position: absolute; inset: 1.5px; background: var(--gt-crimson-aa);
+  }
+  .title-rule .ln {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--gt-ink-deep), color-mix(in srgb, var(--gt-ink-deep) 25%, transparent));
+  }
+
+  /* Hero Moment: Play button staged in HOVERED state */
+  .action-row { display: flex; align-items: center; gap: 12px; flex: none; }
+  .play-wrap { position: relative; width: 174px; height: 44px; display: flex; align-items: center; justify-content: center; }
+  .play-bloom {
+    position: absolute; inset: -16px -22px; pointer-events: none;
+    background: var(--gt-crimson-lit); opacity: 0.34;
+    -webkit-mask: url("../src/Images/fx/bloom.png") 0 0 / 100% 100% no-repeat;
+  }
+  .play-btn {
+    position: relative; width: 174px; height: 44px;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    color: var(--gt-washi); font: 700 14px/1 "Sora", sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .play-btn::before {
+    content: ""; position: absolute; inset: -2px -6px; z-index: 0;
+    background: linear-gradient(135deg, var(--gt-crimson-aa) 0%, var(--gt-crimson) 62%, var(--gt-crimson-deep) 100%);
+    -webkit-mask-box-image: url("../src/Images/fx/brush-plate.png") 12 32 12 32 fill / 6px 16px 6px 16px;
+    mask-border: url("../src/Images/fx/brush-plate.png") 12 32 12 32 fill / 6px 16px 6px 16px;
+  }
+  /* Diagonal wind-katana white sheen over hovered Play slab */
+  .play-sheen {
+    position: absolute; inset: 2px 10px; z-index: 1; pointer-events: none; overflow: hidden;
+  }
+  .play-sheen::after {
+    content: ""; position: absolute; top: -10px; bottom: -10px; left: 56px; width: 42px;
+    transform: skewX(-24deg);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gt-washi) 24%, transparent), transparent);
+  }
+  .play-btn > svg, .play-btn > span { position: relative; z-index: 2; }
+  .play-btn svg.i { width: 13px; height: 13px; }
+  /* Gold diamond corner ticks locked inward around hovered Play */
+  .tick {
+    position: absolute; width: 6px; height: 6px; background: var(--gt-gold-bright);
+    transform: rotate(45deg); z-index: 3; border: 1px solid var(--gt-ink-deep);
+  }
+  .tick.tl { left: -2px; top: 3px; }
+  .tick.br { right: -2px; bottom: 3px; }
+
+  /* Square keycap secondary buttons (More & Edit, 40x40 matching Playnite keycaps) */
+  .sub-btn {
+    width: 40px; height: 40px; border-radius: var(--gt-radius);
+    background: var(--gt-sayagata); border: 1px solid var(--gt-sayagata-rim);
+    color: var(--gt-washi); display: flex; align-items: center; justify-content: center;
+  }
+  .sub-btn svg.i { width: 16px; height: 16px; }
+
+  /* Two columns */
+  .columns { display: flex; gap: 22px; margin-top: 20px; align-items: flex-start; }
+  .left-col { flex: 1; min-width: 0; }
+
+  /* Sumi-e black asymmetric brush-stroke section header banner */
+  .sec-banner {
+    position: relative; height: 28px; min-width: 220px; display: inline-flex; align-items: center; gap: 8px;
+    padding: 0 38px 0 12px; margin-bottom: 10px; color: var(--gt-washi);
+    font: 600 12px/1 "Sora", sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .sec-banner::before {
+    content: ""; position: absolute; inset: 0; z-index: 0;
+    background: var(--gt-ink-banner);
+    -webkit-mask: url("../src/Images/fx/brush-banner-r.png") 0 0 / 100% 100% no-repeat;
+  }
+  .sec-banner > * { position: relative; z-index: 1; }
+  .sec-banner .dm { width: 6px; height: 6px; background: var(--gt-gold); transform: rotate(45deg); flex: none; }
+
+  .shots { display: flex; gap: 8px; margin-bottom: 16px; }
+  .shot {
+    flex: 1; height: 82px; border-radius: var(--gt-radius);
+    border: 1px solid var(--gt-sayagata-rim); background: var(--gt-sayagata);
+    overflow: hidden; position: relative;
+  }
+  .shot svg { width: 100%; height: 100%; display: block; }
+  .shot.active { border-color: var(--gt-crimson-aa); box-shadow: 0 0 0 1px var(--gt-crimson-aa); }
+
+  .desc-text {
+    color: var(--gt-ink); font-size: 13.5px; line-height: 1.56; max-width: 620px;
+  }
+  .desc-text .hl { color: var(--gt-gold-ink); font-weight: 600; }
+
+  /* Right Metadata Card: Dark Sayagata Charcoal Lacquer Panel (300px usable + padding) */
+  .meta {
+    width: 318px; flex: none; background: var(--gt-sayagata);
+    border: 1px solid var(--gt-sayagata-rim); border-top: 2px solid var(--gt-gold);
+    border-radius: var(--gt-radius); padding: 14px 16px;
+    position: relative; overflow: hidden; color: var(--gt-washi);
+  }
+  /* Seamless Sayagata key-fret geometric pattern mask */
+  .meta-fret {
+    position: absolute; inset: 0; pointer-events: none;
+    background: var(--gt-sayagata-fret); opacity: 0.52;
+    -webkit-mask: url("../src/Images/fx/sayagata.png") 0 0 / 72px 72px repeat;
+    mask: url("../src/Images/fx/sayagata.png") 0 0 / 72px 72px repeat;
+  }
+  .meta-inner { position: relative; z-index: 1; }
+  .meta-group { padding: 8px 0; border-top: 1px solid var(--gt-sayagata-fret); }
+  .meta-group:first-child { padding-top: 0; border-top: 0; }
+  .meta-group:last-child { padding-bottom: 0; }
+  .meta-row { display: flex; gap: 10px; padding: 3px 0; font-size: 12.5px; align-items: baseline; }
+  .meta-label { width: 96px; flex: none; color: var(--gt-gold); font-size: 11.5px; }
+  .meta-val { color: var(--gt-washi); min-width: 0; }
+  .meta-link { color: var(--gt-gold-bright); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Gold Damage/Score bar matching Gear screen */
+  .score-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .score-bar {
+    flex: 1; height: 5px; background: var(--gt-sayagata-chip); border: 1px solid var(--gt-sayagata-fret);
+    position: relative;
+  }
+  .score-bar i {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 91%;
+    background: linear-gradient(90deg, var(--gt-gold-deep), var(--gt-gold-bright));
+  }
+  .score-num {
+    font: 600 12px/1 "Sora", sans-serif; color: var(--gt-gold-bright);
+    padding: 2px 6px; border: 1px solid var(--gt-gold-deep); border-radius: var(--gt-radius);
+  }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    background: var(--gt-sayagata-chip); border: 1px solid var(--gt-sayagata-rim);
+    border-radius: var(--gt-radius); padding: 2px 8px; font-size: 11.5px; color: var(--gt-washi);
+  }
+
+  .footer-note {
+    position: absolute; right: 16px; bottom: 7px; font-size: 10.5px; color: var(--gt-ink-muted); z-index: 3;
+  }
+</style>
+</head>
+<body>
+<div class="rail" data-part="sidebar">
+  <div class="menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+    <svg viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12.0,1.6 C17.1,1.6 21.3,5.1 22.2,9.9 C21.2,7.1 18.6,4.9 15.1,4.3 C12.4,3.8 9.6,4.5 7.4,6.1 C8.5,3.4 10.1,1.6 12.0,1.6 Z"/>
+      <path fill="currentColor" d="M22.4,12.0 C22.4,17.1 18.9,21.3 14.1,22.2 C16.9,21.2 19.1,18.6 19.7,15.1 C20.2,12.4 19.5,9.6 17.9,7.4 C20.6,8.5 22.4,10.1 22.4,12.0 Z"/>
+      <path fill="currentColor" d="M12.0,22.4 C6.9,22.4 2.7,18.9 1.8,14.1 C2.8,16.9 5.4,19.1 8.9,19.7 C11.6,20.2 14.4,19.5 16.6,17.9 C15.5,20.6 13.9,22.4 12.0,22.4 Z"/>
+      <path fill="currentColor" d="M1.6,12.0 C1.6,6.9 5.1,2.7 9.9,1.8 C7.1,2.8 4.9,5.4 4.3,8.9 C3.8,11.6 4.5,14.4 6.1,16.6 C3.4,15.5 1.6,13.9 1.6,12.0 Z"/>
+      <path fill="currentColor" fill-rule="evenodd" d="M12.0,6.2 L17.8,12.0 L12.0,17.8 L6.2,12.0 Z M12.0,8.7 L8.7,12.0 L12.0,15.3 L15.3,12.0 Z"/>
+      <path fill="currentColor" d="M12.0,10.4 L13.6,12.0 L12.0,13.6 L10.4,12.0 Z"/>
+    </svg>
+  </div>
+  <div class="rail-item cur" title="Library"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h5v14H4V5zm6 0h4v14h-4V5zm5 0h5v14h-5V5z"/></svg></div>
+  <div class="rail-item" title="Statistics"><svg class="i" viewBox="0 0 24 24"><path d="M4 18h3v-6H4v6zm6 0h3V6h-3v12zm6 0h3v-9h-3v9z"/></svg></div>
+  <div class="rail-item" title="Add-ons"><svg class="i" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zm0 2.3L6 8.7v6.6l6 3.4 6-3.4V8.7l-6-3.4z"/></svg></div>
+</div>
+
+<div class="main">
+  <div class="top" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch">
+      <svg class="i" viewBox="0 0 24 24"><path d="M10.5 3a7.5 7.5 0 105.05 13.05l4.2 4.2 1.4-1.4-4.2-4.2A7.5 7.5 0 0010.5 3zm0 2a5.5 5.5 0 110 11 5.5 5.5 0 010-11z"/></svg>
+      <span>Search</span>
+    </div>
+    <div class="cell" data-part="PART_ToggleFilter" title="Filter">
+      <svg class="i" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/></svg>
+      <span class="pip"></span>
+    </div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="cell" title="Sort"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h12v2H3v-2zm0 5h6v2H3v-2z"/></svg></div>
+      <div class="cell" title="Group"><svg class="i" viewBox="0 0 24 24"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 4h7v2h-7v-2z"/></svg></div>
+      <div class="pipe"></div>
+      <div class="cell on" title="Details view"><svg class="i" viewBox="0 0 24 24"><path d="M3 4h6v16H3V4zm8 0h10v7H11V4zm0 9h10v7H11v-7z"/></svg></div>
+      <div class="cell" title="Grid view"><svg class="i" viewBox="0 0 24 24"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg></div>
+      <div class="cell" title="List view"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg></div>
+      <div class="pipe"></div>
+      <div class="cell" title="View settings"><svg class="i" viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 110 4 2 2 0 010-4zm7.4 2l1.6-1.2-1.4-2.4-1.9.5a6.9 6.9 0 00-1.4-.8L16 6h-2.8l-.3 2.1c-.5.2-1 .5-1.4.8l-1.9-.5-1.4 2.4L9.8 12c0 .3 0 .7 0 1l-1.6 1.2 1.4 2.4 1.9-.5c.4.3.9.6 1.4.8l.3 2.1H16l.3-2.1c.5-.2 1-.5 1.4-.8l1.9.5 1.4-2.4L19.4 13c0-.3 0-.7 0-1z"/></svg></div>
+      <div class="cell" title="Filter presets"><svg class="i" viewBox="0 0 24 24"><path d="M5 4h14v2H5V4zm2 5h10v2H7V9zm2 5h6v2H9v-2zm2 5h2v2h-2v-2z"/></svg></div>
+      <div class="cell" title="Select random game"><svg class="i" viewBox="0 0 24 24"><path d="M12 2l9 5v10l-9 5-9-5V7l9-5zm0 2.3L5 8.2v7.6l7 3.9 7-3.9V8.2l-7-3.9zm-3 6.2a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm6 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/></svg></div>
+    </div>
+    <div class="cell" data-part="PART_ToggleNotifications" title="Notifications">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 3a6 6 0 00-6 6v4l-2 2v1h16v-1l-2-2V9a6 6 0 00-6-6zm-2 15a2 2 0 004 0h-4z"/></svg>
+      <span class="count">2</span>
+    </div>
+    <div class="win-btns">
+      <div class="win-btn"><svg class="i" viewBox="0 0 12 12"><path d="M1 6h10v1H1z"/></svg></div>
+      <div class="win-btn"><svg class="i" viewBox="0 0 12 12"><path d="M2 2h8v8H2V2zm1 1v6h6V3H3z"/></svg></div>
+      <div class="win-btn"><svg class="i" viewBox="0 0 12 12"><path d="M2.2 1.5L6 5.3l3.8-3.8.7.7L6.7 6l3.8 3.8-.7.7L6 6.7l-3.8 3.8-.7-.7L5.3 6 1.5 2.2z"/></svg></div>
+    </div>
+  </div>
+
+  <div class="view">
+    <div class="washi-tex"></div>
+    <div class="game-list" data-part="game-list">
+      <div class="scroll-rail"></div>
+      <div class="scroll-thumb"></div>
+      <div class="game-row"><i class="ico"></i><span>Ashes of Iki</span></div>
+      <div class="game-row"><i class="ico"></i><span>Bamboo Crossing</span></div>
+      <div class="game-row dim"><i class="ico"></i><span>Crimson Shrine</span></div>
+      <div class="game-row"><i class="ico"></i><span>Foxfire Vale</span></div>
+      <div class="game-row sel"><i class="ico"></i><span>Gale of Komoda</span></div>
+      <div class="game-row run"><i class="ico"></i><span>Harbor Mist</span><span class="motes"><b class="mote"></b><b class="mote lit"></b><b class="mote"></b></span></div>
+      <div class="game-row"><i class="ico"></i><span>Hearth of Omi</span></div>
+      <div class="game-row dim"><i class="ico"></i><span>Iron Tsuba</span></div>
+      <div class="game-row"><i class="ico"></i><span>Kurokawa Pass</span></div>
+      <div class="game-row"><i class="ico"></i><span>Maple Ridge</span></div>
+      <div class="game-row"><i class="ico"></i><span>Moonlit Torii</span></div>
+      <div class="game-row dim"><i class="ico"></i><span>Moss Pagoda</span></div>
+      <div class="game-row"><i class="ico"></i><span>Paper Lantern</span></div>
+      <div class="game-row"><i class="ico"></i><span>Ronin's Ledger</span></div>
+      <div class="game-row"><i class="ico"></i><span>Silent Bamboo</span></div>
+      <div class="game-row"><i class="ico"></i><span>Stone Torii</span></div>
+      <div class="game-row dim"><i class="ico"></i><span>Storm Over Azamo</span></div>
+      <div class="game-row"><i class="ico"></i><span>White Reed</span></div>
+    </div>
+
+    <div class="game-page" data-part="game-page">
+      <div class="hero">
+        <!-- Original atmospheric sumi-e mountain ridge, pale moon, torii silhouette and maple breeze (no game art) -->
+        <svg class="hero-art" viewBox="0 0 980 268" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="moon" cx="76%" cy="34%" r="36%">
+              <stop offset="0%" stop-color="var(--gt-washi)" stop-opacity="0.45"/>
+              <stop offset="45%" stop-color="var(--gt-mist)" stop-opacity="0.16"/>
+              <stop offset="100%" stop-color="var(--gt-mist)" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="980" height="268" fill="url(#moon)"/>
+          <circle cx="745" cy="86" r="34" fill="var(--gt-washi)" opacity="0.22"/>
+          <path d="M0,210 Q180,128 360,175 T720,136 T980,162 L980,268 L0,268 Z" fill="var(--gt-sayagata)" opacity="0.28"/>
+          <path d="M0,234 Q240,164 490,206 T980,180 L980,268 L0,268 Z" fill="var(--gt-sumi)" opacity="0.24"/>
+          <!-- Distant torii gate silhouette -->
+          <g fill="var(--gt-ink-deep)" opacity="0.34" transform="translate(812,116)">
+            <rect x="0" y="6" width="66" height="4" rx="1"/>
+            <rect x="6" y="15" width="54" height="3"/>
+            <rect x="13" y="10" width="5" height="44"/>
+            <rect x="48" y="10" width="5" height="44"/>
+          </g>
+          <!-- Drifting red maple silhouettes -->
+          <polygon points="560,62 566,58 564,65 570,68 563,69 561,75 559,68 553,67" fill="var(--gt-crimson-lit)" opacity="0.65"/>
+          <polygon points="658,118 663,115 661,121 666,123 660,124 659,129 657,124 652,123" fill="var(--gt-crimson)" opacity="0.55"/>
+        </svg>
+        <div class="hero-fade"></div>
+      </div>
+
+      <div class="page-body">
+        <div class="head-row">
+          <div class="title-block">
+            <div class="game-seal">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 3l8 9-8 9-8-9 8-9zm0 3.2L6.8 12 12 17.8 17.2 12 12 6.2zm0 2.8l3 3-3 3-3-3 3-3z"/></svg>
+            </div>
+            <div class="title-wrap">
+              <div class="game-title">Gale of Komoda</div>
+              <div class="title-rule"><span class="dm"></span><span class="ln"></span></div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <div class="play-wrap">
+              <div class="play-bloom"></div>
+              <span class="tick tl"></span>
+              <span class="tick br"></span>
+              <div class="play-btn">
+                <div class="play-sheen"></div>
+                <svg class="i" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+                <span>PLAY</span>
+              </div>
+            </div>
+            <div class="sub-btn" title="More"><svg class="i" viewBox="0 0 24 24"><path d="M6 10a2 2 0 110 4 2 2 0 010-4zm6 0a2 2 0 110 4 2 2 0 010-4zm6 0a2 2 0 110 4 2 2 0 010-4z"/></svg></div>
+            <div class="sub-btn" title="Edit"><svg class="i" viewBox="0 0 24 24"><path d="M15.2 4.8l4 4L8.4 19.6H4.4v-4L15.2 4.8zm1.4-1.4a1.5 1.5 0 012.1 0l1.9 1.9a1.5 1.5 0 010 2.1l-1.4 1.4-4-4 1.4-1.4z"/></svg></div>
+          </div>
+        </div>
+
+        <div class="columns">
+          <div class="left-col">
+            <div class="sec-banner"><span class="dm"></span><span class="cap">Screenshots</span></div>
+            <div class="shots">
+              <div class="shot active">
+                <svg viewBox="0 0 160 90">
+                  <rect width="160" height="90" fill="var(--gt-slate-card)"/>
+                  <path d="M0,70 Q40,42 86,58 T160,46 L160,90 L0,90 Z" fill="var(--gt-sumi)" opacity="0.7"/>
+                  <circle cx="122" cy="24" r="11" fill="var(--gt-washi)" opacity="0.28"/>
+                  <line x1="20" y1="30" x2="110" y2="24" stroke="var(--gt-washi)" stroke-width="1" opacity="0.4"/>
+                </svg>
+              </div>
+              <div class="shot">
+                <svg viewBox="0 0 160 90">
+                  <rect width="160" height="90" fill="var(--gt-sayagata)"/>
+                  <path d="M0,64 L54,38 L108,58 L160,34 L160,90 L0,90 Z" fill="var(--gt-crimson-deep)" opacity="0.45"/>
+                  <circle cx="44" cy="24" r="7" fill="var(--gt-gold)" opacity="0.4"/>
+                </svg>
+              </div>
+              <div class="shot">
+                <svg viewBox="0 0 160 90">
+                  <rect width="160" height="90" fill="var(--gt-ink-banner)"/>
+                  <rect x="0" y="54" width="160" height="36" fill="var(--gt-mist)" opacity="0.16"/>
+                  <path d="M64,54 L64,28 M96,54 L96,28 M54,30 L106,30 M58,36 L102,36" stroke="var(--gt-crimson-lit)" stroke-width="3"/>
+                </svg>
+              </div>
+              <div class="shot">
+                <svg viewBox="0 0 160 90">
+                  <rect width="160" height="90" fill="var(--gt-slate-card)"/>
+                  <path d="M0,74 Q58,52 160,64 L160,90 L0,90 Z" fill="var(--gt-sumi)" opacity="0.8"/>
+                  <path d="M14,22 Q80,10 144,28" stroke="var(--gt-firefly-lit)" stroke-width="1.5" fill="none" opacity="0.65"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="sec-banner"><span class="dm"></span><span class="cap">Description</span></div>
+            <p class="desc-text">
+              Cross wind-swept reed plains, mist-wrapped cedar ridges, and coastal watchtowers as the island braces against an invading fleet. Follow the <span class="hl">Guiding Wind</span> across uncluttered terrain, master four shifting sword stances, and compose haiku above quiet shrines between skirmishes.
+            </p>
+          </div>
+
+          <div class="meta" data-part="metadata">
+            <div class="meta-fret"></div>
+            <div class="meta-inner">
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Completion</span><span class="meta-val meta-link">Playing</span></div>
+                <div class="meta-row"><span class="meta-label">Time Played</span><span class="meta-val">54h 20m</span></div>
+                <div class="meta-row"><span class="meta-label">Last Played</span><span class="meta-val">Yesterday</span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Community</span><div class="score-row"><div class="score-bar"><i></i></div><span class="score-num">91</span></div></div>
+                <div class="meta-row"><span class="meta-label">Critic Score</span><span class="meta-val"><span class="score-num">88</span></span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Developer</span><span class="meta-val meta-link">Reedwater Studio</span></div>
+                <div class="meta-row"><span class="meta-label">Publisher</span><span class="meta-val meta-link">Kuroshio Works</span></div>
+                <div class="meta-row"><span class="meta-label">Release Date</span><span class="meta-val meta-link">2024-05-16</span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Genres</span><span class="chips"><span class="chip">Action</span><span class="chip">Stealth</span><span class="chip">Open World</span></span></div>
+                <div class="meta-row"><span class="meta-label">Features</span><span class="chips"><span class="chip">Single-player</span><span class="chip">Controller</span></span></div>
+              </div>
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Library</span><span class="meta-val meta-link">Steam</span></div>
+                <div class="meta-row"><span class="meta-label">Install Size</span><span class="meta-val">68.4 GB</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">Unofficial fan theme inspired by Ghost of Tsushima. No game assets.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
