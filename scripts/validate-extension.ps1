@@ -857,6 +857,14 @@ function Test-WindowBackground {
         $doc = Read-XamlDocument $path
         if (-not $doc) { continue }
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        if ($view -eq 'DetailsViewGameOverview') {
+            $placementColumn = $doc.SelectSingleNode("//*[@*[local-name()='Name']='DetailsMetadataColumn']")
+            $placementBody = $doc.SelectSingleNode("//*[@*[local-name()='Name']='DetailsOverviewBody']")
+            $bodyColumns = if ($placementBody) { @($placementBody.SelectNodes("./*[local-name()='Grid.ColumnDefinitions']/*")).Count } else { 0 }
+            if (-not $placementColumn -or $placementColumn.GetAttribute('Tag') -ne '{DynamicResource GameDetailsPaneOnLeft}' -or $bodyColumns -ne 3) {
+                $errors.Add("${where}: the metadata pane cannot move to the left. DetailsMetadataColumn needs Tag=`"{DynamicResource GameDetailsPaneOnLeft}`" in a three-column DetailsOverviewBody; run node scripts/game-page-breakpoints.mjs on the file (src/themes/AGENTS.md Game page).") | Out-Null
+            }
+        }
         $banners = @($doc.SelectNodes("//*[@Height='{DynamicResource GameBannerHeight}' or @MaxHeight='{DynamicResource GameBannerHeight}']"))
         if ($banners.Count -gt 0 -and -not $doc.SelectSingleNode("//*[@Opacity='0.5' and @Tag='{DynamicResource GameBannerDarken}']")) {
             $errors.Add("${where}: no banner darkening floor. After the darkening layer add the same brush at Opacity=`"0.5`" with Tag=`"{DynamicResource GameBannerDarken}`", collapsed by a DataTrigger on Tag = 0, so any value above 0 starts at 50% (src/themes/AGENTS.md Window background).") | Out-Null

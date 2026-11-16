@@ -209,6 +209,8 @@ $sharedBlock = $sharedLines -join "`n"
     <!-- Usable metadata content width; apply inside the pane's horizontal padding and frame. -->
     <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
     <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+    <!-- Details view: True puts the metadata column on the left and stacks it above the description on narrow pages. ThemeModifier edits it. -->
+    <sys:Boolean x:Key="GameDetailsPaneOnLeft">False</sys:Boolean>
 
     <!-- Shape (Playnite keys). ControlCornerRadius is the medium step of the radius scale. -->
     <Thickness x:Key="PopupBorderThickness">1</Thickness>
@@ -316,6 +318,8 @@ Both game overview files must include a designed empty state using ``LOCErrorNoG
 ``GameDetailsPaneWidth`` and ``GridDetailsPaneWidth`` both default to 300px of usable metadata content. Apply them inside horizontal padding and borders so the outer frame can size to content without shrinking the labels and properties. Preserve the exterior column gap and dynamic resizing through ThemeModifier.
 
 Apply the responsive game-page breakpoints in both overview files. Keep metadata at the side when the body fits the preferred pane width, the theme's gap and 400px for content. Below that, use the full width under the content with two metadata columns at 560px of usable inner width and one below 560px. See the theme-development reference's Responsive game pages section.
+
+The details view honours ``GameDetailsPaneOnLeft`` (ThemeModifier checkbox, default False = right). True puts metadata on the left of screenshots and description, and on narrow pages stacks it on top (two columns, then one) above screenshots and description. ``scripts/game-page-breakpoints.mjs`` writes this; never hard-code the pane to one side.
 
 | Playnite file | $DesignSystem component |
 |---------------|-------------------------|

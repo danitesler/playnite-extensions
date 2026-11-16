@@ -74,7 +74,7 @@ function Metadata-Skeleton($node, $groupsNode) {
     return ,$clone
 }
 function Parse-Template([string]$body, [string]$scrollbarVisibility) {
-    $resources = '<math:MathConverter x:Key="MathConverter" /><sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double><sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double><Style TargetType="Border" /><Style x:Key="BaseTextBlockStyle" TargetType="TextBlock" /><Style x:Key="TextBlockGameScore" TargetType="TextBlock" /><Style x:Key="PropertyItemButton" TargetType="Button" />'
+    $resources = '<math:MathConverter x:Key="MathConverter" /><sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double><sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double><sys:Boolean x:Key="GameDetailsPaneOnLeft">False</sys:Boolean><Style TargetType="Border" /><Style x:Key="BaseTextBlockStyle" TargetType="TextBlock" /><Style x:Key="TextBlockGameScore" TargetType="TextBlock" /><Style x:Key="PropertyItemButton" TargetType="Button" />'
     $markup = '<ContentControl xmlns="' + $namespace + '" xmlns:x="' + $xNamespace + '" xmlns:sys="clr-namespace:System;assembly=mscorlib" xmlns:math="clr-namespace:HexInnovation;assembly=' + $converterAssembly + '"><ContentControl.Resources>' + $resources + '</ContentControl.Resources><ContentControl.Template><ControlTemplate TargetType="ContentControl"><ScrollViewer x:Name="TestViewport" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="' + $scrollbarVisibility + '">' + $body + '</ScrollViewer></ControlTemplate></ContentControl.Template></ContentControl>'
     $control = [Windows.Markup.XamlReader]::Parse($markup)
     $control.ApplyTemplate() | Out-Null
@@ -96,14 +96,18 @@ function Assert-Layout($hostControl, $body, $main, $metadata, $preferred, $group
     }
     $mainPoint = $main.TranslatePoint([Windows.Point]::new(0,0), $body)
     $metadataPoint = $metadata.TranslatePoint([Windows.Point]::new(0,0), $body)
+    # GameDetailsPaneOnLeft (details view): metadata left of the main column, stacked above it.
+    $onLeft = $metadata.Tag -eq $true
+    $stackedInOrder = if ($onLeft) { $mainPoint.Y -ge $metadataPoint.Y + $metadata.ActualHeight + 24 - $tolerance } else { $metadataPoint.Y -ge $mainPoint.Y + $main.ActualHeight + 24 - $tolerance }
+    $besideInOrder = if ($onLeft) { $mainPoint.X -ge $metadataPoint.X + $metadata.ActualWidth - $tolerance } else { $metadataPoint.X -ge $mainPoint.X + $main.ActualWidth - $tolerance }
     if ($body.Tag -eq $true) {
-        if ($metadataPoint.Y -lt $mainPoint.Y + $main.ActualHeight + 24 - $tolerance -or
+        if (-not $stackedInOrder -or
             [math]::Abs($metadata.ActualWidth - $body.ActualWidth) -gt $tolerance -or
             -not [double]::IsNaN($preferred.Width) -or -not [double]::IsPositiveInfinity($preferred.MaxWidth)) {
             throw "${label}: stacked metadata did not fill the body/release preferred width (body=$($body.ActualWidth), metadata=$($metadata.ActualWidth), width=$($preferred.Width), max=$($preferred.MaxWidth))"
         }
-    } elseif ([math]::Abs($metadataPoint.Y - $mainPoint.Y) -gt $tolerance -or $metadataPoint.X -lt $mainPoint.X + $main.ActualWidth - $tolerance) {
-        throw "${label}: wide metadata overlapped or stacked"
+    } elseif ([math]::Abs($metadataPoint.Y - $mainPoint.Y) -gt $tolerance -or -not $besideInOrder) {
+        throw "${label}: wide metadata overlapped, stacked or sat on the wrong side (left=$onLeft)"
     }
     $twoColumns = $clip.ActualWidth -ge $cutoff
     if (($groups.Tag -eq $true) -ne $twoColumns) { throw "${label}: wrong metadata breakpoint at $($clip.ActualWidth)px" }
@@ -132,6 +136,7 @@ $boundaryChecks = 0
 $hiddenChecks = 0
 $paddingChecks = 0
 $roundingChecks = 0
+$leftChecks = 0
 foreach ($theme in $themes) {
     $cutoff = 560
     foreach ($view in 'Details', 'Grid') {
@@ -214,6 +219,22 @@ foreach ($theme in $themes) {
             }
         }
         foreach ($group in $groups.Children) { $group.Visibility = 'Visible' }
+        if ($view -eq 'Details') {
+            # Mirrored placement: same breakpoints, metadata on the left when wide and on top when stacked.
+            if ($metadataNode.GetAttribute('Tag') -ne '{DynamicResource GameDetailsPaneOnLeft}') { throw "$($theme.key) Details: DetailsMetadataColumn does not read GameDetailsPaneOnLeft" }
+            $hostControl.Resources['GameDetailsPaneOnLeft'] = $true
+            foreach ($preferredWidth in 180, 300, 520) {
+                $hostControl.Resources[$widthKey] = [double]$preferredWidth
+                foreach ($width in 1400, 900, 680, 600, 440, 1100) {
+                    Settle-Layout $hostControl $width
+                    if ($metadata.Tag -ne $true) { throw "$($theme.key) Details: GameDetailsPaneOnLeft did not reach the metadata column" }
+                    Assert-Layout $hostControl $layout $mainControl $metadata $preferred $groups $cutoff "$($theme.key) Details left viewport=$width preferred=$preferredWidth"
+                    $leftChecks++
+                }
+            }
+            $hostControl.Resources['GameDetailsPaneOnLeft'] = $false
+            $hostControl.Resources[$widthKey] = [double]300
+        }
         $hostControl.UseLayoutRounding = $true
         foreach ($width in 901, 899, 600) {
             Settle-Layout $hostControl $width
@@ -222,4 +243,4 @@ foreach ($theme in $themes) {
         }
     }
 }
-Write-Host "PASS: $(@($themes).Count * 2) game-page views, $checks resize/preferred-width cases, $boundaryChecks exact metadata breakpoints, $paddingChecks changed-padding states, $hiddenChecks hidden-group layouts and $roundingChecks device-rounding states."
+Write-Host "PASS: $(@($themes).Count * 2) game-page views, $checks resize/preferred-width cases, $boundaryChecks exact metadata breakpoints, $paddingChecks changed-padding states, $hiddenChecks hidden-group layouts, $leftChecks left-placement layouts and $roundingChecks device-rounding states."

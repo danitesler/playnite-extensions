@@ -6,6 +6,9 @@ import { pathToFileURL } from 'node:url';
 const minMainWidth = 400;
 const metadataGap = 24;
 const twoColumnMinWidth = 560;
+// Boolean resource: False (default) keeps metadata on the right of the details
+// view; True mirrors it to the left and stacks it above the main column.
+export const placementKey = 'GameDetailsPaneOnLeft';
 
 // Keep untouched XAML verbatim, including namespace declarations and markup extensions.
 function parse(source) {
@@ -85,7 +88,7 @@ export function applyGamePageBreakpoints(source, view) {
   const { nodes, render } = parse(source);
   const isDetails = nodes.some(node => node.tag === 'ControlTemplate' && node.attrs.TargetType?.includes('DetailsViewGameOverview'));
   const prefix = view || (isDetails ? 'Details' : 'Grid');
-  if (nodes.some(n => name(n) === `${prefix}MetadataGroups`)) return source;
+  if (nodes.some(n => name(n) === `${prefix}MetadataGroups`)) return prefix === 'Details' ? applyGamePagePlacement(source) : source;
   const widthKey = prefix === 'Details' ? 'GameDetailsPaneWidth' : 'GridDetailsPaneWidth';
   const resource = `{DynamicResource ${widthKey}}`;
   const widthNode = nodes.find(n => n.attrs.Width === resource || (n.attrs.Tag === resource && n.attrs.MaxWidth === resource));
@@ -198,6 +201,61 @@ export function applyGamePageBreakpoints(source, view) {
   if (!scroll || scroll.start > body.start) throw new Error('Expected a game page scroll host');
   const scrollOpening = attr(source.slice(scroll.start, scroll.openEnd), 'VerticalScrollBarVisibility', 'Visible');
   result = result.slice(0, scroll.start) + scrollOpening + result.slice(scroll.openEnd);
+  return prefix === 'Details' ? applyGamePagePlacement(result) : result;
+}
+
+// Details view only: lets GameDetailsPaneOnLeft put the metadata column on the
+// left. The body gets three columns (Auto | * | Auto) so either side is an
+// Auto column beside the star main column. When stacked, metadata goes below
+// the main column (right) or above it (left). The flag is read through the
+// metadata column's own Tag so layout tests that clone the body keep it.
+export function applyGamePagePlacement(source) {
+  const { nodes } = parse(source);
+  const body = nodes.find(n => name(n) === 'DetailsOverviewBody');
+  if (!body) throw new Error('Expected DetailsOverviewBody');
+  const meta = body.children.find(n => name(n) === 'DetailsMetadataColumn');
+  const main = body.children.find(n => name(n) === 'DetailsMainColumn');
+  const columns = body.children.find(n => n.tag === 'Grid.ColumnDefinitions');
+  if (!meta || !main || !columns) throw new Error('Expected details metadata/main columns');
+  const flag = `{DynamicResource ${placementKey}}`;
+  if (meta.attrs.Tag === flag) return source;
+  const metaStyle = meta.children.find(n => n.tag === 'Grid.Style');
+  const mainStyle = main.children.find(n => n.tag === 'Grid.Style');
+  if (!metaStyle || !mainStyle) throw new Error('Expected generated column styles');
+  const gapMatch = /Property="Margin" Value="(\d+(?:\.\d+)?),0,0,0"/.exec(source.slice(metaStyle.start, metaStyle.end));
+  if (!gapMatch) throw new Error('Expected metadata column gap');
+  const gap = gapMatch[1];
+  const stacked = '{Binding Tag, ElementName=DetailsOverviewBody}';
+  const left = '{Binding Tag, RelativeSource={RelativeSource Self}}';
+  const leftFromMain = '{Binding Tag, ElementName=DetailsMetadataColumn}';
+  const both = (a, b, setters) => `<MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="${a}" Value="True" /><Condition Binding="${b}" Value="True" /></MultiDataTrigger.Conditions>${setters}</MultiDataTrigger>`;
+  const metaText = [
+    '<Grid.Style><Style TargetType="Grid">',
+    setter('Grid.Column', '2'), setter('Grid.Row', '0'), setter('Grid.ColumnSpan', '1'), setter('Margin', `${gap},0,0,0`),
+    '<Style.Triggers>',
+    `<DataTrigger Binding="${left}" Value="True">${setter('Grid.Column', '0')}${setter('Margin', `0,0,${gap},0`)}</DataTrigger>`,
+    `<DataTrigger Binding="${stacked}" Value="True">${setter('Grid.Column', '0')}${setter('Grid.Row', '1')}${setter('Grid.ColumnSpan', '3')}${setter('Margin', '0,24,0,0')}</DataTrigger>`,
+    both(stacked, left, setter('Grid.Row', '0') + setter('Margin', '0,0,0,24')),
+    '</Style.Triggers></Style></Grid.Style>',
+  ].join('');
+  const mainText = [
+    '<Grid.Style><Style TargetType="Grid">',
+    setter('Grid.Column', '1'), setter('Grid.Row', '0'), setter('Grid.ColumnSpan', '1'),
+    '<Style.Triggers>',
+    `<DataTrigger Binding="${stacked}" Value="True">${setter('Grid.Column', '0')}${setter('Grid.ColumnSpan', '3')}</DataTrigger>`,
+    both(stacked, leftFromMain, setter('Grid.Row', '1')),
+    '</Style.Triggers></Style></Grid.Style>',
+  ].join('');
+  const columnsText = '<Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>';
+  const metaOpening = attr(source.slice(meta.start, meta.openEnd), 'Tag', flag);
+  const edits = [
+    [columns.start, columns.end, columnsText],
+    [meta.start, meta.openEnd, metaOpening],
+    [metaStyle.start, metaStyle.end, metaText],
+    [mainStyle.start, mainStyle.end, mainText],
+  ].sort((a, b) => b[0] - a[0]);
+  let result = source;
+  for (const [start, end, text] of edits) result = result.slice(0, start) + text + result.slice(end);
   return result;
 }
 function isAncestor(ancestor, node) {
