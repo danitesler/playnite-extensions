@@ -92,7 +92,7 @@ const catalog = JSON.parse(read('src/extensions.json'));
 const addons = (Array.isArray(catalog) ? catalog : Object.values(catalog).find(Array.isArray))
   .map((e) => ({ ...e, isTheme: e.kind === 'theme' }));
 
-function installSteps(a, ext) {
+function installSteps(a) {
   const file = a.isTheme ? '`.pthm`' : '`.pext`';
   const steps = [
     `1. **Inside Playnite:** open **Add-ons** from the main menu, browse or search for **${a.name}**, and install it from there.`,
@@ -130,7 +130,7 @@ function buildReadme(a) {
     for (const [i, s] of shots.entries()) out.push(`<a href="${s}"><img src="${s}" alt="${a.name} screenshot ${i + 1}" width="100%" /></a>`, '');
   }
   out.push('## About', '', desc, '');
-  out.push('## Install', '', installSteps(a, manifest), '');
+  out.push('## Install', '', installSteps(a), '');
   out.push('## Details', '');
   out.push(`- **Type:** ${kind}${a.isTheme ? ` (${manifest.Mode || 'Desktop'} mode)` : ''}`);
   out.push(`- **Latest release:** ${rel ? `[${rel.version}](${rel.url})` : 'not released yet'}`);

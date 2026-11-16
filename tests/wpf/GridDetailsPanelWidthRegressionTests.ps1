@@ -18,6 +18,7 @@ function Settle-Layout($control, [double]$width) {
 $checks = 0
 foreach ($theme in $themes) {
     $path = "$root/$($theme.dir)/src/Views/LibraryGridView.xaml"
+    if (-not (Test-Path $path)) { $path = "$root/scripts/templates/theme-defaults/Views/LibraryGridView.xaml" }
     # Before the fix every theme inherits this installed Default template.
     if (-not (Test-Path $path)) { $path = Join-Path $PlaynitePath 'Themes/Desktop/Default/Views/LibraryGridView.xaml' }
     [xml]$xml = Get-Content $path -Raw

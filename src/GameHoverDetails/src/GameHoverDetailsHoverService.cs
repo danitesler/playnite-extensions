@@ -86,7 +86,6 @@ namespace GameHoverDetails
         private Guid? lastCoverGameId;
         private Border frostHost;
         private Image frostImage;
-        private TranslateTransform chromeFlyTransform;
         private StackPanel contentStack;
         private Game lastShownGame;
         private FrameworkElement lastShownAnchor;
@@ -324,7 +323,6 @@ namespace GameHoverDetails
             lastCoverGameId = null;
             frostHost = null;
             frostImage = null;
-            chromeFlyTransform = null;
             contentStack = null;
             lastShownGame = null;
             lastShownAnchor = null;
@@ -1469,11 +1467,6 @@ namespace GameHoverDetails
                 chromeRoot.Opacity = 1;
             }
 
-            if (chromeFlyTransform != null)
-            {
-                chromeFlyTransform.X = 0;
-            }
-
             ClearFrostSnapshot();
             lastShownGame = null;
             lastShownAnchor = null;
@@ -1591,7 +1584,7 @@ namespace GameHoverDetails
             var sameGameContinue = wasOpen && previousId != null && previousId == game.Id;
 
             var orderedKeys = settings.GetOrderedSelectedKeys();
-            var w = Math.Max(120, settings.ResolveHoverPanelWidth());
+            var w = Math.Max(120, settings.HoverWidth);
             var fieldsFingerprint =
                 BuildFieldsFingerprint(orderedKeys)
                 + "\x1e" + w.ToString(System.Globalization.CultureInfo.InvariantCulture)
@@ -1678,16 +1671,7 @@ namespace GameHoverDetails
             StopEnterStoryboard();
             // Fade only on first open. Switching games while open must stay at opacity 1 —
             // dropping to 0 for the enter storyboard is the blink during fast details scroll.
-            if (wasOpen)
-            {
-                chromeRoot.Opacity = 1;
-                chromeFlyTransform.X = 0;
-            }
-            else
-            {
-                chromeRoot.Opacity = 0;
-                chromeFlyTransform.X = 0;
-            }
+            chromeRoot.Opacity = wasOpen ? 1 : 0;
 
             popup.IsOpen = true;
             lastShownGame = game;
@@ -1737,18 +1721,15 @@ namespace GameHoverDetails
                 popup.Child.InvalidateMeasure();
                 popup.Child.UpdateLayout();
                 NudgePopupToApplyNewSize();
-                NudgeRtlPopupOutsideAnchor();
                 ClampPopupToVirtualScreen();
                 UpdateFrostBackdrop();
                 if (!runEnterAnimation)
                 {
                     chromeRoot.Opacity = 1;
-                    chromeFlyTransform.X = 0;
                     return;
                 }
 
                 popup.Child.UpdateLayout();
-                chromeFlyTransform.X = 0;
                 BeginEnterStoryboard();
             }
             catch (Exception ex)
@@ -1759,15 +1740,12 @@ namespace GameHoverDetails
                 {
                     chromeRoot.Opacity = 1;
                 }
-
-                chromeFlyTransform.X = 0;
             }
         }
 
         private void BeginEnterStoryboard()
         {
             StopEnterStoryboard();
-            chromeFlyTransform.X = 0;
             var ease = new QuadraticEase { EasingMode = EasingMode.EaseOut };
             var duration = TimeSpan.FromMilliseconds(EnterAnimationMs);
 
@@ -1800,81 +1778,6 @@ namespace GameHoverDetails
             var x = popup.HorizontalOffset;
             popup.HorizontalOffset = x + 0.1;
             popup.HorizontalOffset = x;
-        }
-
-        /// <summary>
-        /// RTL side placement: put the panel fully left of the tile, top-aligned. WPF custom placement
-        /// often reports width 0 on first open, which parks the HWND on the tile.
-        /// </summary>
-        private void NudgeRtlPopupOutsideAnchor()
-        {
-            if (popup?.Child == null || lastShownAnchor == null || popup.Placement != PlacementMode.Custom)
-            {
-                return;
-            }
-
-            if (IsListViewDesktop() || !HoverLoc.IsRightToLeftLayout(playniteApi, mainWindow))
-            {
-                return;
-            }
-
-            var child = popup.Child;
-            var width = child.RenderSize.Width;
-            var height = child.RenderSize.Height;
-            var tileW = lastShownAnchor.ActualWidth;
-            var tileH = lastShownAnchor.ActualHeight;
-            if (width < 8 || height < 8 || tileW < 8 || tileH < 8)
-            {
-                return;
-            }
-
-            var source = PresentationSource.FromVisual(child) as HwndSource;
-            if (source?.CompositionTarget == null)
-            {
-                return;
-            }
-
-            var fromDevice = source.CompositionTarget.TransformFromDevice;
-            var popupRect = GetVisualScreenRectDip(child, width, height, fromDevice, out _, out _);
-            var tileRect = GetVisualScreenRectDip(lastShownAnchor, tileW, tileH, fromDevice, out _, out _);
-            if (popupRect.Width < 1 || tileRect.Width < 1)
-            {
-                return;
-            }
-
-            const double margin = 8;
-            var vsLeft = SystemParameters.VirtualScreenLeft;
-            var vsRight = vsLeft + SystemParameters.VirtualScreenWidth;
-            var gap = PlacementGapDip;
-
-            var desiredLeft = tileRect.Left - popupRect.Width - gap;
-            if (desiredLeft < vsLeft + margin)
-            {
-                desiredLeft = tileRect.Right + gap;
-                if (desiredLeft + popupRect.Width > vsRight - margin)
-                {
-                    desiredLeft = vsRight - margin - popupRect.Width;
-                }
-            }
-
-            var desiredTop = tileRect.Top;
-            var deltaX = desiredLeft - popupRect.X;
-            var deltaY = desiredTop - popupRect.Y;
-            if (Math.Abs(deltaX) < 0.5 && Math.Abs(deltaY) < 0.5)
-            {
-                return;
-            }
-
-            // Offset apply removed: it fought ShowOrUpdatePopup's offset reset (jumping). Placement math is the fix.
-        }
-
-        private static Rect GetVisualScreenRectDip(Visual visual, double layoutWidth, double layoutHeight, System.Windows.Media.Matrix fromDevice, out Point a, out Point b)
-        {
-            a = fromDevice.Transform(visual.PointToScreen(new Point(0, 0)));
-            b = fromDevice.Transform(visual.PointToScreen(new Point(layoutWidth, layoutHeight)));
-            var x1 = Math.Min(a.X, b.X);
-            var y1 = Math.Min(a.Y, b.Y);
-            return new Rect(x1, y1, Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
         }
 
         private void ClampPopupToVirtualScreen()
@@ -2030,7 +1933,6 @@ namespace GameHoverDetails
                 Visibility = Visibility.Collapsed
             };
 
-            chromeFlyTransform = new TranslateTransform();
             chromeBorder = new Border
             {
                 BorderThickness = new Thickness(1),
@@ -2066,9 +1968,7 @@ namespace GameHoverDetails
                 Background = Brushes.Transparent,
                 CornerRadius = new CornerRadius(ChromeCornerRadiusDip),
                 Child = layers,
-                IsHitTestVisible = true,
-                RenderTransform = chromeFlyTransform,
-                RenderTransformOrigin = new Point(0, 0)
+                IsHitTestVisible = true
             };
             ApplyChromeFlowDirection();
             chromeRoot.SizeChanged += ChromeRootOnSizeChanged;

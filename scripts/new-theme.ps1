@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$Name,
@@ -17,7 +17,7 @@ param(
     [ValidateSet("Desktop")]
     [string]$Mode = "Desktop",
 
-    [string]$Author = $env:USERNAME,
+    [string]$Author = $(if ($env:USERNAME) { $env:USERNAME } else { $env:USER }),
     [string]$Description = "A dark Playnite desktop theme.",
     [string]$Version = "0.1.0",
 
@@ -357,77 +357,15 @@ Mode: **$Ambition**. Short working notes (``docs/themes/creative-direction.md``)
 - Kept calm: TODO
 "@ | Set-Content -Path (Join-Path $themeRoot "BRIEF.md") -Encoding utf8
 
-# Previews start from scripts/templates (generic placeholders: rewrite per playnite-theme-dev/previews.md).
+# Previews start from scripts/templates (generic placeholders: rewrite per docs/themes/previews.md).
 foreach ($previewName in @("details", "settings")) {
     $previewHtml = (Get-Content -Raw -Path (Join-Path $PSScriptRoot "templates/preview-$previewName.html")).Replace("{{NAME}}", $Name)
     Set-Content -Path (Join-Path $repoRoot "$artRel/preview-$previewName.html") -Value $previewHtml -Encoding utf8
 }
 
-# Playnite hard-codes 24px on these controls and no theme template reaches them: each overlay gives them the shared
-# field height (ControlHeight in Common.xaml; src/themes/AGENTS.md -> Form field height).
-function New-FieldOverlay([string]$Relative, [string]$What, [string[]]$Types, [string[]]$Setters) {
-    $styles = foreach ($type in $Types) {
-        $body = ($Setters | ForEach-Object { "        $_" }) -join "`n"
-        "    <Style TargetType=`"{x:Type $type}`" BasedOn=`"{StaticResource {x:Type $type}}`">`n$body`n    </Style>"
-    }
-    $text = @"
-<!--
-    $Name`: gives Playnite's $What the shared field height (ControlHeight), so it lines up with text boxes and buttons.
--->
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-$($styles -join "`n")
-</ResourceDictionary>
-"@
-    $target = Join-Path $repoRoot "$sourceRel/$Relative"
-    New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
-    Set-Content -Path $target -Value $text -Encoding utf8
-}
-$fieldHeight = '<Setter Property="Height" Value="{DynamicResource ControlHeight}" />'
-$fieldMinHeight = '<Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />'
-$centerContent = '<Setter Property="VerticalContentAlignment" Value="Center" />'
-New-FieldOverlay "CustomControls/ComboBoxList.xaml" "multi-select dropdowns" @("ComboBoxList", "DdItemListSelectionBox") @($fieldHeight)
-New-FieldOverlay "CustomControls/FilterSelectionBox.xaml" "filter dropdowns" @("FilterEnumSelectionBox", "FilterStringSelectionBox", "FilterSelectionBox") @($fieldHeight)
-New-FieldOverlay "CustomControls/NumericBoxes.xaml" "number boxes" @("LongNumericBox", "UlongNumericBox", "NullIntNumericBox", "DoubleNumericBox") @($fieldMinHeight, $centerContent)
-New-FieldOverlay "CustomControls/PathSelectionBox.xaml" "path boxes" @("PathSelectionBox") @($fieldMinHeight, $centerContent)
-New-Item -ItemType Directory -Path (Join-Path $repoRoot "$sourceRel/DefaultControls") -Force | Out-Null
-@"
-<!--
-    $Name`: gives Playnite's date picker the shared field height (ControlHeight), so it lines up with text boxes and buttons.
--->
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- The calendar button has its own flat style: this file loads before ToggleButton's, so it cannot be BasedOn one. -->
-    <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource {x:Type DatePicker}}">
-        <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
-        <Setter Property="Padding" Value="3,0" />
-        <Style.Resources>
-            <Style TargetType="ToggleButton">
-                <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Focusable" Value="False" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ToggleButton">
-                            <Border x:Name="Plate" Background="{TemplateBinding Background}" Padding="6,0">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Plate" Property="Background" Value="{DynamicResource HoverBrush}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-            <Style TargetType="DatePickerTextBox" BasedOn="{StaticResource {x:Type DatePickerTextBox}}">
-                <Setter Property="VerticalContentAlignment" Value="Center" />
-            </Style>
-        </Style.Resources>
-    </Style>
-</ResourceDictionary>
-"@ | Set-Content -Path (Join-Path $repoRoot "$sourceRel/DefaultControls/DatePicker.xaml") -Encoding utf8
+# Shared control/grid defaults (ComboBoxList, FilterSelectionBox, NumericBoxes, PathSelectionBox, DatePicker,
+# Expander, LibraryGridView, SliderEx, GameMenu, GameGroupMenu, TrayContextMenu) are injected from
+# scripts/templates/theme-defaults/ during build unless overridden in src/.
 
 $index.extensions += $newProfile
 Save-ExtensionIndex -Index $index

@@ -64,7 +64,7 @@ try {
         }
     } else {
         Copy-PlayniteBuild -Source $buildOutput -Root (Join-Path $repoRoot "artifacts/builds") -Folder $profile.slug
-        if (-not $NoDeploy) { Write-Host "No local Playnite installation available (or non-Windows/CI); kept the build drop only." }
+        Write-Host "No local Playnite installation available (or non-Windows/CI); kept the build drop only."
     }
     Write-Host ""
     Write-Host "Build drop: $buildsRoot"

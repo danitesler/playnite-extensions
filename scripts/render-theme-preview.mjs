@@ -3,22 +3,15 @@
 // The PNG defaults to the HTML's path with .png. Set CHROMIUM to a browser executable if a browser cannot be found.
 import path from 'path';
 import fs from 'fs';
-import { pathToFileURL } from 'url';
-import { launchBrowser, tokenStyle, fontFaceCss } from './preview-tokens.mjs';
+import { launchBrowser, loadPreviewPage } from './preview-tokens.mjs';
 
 const [html, out] = process.argv.slice(2);
 if (!html) { console.error('usage: render-theme-preview.mjs <preview.html> [out.png]'); process.exit(1); }
 
 const browser = await launchBrowser();
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
-await page.goto(pathToFileURL(path.resolve(html)).href);
 // The theme's own tokens (src/tokens.css) so var(--token) in the preview resolves; art/ sits next to src/.
-const tokens = tokenStyle(path.resolve(path.dirname(html), '..'));
-if (tokens) await page.addStyleTag({ content: tokens });
-await page.addStyleTag({ content: fontFaceCss() });
-await page.evaluate(() => document.fonts.ready);
-await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-await page.evaluate(() => document.fonts.ready);
+await loadPreviewPage(page, html, path.resolve(path.dirname(html), '..'));
 
 // Text that still falls back to an installed font makes the render machine-dependent: say so.
 const cdp = page.cdp;

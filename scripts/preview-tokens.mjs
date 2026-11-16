@@ -11,18 +11,27 @@ import { launchBrowser } from './lib/chrome.mjs';
 
 export { launchBrowser };
 
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+let cachedFontRegistry = null;
+
+export function loadFontRegistry() {
+  if (!cachedFontRegistry) {
+    cachedFontRegistry = JSON.parse(fs.readFileSync(path.join(HERE, 'data', 'fonts.json'), 'utf8'));
+  }
+  return cachedFontRegistry;
+}
+
 // @font-face rules for the bundled open fonts (scripts/data/fonts.json, files in scripts/fonts/): the real families under
 // their own names, plus the Windows / commercial names (Segoe UI, Bahnschrift, Georgia, ...) drawn with their stand-in, so a
 // preview renders the same on any machine. Set PREVIEW_SYSTEM_FONTS=1 to skip the aliases and use the installed fonts.
 export function fontFaceCss() {
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const reg = JSON.parse(fs.readFileSync(path.join(here, 'data', 'fonts.json'), 'utf8'));
+  const reg = loadFontRegistry();
   const sections = process.env.PREVIEW_SYSTEM_FONTS ? [reg.families] : [reg.families, reg.aliases];
   const rules = [];
   for (const section of sections) {
     for (const [name, def] of Object.entries(section)) {
       for (const face of def.faces) {
-        const url = pathToFileURL(path.join(here, 'fonts', face.file)).href;
+        const url = pathToFileURL(path.join(HERE, 'fonts', face.file)).href;
         rules.push(`@font-face{font-family:"${name}";src:url("${url}");font-weight:${face.weight};font-style:${face.style};font-display:block}`);
       }
     }
@@ -32,7 +41,7 @@ export function fontFaceCss() {
   // family and push every letter to an installed font.)
   const sym = reg.symbolFallback;
   if (sym) {
-    const url = pathToFileURL(path.join(here, 'fonts', sym.file)).href;
+    const url = pathToFileURL(path.join(HERE, 'fonts', sym.file)).href;
     const seen = new Set();
     for (const section of sections) {
       for (const [name, def] of Object.entries(section)) {
@@ -74,6 +83,16 @@ export function tokenStyle(themeDir) {
   const tokens = readTokens(themeDir);
   if (tokens.size === 0) return '';
   return ':root{' + [...tokens].map(([k, v]) => `--${k}:${v};`).join('') + '}';
+}
+
+export async function loadPreviewPage(page, htmlFile, themeDir) {
+  await page.goto(pathToFileURL(path.resolve(htmlFile)).href);
+  const tokens = tokenStyle(themeDir);
+  if (tokens) await page.addStyleTag({ content: tokens });
+  await page.addStyleTag({ content: fontFaceCss() });
+  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+  await page.evaluate(() => document.fonts.ready);
 }
 
 const HEX = /#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3})(?![0-9a-zA-Z_-])/g;
@@ -201,7 +220,7 @@ async function processTheme(cmd, themeDir, browser, isMulti) {
     console.log(`${label}: ${linked} var(--token) uses, ${total} hex literals (${seen.size - stray.length}/${seen.size} distinct are tokens)`);
     if (stray.length) console.log(`  not in tokens.css: ${stray.slice(0, 8).map(([h, c]) => `#${h}${c > 1 ? `×${c}` : ''}`).join(' ')}${stray.length > 8 ? ' …' : ''}`);
     // Fonts: every name in a font-family stack should be bundled (scripts/data/fonts.json), or the render depends on the machine.
-    const reg = JSON.parse(fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'data', 'fonts.json'), 'utf8'));
+    const reg = loadFontRegistry();
     const bundled = new Set([...Object.keys(reg.families), ...Object.keys(reg.aliases)].map((n) => n.toLowerCase()));
     const generic = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy', 'inherit', 'initial']);
     const unknown = new Set();

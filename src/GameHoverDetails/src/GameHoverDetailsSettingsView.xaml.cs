@@ -266,8 +266,7 @@ namespace GameHoverDetails
                 return;
             }
 
-            if (e.PropertyName == nameof(GameHoverDetailsSettings.HoverIconStyle) ||
-                e.PropertyName == nameof(GameHoverDetailsSettings.HoverIconFontFamily))
+            if (e.PropertyName == nameof(GameHoverDetailsSettings.HoverIconStyle))
             {
                 RefreshFieldsList();
                 RefreshAddCombo();
@@ -338,7 +337,7 @@ namespace GameHoverDetails
 
             var api = boundSettings.TryGetPlayniteApi();
             var game = previewSampleGame;
-            var previewChromeWidth = System.Math.Max(120, boundSettings.ResolveHoverPanelWidth());
+            var previewChromeWidth = System.Math.Max(120, boundSettings.HoverWidth);
             var pad = ClampPreviewContentPaddingDip(boundSettings.HoverContentPaddingDip);
             var innerMax = System.Math.Max(60.0, previewChromeWidth - (pad * 2.0));
             var palette = HoverChromePalette.Resolve(boundSettings);
@@ -355,9 +354,6 @@ namespace GameHoverDetails
                     OmitEmptyArt = false,
                     IgnoreEmptyFieldBehavior = true,
                     IsUnplayed = game != null && game.Playtime == 0 && game.LastActivity == null,
-                    FormatRawValue = key => game != null
-                        ? HoverFieldFormatter.Format(key, game, api)
-                        : HoverPreviewSampleText.ForKey(key),
                     TryGetGameArt = key =>
                     {
                         if (game == null || api == null)

@@ -12,9 +12,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readTokens, loadFontRegistry } from './preview-tokens.mjs';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const reg = JSON.parse(fs.readFileSync(path.join(here, 'data', 'fonts.json'), 'utf8'));
+const reg = loadFontRegistry();
 const lc = (s) => s.toLowerCase();
 const known = new Map([...Object.entries(reg.families), ...Object.entries(reg.aliases)].map(([k, v]) => [lc(k), v]));
 const windows = new Set(reg.windowsFonts.names.map(lc));
@@ -44,20 +44,11 @@ function fontFamilies(file) {
 // The scripts/fonts folder a fonts.json entry draws with ("orbitron", "barlow", ...): faces of one design share it.
 const design = (entry) => entry?.faces?.[0]?.file.split('/')[0];
 
-function tokens(themeDir) {
-  const file = path.join(themeDir, 'src', 'tokens.css');
-  const map = new Map();
-  if (!fs.existsSync(file)) return map;
-  const css = fs.readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-  for (const m of css.matchAll(/--([A-Za-z0-9_-]+)\s*:\s*([^;]+);/g)) if (!map.has(m[1])) map.set(m[1], m[2].trim());
-  return map;
-}
-
 export function checkThemeFonts(themeDir) {
   const errors = [];
   const constants = path.join(themeDir, 'src', 'Constants.template.xaml');
   if (!fs.existsSync(constants)) return errors;
-  const tok = tokens(themeDir);
+  const tok = readTokens(themeDir);
   const xaml = fs.readFileSync(constants, 'utf8').replace(/<!--[\s\S]*?-->/g, '');
   const typoDir = path.join(themeDir, 'src', 'Typography');
   const files = fs.existsSync(typoDir) ? fs.readdirSync(typoDir).filter((f) => /\.(ttf|otf)$/i.test(f)) : [];
@@ -94,7 +85,7 @@ export function checkThemeFonts(themeDir) {
     const want = design(known.get(lc(previewName))), got = design(runtime.entry);
     if (runtime.entry && want !== got) {
       errors.push(`${key}: previews draw "${previewName}" (${want}) but Playnite draws "${runtime.name}" (${got}): ` +
-        `"${previewName}" is not a Windows font. Bundle the stand-in's faces in src/Typography and put ./Typography/#<Family> first (playnite-theme-dev reference.md, Bundled fonts).`);
+        `"${previewName}" is not a Windows font. Bundle the stand-in's faces in src/Typography and put ./Typography/#<Family> first (docs/themes/reference.md, Bundled fonts).`);
     }
   }
 

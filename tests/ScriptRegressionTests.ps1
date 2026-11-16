@@ -1,6 +1,6 @@
 # Exercises the real packaging/deployment scripts against scratch files and mocked Playnite processes/Toolbox.
 [CmdletBinding()]
-param([ValidateSet("All", "PluginZip", "PortableDeploy", "BuildRestart")] [string]$Case = "All")
+param([ValidateSet("All", "PluginZip", "PortableDeploy", "BuildRestart", "ThemeDefaults")] [string]$Case = "All")
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -341,6 +341,48 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
         & (Join-Path $scripts "build-plugin.ps1") -Extension plugin -DataPath $installedData
         Assert-Events "plugin-build|stop:$customExe|start:Desktop:$customExe"
         Write-Host "PASS: automatic deployment/restart, closed apps, failures, opt-outs, portable paths and preserved modes."
+    }
+
+    if ($Case -in @("All", "ThemeDefaults")) {
+        $themeScratch = Join-Path $scratch "theme-defaults"
+        $themeInfo = Join-Path $themeScratch "info"
+        $themeSrc = Join-Path $themeScratch "src"
+        $themeDrop = Join-Path $themeScratch "out"
+        New-Item -ItemType Directory -Path $themeInfo, (Join-Path $themeSrc "DefaultControls"), (Join-Path $themeSrc "CustomControls") -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $themeInfo "theme.yaml") -Value "Id: DefaultsTestTheme`r`nName: Defaults Test`r`nVersion: 1.0.0`r`nMode: Desktop`r`n"
+        Set-Content -LiteralPath (Join-Path $themeSrc "tokens.css") -Value ":root { --height: 32px; }"
+        Set-Content -LiteralPath (Join-Path $themeSrc "Constants.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"></ResourceDictionary>'
+        Set-Content -LiteralPath (Join-Path $themeSrc "DefaultControls/Expander.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><!-- custom-expander --></ResourceDictionary>'
+        Set-Content -LiteralPath (Join-Path $themeSrc "CustomControls/ComboBoxList.template.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><!-- custom-combobox-template --></ResourceDictionary>'
+        & {
+            . (Join-Path $repoRoot "scripts/lib/extension-profiles.ps1")
+            . (Join-Path $repoRoot "scripts/lib/theme-tools.ps1")
+            function Get-RepoRoot { $themeScratch }
+            $profile = [pscustomobject]@{
+                kind = "theme"
+                themeSource = "src"
+                extensionManifest = "info/theme.yaml"
+            }
+            Invoke-ThemeBuild -Profile $profile -OutDir $themeDrop | Out-Null
+        }
+        foreach ($defaultRel in @(
+            "CustomControls/SliderEx.xaml",
+            "CustomControls/GameMenu.xaml",
+            "CustomControls/GameGroupMenu.xaml",
+            "CustomControls/TrayContextMenu.xaml",
+            "CustomControls/NumericBoxes.xaml",
+            "CustomControls/PathSelectionBox.xaml",
+            "CustomControls/FilterSelectionBox.xaml",
+            "DefaultControls/DatePicker.xaml",
+            "Views/LibraryGridView.xaml"
+        )) {
+            Assert-Equal $true (Test-Path -LiteralPath (Join-Path $themeDrop $defaultRel)) "Injected default $defaultRel"
+        }
+        $expanderOut = Get-Content -Raw -LiteralPath (Join-Path $themeDrop "DefaultControls/Expander.xaml")
+        Assert-Equal $true ($expanderOut.Contains("custom-expander")) "Theme override Expander.xaml wins over shared default"
+        $comboOut = Get-Content -Raw -LiteralPath (Join-Path $themeDrop "CustomControls/ComboBoxList.xaml")
+        Assert-Equal $true ($comboOut.Contains("custom-combobox-template")) "Theme template ComboBoxList.template.xaml wins over shared default"
+        Write-Host "PASS: Invoke-ThemeBuild supplies missing shared defaults and preserves theme overrides."
     }
 }
 finally {

@@ -5,10 +5,9 @@
 // any machine. Declarations that use var(--token) are left alone.
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { getThemeDirs, loadFontRegistry } from './preview-tokens.mjs';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const reg = JSON.parse(fs.readFileSync(path.join(here, 'data', 'fonts.json'), 'utf8'));
+const reg = loadFontRegistry();
 const known = new Set([...Object.keys(reg.families), ...Object.keys(reg.aliases)].map((n) => n.toLowerCase()));
 const DROP = new Set(['system-ui', '-apple-system', 'blinkmacsystemfont', 'inter', 'roboto', 'roboto condensed', 'geist', 'helvetica neue', 'helvetica', 'dejavu sans condensed', 'ui-sans-serif', 'ui-serif', 'ui-monospace', 'sf pro text', 'sf mono']);
 const GENERIC = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy']);
@@ -31,7 +30,7 @@ function fix(value) {
   return [...named, ...gen.slice(0, 1)].join(', ');
 }
 
-const dirs = process.argv.slice(2).length ? process.argv.slice(2) : fs.readdirSync('src/themes').map((d) => path.join('src/themes', d));
+const dirs = getThemeDirs(process.argv.slice(2));
 let total = 0;
 for (const dir of dirs) {
   const art = path.join(dir, 'art');

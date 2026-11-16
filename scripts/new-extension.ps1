@@ -11,7 +11,7 @@ param(
     [ValidateSet("GenericPlugin", "MetadataPlugin", "LibraryPlugin")]
     [string]$Type = "GenericPlugin",
 
-    [string]$Author = $env:USERNAME,
+    [string]$Author = $(if ($env:USERNAME) { $env:USERNAME } else { $env:USER }),
     [string]$Description = "A Playnite extension.",
     [string]$RequiredApiVersion = "6.6.0",
     [string]$Version = "0.1.0"
@@ -249,7 +249,7 @@ AddonId: $AddonId
 Type: $databaseType
 Name: $Name
 Author: $Author
-ShortDescription: $Description
+ShortDescription: '$($Description -replace "'", "''")'
 InstallerManifestUrl: $installerUrl
 SourceUrl: $source
 Description: |

@@ -62,7 +62,7 @@ Run art/generate-fx.mjs to regenerate masks (bloom, orbit, haze); its optional c
 ## Previews
 Both 1280×720 HTML previews use theme tokens and original floating-garden illustrations. Segoe UI uses the bundled Selawik stand-in. Sample games are illustrative; actual artwork comes from the user's library.
 
-    .\scripts\take-screenshots.ps1 -Extension reverie -KeepLegacy
+    .\scripts\take-screenshots.ps1 -Extension reverie
 
 ## Deviations
 Dreams' controller cursor, floating categories and world are adapted to desktop controls. Exact font and timing are not claimed as official; Dreams' rounded display face is not bundled, so Segoe UI Black stands in for headings. WPF has no letter spacing or text transform, so the wide-tracked uppercase labels are not reproduced (the repo's Settings rule asks for body-size, non-caps tree rows anyway). Original art replaces proprietary assets.

@@ -9,10 +9,8 @@
 // DockPanel.Dock), then compared with where Chromium actually draws the tagged parts.
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath, pathToFileURL } from 'url';
-import { launchBrowser, tokenStyle, fontFaceCss, getThemeDirs } from './preview-tokens.mjs';
-
-export { getThemeDirs };
+import { fileURLToPath } from 'url';
+import { launchBrowser, loadPreviewPage, getThemeDirs } from './preview-tokens.mjs';
 
 const VIEWPORT = { width: 1280, height: 720 };
 const TOP_PARTS = ['PART_ElemMainMenu', 'PART_TextMainSearch', 'PART_PanelMainItems', 'PART_ToggleFilter', 'PART_ToggleNotifications', 'PART_PanelMainPluginItems'];
@@ -20,7 +18,7 @@ const TOP_REQUIRED = ['PART_TextMainSearch', 'PART_PanelMainItems', 'PART_Toggle
 
 // Left-to-right order of the top panel parts, as the DockPanel in TopPanel.xaml lays them out:
 // Left-docked children in document order, then Right-docked children in reverse (the first one sits at the edge).
-export function expectedTopOrder(themeDir) {
+function expectedTopOrder(themeDir) {
   const file = path.join(themeDir, 'src', 'Views', 'TopPanel.xaml');
   if (!fs.existsSync(file)) return null;
   const xaml = fs.readFileSync(file, 'utf8').replace(/<!--[\s\S]*?-->/g, (m) => ' '.repeat(m.length));
@@ -56,14 +54,7 @@ export function expectedTopOrder(themeDir) {
 }
 
 async function measure(page, file, themeDir) {
-  await page.goto(pathToFileURL(path.resolve(file)).href);
-  // Same page state as render-theme-preview.mjs (theme tokens + bundled fonts), so the measured widths are the rendered ones.
-  const tokens = tokenStyle(themeDir);
-  if (tokens) await page.addStyleTag({ content: tokens });
-  await page.addStyleTag({ content: fontFaceCss() });
-  await page.evaluate(() => document.fonts.ready);
-  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
-  await page.evaluate(() => document.fonts.ready);
+  await loadPreviewPage(page, file, themeDir);
   return page.evaluate(() => {
     const parts = {};
     for (const el of document.querySelectorAll('[data-part]')) {
@@ -135,7 +126,7 @@ async function main() {
       for (const file of files) {
         const notes = [];
         const parts = await measure(page, file, themeDir);
-        if (Object.keys(parts).length === 0) notes.push('no data-part tags, layout cannot be checked (add them, see previews.md)');
+        if (Object.keys(parts).length === 0) notes.push('no data-part tags, layout cannot be checked (add them, see docs/themes/previews.md)');
         else {
           if (file.endsWith('preview-details.html')) checkDetails(parts, themeDir, notes);
           else checkSettings(parts, notes);
@@ -151,4 +142,4 @@ async function main() {
   }
 }
 
-await main();
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) await main();

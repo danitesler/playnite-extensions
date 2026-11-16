@@ -1,0 +1,478 @@
+<!doctype html>
+<!-- Stormrift: HTML replica of Playnite's Game Details view (1280x720). Colors are var(--sr-*) from src/tokens.css
+     (injected at render). Icons match src/Media.xaml. Rules: docs/themes/previews.md.
+     Staged: Play hovered (double-bezel sculpted Ready hex cradle, radial dome sheen, hex-lattice grain, top edge flare,
+     outer cosmic bloom, corner ticks), BevelTemplate secondary square buttons, selected list row (radiant magenta-orchid
+     SelectionBarTemplate dome + top flare + ice rim + cyan left bar), active Boost-teal running row, toggled Details
+     view switch with glowing underline, Quest-gold filter pip. Banner & covers are CSS art. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Stormrift - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: var(--sr-void); color: var(--sr-white);
+    font-family: "Segoe UI", sans-serif; font-size: 14px;
+    display: flex;
+  }
+  svg.i { fill: currentColor; fill-rule: evenodd; display: block; width: 16px; height: 16px; flex: none; }
+  .cap { font-family: "Sora", "Segoe UI", sans-serif; text-transform: uppercase; }
+
+  /* Rail: 44px void-indigo, 1px hairline, double-bezel hex main-menu seal at top, 44x40 items. */
+  .rail {
+    width: 44px; flex: none; background: var(--sr-void);
+    border-right: 1px solid var(--sr-line-dim);
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 6px; position: relative; z-index: 3;
+  }
+  .menu-seal {
+    width: 36px; height: 38px; margin-bottom: 8px;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    color: var(--sr-ice);
+  }
+  .menu-seal svg.hexbg { position: absolute; inset: 0; width: 36px; height: 38px; }
+  .menu-seal svg.mark { position: relative; width: 17px; height: 17px; }
+  .rail-sep { width: 22px; height: 1px; background: var(--sr-line); margin-bottom: 6px; }
+  .rail-item {
+    width: 44px; height: 40px; display: flex; align-items: center; justify-content: center;
+    color: var(--sr-lavender); position: relative;
+  }
+  .rail-item.cur {
+    background:
+      radial-gradient(ellipse 90% 80% at 50% 15%, color-mix(in srgb, var(--sr-sel-hi) 85%, transparent), transparent 72%),
+      linear-gradient(90deg, var(--sr-sel), color-mix(in srgb, var(--sr-sel) 55%, var(--sr-void)));
+    color: var(--sr-white);
+    box-shadow: inset 0 1px 0 var(--sr-rim-lit), inset 0 -1px 0 var(--sr-rim-lit);
+  }
+  .rail-item.cur::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--sr-cyan);
+  }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* Top bar: 52px cosmic indigo with subtle hex-lattice + azure radial wash, glowing Nexus rule below. */
+  .top {
+    height: 52px; flex: none;
+    background:
+      radial-gradient(ellipse 38% 120% at 32% 50%, color-mix(in srgb, var(--sr-ally) 16%, transparent), transparent 70%),
+      var(--sr-topbar);
+    display: flex; align-items: center; padding: 0 0 0 12px; gap: 6px;
+    position: relative; z-index: 2;
+    border-bottom: 1px solid var(--sr-line);
+  }
+  .top::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(30deg, color-mix(in srgb, var(--sr-rim) 18%, transparent) 1px, transparent 1px),
+      linear-gradient(150deg, color-mix(in srgb, var(--sr-rim) 18%, transparent) 1px, transparent 1px);
+    background-size: 22px 38px;
+    opacity: 0.2;
+  }
+  .top::after {
+    content: ""; position: absolute; left: 16%; right: 16%; bottom: -1px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--sr-rim-lit) 50%, transparent);
+    pointer-events: none;
+  }
+  .search {
+    width: 260px; height: 32px; background: var(--sr-well);
+    border: 1px solid var(--sr-line); border-radius: var(--sr-radius);
+    display: flex; align-items: center; gap: 8px; padding: 0 10px;
+    color: var(--sr-dim); font-size: 13px; position: relative;
+  }
+  .search svg.i { width: 15px; height: 15px; color: var(--sr-lavender); }
+  .cell {
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    color: var(--sr-lavender); border: 1px solid transparent; border-radius: var(--sr-radius);
+    position: relative;
+  }
+  .cell.hot {
+    background:
+      radial-gradient(ellipse 80% 70% at 50% 14%, color-mix(in srgb, var(--sr-rim-lit) 22%, transparent), transparent 72%),
+      linear-gradient(180deg, var(--sr-plate-hi), var(--sr-plate));
+    border-color: var(--sr-rim); color: var(--sr-white);
+  }
+  .cell.on {
+    background:
+      radial-gradient(ellipse 85% 75% at 50% 15%, color-mix(in srgb, var(--sr-rim-lit) 26%, transparent), transparent 72%),
+      linear-gradient(180deg, var(--sr-tab), var(--sr-well));
+    border-color: var(--sr-rim-lit); color: var(--sr-white);
+  }
+  .cell.on::after {
+    content: ""; position: absolute; left: 4px; right: 4px; bottom: -1px; height: 2px;
+    background: var(--sr-rim-lit);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--sr-cyan) 65%, transparent);
+  }
+  .cell .pip {
+    position: absolute; top: 3px; right: 3px; width: 9px; height: 9px;
+    background: var(--sr-gold);
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  }
+  .cell .count {
+    position: absolute; top: 1px; right: 0px; min-width: 15px; height: 15px; padding: 0 3px;
+    background: var(--sr-gold); color: var(--sr-ink);
+    font: 700 9px/15px "Sora", sans-serif; text-align: center;
+    clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+  }
+  .items { display: flex; align-items: center; gap: 3px; position: relative; }
+  .pipe { width: 1px; height: 16px; background: var(--sr-line); margin: 0 4px; }
+  .sp { flex: 1; }
+  .win { display: flex; height: 52px; position: relative; }
+  .win div { width: 44px; height: 52px; display: flex; align-items: center; justify-content: center; color: var(--sr-lavender); }
+  .win svg.i { width: 12px; height: 12px; }
+
+  .view { flex: 1; min-height: 0; display: flex; background: var(--sr-panel); }
+
+  /* Game list (left of game page): calm dark indigo panel, magenta dome selected row, Boost-teal running row. */
+  .list {
+    width: 276px; flex: none; background: var(--sr-panel-deep);
+    border-right: 1px solid var(--sr-line-dim);
+    padding: 8px; overflow: hidden; display: flex; flex-direction: column; gap: 2px;
+  }
+  .row {
+    height: 34px; display: flex; align-items: center; gap: 10px;
+    padding: 0 10px; color: var(--sr-lavender); font-size: 13px;
+    border: 1px solid transparent; border-radius: var(--sr-radius);
+    position: relative;
+  }
+  .row b {
+    width: 20px; height: 20px; flex: none; border-radius: 2px;
+    border: 1px solid var(--sr-line);
+  }
+  .row.inst { color: var(--sr-ice); }
+  .row.hot {
+    background:
+      radial-gradient(ellipse 72% 85% at 50% 12%, color-mix(in srgb, var(--sr-rim-lit) 14%, transparent), transparent 72%),
+      linear-gradient(180deg, var(--sr-plate-hi), var(--sr-plate));
+    border-color: var(--sr-line); color: var(--sr-white);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sr-rim-lit) 32%, transparent);
+  }
+  .row.sel {
+    background:
+      radial-gradient(ellipse 72% 95% at 50% 15%, color-mix(in srgb, var(--sr-sel-hi) 86%, transparent), transparent 75%),
+      linear-gradient(90deg, var(--sr-sel), color-mix(in srgb, var(--sr-sel) 55%, var(--sr-panel-deep)));
+    border-color: var(--sr-rim-lit); color: var(--sr-white);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--sr-white) 55%, transparent),
+      0 0 12px color-mix(in srgb, var(--sr-sel-hi) 35%, transparent);
+  }
+  .row.sel::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+    background: var(--sr-cyan);
+  }
+  /* Running row in Boost teal (#0fe7d0) */
+  .row.run {
+    background: color-mix(in srgb, var(--sr-boost) 14%, var(--sr-panel-deep));
+    border: 2px solid var(--sr-boost); color: var(--sr-white);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sr-ink) 70%, transparent);
+    padding-right: 52px;
+  }
+  .row.run .foot {
+    position: absolute; left: 3px; right: 3px; bottom: 2px; height: 2px;
+    background: var(--sr-boost); opacity: 0.9;
+  }
+  .row.run .nodes {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 3px;
+  }
+  .row.run .nodes svg { width: 10px; height: 11px; fill: var(--sr-boost); display: block; }
+  .row.run .nodes svg:nth-child(2) { opacity: 0.68; }
+  .row.run .nodes svg:nth-child(3) { opacity: 0.36; }
+
+  .k1 { background: linear-gradient(135deg, color-mix(in srgb, var(--sr-ready-hi) 75%, var(--sr-void)), var(--sr-void)); }
+  .k2 { background: linear-gradient(135deg, color-mix(in srgb, var(--sr-cyan) 65%, var(--sr-void)), var(--sr-void)); }
+  .k3 { background: linear-gradient(135deg, color-mix(in srgb, var(--sr-gold) 65%, var(--sr-void)), var(--sr-void)); }
+  .k4 { background: linear-gradient(135deg, color-mix(in srgb, var(--sr-boost) 65%, var(--sr-void)), var(--sr-void)); }
+  .k5 { background: linear-gradient(135deg, color-mix(in srgb, var(--sr-sel) 80%, var(--sr-void)), var(--sr-void)); }
+  .k6 { background: linear-gradient(135deg, color-mix(in srgb, var(--sr-ally) 70%, var(--sr-void)), var(--sr-void)); }
+
+  /* Game page */
+  .page { flex: 1; min-width: 0; position: relative; overflow: hidden; background: var(--sr-panel); }
+  /* Cosmic HotS horizon nebula + fading diagonal hex-grid floor wash (replaces blunt circle artifact) */
+  .banner {
+    position: absolute; left: 0; right: 0; top: 0; height: 320px;
+    background:
+      radial-gradient(ellipse 46% 68% at 72% 28%, color-mix(in srgb, var(--sr-ally) 36%, transparent) 0, transparent 70%),
+      radial-gradient(ellipse 36% 58% at 86% 42%, color-mix(in srgb, var(--sr-ready-hi) 38%, transparent) 0, transparent 72%),
+      radial-gradient(ellipse 44% 55% at 24% 26%, color-mix(in srgb, var(--sr-ally) 26%, transparent) 0, transparent 74%),
+      linear-gradient(180deg, var(--sr-void) 0%, color-mix(in srgb, var(--sr-ready) 30%, var(--sr-void)) 58%, var(--sr-panel) 100%);
+  }
+  .banner::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(30deg, color-mix(in srgb, var(--sr-ally) 14%, transparent) 1px, transparent 1px),
+      linear-gradient(150deg, color-mix(in srgb, var(--sr-ally) 14%, transparent) 1px, transparent 1px);
+    background-size: 30px 52px;
+    mask-image: radial-gradient(ellipse 75% 75% at 74% 38%, color-mix(in srgb, var(--sr-white) 55%, transparent), transparent 72%);
+  }
+  .banner::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 22%, var(--sr-panel) 96%);
+  }
+  .body { position: relative; padding: 94px 28px 0; }
+  .title {
+    font: 700 28px/1.1 "Sora", sans-serif; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--sr-white);
+    text-shadow: 0 2px 10px var(--sr-void);
+  }
+  .meta-line { margin: 6px 0 22px; font-size: 13px; color: var(--sr-lavender); }
+  .actions { display: flex; align-items: center; gap: 10px; }
+
+  /* Hero moment: sculpted double-bezel Ready hex cradle (Matches HotS Ready button) */
+  .play { position: relative; width: 196px; height: 48px; margin-right: 4px; }
+  .play .bloom {
+    position: absolute; inset: -18px -24px;
+    background: radial-gradient(ellipse at center, color-mix(in srgb, var(--sr-ready-hot) 44%, transparent) 0, transparent 70%);
+    pointer-events: none;
+  }
+  .play svg.plate { position: absolute; left: -4px; top: -4px; width: 204px; height: 56px; overflow: visible; }
+  .play .sheen {
+    position: absolute; inset: 2px 14px;
+    background: linear-gradient(108deg, transparent 36%, color-mix(in srgb, var(--sr-white) 18%, transparent) 50%, transparent 64%);
+    pointer-events: none;
+  }
+  .play .label {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 9px;
+    color: var(--sr-white); font: 700 14px "Sora", sans-serif; letter-spacing: .14em;
+    text-shadow: 0 1px 4px var(--sr-void);
+  }
+  .play .label svg.i { width: 14px; height: 14px; }
+  /* Secondary sculpted cosmic BevelTemplate plates */
+  .sq {
+    width: 44px; height: 44px;
+    background:
+      radial-gradient(ellipse 75% 80% at 50% 12%, color-mix(in srgb, var(--sr-plate-hi) 65%, transparent), transparent 72%),
+      linear-gradient(180deg, var(--sr-plate) 0%, var(--sr-well-deep) 100%);
+    border: 1px solid var(--sr-rim);
+    border-radius: var(--sr-radius); color: var(--sr-ice);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--sr-rim-lit) 38%, transparent),
+      inset 0 -1px 0 color-mix(in srgb, var(--sr-rim-lit) 16%, transparent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sq svg.i { width: 18px; height: 18px; }
+
+  .cols { display: flex; gap: 24px; margin-top: 22px; align-items: flex-start; }
+  .left { flex: 1; min-width: 0; }
+  .h2 {
+    display: flex; align-items: center; gap: 10px; margin: 0 0 10px;
+    font: 700 11px "Sora", sans-serif; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--sr-periwinkle);
+  }
+  .h2::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--sr-rim), var(--sr-line-dim) 70%, transparent); }
+  .shots { display: flex; gap: 8px; margin-bottom: 18px; }
+  .shot { flex: 1; height: 92px; border: 1px solid var(--sr-line); border-radius: var(--sr-radius); position: relative; }
+  .shot.hot { border-color: var(--sr-cyan); }
+  .shot .b { position: absolute; width: 8px; height: 8px; border: 0 solid var(--sr-cyan); }
+  .b.tl { left: -3px; top: -3px; border-width: 2px 0 0 2px; }
+  .b.tr { right: -3px; top: -3px; border-width: 2px 2px 0 0; }
+  .b.bl { left: -3px; bottom: -3px; border-width: 0 0 2px 2px; }
+  .b.br { right: -3px; bottom: -3px; border-width: 0 2px 2px 0; }
+  .desc { font-size: 13px; line-height: 1.6; color: var(--sr-white); }
+  .desc p + p { margin-top: 8px; }
+  .desc a { color: var(--sr-cyan); text-decoration: none; }
+
+  /* Metadata pane: 300px usable inner width inside 16px padding + 1px border = 334px */
+  .meta {
+    width: 334px; flex: none; background: var(--sr-panel-deep);
+    border: 1px solid var(--sr-rim); border-radius: var(--sr-radius);
+    position: relative;
+  }
+  .meta::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--sr-rim-lit), transparent);
+  }
+  .grp { padding: 8px 16px; border-top: 1px solid var(--sr-line-dim); }
+  .grp:first-of-type { border-top: 0; }
+  .f { display: flex; gap: 12px; padding: 3px 0; font-size: 13px; align-items: baseline; }
+  .f > span:first-child {
+    width: 98px; flex: none; font: 600 10px "Sora", sans-serif;
+    letter-spacing: .08em; text-transform: uppercase; color: var(--sr-periwinkle);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .chip {
+    height: 22px; padding: 0 8px;
+    background: linear-gradient(180deg, var(--sr-plate), var(--sr-well-deep));
+    border: 1px solid var(--sr-line); border-radius: var(--sr-radius);
+    color: var(--sr-ice); font-size: 12px; display: flex; align-items: center;
+  }
+  .score { color: var(--sr-gold); font-weight: 700; }
+  .note { position: absolute; left: 56px; bottom: 6px; font-size: 10px; color: var(--sr-dim); z-index: 4; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="IconMainMenu" viewBox="0 0 24 24">
+      <path fill-rule="evenodd" d="M12,1.2 L21.35,6.6 L21.35,17.4 L12,22.8 L2.65,17.4 L2.65,6.6 Z M12,3.6 L4.73,7.8 L4.73,16.2 L12,20.4 L19.27,16.2 L19.27,7.8 Z"/>
+      <path d="M12.00,4.90 L13.70,9.00 L12.00,10.10 L10.30,9.00 Z M18.15,15.55 L13.75,14.97 L13.65,12.95 L15.45,12.03 Z M5.85,15.55 L8.55,12.03 L10.35,12.95 L10.25,14.97 Z M12.00,10.65 L13.17,11.33 L13.17,12.67 L12.00,13.35 L10.83,12.67 L10.83,11.33 Z"/>
+    </symbol>
+    <symbol id="IconLibrary" viewBox="0 0 24 24"><path d="M4,4 H10 V10 H4 Z M14,4 H20 V10 H14 Z M4,14 H10 V20 H4 Z M14,14 H20 V20 H14 Z"/></symbol>
+    <symbol id="IconStatistics" viewBox="0 0 24 24"><path d="M4,13 H8 V20 H4 Z M10,5 H14 V20 H10 Z M16,9 H20 V20 H16 Z"/></symbol>
+    <symbol id="IconSearch" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10.5,3 A7.5,7.5 0 1,1 10.49,18 A7.5,7.5 0 1,1 10.5,3 Z M10.5,5 A5.5,5.5 0 1,0 10.51,16 A5.5,5.5 0 1,0 10.5,5 Z M15.4,14 L21,19.6 L19.6,21 L14,15.4 Z"/></symbol>
+    <symbol id="IconFilter" viewBox="0 0 24 24"><path d="M3,5 H21 L14,13 V19 L10,21 V13 Z"/></symbol>
+    <symbol id="IconSort" viewBox="0 0 24 24"><path d="M4,6 H20 V8 H4 Z M4,11 H15 V13 H4 Z M4,16 H11 V18 H4 Z M18,10 V19 L15.5,16.5 L14.2,17.8 L19,22.5 L23.8,17.8 L22.5,16.5 L20,19 V10 Z"/></symbol>
+    <symbol id="IconViewSettings" viewBox="0 0 24 24"><path d="M3,6 H21 V8 H3 Z M3,11 H21 V13 H3 Z M3,16 H21 V18 H3 Z M7,5 H10 V9 H7 Z M14,10 H17 V14 H14 Z M9,15 H12 V19 H9 Z"/></symbol>
+    <symbol id="IconFilterPresets" viewBox="0 0 24 24"><path d="M12,2 L21,7 V17 L12,22 L3,17 V7 Z M12,4.4 L5,8.3 V15.7 L12,19.6 L19,15.7 V8.3 Z M12,8 L15,12 L12,16 L9,12 Z"/></symbol>
+    <symbol id="IconGroup" viewBox="0 0 24 24"><path d="M3,4 H9 V9 H3 Z M11,5.5 H21 V7.5 H11 Z M3,10.5 H9 V15.5 H3 Z M11,12 H21 V14 H11 Z M3,17 H9 V22 H3 Z M11,18.5 H21 V20.5 H11 Z"/></symbol>
+    <symbol id="IconDetailsView" viewBox="0 0 24 24"><path d="M3,5 H9 V19 H3 Z M11,5 H21 V11 H11 Z M11,13 H21 V19 H11 Z"/></symbol>
+    <symbol id="IconGridView" viewBox="0 0 24 24"><path d="M3,4 H8 V11 H3 Z M9.5,4 H14.5 V11 H9.5 Z M16,4 H21 V11 H16 Z M3,13 H8 V20 H3 Z M9.5,13 H14.5 V20 H9.5 Z M16,13 H21 V20 H16 Z"/></symbol>
+    <symbol id="IconListView" viewBox="0 0 24 24"><path d="M3,5 H21 V7.5 H3 Z M3,10.5 H21 V13 H3 Z M3,16 H21 V18.5 H3 Z"/></symbol>
+    <symbol id="IconRandom" viewBox="0 0 24 24"><path d="M4,4 H20 V20 H4 Z M7.5,7 A1.5,1.5 0 1,0 7.51,10 A1.5,1.5 0 1,0 7.5,7 Z M12,10.5 A1.5,1.5 0 1,0 12.01,13.5 A1.5,1.5 0 1,0 12,10.5 Z M16.5,14 A1.5,1.5 0 1,0 16.51,17 A1.5,1.5 0 1,0 16.5,14 Z"/></symbol>
+    <symbol id="IconNotifications" viewBox="0 0 24 24"><path d="M12,3 A5,5 0 0,1 17,8 V14 L19,17 H5 L7,14 V8 A5,5 0 0,1 12,3 Z M10,18 H14 A2,2 0 0,1 10,18 Z"/></symbol>
+    <symbol id="IconPlay" viewBox="0 0 24 24"><path d="M6,4 L20,12 L6,20 Z"/></symbol>
+    <symbol id="IconOptions" viewBox="0 0 24 24"><path d="M4,10.5 H7 V13.5 H4 Z M10.5,10.5 H13.5 V13.5 H10.5 Z M17,10.5 H20 V13.5 H17 Z"/></symbol>
+    <symbol id="IconEdit" viewBox="0 0 24 24"><path d="M16.5,3.5 L20.5,7.5 L8.5,19.5 L4,20 L4.5,15.5 Z M14.8,5.2 L18.8,9.2"/></symbol>
+    <symbol id="IconWindowMinimize" viewBox="0 0 24 24"><path d="M5,11 H19 V13 H5 Z"/></symbol>
+    <symbol id="IconWindowMaximize" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,5 H19 V19 H5 Z M7,7 V17 H17 V7 Z"/></symbol>
+    <symbol id="IconWindowClose" viewBox="0 0 24 24"><path d="M5,6.8 L6.8,5 L12,10.2 L17.2,5 L19,6.8 L13.8,12 L19,17.2 L17.2,19 L12,13.8 L6.8,19 L5,17.2 L10.2,12 Z"/></symbol>
+  </defs>
+</svg>
+
+<aside class="rail" data-part="sidebar">
+  <div class="menu-seal" data-part="PART_ElemMainMenu">
+    <svg class="hexbg" viewBox="0 0 36 38">
+      <polygon points="18,1 35,10 35,28 18,37 1,28 1,10" fill="var(--sr-void)" stroke="var(--sr-line)" stroke-width="1"/>
+      <polygon points="18,4 32,11.5 32,26.5 18,34 4,26.5 4,11.5" fill="var(--sr-plate)" stroke="var(--sr-rim)" stroke-width="1.2"/>
+    </svg>
+    <svg class="i mark"><use href="#IconMainMenu"/></svg>
+  </div>
+  <div class="rail-sep"></div>
+  <div class="rail-item cur"><svg class="i"><use href="#IconLibrary"/></svg></div>
+  <div class="rail-item"><svg class="i"><use href="#IconStatistics"/></svg></div>
+</aside>
+
+<div class="main">
+  <header class="top" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="i"><use href="#IconSearch"/></svg><span>Search games...</span></div>
+    <div class="cell hot" data-part="PART_ToggleFilter"><svg class="i"><use href="#IconFilter"/></svg><span class="pip"></span></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="cell"><svg class="i"><use href="#IconSort"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#IconViewSettings"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#IconFilterPresets"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#IconGroup"/></svg></div>
+      <span class="pipe"></span>
+      <div class="cell on"><svg class="i"><use href="#IconDetailsView"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#IconGridView"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#IconListView"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#IconRandom"/></svg></div>
+    </div>
+    <div class="cell" data-part="PART_ToggleNotifications"><svg class="i"><use href="#IconNotifications"/></svg><span class="count">3</span></div>
+    <div class="sp"></div>
+    <div class="win">
+      <div><svg class="i"><use href="#IconWindowMinimize"/></svg></div>
+      <div><svg class="i"><use href="#IconWindowMaximize"/></svg></div>
+      <div><svg class="i"><use href="#IconWindowClose"/></svg></div>
+    </div>
+  </header>
+
+  <div class="view">
+    <aside class="list" data-part="game-list">
+      <div class="row inst"><b class="k2"></b>Aether Watch</div>
+      <div class="row inst"><b class="k4"></b>Chrono Rift</div>
+      <div class="row hot inst"><b class="k6"></b>Cinder Vale</div>
+      <div class="row"><b class="k5"></b>Duskborn</div>
+      <div class="row inst"><b class="k2"></b>Frosthelm</div>
+      <div class="row sel"><b class="k1"></b>Shattered Spire</div>
+      <div class="row inst"><b class="k3"></b>Starlight Arena</div>
+      <div class="row"><b class="k6"></b>Stormbreak</div>
+      <div class="row"><b class="k5"></b>Twilight Keep</div>
+      <div class="row run inst"><b class="k4"></b>Void Bastion<span class="foot"></span><span class="nodes"><svg viewBox="0 0 10 11"><polygon points="5,0 10,2.75 10,8.25 5,11 0,8.25 0,2.75"/></svg><svg viewBox="0 0 10 11"><polygon points="5,0 10,2.75 10,8.25 5,11 0,8.25 0,2.75"/></svg><svg viewBox="0 0 10 11"><polygon points="5,0 10,2.75 10,8.25 5,11 0,8.25 0,2.75"/></svg></span></div>
+    </aside>
+
+    <main class="page" data-part="game-page">
+      <div class="banner"></div>
+      <div class="body">
+        <div class="title cap">Shattered Spire</div>
+        <div class="meta-line">Battle Arena &bull; Played 184h 20m &bull; Installed</div>
+        <div class="actions">
+          <div class="play">
+            <div class="bloom"></div>
+            <svg class="plate" viewBox="0 0 204 56">
+              <defs>
+                <linearGradient id="readyBody" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--sr-ready-hi)"/>
+                  <stop offset="56%" stop-color="var(--sr-ready)"/>
+                  <stop offset="100%" stop-color="var(--sr-ready-press)"/>
+                </linearGradient>
+                <radialGradient id="readyDome" cx="0.5" cy="0.14" r="0.68">
+                  <stop offset="0%" stop-color="var(--sr-white)" stop-opacity="0.34"/>
+                  <stop offset="55%" stop-color="var(--sr-ready-hot)" stop-opacity="0.16"/>
+                  <stop offset="100%" stop-color="var(--sr-void)" stop-opacity="0"/>
+                </radialGradient>
+                <linearGradient id="readyTopFlare" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="var(--sr-white)" stop-opacity="0"/>
+                  <stop offset="50%" stop-color="var(--sr-white)" stop-opacity="0.72"/>
+                  <stop offset="100%" stop-color="var(--sr-white)" stop-opacity="0"/>
+                </linearGradient>
+                <pattern id="readyHex" width="16" height="28" patternUnits="userSpaceOnUse">
+                  <path d="M8,0 L16,4.6 L16,14 L8,18.6 L0,14 L0,4.6 Z M8,18.6 L8,28" fill="none" stroke="var(--sr-white)" stroke-width="0.6" stroke-opacity="0.09"/>
+                </pattern>
+              </defs>
+              <!-- Outer recessed dark cradle hex bezel -->
+              <polygon points="14,1 190,1 203,28 190,55 14,55 1,28" fill="var(--sr-void)" fill-opacity="0.92" stroke="var(--sr-ready-hot)" stroke-opacity="0.78" stroke-width="1.2"/>
+              <!-- Inner Ready core + radial dome + fine hex lattice + top specular flare -->
+              <polygon points="17,5 187,5 198,28 187,51 17,51 6,28" fill="url(#readyBody)" stroke="var(--sr-ready-hot)" stroke-width="1.4"/>
+              <polygon points="17,5 187,5 198,28 187,51 17,51 6,28" fill="url(#readyDome)"/>
+              <polygon points="17,5 187,5 198,28 187,51 17,51 6,28" fill="url(#readyHex)"/>
+              <polygon points="19,8 185,8 194,28 185,48 19,48 10,28" fill="none" stroke="var(--sr-white)" stroke-opacity="0.28" stroke-width="1"/>
+              <rect x="34" y="5" width="136" height="1.5" fill="url(#readyTopFlare)"/>
+            </svg>
+            <div class="sheen"></div>
+            <div class="label"><svg class="i"><use href="#IconPlay"/></svg><span>PLAY</span></div>
+          </div>
+          <div class="sq"><svg class="i"><use href="#IconOptions"/></svg></div>
+          <div class="sq"><svg class="i"><use href="#IconEdit"/></svg></div>
+        </div>
+
+        <div class="cols">
+          <section class="left">
+            <div class="h2 cap">Screenshots</div>
+            <div class="shots">
+              <div class="shot k2 hot"><span class="b tl"></span><span class="b tr"></span><span class="b bl"></span><span class="b br"></span></div>
+              <div class="shot k1"></div>
+              <div class="shot k4"></div>
+            </div>
+            <div class="h2 cap">Description</div>
+            <div class="desc">
+              <p>Clash across shifting realm battlegrounds in fast 5v5 hero skirmishes. Unlock branching talent tiers at levels 1, 4, 7, 10, 13, 16, and 20 to adapt your build mid-match.</p>
+              <p>Includes Ranked Storm League, ARAM brawls, and <a href="#">Custom Lobby Drafts</a> with cross-realm progression.</p>
+            </div>
+          </section>
+
+          <aside class="meta" data-part="metadata">
+            <div class="grp">
+              <div class="f"><span>Completion</span><span>Beaten</span></div>
+              <div class="f"><span>Time Played</span><span>184h 20m</span></div>
+              <div class="f"><span>Last Played</span><span>Today</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Community</span><span class="score">91</span></div>
+              <div class="f"><span>Critic</span><span class="score">86</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Developers</span><span>Stormrift Studios</span></div>
+              <div class="f"><span>Release Date</span><span>Jun 2, 2015</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Genres</span><div class="chips"><span class="chip">MOBA</span><span class="chip">Strategy</span></div></div>
+              <div class="f"><span>Features</span><div class="chips"><span class="chip">Co-op</span><span class="chip">Ranked</span></div></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Library</span><span>Battle.net</span></div>
+              <div class="f"><span>Install Size</span><span>18.4 GB</span></div>
+            </div>
+            <div class="grp">
+              <div class="f"><span>Links</span><span style="color:var(--sr-cyan)">Official Wiki</span></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="note">Stormrift unofficial fan theme &bull; no game art or assets included</div>
+</body>
+</html>

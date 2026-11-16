@@ -35,14 +35,14 @@ All themes restyle the same set; a few add more (Expander, ListView, group style
 | `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Side panels, respaced | |
 | `Views/DetailsViewGameOverview.xaml`, `Views/GridViewGameOverview.xaml` | The game page (details view) and the grid side panel | |
 | `DefaultControls/*` | Button, ToggleButton, RepeatButton, TextBox (+ `BareTextBox`), PasswordBox, ComboBox, CheckBox, RadioButton, Slider, ProgressBar, ScrollViewer, Thumb, ToolTip, ContextMenu, Menu, TabControl, GroupBox, ListBox | `SliderRangeButton`, `SliderThumb`, `ScrollBarThumb` |
-| `CustomControls/SliderEx.xaml`, `GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | One-line styles `BasedOn` the theme's Slider / ContextMenu | |
+| `CustomControls/SliderEx.xaml`, `GameMenu.xaml`, `GameGroupMenu.xaml`, `TrayContextMenu.xaml` | One-line styles `BasedOn` the theme's Slider / ContextMenu (injected at build time from `scripts/templates/theme-defaults/` unless overridden) | |
 | `CustomControls/SearchBox.xaml` | Search input (keeps all three `PART_` names) | |
 | `DerivedStyles/DetailsViewItemStyle.xaml`, `GridViewItemStyle.xaml` | Library rows and cover tiles (animated cover hover, required for new themes) | |
 | `DerivedStyles/GridViewItemTemplate.xaml` | Cover content: the Play / Info hover controls, themed and animated (required for new themes; Cloudbank first) | `GridTileButton` |
 | `DerivedStyles/PlayButton.xaml` (+ `RunningActionIndicator`), `PropertyItemButton.xaml`, `WindowBarButton.xaml`, `HighlightBorder.xaml` | Play, metadata values and chips, dialog caption buttons, input chrome for Default templates | |
 | `DefaultControls/ListView.xaml` | List view rows: the implicit `ListViewItem` style only (Default's row plus the running game indicator); the list, headers and scroll viewer stay Playnite's | |
 
-Everything a theme does not restyle (DataGrid, the edit dialog, ...) is Playnite's template, recolored through the palette keys. DatePicker is a required overlay to keep form fields at the standard height.
+Everything a theme does not restyle (DataGrid, the edit dialog, ...) is Playnite's template, recolored through the palette keys. The shared field-height overlays (`ComboBoxList`, `FilterSelectionBox`, `NumericBoxes`, `PathSelectionBox`, `DatePicker`), `Expander`, `LibraryGridView`, `SliderEx`, `GameMenu`, `GameGroupMenu` and `TrayContextMenu` are supplied automatically from `scripts/templates/theme-defaults/` at build time unless the theme overrides them in `src/`.
 
 ## Shell
 

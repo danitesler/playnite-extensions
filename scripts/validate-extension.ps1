@@ -95,11 +95,15 @@ function Get-XamlTypeName {
 }
 
 function Get-SourceDisplayPath {
-    # Built theme file -> the source file it came from (rendered *.template.xaml files lose ".template" in the drop).
+    # Built theme file -> the source file it came from (rendered *.template.xaml files lose ".template" in the drop,
+    # and unoverridden defaults come from scripts/templates/theme-defaults).
     param([string]$SourceRoot, [string]$Relative)
     if (-not $SourceRoot) { return $Relative }
     $template = $Relative -replace "\.xaml$", ".template.xaml"
     if (Test-Path (Join-Path (Join-RepoPath $SourceRoot) $template)) { return "$SourceRoot/$template" }
+    if (Test-Path (Join-Path (Join-RepoPath $SourceRoot) $Relative)) { return "$SourceRoot/$Relative" }
+    $defaultRel = "scripts/templates/theme-defaults/$Relative"
+    if (Test-Path (Join-RepoPath $defaultRel)) { return $defaultRel }
     return "$SourceRoot/$Relative"
 }
 
@@ -371,7 +375,7 @@ function Test-ComboBoxChevronRoom {
         $margin = $node.GetAttribute("Margin")
         if ($margin -and $margin -notmatch "\{") {
             $parts = $margin -split "[,\s]+" | Where-Object { $_ -ne "" }
-            $right = if ($parts.Count -eq 4) { $parts[2] } elseif ($parts.Count -eq 1) { $parts[0] } else { $parts[0] }
+            $right = if ($parts.Count -eq 4) { $parts[2] } else { $parts[0] }
             $number = 0.0
             if ([double]::TryParse($right, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$number)) { $room += $number }
         }
@@ -449,7 +453,7 @@ function Test-StyleTriggerComplexAnimation {
         foreach ($node in $doc.SelectNodes("//*[local-name()='Style.Triggers']//*[@*[local-name()='Storyboard.TargetProperty']]")) {
             $path = $node.GetAttribute("Storyboard.TargetProperty")
             if ($path -notmatch "\)\.\(" -or $node.GetAttribute("Storyboard.TargetName")) { continue }
-            $errors.Add("${where}: a Style trigger animates '$path', which crashes Playnite when game details open (the transform is read-only while the page is built). Animate a plain property (Opacity, Margin, Height in a fixed-size host), or move the storyboard to the page's ControlTemplate.Triggers with an x:Name'd transform and Storyboard.TargetName (playnite-theme-dev reference.md, Hard rules).") | Out-Null
+            $errors.Add("${where}: a Style trigger animates '$path', which crashes Playnite when game details open (the transform is read-only while the page is built). Animate a plain property (Opacity, Margin, Height in a fixed-size host), or move the storyboard to the page's ControlTemplate.Triggers with an x:Name'd transform and Storyboard.TargetName (docs/themes/reference.md, Hard rules).") | Out-Null
         }
     }
     return @($errors | Select-Object -Unique)
@@ -532,7 +536,7 @@ function Test-FormControlHeight {
         $path = Join-Path $Directory $relative
         if (-not (Test-Path $path) -or -not ((Get-Content -Raw $path) -match "ControlHeight")) {
             $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
-            $errors.Add("${where}: must set ControlHeight on Playnite's control (it defaults to 24). new-theme.ps1 scaffolds this file (src/themes/AGENTS.md Form field height).") | Out-Null
+            $errors.Add("${where}: must set ControlHeight on Playnite's control (it defaults to 24). scripts/templates/theme-defaults supplies this file unless overridden (src/themes/AGENTS.md Form field height).") | Out-Null
         }
     }
     return @($errors | Select-Object -Unique)
@@ -1380,8 +1384,6 @@ if (Test-Path $installerPath) {
     $installerVersion = Get-YamlFirstPackageScalar -Lines $installerLines -Key "Version"
     $installerRequiredApi = Get-YamlFirstPackageScalar -Lines $installerLines -Key "RequiredApiVersion"
     $packageUrl = Get-YamlFirstPackageScalar -Lines $installerLines -Key "PackageUrl"
-    $installerManifestUrl = Get-YamlScalar -Lines $installerLines -Key "InstallerManifestUrl"
-    $sourceUrl = Get-YamlScalar -Lines $installerLines -Key "SourceUrl"
 
     if ($installerAddonId -ne $manifest.Id) {
         $errors.Add("Installer AddonId '$installerAddonId' does not match $manifestName Id '$($manifest.Id)'.")
@@ -1391,14 +1393,6 @@ if (Test-Path $installerPath) {
     }
     if ($profile.requiredApiVersion -and $installerRequiredApi -ne $profile.requiredApiVersion) {
         $errors.Add("Installer RequiredApiVersion '$installerRequiredApi' does not match profile requiredApiVersion '$($profile.requiredApiVersion)'.")
-    }
-
-    # The installer manifest is minimal (AddonId + Packages); these URLs are checked only if someone adds them back.
-    if ($installerManifestUrl -and $installerManifestUrl -ne $expectedInstallerUrl) {
-        $errors.Add("InstallerManifestUrl '$installerManifestUrl' does not match expected '$expectedInstallerUrl'.")
-    }
-    if ($sourceUrl -and $sourceUrl -ne $profile.sourceUrl) {
-        $errors.Add("SourceUrl '$sourceUrl' does not match profile sourceUrl '$($profile.sourceUrl)'.")
     }
 
     if ($Mode -eq "Package") {
@@ -1532,6 +1526,6 @@ else {
     Write-Host "  Module: $($manifest.Module)"
 }
 if ($previewNotes.Count -gt 0) {
-    Write-Host "  Preview colors and layout (advisory; see playnite-theme-dev previews.md):"
+    Write-Host "  Preview colors and layout (advisory; see docs/themes/previews.md):"
     foreach ($note in $previewNotes) { Write-Host "    $note" }
 }

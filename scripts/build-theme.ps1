@@ -96,7 +96,7 @@ if ($context -and $Deploy) {
             Write-Host "Set active $mode theme to '$($manifest.Name)' ($($manifest.Id))."
         }
     }
-} elseif ($Deploy -or $SetTheme -or $Restart -or $Launch) {
+} elseif ($Deploy -or $SetTheme) {
     if ($env:OS -eq "Windows_NT" -and $env:CI -ne "true") {
         throw "Playnite installation not found. Pass -DataPath, -DeployPath or -PlayniteExe."
     }

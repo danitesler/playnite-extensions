@@ -307,13 +307,9 @@ namespace GameHoverDetails
                 SetValue(
                     ref hoverIconStyle,
                     norm,
-                    nameof(HoverIconStyle),
-                    nameof(HoverIconFontFamily));
+                    nameof(HoverIconStyle));
             }
         }
-
-        [DontSerialize]
-        public FontFamily HoverIconFontFamily => HoverFieldCatalog.GetGlyphFontFamily(hoverIconStyle);
 
         /// <summary>Glyph size for inline field icons (device-independent pixels). Padding grows the chip around this.</summary>
         public int HoverIconChipSizeDip
@@ -417,9 +413,6 @@ namespace GameHoverDetails
         /// <summary>Background color picker applies only to Regular fill.</summary>
         [DontSerialize]
         public bool ShowRegularBackgroundColorControls => !IsGameCoverBackgroundStyle;
-
-        /// <summary>Hover panel width is the Layout slider for both Regular and fanart.</summary>
-        internal int ResolveHoverPanelWidth() => HoverWidth;
 
         /// <summary>When true, popup chrome follows Playnite theme (accent-dark fill); pickers stay visible as a live mirror.</summary>
         public bool UseThemeChrome
@@ -530,10 +523,7 @@ namespace GameHoverDetails
         /// <summary>Copy live accent-dark theme colors into the pickers without turning off theme-sync.</summary>
         public void ApplyThemeColorsToPickers()
         {
-            if (!HoverChromePalette.TryComputeThemeChromeHexes(out var hexes))
-            {
-                return;
-            }
+            var hexes = HoverChromePalette.ComputeThemeChromeHexes();
 
             RunWithThemeHexSync(() =>
             {

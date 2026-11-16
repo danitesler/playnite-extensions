@@ -25,11 +25,6 @@ namespace GameHoverDetails
             @"<(iframe|object|embed)[^>]*>[\s\S]*?</\1>|<(iframe|object|embed)[^>]*/>",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        public static void ConfigureBodyTextBlock(TextBlock block, double innerMax, Brush foreground)
-        {
-            ConfigureBodyTextBlock(block, innerMax, foreground, GameHoverDetailsSettings.DefaultBodyFontSize);
-        }
-
         public static void ConfigureBodyTextBlock(TextBlock block, double innerMax, Brush foreground, double fontSize)
         {
             var size = fontSize > 0 ? fontSize : GameHoverDetailsSettings.DefaultBodyFontSize;
@@ -48,19 +43,9 @@ namespace GameHoverDetails
             block.FlowDirection = HoverLoc.LayoutFlow();
         }
 
-        public static void ConfigureFieldLabelTextBlock(TextBlock label, double innerMax)
-        {
-            ConfigureFieldLabelTextBlock(label, innerMax, null);
-        }
-
         /// <summary>
         /// Muted field title (hover + settings preview): small caps, secondary color.
         /// </summary>
-        public static void ConfigureFieldLabelTextBlock(TextBlock label, double innerMax, Brush foreground)
-        {
-            ConfigureFieldLabelTextBlock(label, innerMax, foreground, GameHoverDetailsSettings.DefaultTitleFontSize);
-        }
-
         public static void ConfigureFieldLabelTextBlock(TextBlock label, double innerMax, Brush foreground, double fontSize)
         {
             var size = fontSize > 0 ? fontSize : GameHoverDetailsSettings.DefaultTitleFontSize;

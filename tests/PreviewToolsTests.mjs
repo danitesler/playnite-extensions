@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { checkThemeFonts } from '../scripts/theme-fonts.mjs';
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url));
 
@@ -49,6 +50,22 @@ test('preview tools load HTML from paths containing spaces, # and %', () => {
         assert.doesNotMatch(result.stdout, /no data-part tags/, 'layout checker must measure the fixture HTML');
       }
     }
+  } finally {
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('theme-fonts resolves .dark token overrides over :root', () => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'theme-fonts-dark-'));
+  try {
+    const srcDir = path.join(scratch, 'src');
+    fs.mkdirSync(srcDir, { recursive: true });
+    fs.writeFileSync(path.join(srcDir, 'tokens.css'), ':root { --font-ui: "MissingFont"; }\n.dark { --font-ui: "Segoe UI" }\n');
+    fs.writeFileSync(
+      path.join(srcDir, 'Constants.template.xaml'),
+      '<ResourceDictionary xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><FontFamily x:Key="FontFamily">{{text:font-ui}}</FontFamily></ResourceDictionary>'
+    );
+    assert.deepEqual(checkThemeFonts(scratch), []);
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
   }

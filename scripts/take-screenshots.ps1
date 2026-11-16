@@ -4,10 +4,7 @@ param(
     [string]$Extension,
 
     # Output directory. Defaults to <add-on dir>\art.
-    [string]$OutDir = "",
-
-    # Keep legacy screenshots (grid.png) instead of cleaning them up.
-    [switch]$KeepLegacy
+    [string]$OutDir = ""
 )
 
 # Generates release screenshots (screenshot-details.png and screenshot-settings.png) for a theme from its
@@ -51,24 +48,6 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to render $detailsHtml" }
 
 & node $nodeScript $settingsHtml $settingsOut
 if ($LASTEXITCODE -ne 0) { throw "Failed to render $settingsHtml" }
-
-if (-not $KeepLegacy) {
-    $legacyShots = Join-Path $themeDir "info\screenshots"
-    if (Test-Path $legacyShots) {
-        Remove-Item -Path $legacyShots -Recurse -Force
-        Write-Host "Cleaned up legacy screenshots directory: $legacyShots"
-    }
-    $legacyGrid = Join-Path $OutDir "grid.png"
-    if (Test-Path $legacyGrid) {
-        Remove-Item -Path $legacyGrid -Force
-        Write-Host "Cleaned up obsolete screenshot: $legacyGrid"
-    }
-    $legacyArtGrid = Get-ChildItem -Path (Join-Path $artDir "preview-grid*") -ErrorAction SilentlyContinue
-    if ($legacyArtGrid) {
-        $legacyArtGrid | Remove-Item -Force
-        Write-Host "Cleaned up obsolete art preview grid files."
-    }
-}
 
 $base = "https://raw.githubusercontent.com/danitesler/playnite-extensions/main/" + (($profile.dir -replace "\\", "/").TrimEnd("/")) + "/art"
 Write-Host ""

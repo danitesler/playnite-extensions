@@ -63,7 +63,7 @@ namespace GameHoverDetails
         }
 
         /// <summary>Accent-dark fill/border plus icon-chip hex for theme-sync pickers. Text and icons always follow Playnite <c>TextBrush</c>.</summary>
-        public static bool TryComputeThemeChromeHexes(out ThemeChromeHexes hexes)
+        public static ThemeChromeHexes ComputeThemeChromeHexes()
         {
             var accent = TryGetThemeAccentColor();
             var fill = ThemeFillFromAccent(accent);
@@ -76,14 +76,13 @@ namespace GameHoverDetails
             divider.A = 255;
             iconBg.A = 255;
 
-            hexes = new ThemeChromeHexes
+            return new ThemeChromeHexes
             {
                 Fill = ToHex(fill),
                 Border = ToHex(border),
                 Divider = ToHex(divider),
                 IconBackground = ToHex(iconBg)
             };
-            return true;
         }
 
         public static void ApplyToChromeBorder(Border border, GameHoverDetailsSettings settings, bool coverImageActive = false)
