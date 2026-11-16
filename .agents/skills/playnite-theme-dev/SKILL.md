@@ -20,6 +20,7 @@ Read [the shared theme rules](../../../src/themes/AGENTS.md) and the affected th
 | Patch multiple themes | [Theme patch workflow](../../../docs/themes/theme-patch-workflow.md) |
 | Running or launching game mark (rows, covers, list view, Play cell) | [Running game indicator](../../../docs/themes/reference.md#running-game-indicator), the sweep / idle recipe and kit in [running-motion.md](../../../docs/themes/running-motion.md), `pwsh -STA -File tests/wpf/RunningIndicatorRegressionTests.ps1 -Keys <key>` and `pwsh -STA -File tests/wpf/RunningMotionFrames.ps1 -Keys <key> -OutDir <scratch>` |
 | Mark another game state (installing, uninstalling, favorite, hidden, ...) | [Game state indicators](../../../docs/themes/reference.md#game-state-indicators-any-new-state), built on the running indicator |
+| Generate brush, grain, bloom, or pattern sprites | Optional `art/sprites.py` (`Pillow` + `NumPy`) pattern below and [Generated graphic assets](../../../docs/themes/new-theme.md) |
 
 After every change, redeploy and restart Playnite with `-Launch` and leave it open as the active, foreground window, not minimized (root `AGENTS.md`, Redeploy and show it after every change).
 
@@ -47,4 +48,10 @@ Settings window rules that keep coming back (details in [Settings screens](../..
 
 - **No stray title text.** If the title band draws its own title and hides `PART_TextTitle`, put `PART_TextTitle` in a `Visibility="Collapsed"` parent. Collapsed on the element alone is not enough: Playnite makes it visible when a window has a Title and it draws bare text at the band's top-left. Check ThemeModifier Settings and Settings. The validator fails this.
 - **Minimal section list, not boxed.** Settings and Add-ons section rows are bare 28px lines: no idle plate, outline or border; a soft hover wash, and a selected row with a held wash, a 2px accent bar and a brighter label, all opacity-animated. Keep the same restraint for any side panel or list.
+
+Generated sprites and textures (optional — use when flat fills or vector `Path`s look thin next to the reference):
+
+- **Preferred stack:** Python with `Pillow` (`PIL`) and `NumPy` in `art/sprites.py`, driven by a **fixed random seed** so regenerating `src/Images/fx/*.png` is bit-reproducible. Examples: `Inkbolt`, `Bloodpetal`, `GuidingWind`.
+- **White-mask RGBA format:** render theme-colored sprites (dry-brush strokes, paper grain, lattices, streaks, blooms) as pure white (`255, 255, 255`) with varying alpha (`0..255`). Color them in XAML via `Fill="{DynamicResource ...Brush}"` + `OpacityMask` (`ImageBrush`) and in HTML previews via `-webkit-mask` / `-webkit-mask-box-image` (`var(--token)`), so ThemeModifier recolors every effect automatically.
+- **Review before integrating:** save a dark-backed contact sheet (e.g. `art/fx-sheet.png` or scratch output) and inspect it visually before wiring masks into previews and XAML. For 9-slice plates, keep cap/edge pixel bounds aligned with `InkPlateTemplate`/`GlowFrameTemplate` `Viewbox` coordinates.
 
