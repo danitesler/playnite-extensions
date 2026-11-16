@@ -151,7 +151,7 @@ function buildReadme(a) {
 // ---- root README rows --------------------------------------------------------------------------------------------
 function linksLine(a) {
   const rel = latestRelease(a.key);
-  return `[Details](${a.dir}/README.md) · ${rel ? `[Download ${rel.version}](${rel.url})` : '_not released yet_'}`;
+  return `${rel ? `[Download ${rel.version}](${rel.url})` : '_not released yet_'} · [More](${a.dir}/README.md)`;
 }
 
 function updateRootReadme(text) {
