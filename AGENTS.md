@@ -44,7 +44,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - [Theme rules and shared layouts](src/themes/AGENTS.md) cover XAML, Playnite behavior, preview assets and branding.
 - [Theme development](.agents/skills/playnite-theme-dev/SKILL.md) covers research, creative direction, the preview checklist and implementation. Start with reference research. Keep source measurements and links in `RESEARCH.md`, linked from the theme’s `AGENTS.md`, and write a short `BRIEF.md`.
 - [Multi-theme patches](docs/themes/theme-patch-workflow.md) covers ownership, checks and deployment.
-- **Metadata side (every theme, new ones included):** the details view's metadata pane is right by default and moves left with the `GameDetailsPaneOnLeft` ThemeModifier checkbox; on the left it stacks above screenshots and description on narrow pages. `node scripts/game-page-breakpoints.mjs` writes it, `validate-extension.ps1` enforces it. Details: [Responsive game pages](docs/themes/reference.md#responsive-game-pages).
+- **Metadata position (every theme, new ones included):** the details view's metadata pane is Right by default; the `GameDetailsPanePosition` ThemeModifier dropdown also offers Left and Center (centred above screenshots and description). Narrow pages stack it first for Left and Center. `node scripts/game-page-breakpoints.mjs` writes it, `validate-extension.ps1` enforces it. Details: [Responsive game pages](docs/themes/reference.md#responsive-game-pages).
 
 ## Playnite skills
 

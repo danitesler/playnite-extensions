@@ -861,8 +861,8 @@ function Test-WindowBackground {
             $placementColumn = $doc.SelectSingleNode("//*[@*[local-name()='Name']='DetailsMetadataColumn']")
             $placementBody = $doc.SelectSingleNode("//*[@*[local-name()='Name']='DetailsOverviewBody']")
             $bodyColumns = if ($placementBody) { @($placementBody.SelectNodes("./*[local-name()='Grid.ColumnDefinitions']/*")).Count } else { 0 }
-            if (-not $placementColumn -or $placementColumn.GetAttribute('Tag') -ne '{DynamicResource GameDetailsPaneOnLeft}' -or $bodyColumns -ne 3) {
-                $errors.Add("${where}: the metadata pane cannot move to the left. DetailsMetadataColumn needs Tag=`"{DynamicResource GameDetailsPaneOnLeft}`" in a three-column DetailsOverviewBody; run node scripts/game-page-breakpoints.mjs on the file (src/themes/AGENTS.md Game page).") | Out-Null
+            if (-not $placementColumn -or $placementColumn.GetAttribute('Tag') -ne '{DynamicResource GameDetailsPanePosition}' -or $bodyColumns -ne 3) {
+                $errors.Add("${where}: the metadata pane cannot move (Left / Center / Right). DetailsMetadataColumn needs Tag=`"{DynamicResource GameDetailsPanePosition}`" in a three-column DetailsOverviewBody; run node scripts/game-page-breakpoints.mjs on the file (src/themes/AGENTS.md Game page).") | Out-Null
             }
         }
         $banners = @($doc.SelectNodes("//*[@Height='{DynamicResource GameBannerHeight}' or @MaxHeight='{DynamicResource GameBannerHeight}']"))

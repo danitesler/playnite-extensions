@@ -218,14 +218,15 @@ Use the available game-page body and usable metadata widths in WPF device-indepe
 | Medium | Below the wide breakpoint, with at least `560` of usable metadata width | Two columns in a full-width pane below screenshots, description and notes, with a `24` gap between columns |
 | Narrow | Below the wide breakpoint, with less than `560` of usable metadata width | One column in a full-width pane below the content |
 
-**Metadata side (details view).** `GameDetailsPaneOnLeft` (`sys:Boolean`, default `False`, a ThemeModifier checkbox) picks the side. The breakpoints stay the same; only the order flips:
+**Metadata position (details view).** `GameDetailsPanePosition` (`HorizontalAlignment`, default `Right`, a ThemeModifier dropdown) places the pane. `Stretch` or a missing resource behaves as `Right`. The breakpoints stay the same; only the arrangement changes:
 
-| `GameDetailsPaneOnLeft` | Wide | Medium / narrow (stacked) |
+| `GameDetailsPanePosition` | Wide | Medium / narrow (stacked) |
 |---|---|---|
-| `False` (default) | Screenshots and description left, metadata right | Screenshots, description, notes, then metadata |
-| `True` | Metadata left, screenshots and description right | Metadata (two columns, then one), then screenshots, description, notes |
+| `Right` (default) | Screenshots and description left, metadata right | Screenshots, description, notes, then metadata |
+| `Left` | Metadata left, screenshots and description right | Metadata (two columns, then one), then screenshots, description, notes |
+| `Center` | Metadata at its preferred width, centred above full-width screenshots, description and notes | Same as `Left` |
 
-`DetailsOverviewBody` has three columns (`Auto | * | Auto`). `DetailsMetadataColumn` carries `Tag="{DynamicResource GameDetailsPaneOnLeft}"` and its style triggers move it to column 0 (left) or column 2 (right), with the theme gap on the inner side; when stacked it spans all three columns in row 1 (right) or row 0 with a 24px bottom margin (left). `DetailsMainColumn` sits in column 1 and drops to row 1 when stacked on the left. The flag lives on the column's `Tag`, not on a sibling element, so the layout tests that clone the body keep it. `node scripts/game-page-breakpoints.mjs` adds all of this (idempotent, also for files that already have breakpoints); `validate-extension.ps1` fails a details view without it. The grid side panel keeps metadata in its own place.
+`DetailsOverviewBody` has three columns (`Auto | * | Auto`). `DetailsMetadataColumn` carries `Tag="{DynamicResource GameDetailsPanePosition}"`; its style triggers put it in column 0 (`Left`) or column 2 (`Right`) with the theme gap on the inner side, or, for `Center`, across all three columns in row 0 with `HorizontalAlignment="Center"` and a 24px bottom margin. Stacked, it spans all three columns in row 1 (`Right`) or row 0 with a 24px bottom margin (`Left`, `Center`). `DetailsMainColumn` sits in column 1 and drops to row 1 under `Left` (stacked) and `Center`; its `MaxWidth` binding lives in its style so `Center` can release it to `Infinity`. The position lives on the column's `Tag`, not on a sibling element, so the layout tests that clone the body keep it. `node scripts/game-page-breakpoints.mjs` adds all of this (idempotent; it also upgrades files written for the old `GameDetailsPaneOnLeft` Boolean); `validate-extension.ps1` fails a details view without it. The grid side panel keeps metadata in its own place.
 
 Keep the main column constrained by `MaxWidth`. The preferred metadata width comes from `GameDetailsPaneWidth` or `GridDetailsPaneWidth` inside the frame. Reset both `Width` to `NaN` and `MaxWidth` to `Infinity` in the stacked state, so the pane fills the body. Measure the metadata breakpoint inside the frame. Reserve the game page scrollbar gutter with `VerticalScrollBarVisibility="Visible"` so reflow cannot move the pane back across the breakpoint. The six existing `Meta*` groups wrap in order, and collapsed groups give up their slots. Keep each field's caption and value in the same group, and preserve the frame, group styles and first-row separator clipping.
 

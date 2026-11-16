@@ -6,9 +6,12 @@ import { pathToFileURL } from 'node:url';
 const minMainWidth = 400;
 const metadataGap = 24;
 const twoColumnMinWidth = 560;
-// Boolean resource: False (default) keeps metadata on the right of the details
-// view; True mirrors it to the left and stacks it above the main column.
-export const placementKey = 'GameDetailsPaneOnLeft';
+// HorizontalAlignment resource (a ThemeModifier dropdown) for the details view:
+// Right (default, also Stretch or missing) keeps metadata right of the main
+// column; Left mirrors it; Center puts it, at its preferred width, centred
+// above the main column. Stacked, Left and Center put metadata first.
+export const placementKey = 'GameDetailsPanePosition';
+const legacyPlacementKeys = ['GameDetailsPaneOnLeft'];
 
 // Keep untouched XAML verbatim, including namespace declarations and markup extensions.
 function parse(source) {
@@ -204,11 +207,12 @@ export function applyGamePageBreakpoints(source, view) {
   return prefix === 'Details' ? applyGamePagePlacement(result) : result;
 }
 
-// Details view only: lets GameDetailsPaneOnLeft put the metadata column on the
-// left. The body gets three columns (Auto | * | Auto) so either side is an
-// Auto column beside the star main column. When stacked, metadata goes below
-// the main column (right) or above it (left). The flag is read through the
-// metadata column's own Tag so layout tests that clone the body keep it.
+// Details view only: lets GameDetailsPanePosition move the metadata column.
+// The body gets three columns (Auto | * | Auto): Left uses column 0, Right
+// column 2, Center spans all three in row 0 above the main column. The flag
+// is read through the metadata column's own Tag so layout tests that clone
+// the body keep it. The main column's MaxWidth moves into its style so
+// Center can release it. Upgrades files written for the old Boolean key.
 export function applyGamePagePlacement(source) {
   const { nodes } = parse(source);
   const body = nodes.find(n => name(n) === 'DetailsOverviewBody');
@@ -219,31 +223,40 @@ export function applyGamePagePlacement(source) {
   if (!meta || !main || !columns) throw new Error('Expected details metadata/main columns');
   const flag = `{DynamicResource ${placementKey}}`;
   if (meta.attrs.Tag === flag) return source;
+  if (meta.attrs.Tag && !legacyPlacementKeys.some(key => meta.attrs.Tag === `{DynamicResource ${key}}`)) throw new Error(`Unexpected metadata column Tag ${meta.attrs.Tag}`);
   const metaStyle = meta.children.find(n => n.tag === 'Grid.Style');
   const mainStyle = main.children.find(n => n.tag === 'Grid.Style');
-  if (!metaStyle || !mainStyle) throw new Error('Expected generated column styles');
+  const mainMax = main.children.find(n => n.tag === 'Grid.MaxWidth');
+  if (!metaStyle || !mainStyle || !mainMax) throw new Error('Expected generated column styles and main MaxWidth');
   const gapMatch = /Property="Margin" Value="(\d+(?:\.\d+)?),0,0,0"/.exec(source.slice(metaStyle.start, metaStyle.end));
   if (!gapMatch) throw new Error('Expected metadata column gap');
   const gap = gapMatch[1];
+  const maxBinding = source.slice(mainMax.openEnd, mainMax.closeStart).trim();
   const stacked = '{Binding Tag, ElementName=DetailsOverviewBody}';
-  const left = '{Binding Tag, RelativeSource={RelativeSource Self}}';
-  const leftFromMain = '{Binding Tag, ElementName=DetailsMetadataColumn}';
-  const both = (a, b, setters) => `<MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="${a}" Value="True" /><Condition Binding="${b}" Value="True" /></MultiDataTrigger.Conditions>${setters}</MultiDataTrigger>`;
+  const position = '{Binding Tag, RelativeSource={RelativeSource Self}}';
+  const positionFromMain = '{Binding Tag, ElementName=DetailsMetadataColumn}';
+  const when = (binding, value, setters) => `<DataTrigger Binding="${binding}" Value="${value}">${setters}</DataTrigger>`;
+  const both = (side, sideBinding, setters) => `<MultiDataTrigger><MultiDataTrigger.Conditions><Condition Binding="${stacked}" Value="True" /><Condition Binding="${sideBinding}" Value="${side}" /></MultiDataTrigger.Conditions>${setters}</MultiDataTrigger>`;
+  const top = setter('Grid.Row', '0') + setter('Margin', '0,0,0,24');
   const metaText = [
     '<Grid.Style><Style TargetType="Grid">',
-    setter('Grid.Column', '2'), setter('Grid.Row', '0'), setter('Grid.ColumnSpan', '1'), setter('Margin', `${gap},0,0,0`),
+    setter('Grid.Column', '2'), setter('Grid.Row', '0'), setter('Grid.ColumnSpan', '1'), setter('Margin', `${gap},0,0,0`), setter('HorizontalAlignment', 'Stretch'),
     '<Style.Triggers>',
-    `<DataTrigger Binding="${left}" Value="True">${setter('Grid.Column', '0')}${setter('Margin', `0,0,${gap},0`)}</DataTrigger>`,
-    `<DataTrigger Binding="${stacked}" Value="True">${setter('Grid.Column', '0')}${setter('Grid.Row', '1')}${setter('Grid.ColumnSpan', '3')}${setter('Margin', '0,24,0,0')}</DataTrigger>`,
-    both(stacked, left, setter('Grid.Row', '0') + setter('Margin', '0,0,0,24')),
+    when(position, 'Left', setter('Grid.Column', '0') + setter('Margin', `0,0,${gap},0`)),
+    when(position, 'Center', setter('Grid.Column', '0') + setter('Grid.ColumnSpan', '3') + top + setter('HorizontalAlignment', 'Center')),
+    when(stacked, 'True', setter('Grid.Column', '0') + setter('Grid.Row', '1') + setter('Grid.ColumnSpan', '3') + setter('Margin', '0,24,0,0')),
+    both('Left', position, top),
+    both('Center', position, top + setter('HorizontalAlignment', 'Stretch')),
     '</Style.Triggers></Style></Grid.Style>',
   ].join('');
   const mainText = [
     '<Grid.Style><Style TargetType="Grid">',
     setter('Grid.Column', '1'), setter('Grid.Row', '0'), setter('Grid.ColumnSpan', '1'),
+    `<Setter Property="MaxWidth"><Setter.Value>${maxBinding}</Setter.Value></Setter>`,
     '<Style.Triggers>',
-    `<DataTrigger Binding="${stacked}" Value="True">${setter('Grid.Column', '0')}${setter('Grid.ColumnSpan', '3')}</DataTrigger>`,
-    both(stacked, leftFromMain, setter('Grid.Row', '1')),
+    when(stacked, 'True', setter('Grid.Column', '0') + setter('Grid.ColumnSpan', '3')),
+    both('Left', positionFromMain, setter('Grid.Row', '1')),
+    when(positionFromMain, 'Center', setter('Grid.Column', '0') + setter('Grid.ColumnSpan', '3') + setter('Grid.Row', '1') + setter('MaxWidth', 'Infinity')),
     '</Style.Triggers></Style></Grid.Style>',
   ].join('');
   const columnsText = '<Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>';
@@ -253,6 +266,7 @@ export function applyGamePagePlacement(source) {
     [meta.start, meta.openEnd, metaOpening],
     [metaStyle.start, metaStyle.end, metaText],
     [mainStyle.start, mainStyle.end, mainText],
+    [mainMax.start, mainMax.end, ''],
   ].sort((a, b) => b[0] - a[0]);
   let result = source;
   for (const [start, end, text] of edits) result = result.slice(0, start) + text + result.slice(end);

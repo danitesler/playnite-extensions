@@ -137,7 +137,7 @@ function Write-ThemeModifierManifest {
     $lines.Add("Constants:") | Out-Null
     $entries = @($catalog.PaletteConstants + @($catalog.Entries | Where-Object { $_.themeModifier }) | Where-Object {
             $_.group -in $catalog.Groups -and $defs.ContainsKey($_.key) -and
-            $_.type -in @("Brush", "Double", "Boolean")
+            $_.type -in @("Brush", "Double", "Boolean", "HorizontalAlignment")
         })
 
     # ThemeModifier 3.0.2 preallocates 105 rows. Headings after the first also take a spacer row.
@@ -643,7 +643,7 @@ function Test-ThemeModifierManifest {
 
     $expected = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($entry in @($Catalog.PaletteConstants) + @($Catalog.Entries | Where-Object themeModifier)) {
-        if ($DefinedKeys.Contains($entry.key) -and $entry.type -in @("Brush", "Double", "Boolean")) {
+        if ($DefinedKeys.Contains($entry.key) -and $entry.type -in @("Brush", "Double", "Boolean", "HorizontalAlignment")) {
             $name = if ($entry.type -eq "Double") { "$($entry.key)($($entry.themeModifier))" } else { $entry.key }
             $null = $expected.Add($name)
         }
