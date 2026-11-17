@@ -1,9 +1,11 @@
 # Run with pwsh -STA -File tests/wpf/SearchGlyphRegressionTests.ps1.
+param([string[]]$Keys = @())
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $count = 0
 foreach ($theme in $themes) {
     foreach ($relative in 'CustomControls/SearchBox.xaml', 'Views/TopPanel.xaml') {

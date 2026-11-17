@@ -6,12 +6,19 @@
 
 import {
   META_GROUPS,
+  bannerDarkeningFloor,
   bannerSpacer,
-  collapseEmptyTrigger,
+  collapseEmptyGroupStyle,
+  heroVisibilityStyle,
+  hideWhenNoGame,
   hideWhenNoTitle,
   indent,
+  inlineCloseButton,
   metadataValue,
+  pageRootStyle,
   resolveThemeSrcDir,
+  sidePanelCloseButton,
+  steamGameScope,
   writeOverviews,
 } from '../../../../scripts/overview-generator.mjs';
 
@@ -29,7 +36,7 @@ function darkCardValue(kind, part, extra = '') {
 function renderMetaGroups() {
   return META_GROUPS.map(([groupName, items], idx) => {
     const topMargin = idx === 0 ? '0' : '8';
-    const topBorder = idx === 0 ? '' : '\n    <Border Height="1" Background="{DynamicResource FrameInnerBrush}" Margin="0,0,0,8" />';
+    const topBorder = idx === 0 ? '' : '<Border Height="1" Background="{DynamicResource FrameInnerBrush}" Margin="0,0,0,8" />\n';
     const rows = items.map(([suffix, locKey, kind, part]) => {
       const elem = `PART_Elem${suffix}`;
       const val = indent(darkCardValue(kind, part), 8);
@@ -51,10 +58,12 @@ ${val}
     }).join('\n');
 
     const elemNames = items.map(([suffix]) => `PART_Elem${suffix}`);
-    return `<StackPanel x:Name="${groupName}" Margin="0,${topMargin},0,0">
-${indent(collapseEmptyTrigger(elemNames), 4)}${topBorder}
-${indent(rows, 4)}
-</StackPanel>`;
+    return `<Border x:Name="${groupName}" Margin="0,${topMargin},0,0">
+${indent(collapseEmptyGroupStyle(elemNames), 4)}
+    <StackPanel>
+${indent(`${topBorder}${rows}`, 8)}
+    </StackPanel>
+</Border>`;
   }).join('\n');
 }
 
@@ -144,134 +153,82 @@ const htmlTextStyle = `<Style TargetType="HtmlTextView">
     </Style.Triggers>
 </Style>`;
 
+const steamScreenshots = steamGameScope(indent(`<ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Margin="0,0,0,20">
+    <ContentControl.Style>
+        <Style TargetType="ContentControl">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </ContentControl.Style>
+</ContentControl>
+<Grid>
+    <Grid.Style>
+        <Style TargetType="Grid">
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Game.PluginId}" Value="CB91DFC9-B977-43BF-8E70-55F46e410FAB" />
+                        <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Visibility" Value="Visible" />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Grid.Style>
+    <Control Tag="{Binding Game.Id, NotifyOnTargetUpdated=True}"
+             Template="{DynamicResource SteamScreenshotsSkeletonTemplate}"
+             Foreground="{DynamicResource HeadingRuleBrush}"
+             Margin="0,0,0,20" Visibility="Collapsed">
+        <Control.Triggers>
+            <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Control.Triggers>
+    </Control>
+</Grid>`, 4), { comment: false });
+
 function buildOverview(kind) {
   const isGrid = kind === 'Grid';
   const typeName = isGrid ? 'GridViewGameOverview' : 'DetailsViewGameOverview';
-  const prefix = kind;
   const paneWidthKey = isGrid ? 'GridDetailsPaneWidth' : 'GameDetailsPaneWidth';
   const spacerFallback = isGrid ? 14 : 18;
   const pageMargin = isGrid ? '24,0,24,26' : '28,0,28,28';
 
-  const closeButtonInline = isGrid ? `
-                                                <Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                                        Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
-                                                        ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
-                                                        Template="{Binding Template, ElementName=SidePanelCloseButton}">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                                            <Setter Property="Visibility" Value="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Visible\` : \`Collapsed\`'}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Button.Style>
-                                                    <Button.RenderTransform>
-                                                        <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
-                                                    </Button.RenderTransform>
-                                                </Button>` : '';
-
-  const sidePanelCloseCorner = isGrid ? `
-                            <Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}"
-                                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
-                                    Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}"
-                                    Command="{MainViewModel CloseGameSideBarCommand}">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                        <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Collapsed\` : \`Visible\`'}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                                <Button.Template>
-                                    <ControlTemplate TargetType="{x:Type Button}">
-                                        <Grid Background="Transparent">
-                                            <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource SecondaryButtonBackgroundBrush}"
-                                                    BorderBrush="{DynamicResource SecondaryButtonBorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                                            <Border x:Name="HoverPlate" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource DangerBrush}" Opacity="0" IsHitTestVisible="False" />
-                                            <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
-                                                            Content="{DynamicResource IconWindowClose}" ContentTemplate="{DynamicResource IconTemplate}"
-                                                            Foreground="{DynamicResource WindowArtForegroundBrush}" />
-                                        </Grid>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
-                                                <Trigger.EnterActions>
-                                                    <BeginStoryboard><Storyboard>
-                                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                                    </Storyboard></BeginStoryboard>
-                                                </Trigger.EnterActions>
-                                                <Trigger.ExitActions>
-                                                    <BeginStoryboard><Storyboard FillBehavior="Stop">
-                                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                                    </Storyboard></BeginStoryboard>
-                                                </Trigger.ExitActions>
-                                            </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>` : '';
+  const closeButtonInline = isGrid ? `\n${indent(inlineCloseButton(), 48)}` : '';
+  const sidePanelCloseCorner = isGrid
+    ? `\n${indent(sidePanelCloseButton({
+      backgroundBrush: 'SecondaryButtonBackgroundBrush',
+      borderBrush: 'SecondaryButtonBorderBrush',
+      glyphBrush: 'WindowArtForegroundBrush',
+      exitDuration: '0:0:0.2',
+      comment: '',
+    }), 28)}`
+    : '';
 
   const coreGrid = `<Grid>
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible"${isGrid ? '' : ' Visibility="Visible"'}>
                                 <Grid x:Name="PageRoot" UseLayoutRounding="True">
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                                    <Setter Property="Background" Value="Transparent" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
+${indent(pageRootStyle('GameOverviewBackgroundBrush'), 36)}
 
                                     <Control Template="{DynamicResource GrainTemplate}" Foreground="{DynamicResource HeadingForegroundBrush}"
                                              Opacity="0.03" IsHitTestVisible="False" Focusable="False" />
 
                                     <Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible="False">
-                                        <Grid.Style>
-                                            <Style TargetType="Grid">
-                                                <Setter Property="Height" Value="{DynamicResource GameBannerHeight}" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Visibility, ElementName=PART_ImageBackground}" Value="Collapsed">
-                                                        <Setter Property="Height" Value="0" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
-                                                        <Setter Property="Height" Value="0" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Game.BackgroundImage}" Value="{x:Null}">
-                                                        <Setter Property="Height" Value="0" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Grid.Style>
+${indent(heroVisibilityStyle(), 40)}
                                         <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill" />
-                                        <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
-                                        <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
-                                            <Rectangle.Style>
-                                                <Style TargetType="Rectangle">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Rectangle.Style>
-                                        </Rectangle>
+${indent(bannerDarkeningFloor(), 40)}
                                         <Rectangle Height="90" VerticalAlignment="Top" Opacity="0.45">
                                             <Rectangle.Fill>
                                                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -291,17 +248,9 @@ function buildOverview(kind) {
                                     </Grid>
 
                                     <StackPanel Panel.ZIndex="2" Margin="${pageMargin}">
-                                        <StackPanel.Style>
-                                            <Style TargetType="StackPanel">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </StackPanel.Style>
+${indent(hideWhenNoGame('StackPanel'), 40)}
 
-${indent(bannerSpacer('x * 112 / 268', spacerFallback), 40)}
+${indent(bannerSpacer('x * 112 / 268', spacerFallback, `${kind}BannerSpacer`), 40)}
 
                                         <StackPanel Panel.ZIndex="2" Margin="0,10,0,14">
                                             <DockPanel Panel.ZIndex="2">${closeButtonInline}
@@ -374,66 +323,7 @@ ${indent(squareKeycapStyle, 52)}
 
                                         <Grid Margin="0,20,0,0">
                                             <StackPanel>
-                                                <Grid x:Name="SteamScreenshotsGameScope">
-                                                    <Grid.Style>
-                                                        <Style TargetType="Grid">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Grid.Style>
-                                                    <ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Margin="0,0,0,20">
-                                                        <ContentControl.Style>
-                                                            <Style TargetType="ContentControl">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </ContentControl.Style>
-                                                    </ContentControl>
-                                                    <Grid>
-                                                        <Grid.Style>
-                                                            <Style TargetType="Grid">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <MultiDataTrigger>
-                                                                        <MultiDataTrigger.Conditions>
-                                                                            <Condition Binding="{Binding Game.PluginId}" Value="CB91DFC9-B977-43BF-8E70-55F46e410FAB" />
-                                                                            <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
-                                                                        </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </MultiDataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Grid.Style>
-                                                        <Control Tag="{Binding Game.Id, NotifyOnTargetUpdated=True}"
-                                                                 Template="{DynamicResource SteamScreenshotsSkeletonTemplate}"
-                                                                 Foreground="{DynamicResource HeadingRuleBrush}"
-                                                                 Margin="0,0,0,20" Visibility="Collapsed">
-                                                            <Control.Triggers>
-                                                                <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                                                                    <BeginStoryboard>
-                                                                        <Storyboard>
-                                                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
-                                                                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
-                                                                                <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
-                                                                            </ObjectAnimationUsingKeyFrames>
-                                                                        </Storyboard>
-                                                                    </BeginStoryboard>
-                                                                </EventTrigger>
-                                                            </Control.Triggers>
-                                                        </Control>
-                                                    </Grid>
-                                                </Grid>
+${indent(steamScreenshots, 48)}
 
                                                 <StackPanel x:Name="PART_ElemDescription">
 ${indent(sectionBanner('LOCGameDescriptionTitle'), 52)}
@@ -454,7 +344,8 @@ ${indent(htmlTextStyle, 60)}
                                                 </StackPanel>
                                             </StackPanel>
 
-                                            <Border Background="{DynamicResource ParchmentBrush}"
+                                            <Border Width="{DynamicResource ${paneWidthKey}}"
+                                                    Background="{DynamicResource ParchmentBrush}"
                                                     BorderBrush="{DynamicResource ParchmentEdgeBrush}"
                                                     BorderThickness="1"
                                                     CornerRadius="{DynamicResource ControlCornerRadius}"
@@ -477,12 +368,11 @@ ${indent(htmlTextStyle, 60)}
                                                             <ImageBrush ImageSource="{ThemeFile 'Images/fx/sayagata.png'}" TileMode="Tile" Viewport="0,0,72,72" ViewportUnits="Absolute" Stretch="Fill" />
                                                         </Rectangle.OpacityMask>
                                                     </Rectangle>
-                                                    <StackPanel x:Name="${prefix}MetadataContent"
-                                                                Width="{DynamicResource ${paneWidthKey}}"
-                                                                Margin="16,14,16,14"
-                                                                Grid.IsSharedSizeScope="True">
-${indent(renderMetaGroups(), 56)}
-                                                    </StackPanel>
+                                                    <Grid Margin="16,14">
+                                                        <StackPanel Grid.IsSharedSizeScope="True">
+${indent(renderMetaGroups(), 60)}
+                                                        </StackPanel>
+                                                    </Grid>
                                                 </Grid>
                                             </Border>
                                         </Grid>
@@ -560,4 +450,3 @@ ${indent(renderMetaGroups(), 56)}
 }
 
 writeOverviews(srcDir, buildOverview('Details'), buildOverview('Grid'));
-console.log('Generated DetailsViewGameOverview.xaml and GridViewGameOverview.xaml for GuidingWind.');

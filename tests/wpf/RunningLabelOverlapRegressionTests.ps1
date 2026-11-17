@@ -11,88 +11,13 @@ param([string[]]$Keys, [string]$Report, [string[]]$Surfaces = @('button', 'detai
       [string[]]$Labels = @('Launching', 'Running'))
 $ErrorActionPreference = 'Stop'
 $Surfaces = @($Surfaces | ForEach-Object { $_ -split ',' } | Where-Object { $_ })
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Xaml
-if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
-if (-not ('OverlapFakeGame' -as [type])) {
-    Add-Type -TypeDefinition @"
-using System.ComponentModel;
-public class OverlapFakeGame : INotifyPropertyChanged {
-    bool r, l, i = true;
-    public event PropertyChangedEventHandler PropertyChanged;
-    void N(string p) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(p)); }
-    public bool IsRunning { get { return r; } set { r = value; N("IsRunning"); } }
-    public bool IsLaunching { get { return l; } set { l = value; N("IsLaunching"); } }
-    public bool IsInstalled { get { return i; } set { i = value; N("IsInstalled"); } }
-    public string Name { get { return "World of Warcraft: Forever and Ever, Extended Deluxe Edition"; } }
-    public override string ToString() { return Name; }
-}
-"@
-}
-if (-not ('OverlapUpperConverter' -as [type])) {
-    Add-Type -ReferencedAssemblies PresentationFramework, WindowsBase, System.Xaml -TypeDefinition @"
-public class OverlapUpperConverter : System.Windows.Data.IValueConverter {
-    public object Convert(object v, System.Type t, object p, System.Globalization.CultureInfo c) { return v == null ? null : v.ToString().ToUpperInvariant(); }
-    public object ConvertBack(object v, System.Type t, object p, System.Globalization.CultureInfo c) { return v; }
-}
-"@
-}
+. (Join-Path $PSScriptRoot 'RunningIndicatorHarness.ps1')
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
 if ($Keys) { $Keys = @($Keys | ForEach-Object { $_ -split ',' } | Where-Object { $_ }); $themes = $themes | Where-Object { $Keys -contains $_.key } }
 
-function Pump([int]$ms) {
-    $frame = New-Object Windows.Threading.DispatcherFrame
-    $timer = New-Object Windows.Threading.DispatcherTimer
-    $timer.Interval = [TimeSpan]::FromMilliseconds($ms)
-    $timer.Add_Tick({ $frame.Continue = $false; $timer.Stop() }.GetNewClosure())
-    $timer.Start()
-    [Windows.Threading.Dispatcher]::PushFrame($frame)
-}
-function ConvertTo-TestXaml([string]$text, [bool]$hover) {
-    $text = $text -replace '\{Settings [A-Za-z.]+\}', '4'
-    $text = $text -replace '\{ThemeFile [^}]*\}', '{x:Null}'
-    $text = $text -replace '<DataTrigger Binding="4"[^>]*>[\s\S]*?</DataTrigger>', ''
-    if ($hover) {
-        $text = $text -replace 'Binding IsMouseOver, RelativeSource=\{RelativeSource (TemplatedParent|Self)\}', 'Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}'
-        $text = $text -replace '<Trigger Property="IsMouseOver"', '<Trigger Property="IsKeyboardFocused"'
-    }
-    return $text
-}
-function Read-Dictionary([string]$path, [bool]$hover) {
-    return [Windows.Markup.XamlReader]::Parse((ConvertTo-TestXaml (Get-Content -Raw -LiteralPath $path) $hover))
-}
-$app = [Windows.Application]::Current
-if (-not $app) { $app = New-Object Windows.Application; $app.ShutdownMode = 'OnExplicitShutdown' }
-if (-not $app.Resources.Contains('StringToUpperCaseConverter')) { $app.Resources.Add('StringToUpperCaseConverter', (New-Object OverlapUpperConverter)) }
-if (-not $app.Resources.Contains('BaseStyle')) { $app.Resources.Add('BaseStyle', (New-Object Windows.Style ([Windows.Controls.Control]))) }
-$app.Resources['LOCCancelLabel'] = 'Cancel'
-
-function Load-Theme($theme, [bool]$hover) {
-    $drop = Join-Path $root "artifacts/builds/themes/$($theme.key)"
-    if (-not (Test-Path (Join-Path $drop 'Constants.xaml'))) { throw "no build drop for $($theme.key); run build-theme.ps1 -NoDeploy first" }
-    $res = New-Object Windows.ResourceDictionary
-    $res.MergedDictionaries.Add((Read-Dictionary (Join-Path $drop 'Constants.xaml') $false))
-    for ($try = 0; $try -lt 12; $try++) {
-        try { $res.MergedDictionaries.Add((Read-Dictionary (Join-Path $drop 'Common.xaml') $false)); break }
-        catch {
-            $msg = $_.Exception.GetBaseException().Message
-            if ($msg -match "Cannot find resource named '([^']+)'" -and -not $app.Resources.Contains($Matches[1])) { $app.Resources.Add($Matches[1], (New-Object Windows.Style ([Windows.FrameworkElement]))) }
-            else { break }
-        }
-    }
-    foreach ($rel in 'DerivedStyles/DetailsViewItemStyle.xaml', 'DefaultControls/ListView.xaml', 'DerivedStyles/PlayButton.xaml') {
-        $res.MergedDictionaries.Add((Read-Dictionary (Join-Path $drop $rel) $hover))
-    }
-    return $res
-}
-
 function Grab($visual, [double]$w, [double]$h, $back) {
-    $bmp = New-Object Windows.Media.Imaging.RenderTargetBitmap ([int][math]::Ceiling($w)), ([int][math]::Ceiling($h)), 96, 96, ([Windows.Media.PixelFormats]::Pbgra32)
-    $dv = New-Object Windows.Media.DrawingVisual
-    $dc = $dv.RenderOpen()
-    $dc.DrawRectangle($back, $null, (New-Object Windows.Rect 0, 0, $w, $h))
-    $dc.DrawRectangle((New-Object Windows.Media.VisualBrush $visual), $null, (New-Object Windows.Rect 0, 0, $w, $h))
-    $dc.Close(); $bmp.Render($dv)
+    $bmp = Get-TestBitmap $visual $w $h $back
     $buf = New-Object byte[] ($bmp.PixelWidth * $bmp.PixelHeight * 4)
     $bmp.CopyPixels($buf, $bmp.PixelWidth * 4, 0)
     return [pscustomobject]@{ W = $bmp.PixelWidth; H = $bmp.PixelHeight; Buf = $buf }
@@ -142,7 +67,7 @@ function Get-MarkRects($root, [double]$cellW) {
 }
 
 function Measure-State($theme, $res, [string]$state, [string]$label, [bool]$hover) {
-    $game = New-Object OverlapFakeGame
+    $game = (New-Object RunningTestGame -Property @{ Name = 'World of Warcraft: Forever and Ever, Extended Deluxe Edition' })
     $g = New-Object Windows.Controls.Grid; $g.DataContext = $game; $g.HorizontalAlignment = 'Left'; $g.VerticalAlignment = 'Top'
     $b = New-Object Windows.Controls.Button; $b.Tag = 'ContextAction'; $b.Content = $label
     if ($res['PlayButton']) { $b.Style = $res['PlayButton'] }
@@ -196,7 +121,7 @@ function Measure-State($theme, $res, [string]$state, [string]$label, [bool]$hove
 
 # A library row (details view ListBoxItem or list view ListViewItem) narrower than its name, so the name runs to the row's end.
 function Measure-Row($res, [string]$surface, [string]$state, [bool]$selected) {
-    $game = New-Object OverlapFakeGame
+    $game = (New-Object RunningTestGame -Property @{ Name = 'World of Warcraft: Forever and Ever, Extended Deluxe Edition' })
     if ($surface -eq 'details row') {
         $c = New-Object Windows.Controls.ListBox; $c.ItemContainerStyle = $res['DetailsViewItemStyle']; $c.DisplayMemberPath = 'Name'
     }
@@ -256,7 +181,7 @@ $rows = New-Object System.Collections.Generic.List[object]
 $failed = 0
 foreach ($theme in $themes) {
     try {
-        $res = Load-Theme $theme $false; $resHover = Load-Theme $theme $true
+        $res = Load-Theme $theme $false -SkipGrid -Quiet; $resHover = Load-Theme $theme $true -SkipGrid -Quiet
         $cases = @()
         if ($Surfaces -contains 'button') {
             $cases += @(

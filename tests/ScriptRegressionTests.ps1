@@ -30,7 +30,7 @@ function Get-RepoRoot { $script:fixtureRoot }
 function Join-RepoPath([string]$Path) { Join-Path $script:fixtureRoot $Path }
 function Get-ExtensionProfile([string]$Extension) {
     [pscustomobject]@{ slug = "fixture"; kind = $(if ($Extension -eq "plugin") { "plugin" } else { "theme" });
-        outputPath = "build"; project = "fixture.csproj"; installerManifest = "installer.yaml" }
+        outputPath = "build"; project = "fixture.csproj"; installerManifest = "installer.yaml"; databaseManifest = "addon.yaml" }
 }
 function Get-ExtensionKind($Profile) { $Profile.kind }
 function Get-ExtensionManifestInfo($Profile) {
@@ -56,6 +56,7 @@ param($Extension, $Mode, $Configuration, [switch]$RequireBuildOutput)
         foreach ($file in $runtimeFiles) { Set-Content -LiteralPath (Join-Path $build $file) -Value "fixture" }
         Set-Content -LiteralPath (Join-Path $build "extension.yaml") -Value "Id: FixtureTheme`r`nVersion: 1.0.0`r`n"
         Set-Content -LiteralPath (Join-Path $scratch "installer.yaml") -Value "fixture"
+        Set-Content -LiteralPath (Join-Path $scratch "addon.yaml") -Value "fixture"
         @'
 param($Command, $BuildOutput, $ReleaseDrop)
 if ($Command -ne "pack" -or -not (Test-Path (Join-Path $BuildOutput "Localization/en_US.xaml"))) {
@@ -85,24 +86,34 @@ $global:LASTEXITCODE = 0
 
         @'
 param($Command, $What, $Path)
-Write-Output "PackageUrl doesn't point to reachable HTTP location"
-Write-Output "Changelog is missing"
-Write-Output "manifest didn't pass verification"
+Write-Output "Verifying $What manifest $Path ..."
+if ($What -eq "addon") {
+    Write-Output "Addon manifest passed verification."
+    $global:LASTEXITCODE = 0
+    return
+}
+Write-Output "Package > PackageUrl doesn't point to reachable HTTP location."
+Write-Output "https://example.invalid/fixture.pext"
+if (Test-Path -LiteralPath "$Path.error") { Write-Output "Changelog is missing" }
+Write-Output "Installer manifest didn't pass verification."
 $global:LASTEXITCODE = 1
 '@ | Set-Content -LiteralPath (Join-Path $scripts "toolbox.ps1")
+        $toolbox = Join-Path $scripts "toolbox.ps1"
+        $extraError = Join-Path $scratch "installer.yaml.error"
+        Set-Content -LiteralPath $extraError -Value "fixture"
         $mixed = $false
         try {
-            & (Join-Path $scripts "package-release.ps1") -Extension plugin -ToolboxExe (Join-Path $scripts "toolbox.ps1") -VerifyOnly -AllowUnpublishedPackageUrl
-        } catch { $mixed = $true }
+            & (Join-Path $scripts "package-release.ps1") -Extension plugin -ToolboxExe $toolbox -VerifyOnly -AllowUnpublishedPackageUrl
+        } catch { $mixed = $_.Exception.Message -eq "Installer manifest verification failed." }
         Assert-Equal $true $mixed "Unreachable PackageUrl does not hide another verification error"
-        @'
-param($Command, $What, $Path)
-Write-Output "PackageUrl doesn't point to reachable HTTP location"
-Write-Output "manifest didn't pass verification"
-$global:LASTEXITCODE = 1
-'@ | Set-Content -LiteralPath (Join-Path $scripts "toolbox.ps1")
-        & (Join-Path $scripts "package-release.ps1") -Extension plugin -ToolboxExe (Join-Path $scripts "toolbox.ps1") -VerifyOnly -AllowUnpublishedPackageUrl
-        Write-Host "PASS: unpublished PackageUrl does not hide other Toolbox errors."
+        Remove-Item -LiteralPath $extraError
+        $strict = $false
+        try {
+            & (Join-Path $scripts "package-release.ps1") -Extension plugin -ToolboxExe $toolbox -VerifyOnly
+        } catch { $strict = $_.Exception.Message -eq "Installer manifest verification failed." }
+        Assert-Equal $true $strict "Strict verification rejects unreachable PackageUrl"
+        & (Join-Path $scripts "package-release.ps1") -Extension plugin -ToolboxExe $toolbox -VerifyOnly -AllowUnpublishedPackageUrl
+        Write-Host "PASS: only prerelease verification allows a standalone unreachable PackageUrl."
     }
 
     if ($Case -in @("All", "PortableDeploy")) {

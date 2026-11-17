@@ -33,6 +33,29 @@ namespace PlayniteExtensions.Tests
         }
 
         [Fact]
+        public void LoadPersistedState_AppliesSnapshotWithoutNotifyingListeners()
+        {
+            var settings = new GameHoverDetailsSettings();
+            var changes = new List<string>();
+            settings.PropertyChanged += (_, args) => changes.Add(args.PropertyName);
+
+            settings.LoadPersistedState(new GameHoverDetailsPersistedState
+            {
+                HoverWidth = 210,
+                UseThemeChrome = true,
+                HoverChromeBackgroundHex = "#123456"
+            });
+
+            Assert.Equal(210, settings.HoverWidth);
+            Assert.Equal("#FF123456", settings.HoverChromeBackgroundHex);
+            Assert.True(settings.UseThemeChrome);
+            Assert.Empty(changes);
+
+            settings.HoverWidth = 220;
+            Assert.Contains(nameof(settings.HoverWidth), changes);
+        }
+
+        [Fact]
         public void LoadPersistedState_NoSavedSettings_KeepsFactoryDefaults()
         {
             var settings = new GameHoverDetailsSettings();

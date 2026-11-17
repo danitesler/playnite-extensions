@@ -4,7 +4,7 @@
 
 Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0, Playnite 10.45+) in the style of the **Terraria 1.4.4 main menu** and its menu screens (character and world select, character creation). Dark only: the window is the title screen's night sky. Translucent blue panels with 2px black edges, white text, menu words that go from white at 60% to gold, the gold edge of a hovered menu button, inventory-slot covers and pixel-art icons. Kept minimal: no textures, no parallax, no ornaments.
 
-**Unofficial fan theme.** Not affiliated with or endorsed by Re-Logic. No Re-Logic logos, icons, fonts, textures or game files are included (see `info/NOTICE-Biome.txt`). The tree mark is hand-drawn (`art/icons.py`).
+**Unofficial fan theme.** Not affiliated with or endorsed by Re-Logic. No Re-Logic logos, icons, fonts, textures or game files are included (see `info/NOTICE-Biome.txt`). The tree mark is hand-drawn (`art/mark.svg`).
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
@@ -68,4 +68,4 @@ Screenshots in `art/` (`screenshot-details.png` and `screenshot-settings.png`) a
 
 ## Regenerating art
 
-`python3 src/themes/Biome/art/icons.py [--svg-dir <pixelarticons/svg>]` writes `art/icons.generated.xaml` (paste into `src/Media.xaml`), `art/mark.svg` and `src/Images/Pixel/*.png`. Then `python3 scripts/render-addon-icon.py --svg src/themes/Biome/art/mark.svg --extension biome` for the tile.
+From the repo root, `.\scripts\render-icons.ps1 -Extension biome` refreshes the Pixelarticons geometries in `src/Media.xaml` and the token-colored menu images in `src/Images/Pixel/` using `icons.json`. The original tree lives in `art/mark.svg` (add-on tile source) and `IconMainMenu` in `src/Media.xaml`.

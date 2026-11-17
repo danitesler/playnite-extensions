@@ -8,7 +8,8 @@ param(
     [string]$Configuration = "Release",
     # Optional subset, e.g. -Keys shade,primo. Defaults to every theme in src/extensions.json.
     [string[]]$Keys = @(),
-    [switch]$SkipPreviewChecks
+    [switch]$SkipPreviewChecks,
+    [switch]$RequireBuildOutput
 )
 
 $ErrorActionPreference = "Stop"
@@ -23,7 +24,7 @@ foreach ($theme in $themes) {
     Write-Host ""
     Write-Host "== $($theme.key)"
     try {
-        & (Join-Path $PSScriptRoot "validate-extension.ps1") -Extension $theme.key -Mode $Mode -Configuration $Configuration -SkipPreviewChecks:$SkipPreviewChecks
+        & (Join-Path $PSScriptRoot "validate-extension.ps1") -Extension $theme.key -Mode $Mode -Configuration $Configuration -SkipPreviewChecks:$SkipPreviewChecks -RequireBuildOutput:$RequireBuildOutput
     }
     catch {
         $failed.Add($theme.key) | Out-Null

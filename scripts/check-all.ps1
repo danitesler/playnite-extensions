@@ -4,7 +4,7 @@
 # theme, generated READMEs, and the preview token and layout checks.
 #
 #   pwsh scripts/check-all.ps1          # everything
-#   pwsh scripts/check-all.ps1 -Quick   # skip artifact builds and browser checks
+#   pwsh scripts/check-all.ps1 -Quick   # skip plugin artifact builds and browser checks
 #   pwsh scripts/check-all.ps1 -Keys hallowtide,emberline
 #
 # On Linux and macOS, the plugins build with EnableWindowsTargeting and the tests run on Mono.
@@ -71,7 +71,16 @@ if (-not $onWindows) {
 }
 Step $testName { dotnet @testArgs } -Native
 Step "script regressions" { & (Join-Path $repoRoot "tests/ScriptRegressionTests.ps1") }
-if ($onWindows) {
+$buildThemes = $themes.Count -gt 0 -and ($onWindows -or -not $Quick)
+if ($buildThemes) {
+    Step "build themes" { & (Join-Path $PSScriptRoot "build-themes.ps1") -Keys $themes.key }
+}
+if ($themes.Count -gt 0 -and -not $failed.Contains("build themes")) {
+    Step "validate themes" {
+        & (Join-Path $PSScriptRoot "validate-themes.ps1") -Keys $themes.key -Mode Ci -Configuration $Configuration -SkipPreviewChecks -RequireBuildOutput:$buildThemes
+    }
+}
+if ($onWindows -and $themes.Count -gt 0 -and -not $failed.Contains("build themes")) {
     if (-not $PlaynitePath -and $env:LOCALAPPDATA) {
         $PlaynitePath = Join-Path $env:LOCALAPPDATA "Playnite"
     }
@@ -84,7 +93,7 @@ if ($onWindows) {
     )
     $hasConverter = $PlaynitePath -and (Test-Path -LiteralPath (Join-Path $PlaynitePath 'MathConverter.dll') -PathType Leaf)
     foreach ($test in Get-ChildItem -LiteralPath (Join-Path $repoRoot "tests/wpf") -Filter '*RegressionTests.ps1' -File | Sort-Object Name) {
-        $wpfArgs = @()
+        $wpfArgs = @('-Keys', ($themes.key -join ','))
         if ($test.Name -in $requiresPlaynite) {
             if (-not $hasConverter) {
                 $skipped += $test.Name
@@ -98,15 +107,8 @@ if ($onWindows) {
         Write-Warning "Skipped WPF tests requiring MathConverter.dll: $($skipped -join ', '). Pass -PlaynitePath to run them."
         $failed.Add('WPF regression prerequisites') | Out-Null
     }
-} else {
+} elseif (-not $onWindows) {
     Write-Host "WPF regression scripts require Windows."
-}
-
-if ($themes.Count -gt 0) {
-    Step "validate themes" { & (Join-Path $PSScriptRoot "validate-themes.ps1") -Keys $themes.key -Mode Ci -Configuration $Configuration -SkipPreviewChecks }
-    if (-not $Quick) {
-        Step "build themes" { & (Join-Path $PSScriptRoot "build-themes.ps1") -Keys $themes.key }
-    }
 }
 
 # Whether an add-on counts as released comes from its <key>-v<version> tag: fetch tags first.

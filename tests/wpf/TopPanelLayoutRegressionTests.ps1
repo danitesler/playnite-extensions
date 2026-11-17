@@ -1,9 +1,11 @@
 # Run with pwsh -STA -File tests/wpf/TopPanelLayoutRegressionTests.ps1.
+param([string[]]$Keys = @())
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $runtimeOrder = @('SearchButton', 'GeneralViewSettings', 'FilterPresetsSelection', 'GroupSettings', 'SortSettings', 'SwitchDetailsView', 'SwitchGridView', 'SwitchListView', 'UpdateButton', 'SelectRandomGameButton', 'ViewSelectRandomGameButton', 'ExplorerSwitch')
 foreach ($theme in $themes) {
     [xml]$xml = Get-Content "$root/$($theme.dir)/src/Views/TopPanel.xaml" -Raw
@@ -58,22 +60,23 @@ Write-Host "PASS: all $(@($themes).Count) theme toolbars."
 
 # The Cold Seat regression is visible on active plates, so exercise its real
 # filter and item templates in both states, including their actual margins.
-[xml]$coldPanel = Get-Content "$root/src/themes/ColdSeat/src/Views/TopPanel.xaml" -Raw
-[xml]$coldItem = Get-Content "$root/src/themes/ColdSeat/src/CustomControls/TopPanelItem.xaml" -Raw
-$filterStyle = $coldPanel.SelectSingleNode('//*[@*[local-name()="Key"]="TopPanelFilterToggle"]').OuterXml
-$itemStyle = $coldItem.SelectSingleNode('//*[local-name()="Style"]').OuterXml.Replace('{x:Type TopPanelItem}', '{x:Type ToggleButton}').Replace('Property="IsToggled"', 'Property="IsChecked"')
-$xaml = '<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib"><Grid.Resources><sys:Boolean x:Key="True">True</sys:Boolean><sys:Boolean x:Key="False">False</sys:Boolean><sys:Double x:Key="IconSize">16</sys:Double>' + $filterStyle + $itemStyle + '</Grid.Resources><CheckBox Name="Filter" Style="{StaticResource TopPanelFilterToggle}" /><ToggleButton Name="Item" /></Grid>'
-$testRoot = [Windows.Markup.XamlReader]::Parse($xaml)
-$filterControl = $testRoot.FindName('Filter')
-$itemControl = $testRoot.FindName('Item')
-foreach ($active in $false, $true) {
-    $filterControl.IsChecked = $active
-    $filterControl.Tag = $active
-    $itemControl.IsChecked = $active
-    $testRoot.Measure([Windows.Size]::new(300, 48))
-    $testRoot.Arrange([Windows.Rect]::new(0, 0, 300, 48))
-    $testRoot.UpdateLayout()
-    if ($filterControl.ActualHeight -ne 36 -or $itemControl.ActualHeight -ne 36) { throw 'Cold Seat active plates changed height' }
+if ('coldseat' -in $themes.key) {
+    [xml]$coldPanel = Get-Content "$root/src/themes/ColdSeat/src/Views/TopPanel.xaml" -Raw
+    [xml]$coldItem = Get-Content "$root/src/themes/ColdSeat/src/CustomControls/TopPanelItem.xaml" -Raw
+    $filterStyle = $coldPanel.SelectSingleNode('//*[@*[local-name()="Key"]="TopPanelFilterToggle"]').OuterXml
+    $itemStyle = $coldItem.SelectSingleNode('//*[local-name()="Style"]').OuterXml.Replace('{x:Type TopPanelItem}', '{x:Type ToggleButton}').Replace('Property="IsToggled"', 'Property="IsChecked"')
+    $xaml = '<Grid xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib"><Grid.Resources><sys:Boolean x:Key="True">True</sys:Boolean><sys:Boolean x:Key="False">False</sys:Boolean><sys:Double x:Key="IconSize">16</sys:Double>' + $filterStyle + $itemStyle + '</Grid.Resources><CheckBox Name="Filter" Style="{StaticResource TopPanelFilterToggle}" /><ToggleButton Name="Item" /></Grid>'
+    $testRoot = [Windows.Markup.XamlReader]::Parse($xaml)
+    $filterControl = $testRoot.FindName('Filter')
+    $itemControl = $testRoot.FindName('Item')
+    foreach ($active in $false, $true) {
+        $filterControl.IsChecked = $active
+        $filterControl.Tag = $active
+        $itemControl.IsChecked = $active
+        $testRoot.Measure([Windows.Size]::new(300, 48))
+        $testRoot.Arrange([Windows.Rect]::new(0, 0, 300, 48))
+        $testRoot.UpdateLayout()
+        if ($filterControl.ActualHeight -ne 36 -or $itemControl.ActualHeight -ne 36) { throw 'Cold Seat active plates changed height' }
+    }
+    Write-Host 'PASS: Cold Seat filter and item plates stay 36px in idle and active states.'
 }
-Write-Host 'PASS: Cold Seat filter and item plates stay 36px in idle and active states.'
-

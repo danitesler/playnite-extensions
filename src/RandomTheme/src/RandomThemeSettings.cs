@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Data;
 
 namespace RandomTheme
@@ -91,7 +92,7 @@ namespace RandomTheme
                 if (category.HasNothingToPick)
                 {
                     var name = RandomThemeLoc.ModeName(category.Mode);
-                    errors.Add(RandomThemeLoc.Format(
+                    errors.Add(PlayniteLoc.Format(
                         "LOCRandomTheme_Error_Verify",
                         "Select at least one {0} theme, or turn off {0} randomization.",
                         name));

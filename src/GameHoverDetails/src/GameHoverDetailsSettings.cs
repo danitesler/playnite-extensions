@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Data;
 
 namespace GameHoverDetails
@@ -388,9 +390,12 @@ namespace GameHoverDetails
                 var turningFanartOn = !IsGameCoverBackgroundStyle
                     && string.Equals(norm, BackgroundStyleGameCover, System.StringComparison.Ordinal);
                 SetValue(ref hoverBackgroundStyle, norm, nameof(HoverBackgroundStyle));
-                OnPropertyChanged(nameof(IsGameCoverBackgroundStyle));
-                OnPropertyChanged(nameof(UseGameBackground));
-                OnPropertyChanged(nameof(ShowRegularBackgroundColorControls));
+                if (!loadingPersistedState)
+                {
+                    OnPropertyChanged(nameof(IsGameCoverBackgroundStyle));
+                    OnPropertyChanged(nameof(UseGameBackground));
+                    OnPropertyChanged(nameof(ShowRegularBackgroundColorControls));
+                }
                 if (turningFanartOn)
                 {
                     HoverChromeBackgroundOpacity = FanartDefaultOpacity;
@@ -625,69 +630,43 @@ namespace GameHoverDetails
             LoadPersistedState(plugin.LoadPluginSettings<GameHoverDetailsPersistedState>());
         }
 
-        /// <summary>
-        /// Applies saved JSON (including legacy shapes with missing / null fields) to the backing fields.
-        /// Null keeps the factory defaults. Split from the constructor so it can be tested without a plugin.
-        /// </summary>
+        private bool loadingPersistedState;
+
+        private new void SetValue<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (loadingPersistedState)
+            {
+                field = value;
+            }
+            else
+            {
+                base.SetValue(ref field, value, propertyName);
+            }
+        }
+
+        private new void SetValue<T>(ref T field, T value, params string[] propertyNames)
+        {
+            if (loadingPersistedState)
+            {
+                field = value;
+            }
+            else
+            {
+                base.SetValue(ref field, value, propertyNames);
+            }
+        }
+
+        /// <summary>Applies saved settings without raising change notifications during initialization.</summary>
         internal void LoadPersistedState(GameHoverDetailsPersistedState saved)
         {
-            if (saved != null)
+            loadingPersistedState = true;
+            try
             {
-                hoverWidth = ClampWidth(saved.HoverWidth);
-                showDelayMs = ClampShowDelayMs(saved.ShowDelayMs);
-                hoverFieldBlockSpacingDip = saved.HoverFieldBlockSpacingDip <= 0
-                    ? LegacyMissingFieldBlockSpacingDip
-                    : ClampFieldBlockSpacingDip(saved.HoverFieldBlockSpacingDip);
-                hoverFieldColumnCount = saved.HoverFieldColumnCount == null || saved.HoverFieldColumnCount.Value <= 0
-                    ? DefaultFieldColumnCount
-                    : ClampFieldColumnCount(saved.HoverFieldColumnCount.Value);
-                hoverContentPaddingDip = saved.HoverContentPaddingDip == null
-                    ? LegacyMissingContentPaddingDip
-                    : ClampContentPaddingDip(saved.HoverContentPaddingDip.Value);
-                hoverDisabled = saved.HoverDisabled;
-                hoverDisabledInFullscreen = saved.HoverDisabledInFullscreen ?? true;
-                hideFieldTitlesInHover = saved.HideFieldTitlesInHover;
-                showGameNameHeader = saved.ShowGameNameHeader;
-                showFieldInlineIconsInHover = saved.ShowFieldInlineIconsInHover;
-                hideIconChipBackground = saved.HideIconChipBackground;
-                hideFieldDividers = saved.HideFieldDividers ?? true;
-                hidePanelBorder = saved.HidePanelBorder ?? false;
-                emptyFieldBehavior = saved.UseFallbackFields ? EmptyFieldsFallback
-                    : saved.HideEmptyFields == true ? EmptyFieldsHide : EmptyFieldsDoNothing;
-                hoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
-                    ? LegacyMissingBodyFontSize
-                    : ClampBodyFontSize(saved.HoverBodyFontSize.Value);
-                hoverTitleFontSize = saved.HoverTitleFontSize == null || saved.HoverTitleFontSize.Value <= 0
-                    ? LegacyMissingTitleFontSize
-                    : ClampTitleFontSize(saved.HoverTitleFontSize.Value);
-                hoverIconStyle = NormalizeIconStyle(saved.HoverIconStyle);
-                hoverIconChipSizeDip = saved.HoverIconChipSizeDip == null || saved.HoverIconChipSizeDip.Value <= 0
-                    ? LegacyMissingIconChipSizeDip
-                    : ClampIconChipSizeDip(saved.HoverIconChipSizeDip.Value);
-                hoverIconChipPaddingDip = saved.HoverIconChipPaddingDip == null
-                    ? LegacyMissingIconChipPaddingDip
-                    : ClampIconChipPaddingDip(saved.HoverIconChipPaddingDip.Value);
-                hoverIconChipShape = NormalizeIconChipShape(saved.HoverIconChipShape);
-                useThemeChrome = saved.UseThemeChrome ?? true;
-                hoverBackgroundStyle = NormalizeBackgroundStyle(saved.HoverBackgroundStyle);
-                hoverChromeBackgroundHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeBackgroundHex,
-                    HoverChromePalette.DefaultFillHex);
-                hoverChromeBorderHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeBorderHex,
-                    HoverChromePalette.DefaultBorderHex);
-                hoverChromeDividerHex = HoverChromePalette.NormalizeHexOrDefault(
-                    string.IsNullOrWhiteSpace(saved.HoverChromeDividerHex)
-                        ? saved.HoverChromeBorderHex
-                        : saved.HoverChromeDividerHex,
-                    HoverChromePalette.DefaultDividerHex);
-                hoverChromeIconBackgroundHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeIconBackgroundHex,
-                    HoverChromePalette.DefaultIconBackgroundHex);
-                hoverChromeBackgroundOpacity = saved.HoverChromeBackgroundOpacity == null
-                    ? DefaultChromeOpacity
-                    : ClampChromeOpacity(saved.HoverChromeBackgroundOpacity.Value);
-                selectedFieldKeys = NormalizeKeys(saved.SelectedFieldKeys ?? new List<string>());
+                ApplyPersistedState(saved);
+            }
+            finally
+            {
+                loadingPersistedState = false;
             }
         }
 
@@ -926,7 +905,7 @@ namespace GameHoverDetails
             errors = new List<string>();
             if (HoverWidth < MinWidth || HoverWidth > MaxWidth)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_Width",
                     "Hover width must be between {0} and {1} pixels.",
                     MinWidth,
@@ -935,7 +914,7 @@ namespace GameHoverDetails
 
             if (HoverFieldBlockSpacingDip < MinFieldBlockSpacingDip || HoverFieldBlockSpacingDip > MaxFieldBlockSpacingDip)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_FieldSpacing",
                     "Field spacing must be between {0} and {1} pixels.",
                     MinFieldBlockSpacingDip,
@@ -944,7 +923,7 @@ namespace GameHoverDetails
 
             if (HoverFieldColumnCount < MinFieldColumnCount || HoverFieldColumnCount > MaxFieldColumnCount)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_FieldColumns",
                     "Field columns must be between {0} and {1}.",
                     MinFieldColumnCount,
@@ -953,7 +932,7 @@ namespace GameHoverDetails
 
             if (HoverContentPaddingDip < MinContentPaddingDip || HoverContentPaddingDip > MaxContentPaddingDip)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_ListPadding",
                     "List padding must be between {0} and {1} pixels.",
                     MinContentPaddingDip,
@@ -962,7 +941,7 @@ namespace GameHoverDetails
 
             if (HoverChromeBackgroundOpacity < MinChromeOpacity || HoverChromeBackgroundOpacity > MaxChromeOpacity)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_BackgroundOpacity",
                     "Background opacity must be between {0} and {1} percent.",
                     MinChromeOpacity,
@@ -971,7 +950,7 @@ namespace GameHoverDetails
 
             if (HoverBodyFontSize < MinBodyFontSize || HoverBodyFontSize > MaxBodyFontSize)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_BodyTextSize",
                     "Regular text size must be between {0} and {1}.",
                     MinBodyFontSize,
@@ -980,7 +959,7 @@ namespace GameHoverDetails
 
             if (HoverTitleFontSize < MinTitleFontSize || HoverTitleFontSize > MaxTitleFontSize)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_TitleTextSize",
                     "Title text size must be between {0} and {1}.",
                     MinTitleFontSize,
@@ -989,7 +968,7 @@ namespace GameHoverDetails
 
             if (HoverIconChipSizeDip < MinIconChipSizeDip || HoverIconChipSizeDip > MaxIconChipSizeDip)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_IconSize",
                     "Icon size must be between {0} and {1} pixels.",
                     MinIconChipSizeDip,
@@ -998,7 +977,7 @@ namespace GameHoverDetails
 
             if (HoverIconChipPaddingDip < MinIconChipPaddingDip || HoverIconChipPaddingDip > MaxIconChipPaddingDip)
             {
-                errors.Add(HoverLoc.Format(
+                errors.Add(PlayniteLoc.Format(
                     "LOCGameHoverDetails_Verify_IconPadding",
                     "Icon padding must be between {0} and {1} pixels.",
                     MinIconChipPaddingDip,
@@ -1007,35 +986,35 @@ namespace GameHoverDetails
 
             if (!HoverChromePalette.TryParseHex(HoverChromeBackgroundHex, out _))
             {
-                errors.Add(HoverLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCGameHoverDetails_Verify_BackgroundColor",
                     "Hover background color is not a valid hex color."));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeBorderHex, out _))
             {
-                errors.Add(HoverLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCGameHoverDetails_Verify_BorderColor",
                     "Hover border color is not a valid hex color."));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeDividerHex, out _))
             {
-                errors.Add(HoverLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCGameHoverDetails_Verify_DividerColor",
                     "Hover divider color is not a valid hex color."));
             }
 
             if (!HoverChromePalette.TryParseHex(HoverChromeIconBackgroundHex, out _))
             {
-                errors.Add(HoverLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCGameHoverDetails_Verify_IconBackgroundColor",
                     "Hover icon background color is not a valid hex color."));
             }
 
             if (SelectedFieldKeys.Count == 0)
             {
-                errors.Add(HoverLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCGameHoverDetails_Verify_NoFields",
                     "Select at least one field."));
             }

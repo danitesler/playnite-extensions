@@ -82,7 +82,7 @@ Skeleton and metadata pane as in `../AGENTS.md`. Differences: the banner is blea
 | Empty game page (both overviews) | Orbit plot (dashed and solid orbits, cross hairs, teal body, vermilion marker circling it via `ControlTemplate.Triggers`), `LOCErrorNoGameSelected`, a racing stripe |
 | `NotificationMessage` | Plate card with a ghost close glyph |
 
-No sprites: the source is flat print, so nothing is generated. `art/tint-menu-icons.py` tints the menu PNGs (`src/Images/Lucide`) from `tokens.css`.
+No sprites: the source is flat print, so nothing is generated. `scripts/render-icons.ps1 -Extension slipstream` uses `icons.json` to tint the menu PNGs (`src/Images/Lucide`) from `tokens.css`.
 
 ## Previews
 

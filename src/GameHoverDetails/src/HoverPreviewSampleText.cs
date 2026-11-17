@@ -1,3 +1,5 @@
+using PlayniteExtensions;
+
 namespace GameHoverDetails
 {
     /// <summary>Static placeholder lines for the settings preview (not live game data).</summary>
@@ -74,7 +76,7 @@ namespace GameHoverDetails
                     fallback = new System.DateTime(2026, 4, 10).ToString("d", System.Globalization.CultureInfo.CurrentCulture);
                     break;
                 case "LastPlayed":
-                    fallback = HoverLoc.Get("LOCYesterday", "Yesterday");
+                    fallback = PlayniteLoc.Get("LOCYesterday", "Yesterday");
                     break;
                 case "CompletionStatus":
                     fallback = "Playing";
@@ -110,7 +112,7 @@ namespace GameHoverDetails
                     return HoverLoc.Empty;
             }
 
-            return HoverLoc.Get("LOCGameHoverDetails_PreviewSample_" + key, fallback);
+            return PlayniteLoc.Get("LOCGameHoverDetails_PreviewSample_" + key, fallback);
         }
 
         /// <summary>Plain one-block preview string from formatted hover text (strips HTML for description).</summary>

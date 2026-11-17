@@ -1,5 +1,7 @@
 # Cover hover animation targets must belong to the template that owns the trigger.
 # Run with pwsh -STA -File tests/wpf/ReverieStoryboardRegressionTests.ps1.
+param([string[]]$Keys = @())
+if ($Keys.Count -and 'reverie' -notin ($Keys -split ',')) { return }
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework, PresentationCore
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }

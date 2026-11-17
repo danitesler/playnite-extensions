@@ -16,8 +16,8 @@ ATLUS publishes no design system and the menus are drawn art, not style sheets, 
 | `[P5C]` | Confidant screen from mechanicsofmagic.com, "Visual Design of Games: Persona 5" (2022-04-23), 1200x675 | Red ground `#9c0511` / `#660206`; greys `#2f2727`, `#605f5f`, `#a5a1a1`; the white name plate (tooltips); the black info box in a white edge (metadata pane) | measured on the article image |
 | `[eye]` | Chosen between measured values | Hover red `#ff2a24`, pressed red `#c40208`, coal `#141212`, soot `#1f1b1b`, amber `#ffc21a` | **not measured**: nothing in the games has exactly these surfaces |
 | Analysis | mechanicsofmagic.com (above); itch.io, "Making UI come to life: study of Persona 5" | The palette is red, black and white with a splash of blue on the current selection; the selected item grows and takes color | read, summarised in AGENTS.md |
-| Icons | Heroicons 2.2.0 solid, MIT (`info/LICENSE-heroicons.txt`), via `art/icons.py` | The heaviest open set covering Playnite's roles; the menus draw chunky solid glyphs. Menu PNGs in `src/Images/Heroicons/` | pinned version |
-| Mark | `art/icons.py` -> `art/mark.svg`, `IconMainMenu`, `info/icon.png` | Original tilted five-point star | original |
+| Icons | Heroicons 2.2.0 solid, MIT (`info/LICENSE-heroicons.txt`), via `icons.json` | The heaviest open set covering Playnite's roles; the menus draw chunky solid glyphs. Menu PNGs in `src/Images/Heroicons/` | pinned version |
+| Mark | `art/mark.svg`, `IconMainMenu`, `info/icon.png` | Original tilted five-point star | original |
 | Playnite | Playnite 10.60 Default theme, MIT (`info/LICENSE-Playnite.txt`) | Structure of every XAML file | |
 
 Not available: no ATLUS style guide, no font files, no direct UI captures taken for this repo (only publisher store screenshots and the article above). Row heights, the 12 degree tilt and plate offsets are read off the 1080p screenshots by eye; no pixel measurement is recorded for them.

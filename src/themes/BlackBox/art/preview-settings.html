@@ -1,0 +1,658 @@
+<!doctype html>
+<!-- Black Box: HTML replica of Playnite's Settings window (1280x720 frame, centered 940x656 dialog).
+     NieR:Automata YoRHa OS-inspired (unofficial): 44px charcoal-olive title band with musical double-bar (▊▏),
+     Black Box octagram mark, ghosted pod-reticle watermark, and diamond-and-dot frieze (───◇─•─◇───);
+     28px bare section tree rows in body font with ▶▪ cursor and inverted charcoal selection;
+     Plug-in Chip capacity slider, diamond checkbox/radio controls, and Save / Cancel bottom bar.
+     All colors reference src/tokens.css (--bb-*). -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Black Box - Settings Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--bb-canvas);
+    color: var(--bb-charcoal);
+    font-family: var(--bb-font-body);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  svg { display: block; fill: currentColor; }
+
+  /* Sparse Telemetry Backdrop Grid + Corner Pod Reticles */
+  .backdrop-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--bb-charcoal);
+    opacity: 0.14;
+    -webkit-mask-image: url("../src/Images/fx/grid-scan.png");
+    -webkit-mask-size: 64px 64px;
+  }
+  .backdrop-reticle {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    pointer-events: none;
+    background: var(--bb-charcoal);
+    opacity: 0.16;
+    -webkit-mask-image: url("../src/Images/fx/pod-reticle.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+  }
+  .backdrop-reticle.tl { top: 24px; left: 28px; }
+  .backdrop-reticle.br { bottom: 24px; right: 28px; }
+
+  /* Settings Dialog Window (StandardWindowStyle replica, 940x656) */
+  .settings-window {
+    width: 940px;
+    height: 656px;
+    background: var(--bb-surface);
+    border: 1px solid var(--bb-charcoal);
+    box-shadow: 4px 4px 0 var(--bb-plate);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* 44px Title Band (StandardWindowStyle) */
+  .title-band {
+    height: 44px;
+    flex: none;
+    background: var(--bb-charcoal);
+    color: var(--bb-ivory);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 14px;
+    position: relative;
+  }
+  .title-band-watermark {
+    position: absolute;
+    right: 64px;
+    top: -18px;
+    width: 84px;
+    height: 84px;
+    pointer-events: none;
+    background: var(--bb-ivory);
+    opacity: 0.10;
+    -webkit-mask-image: url("../src/Images/fx/pod-reticle.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+  }
+  .title-band-frieze {
+    position: absolute;
+    left: 0; right: 0; bottom: 1px;
+    height: 12px;
+    pointer-events: none;
+    background: var(--bb-plate);
+    opacity: 0.75;
+    -webkit-mask-image: url("../src/Images/fx/diamond-frieze.png");
+    -webkit-mask-size: 640px 12px;
+    -webkit-mask-repeat: repeat-x;
+    -webkit-mask-position: center;
+    z-index: 5;
+  }
+  .title-bars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.5px;
+    height: 18px;
+    margin-right: 10px;
+  }
+  .title-bars .b1 { width: 5px; height: 100%; background: var(--bb-terracotta-hi); }
+  .title-bars .b2 { width: 2px; height: 100%; background: var(--bb-ivory); }
+  .title-mark {
+    width: 18px;
+    height: 18px;
+    color: var(--bb-ivory);
+    margin-right: 8px;
+  }
+  .title-text {
+    font-family: var(--bb-font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--bb-ivory);
+  }
+  .title-sub {
+    margin-left: 12px;
+    font-family: var(--bb-font-mono);
+    font-size: 11px;
+    color: var(--bb-plate);
+    letter-spacing: 1.2px;
+  }
+  .title-spacer { flex: 1; }
+  .win-close-btn {
+    width: 46px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bb-ivory);
+  }
+  .win-close-btn svg { width: 13px; height: 13px; }
+
+  /* Body: Left Section Tree + Right Section Content */
+  .dialog-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
+
+  /* Left Section Tree (TreeView.xaml: 248px wide, bare 28px rows in body font, reserved scroll lane) */
+  .settings-nav {
+    width: 248px;
+    flex: none;
+    background: var(--bb-canvas);
+    border-right: 1px solid var(--bb-grid);
+    padding: 10px 0 8px 8px;
+    display: flex;
+    position: relative;
+  }
+  .tree-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding-right: 6px;
+  }
+  /* Reserved Vertical Scrollbar Lane (always Visible so expanding nodes never reflows) */
+  .tree-scroll-lane {
+    width: 10px;
+    flex: none;
+    display: flex;
+    justify-content: center;
+    padding: 4px 0;
+  }
+  .tree-scroll-thumb {
+    width: 4px;
+    height: 88px;
+    margin-top: 22px;
+    background: var(--bb-charcoal);
+    opacity: 0.65;
+  }
+
+  .tree-row {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px 0 12px;
+    color: var(--bb-ink-muted);
+    font-family: var(--bb-font-body);
+    font-size: 14px;
+    position: relative;
+  }
+  .tree-row.child {
+    padding-left: 28px;
+  }
+  .tree-row .exp-arrow {
+    width: 14px;
+    font-size: 11px;
+    color: var(--bb-charcoal);
+    flex: none;
+  }
+  .tree-row .exp-arrow.hidden {
+    visibility: hidden;
+  }
+  .tree-row.hovered {
+    background: var(--bb-wash-strong);
+    color: var(--bb-charcoal);
+  }
+  /* Selected Tree Row: Held Charcoal Slab + 2px Terracotta Left Bar + ▶▪ Cursor + Brighter Label */
+  .tree-row.selected {
+    background: var(--bb-charcoal);
+    color: var(--bb-ivory);
+    border-left: 2px solid var(--bb-terracotta-hi);
+  }
+  .tree-row.selected .tree-cursor {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 9px;
+    color: var(--bb-terracotta-hi);
+  }
+  .tree-sep {
+    height: 1px;
+    background: var(--bb-grid);
+    margin: 3px 10px 3px 12px;
+  }
+
+  /* Right Section Content Page */
+  .settings-content {
+    flex: 1;
+    min-width: 0;
+    background: var(--bb-surface);
+    padding: 14px 22px 12px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  /* TabControl Header Strip */
+  .tab-strip {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    border-bottom: 1px solid var(--bb-charcoal);
+    padding-bottom: 0;
+  }
+  .tab-item {
+    height: 32px;
+    padding: 0 16px;
+    background: var(--bb-plate);
+    color: var(--bb-charcoal);
+    border: 1px solid var(--bb-grid);
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    font-family: var(--bb-font-body);
+    font-size: 13.5px;
+    font-weight: 600;
+    position: relative;
+  }
+  .tab-item.active {
+    background: var(--bb-charcoal);
+    color: var(--bb-ivory);
+    border-color: var(--bb-charcoal);
+    border-top: 2px solid var(--bb-terracotta-hi);
+  }
+
+  .section-rule {
+    height: 1px;
+    background: var(--bb-grid);
+  }
+
+  /* CheckBox & RadioButton Rows */
+  .ctrl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 18px;
+  }
+  .check-row {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--bb-charcoal);
+    font-size: 13.5px;
+  }
+  .yorha-check {
+    width: 18px;
+    height: 18px;
+    background: var(--bb-surface-hi);
+    border: 1.5px solid var(--bb-charcoal);
+    box-shadow: 2px 2px 0 var(--bb-plate);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  .yorha-check.checked {
+    background: var(--bb-charcoal);
+  }
+  .yorha-check.checked .diamond-mark {
+    width: 8px;
+    height: 8px;
+    background: var(--bb-terracotta-hi);
+    transform: rotate(45deg);
+  }
+
+  .yorha-radio {
+    width: 16px;
+    height: 16px;
+    background: var(--bb-surface-hi);
+    border: 1.5px solid var(--bb-charcoal);
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    margin: 0 1px;
+  }
+  .yorha-radio.checked {
+    background: var(--bb-charcoal);
+  }
+  .yorha-radio.checked .radio-pip {
+    width: 6px;
+    height: 6px;
+    background: var(--bb-ivory);
+  }
+
+  /* Form Rows (32px ControlHeight: Slider, ComboBox, TextBox, Buttons) */
+  .form-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    align-items: center;
+    gap: 14px;
+  }
+  .form-label {
+    color: var(--bb-charcoal);
+    font-size: 13.5px;
+  }
+
+  /* Plug-in Chip Capacity Slider */
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .slider-end {
+    width: 6px;
+    height: 6px;
+    background: var(--bb-charcoal);
+    transform: rotate(45deg);
+    flex: none;
+  }
+  .slider-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bb-surface-hi);
+    border: 1px solid var(--bb-charcoal);
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .slider-fill {
+    width: 68%;
+    height: 100%;
+    background: var(--bb-terracotta);
+  }
+  .slider-thumb {
+    position: absolute;
+    left: 68%;
+    transform: translate(-50%, 0) rotate(45deg);
+    width: 13px;
+    height: 13px;
+    background: var(--bb-charcoal);
+    border: 2px solid var(--bb-ivory);
+  }
+  .slider-val {
+    width: 48px;
+    text-align: right;
+    font-family: var(--bb-font-mono);
+    font-size: 12.5px;
+    color: var(--bb-charcoal);
+  }
+
+  /* 32px ComboBox (with >=16px chevron room) & 32px TextBox */
+  .yorha-combo {
+    height: 32px;
+    background: var(--bb-surface-hi);
+    border: 1px solid var(--bb-charcoal);
+    border-left: 4px solid var(--bb-charcoal);
+    box-shadow: 2px 2px 0 var(--bb-plate);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px 0 10px;
+    color: var(--bb-charcoal);
+  }
+  .yorha-combo .combo-text {
+    margin-right: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .yorha-combo .combo-chev {
+    width: 12px;
+    height: 12px;
+    color: var(--bb-charcoal);
+    flex: none;
+  }
+
+  .yorha-input {
+    height: 32px;
+    background: var(--bb-surface-hi);
+    border: 1px solid var(--bb-charcoal);
+    border-left: 4px solid var(--bb-terracotta);
+    box-shadow: 2px 2px 0 var(--bb-plate);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    color: var(--bb-charcoal);
+    font-family: var(--bb-font-mono);
+    font-size: 13px;
+  }
+
+  /* ProgressBar & Inline Action Buttons */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .yorha-progress {
+    flex: 1;
+    height: 10px;
+    background: var(--bb-surface-hi);
+    border: 1px solid var(--bb-charcoal);
+    padding: 1px;
+  }
+  .yorha-progress-fill {
+    width: 82%;
+    height: 100%;
+    background: var(--bb-charcoal);
+  }
+
+  .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .yorha-btn {
+    height: 32px;
+    padding: 0 16px;
+    background: var(--bb-plate);
+    color: var(--bb-charcoal);
+    border: 1px solid var(--bb-charcoal);
+    border-left: 4px solid var(--bb-charcoal);
+    box-shadow: 3px 3px 0 var(--bb-grid);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--bb-font-body);
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .yorha-btn.hovered {
+    background: var(--bb-charcoal);
+    color: var(--bb-ivory);
+    border-left-color: var(--bb-terracotta-hi);
+  }
+  .yorha-btn.primary {
+    background: var(--bb-terracotta);
+    color: var(--bb-ivory);
+    border-color: var(--bb-terracotta-deep);
+    border-left: 4px solid var(--bb-charcoal);
+  }
+
+  /* Bottom Bar (settings-buttons: "* Requires restart to apply" left; Save, then Cancel right) */
+  .settings-buttons {
+    height: 52px;
+    flex: none;
+    background: var(--bb-canvas);
+    border-top: 1px solid var(--bb-charcoal);
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .restart-note {
+    color: var(--bb-ink-muted);
+    font-size: 13px;
+  }
+  .footer-btns {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="backdrop-grid"></div>
+  <div class="backdrop-reticle tl"></div>
+  <div class="backdrop-reticle br"></div>
+
+  <!-- Settings Window -->
+  <div class="settings-window" data-part="settings-window">
+    <!-- 44px Title Band -->
+    <header class="title-band">
+      <span class="title-bars"><span class="b1"></span><span class="b2"></span></span>
+      <svg class="title-mark" viewBox="0 0 24 24">
+        <path d="M12 2L22 12L12 22L2 12L12 2ZM12 4.8L4.8 12L12 19.2L19.2 12L12 4.8ZM6 6H18V18H6V6ZM7.8 7.8V16.2H16.2V7.8H7.8ZM12 9.2L14.8 12L12 14.8L9.2 12L12 9.2Z"/>
+      </svg>
+      <span class="title-text">Settings</span>
+      <span class="title-sub">SYSTEM // CONFIG</span>
+      <div class="title-spacer"></div>
+      <div class="title-band-watermark"></div>
+      <div class="win-close-btn" title="Close">
+        <svg viewBox="0 0 24 24"><path d="M6.4 5L12 10.6L17.6 5L19 6.4L13.4 12L19 17.6L17.6 19L12 13.4L6.4 19L5 17.6L10.6 12L5 6.4L6.4 5Z"/></svg>
+      </div>
+      <div class="title-band-frieze"></div>
+    </header>
+
+    <!-- Body: Section Tree + Section Page -->
+    <div class="dialog-body">
+      <nav class="settings-nav" data-part="settings-nav">
+        <div class="tree-list">
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>General</span></div>
+          <div class="tree-row"><span class="exp-arrow">▾</span><span>Appearance</span></div>
+          <div class="tree-row child"><span class="exp-arrow hidden">▸</span><span>General</span></div>
+          <div class="tree-row child hovered"><span class="exp-arrow hidden">▸</span><span>Advanced</span></div>
+          <div class="tree-row child selected">
+            <svg class="tree-cursor" viewBox="0 0 12 10">
+              <path d="M0 1L6 5L0 9V1ZM8.5 2.5L11 5L8.5 7.5L6 5L8.5 2.5Z"/>
+            </svg>
+            <span class="exp-arrow hidden">▸</span><span>Details View</span>
+          </div>
+          <div class="tree-row child"><span class="exp-arrow hidden">▸</span><span>Grid View</span></div>
+          <div class="tree-row child"><span class="exp-arrow hidden">▸</span><span>List View</span></div>
+          <div class="tree-row child"><span class="exp-arrow hidden">▸</span><span>Layout</span></div>
+          <div class="tree-row child"><span class="exp-arrow hidden">▸</span><span>Top panel</span></div>
+          <div class="tree-sep"></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Search</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Updating</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Metadata</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Sorting</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Scripts</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Auto Close Clients</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Import Exclusion List</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Backup</span></div>
+          <div class="tree-row"><span class="exp-arrow hidden">▸</span><span>Input</span></div>
+        </div>
+        <div class="tree-scroll-lane">
+          <div class="tree-scroll-thumb"></div>
+        </div>
+      </nav>
+
+      <!-- Section Page -->
+      <main class="settings-content" data-part="settings-content">
+        <div class="tab-strip">
+          <div class="tab-item active">Details View</div>
+          <div class="tab-item">Game Fields</div>
+          <div class="tab-item">Telemetry HUD</div>
+        </div>
+
+        <div class="ctrl-grid">
+          <div class="check-row">
+            <div class="yorha-check checked"><div class="diamond-mark"></div></div>
+            <span>Show game icon on details view</span>
+          </div>
+          <div class="check-row">
+            <div class="yorha-check checked"><div class="diamond-mark"></div></div>
+            <span>Show background image on details</span>
+          </div>
+          <div class="check-row">
+            <div class="yorha-check"></div>
+            <span>Blur background image</span>
+          </div>
+          <div class="check-row">
+            <div class="yorha-check checked"><div class="diamond-mark"></div></div>
+            <span>Darken background image</span>
+          </div>
+        </div>
+
+        <div class="section-rule"></div>
+
+        <!-- Radio Buttons -->
+        <div class="ctrl-grid">
+          <div class="check-row">
+            <div class="yorha-radio checked"><div class="radio-pip"></div></div>
+            <span>Vertical list orientation (YoRHa Standard)</span>
+          </div>
+          <div class="check-row">
+            <div class="yorha-radio"></div>
+            <span>Compact tactical telemetry list</span>
+          </div>
+        </div>
+
+        <div class="section-rule"></div>
+
+        <!-- Sliders, ComboBoxes, TextBox, ProgressBar -->
+        <div class="form-row">
+          <span class="form-label">Banner height (0 = off)</span>
+          <div class="slider-wrap">
+            <span class="slider-end"></span>
+            <div class="slider-track">
+              <div class="slider-fill"></div>
+              <div class="slider-thumb"></div>
+            </div>
+            <span class="slider-end"></span>
+            <span class="slider-val">320 px</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Details position</span>
+          <div class="yorha-combo">
+            <span class="combo-text">Right (Default Dossier Column)</span>
+            <svg class="combo-chev" viewBox="0 0 24 24"><path d="M6 9L12 15L18 9H6Z"/></svg>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Default archive filter preset</span>
+          <div class="yorha-input">YORHA_BUNKER_ACTIVE_UNITS</div>
+        </div>
+
+        <div class="form-row">
+          <span class="form-label">Plug-in Chip OS memory allocation</span>
+          <div class="progress-wrap">
+            <div class="yorha-progress"><div class="yorha-progress-fill"></div></div>
+            <span class="slider-val">105/128</span>
+          </div>
+        </div>
+
+        <div class="section-rule"></div>
+
+        <div class="form-row">
+          <span class="form-label">Black Box diagnostics &amp; theme defaults</span>
+          <div class="btn-row">
+            <div class="yorha-btn hovered">Verify Memory</div>
+            <div class="yorha-btn">Reset Constants</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Bottom Bar -->
+    <footer class="settings-buttons" data-part="settings-buttons">
+      <span class="restart-note">* Requires restart to apply. Unofficial fan-made theme; contains no game assets.</span>
+      <div class="footer-btns">
+        <div class="yorha-btn primary">Save</div>
+        <div class="yorha-btn">Cancel</div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Data;
 
 namespace Autogrid
@@ -158,21 +159,21 @@ namespace Autogrid
             errors = new List<string>();
             if (TargetColumns < 1 || TargetColumns > 20)
             {
-                errors.Add(AutogridLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCAutogrid_Verify_TargetColumns",
                     "Target columns must be between 1 and 20."));
             }
 
             if (TargetRows < 1 || TargetRows > 10)
             {
-                errors.Add(AutogridLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCAutogrid_Verify_TargetRows",
                     "Target rows must be between 1 and 10."));
             }
 
             if (ViewportAdjustPx < -200 || ViewportAdjustPx > 200)
             {
-                errors.Add(AutogridLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCAutogrid_Verify_ViewportAdjust",
                     "Viewport adjust must be between -200 and 200 pixels."));
             }

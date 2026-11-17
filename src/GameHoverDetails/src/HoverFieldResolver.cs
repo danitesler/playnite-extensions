@@ -1,4 +1,5 @@
 using System;
+using PlayniteExtensions;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,8 +34,8 @@ namespace GameHoverDetails
             var mappings = string.Join("\n", PrimaryKeys.Select(key => string.Join(" → ",
                 new[] { key }.Concat(Fallbacks(key)).Select(HoverFieldCatalog.GetDisplayName))));
             var unplayed = HoverFieldCatalog.GetDisplayName("TimePlayed") + " → "
-                + HoverLoc.Get("LOCGameHoverDetails_Value_NotPlayed", "Not played yet");
-            return HoverLoc.Format("LOCGameHoverDetails_Settings_FallbackFieldsHint",
+                + PlayniteLoc.Get("LOCGameHoverDetails_Value_NotPlayed", "Not played yet");
+            return PlayniteLoc.Format("LOCGameHoverDetails_Settings_FallbackFieldsHint",
                 "Missing values use the first available replacement:\n{0}\n\nFor games with no recorded playtime or last-played date:\n{1}\n\nReplacements keep their own labels and are not repeated. If no replacement is available, the field stays unchanged.",
                 mappings, unplayed);
         }
@@ -83,7 +84,7 @@ namespace GameHoverDetails
 
                 if (key == "TimePlayed" && original.IsUnplayed)
                 {
-                    values[key] = HoverLoc.Get("LOCGameHoverDetails_Value_NotPlayed", "Not played yet");
+                    values[key] = PlayniteLoc.Get("LOCGameHoverDetails_Value_NotPlayed", "Not played yet");
                 }
                 else
                 {

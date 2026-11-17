@@ -25,7 +25,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - Add-on READMEs: `node scripts/generate-readmes.mjs` (`--check` or `npm run check:readmes` to verify; fetch tags first)
 - Update API snapshot: `.\scripts\update-playnite-theme-api.ps1 -PlayniteSource <path> -PlayniteVersion <tag>`
 - Run unit tests: `dotnet test tests/Tests.csproj`
-- All checks: `pwsh scripts/check-all.ps1` or `scripts/check-all.sh`. Use `-Keys hallowtide,emberline` for selected add-ons or `-Quick` to skip artifact builds and browser checks. Run the full gate before merging or releasing. There is no hosted CI. Do not add Dependabot.
+- All checks: `pwsh scripts/check-all.ps1` or `scripts/check-all.sh`. Use `-Keys hallowtide,emberline` for selected add-ons. `-Quick` skips plugin artifact builds and browser checks. On Windows it still builds the theme drops used by WPF tests. Run the full gate before merging or releasing. There is no hosted CI. Do not add Dependabot.
 
 ## Strict Mandates
 - **Build after edit (Windows: automatic deploy + restart)**: After every theme/plugin update, finish with `build-theme.ps1 -Extension <key>` or `build-plugin.ps1 -Extension <key>`. On local Windows with Playnite installed, these deploy the complete build automatically, close the targeted Playnite installation before replacing files, and restart the same Desktop/Fullscreen sessions only if they were running. A closed Playnite stays closed; themes accept `-Launch` to start it explicitly. Do not ask the user to copy DLLs or quit/restart manually. Build failures leave Playnite untouched; deployment failures attempt to restore the originally running sessions.
@@ -44,7 +44,7 @@ Active add-ons catalog is in `src/extensions.json`. Per-extension notes live in 
 - [Theme rules and shared layouts](src/themes/AGENTS.md) cover XAML, Playnite behavior, preview assets and branding.
 - [Theme development](.agents/skills/playnite-theme-dev/SKILL.md) covers research, creative direction, the preview checklist and implementation. Start with reference research. Keep source measurements and links in `RESEARCH.md`, linked from the theme’s `AGENTS.md`, and write a short `BRIEF.md`.
 - [Multi-theme patches](docs/themes/theme-patch-workflow.md) covers ownership, checks and deployment.
-- **Metadata position (every theme, new ones included):** the details view's metadata pane is Right by default; the `GameDetailsPanePosition` ThemeModifier dropdown also offers Left and Center (centred above screenshots and description). Narrow pages stack it first for Left and Center. `node scripts/game-page-breakpoints.mjs` writes it, `validate-extension.ps1` enforces it. Details: [Responsive game pages](docs/themes/reference.md#responsive-game-pages).
+- **Metadata position (every theme, new ones included):** both details and grid views default the metadata pane to Right; the `GameDetailsPanePosition` ThemeModifier dropdown also supports Left and Center / Stretch (stretched full-width above screenshots and description with group dividers hidden so visible metadata items flow sequentially in a 3/2/1-column grid: 3 columns at 900px+, 2 at 560–899px, and 1 below 560px). Narrow pages stack metadata first for Left, Center and Stretch. `node scripts/game-page-breakpoints.mjs` writes it, `validate-extension.ps1` enforces it. Details: [Responsive game pages](docs/themes/reference.md#responsive-game-pages).
 
 ## Playnite skills
 

@@ -298,20 +298,58 @@ namespace RepoIcons
             }
             var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
             bitmap.Render(visual);
+            WritePng(path, bitmap);
+        }
+
+        public static void TintPng(string path, Color color)
+        {
+            System.Windows.Media.Imaging.BitmapSource image;
+            using (var stream = System.IO.File.OpenRead(path))
+                image = System.Windows.Media.Imaging.BitmapFrame.Create(stream, System.Windows.Media.Imaging.BitmapCreateOptions.None, System.Windows.Media.Imaging.BitmapCacheOption.OnLoad);
+
+            var bitmap = new System.Windows.Media.Imaging.FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0);
+            int stride = bitmap.PixelWidth * 4;
+            var pixels = new byte[stride * bitmap.PixelHeight];
+            bitmap.CopyPixels(pixels, stride, 0);
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                pixels[i] = color.B;
+                pixels[i + 1] = color.G;
+                pixels[i + 2] = color.R;
+            }
+
+            var tinted = System.Windows.Media.Imaging.BitmapSource.Create(bitmap.PixelWidth, bitmap.PixelHeight,
+                bitmap.DpiX, bitmap.DpiY, PixelFormats.Bgra32, null, pixels, stride);
+            // Encode beside the input so a failed encode leaves the original alpha mask available.
+            var temp = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), System.IO.Path.GetRandomFileName());
+            try
+            {
+                WritePng(temp, tinted);
+                System.IO.File.Replace(temp, path, null);
+            }
+            finally
+            {
+                System.IO.File.Delete(temp);
+            }
+        }
+
+        private static void WritePng(string path, System.Windows.Media.Imaging.BitmapSource bitmap)
+        {
             var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
             encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
             using (var stream = System.IO.File.Create(path)) encoder.Save(stream);
         }
 
-        // Filled-only icons collapse into one path string in viewBox space (translated to 0,0), for <Geometry> resources.
-        public string ToGeometryData()
+        // The theme supplies either the fill or the pen for its Geometry resources.
+        public string ToGeometryData(bool strokeGeometry = false, bool preserveViewBox = false)
         {
-            if (Layers.Any(l => l.Stroked))
-                throw new InvalidOperationException("stroked icon: use -Format DrawingImage (or png), a Geometry resource can only be filled");
+            if (strokeGeometry ? Layers.Any(l => l.Filled) : Layers.Any(l => l.Stroked))
+                throw new InvalidOperationException("Geometry requires filled shapes or stroke-only shapes with -StrokeGeometry. Use -Format DrawingImage for mixed shapes.");
             var rules = Layers.Select(l => l.Geometry is PathGeometry ? ((PathGeometry)l.Geometry).FillRule : FillRule.Nonzero).Distinct().ToList();
             var combined = new PathGeometry { FillRule = rules.Count == 1 ? rules[0] : FillRule.Nonzero };
             foreach (var layer in Layers) combined.AddGeometry(layer.Geometry);
-            if (ViewBox.X != 0 || ViewBox.Y != 0) combined.Transform = new TranslateTransform(-ViewBox.X, -ViewBox.Y);
+            if (!preserveViewBox && (ViewBox.X != 0 || ViewBox.Y != 0))
+                combined.Transform = new TranslateTransform(-ViewBox.X, -ViewBox.Y);
             return PathGeometry.CreateFromGeometry(combined).ToString(Inv);
         }
 

@@ -21,9 +21,13 @@ supported; see scripts/lib/SvgIconRenderer.cs for the SVG subset.
 Formats:
   Png           <OutDir>/<output>.png at -Size px in -Color. For anything Playnite loads by file path: theme menu
                 icons (string resources resolved through ThemeFile), plugin menu item icons, images.
-  Geometry      <Geometry x:Key="<KeyPrefix><Output>"> path data in the pack's own grid. Filled icons only.
+  TintPng       Recolors existing PNGs in -OutDir, preserving their alpha masks and dimensions.
+  Geometry      <Geometry x:Key="<KeyPrefix><Output>"> path data in the pack's own grid. Use -StrokeGeometry
+                for centerlines drawn with a stroke in the theme, and -PreserveViewBox to keep the SVG origin.
   DrawingImage  <DrawingImage x:Key="<KeyPrefix><Output>"> with fills and strokes in -Brush. For Image.Source.
 XAML goes to -XamlOut (a whole ResourceDictionary is written) or to the console for pasting.
+-UpdateXaml changes only the contents of existing Geometry keys in the target dictionary.
+In a theme's icons.json, colorToken reads a CSS custom property (name without --) from the theme's tokens.css.
 
 .PARAMETER Icons
 Icon names in the pack. "name=Output" renames the output (file name for Png, key suffix for XAML).
@@ -59,7 +63,7 @@ param(
     [string]$SvgDir = "",
 
     [Parameter(ParameterSetName = "Adhoc")]
-    [ValidateSet("Png", "Geometry", "DrawingImage")]
+    [ValidateSet("Png", "TintPng", "Geometry", "DrawingImage")]
     [string]$Format = "Png",
 
     [Parameter(ParameterSetName = "Adhoc")]
@@ -82,6 +86,15 @@ param(
 
     [Parameter(ParameterSetName = "Adhoc")]
     [string]$XamlOut = "",
+
+    [Parameter(ParameterSetName = "Adhoc")]
+    [switch]$UpdateXaml,
+
+    [Parameter(ParameterSetName = "Adhoc")]
+    [switch]$StrokeGeometry,
+
+    [Parameter(ParameterSetName = "Adhoc")]
+    [switch]$PreserveViewBox,
     [Parameter(ParameterSetName = "Adhoc")]
     [string]$KeyPrefix = "",
     # XAML brush for DrawingImage, e.g. "{DynamicResource TextBrush}" or "#9198a1". Defaults to -Color.
@@ -110,14 +123,25 @@ if ($PSCmdlet.ParameterSetName -eq "Extension") {
     if (-not (Test-Path $manifestPath)) { throw "No icons.json in $folder." }
     $manifest = Get-Content -Raw $manifestPath | ConvertFrom-Json
     $pathKeys = @("outDir", "xamlOut", "svgDir")
+    $switchKeys = @("keepColors", "updateXaml", "strokeGeometry", "preserveViewBox")
+    $tokens = $null
     foreach ($job in $manifest.jobs) {
         $params = @{}
         foreach ($prop in $job.PSObject.Properties) {
             if ($prop.Name.StartsWith("_")) { continue }
             $value = $prop.Value
             if ($pathKeys -contains $prop.Name) { $value = Join-Path $folder $value }
-            if ($prop.Name -eq "keepColors") { $value = [bool]$value }
+            if ($prop.Name -eq "colorToken") { continue }
+            if ($switchKeys -contains $prop.Name) { $value = [bool]$value }
             $params[$prop.Name] = $value
+        }
+        if ($job.colorToken) {
+            if ($params.ContainsKey("color")) { throw "Use either colorToken or color in $manifestPath." }
+            if ($null -eq $tokens) {
+                . (Join-Path $PSScriptRoot "lib/theme-tools.ps1")
+                $tokens = Read-ThemeTokens -Path (Join-RepoPath "$($profile.themeSource)/tokens.css")
+            }
+            $params["Color"] = Format-XamlColor (ConvertFrom-CssColor -Value "var(--$($job.colorToken))" -Tokens $tokens)
         }
         & $PSCommandPath @params
     }
@@ -125,11 +149,19 @@ if ($PSCmdlet.ParameterSetName -eq "Extension") {
 }
 
 if (-not $Icons) { throw "Pass -Icons, -Extension or -ListPacks." }
-if ($Format -eq "Png" -and -not $OutDir) { throw "-OutDir is required for Png output." }
+if ($Format -in @("Png", "TintPng") -and -not $OutDir) { throw "-OutDir is required for $Format output." }
+if ($UpdateXaml -and ($Format -ne "Geometry" -or -not $XamlOut)) { throw "-UpdateXaml requires -Format Geometry and -XamlOut." }
 
 Add-Type -AssemblyName PresentationCore, PresentationFramework, WindowsBase, System.Xml.Linq
 if (-not ("RepoIcons.SvgIcon" -as [type])) {
-    Add-Type -Path (Join-Path $PSScriptRoot "lib/SvgIconRenderer.cs") -ReferencedAssemblies PresentationCore, PresentationFramework, WindowsBase, System.Xaml, System.Xml, System.Xml.Linq
+    $references = @("PresentationCore", "PresentationFramework", "WindowsBase", "System.Xaml", "System.Xml", "System.Xml.Linq")
+    if ($PSVersionTable.PSEdition -eq "Core") {
+        # PowerShell 7 replaces its default compiler references when -ReferencedAssemblies is passed.
+        $references = @((Get-ChildItem "$PSHOME/ref" -Filter "*.dll").FullName)
+        $references += @([System.Windows.Media.Geometry].Assembly.Location, [System.Windows.FrameworkElement].Assembly.Location,
+            [System.Windows.Rect].Assembly.Location, [System.Windows.Markup.XamlReader].Assembly.Location) | Select-Object -Unique
+    }
+    Add-Type -Path (Join-Path $PSScriptRoot "lib/SvgIconRenderer.cs") -ReferencedAssemblies $references
 }
 
 # Resolve the SVG source.
@@ -139,7 +171,7 @@ if ($Pack) {
     if (-not $packInfo) { throw "Unknown pack '$Pack'. Known: $(($packs.PSObject.Properties.Name) -join ', ')" }
     if (-not $UrlTemplate) { $UrlTemplate = $packInfo.url }
 }
-if (-not $UrlTemplate -and -not $SvgDir) { throw "Pass -Pack, -UrlTemplate or -SvgDir." }
+if ($Format -ne "TintPng" -and -not $UrlTemplate -and -not $SvgDir) { throw "Pass -Pack, -UrlTemplate or -SvgDir." }
 
 function Get-PackValue([string]$override, [string]$key) {
     if ($override) { return $override }
@@ -178,16 +210,23 @@ function ConvertTo-PascalCase([string]$s) {
 
 $color = [System.Windows.Media.ColorConverter]::ConvertFromString($Color)
 $xamlBrush = if ($Brush) { $Brush } else { $Color }
-$source = if ($SvgDir) { $SvgDir } elseif ($Pack) { "$Pack $refValue $variantValue".Trim() } else { $UrlTemplate }
+$source = if ($Format -eq "TintPng") { $OutDir } elseif ($SvgDir) { $SvgDir } elseif ($Pack) { "$Pack $refValue $variantValue".Trim() } else { $UrlTemplate }
 if ($OutDir) { New-Item -ItemType Directory -Force $OutDir | Out-Null }
 Write-Host "Rendering $($Icons.Count) icon(s) from $source as $Format"
 
 $xaml = New-Object System.Text.StringBuilder
+$media = if ($UpdateXaml) { [System.IO.File]::ReadAllText($XamlOut) }
 foreach ($entry in $Icons) {
     $parts = $entry -split "=", 2
     $name = $parts[0].Trim()
     $output = if ($parts.Count -gt 1) { $parts[1].Trim() } else { $name }
     $output += $Suffix
+
+    if ($Format -eq "TintPng") {
+        [RepoIcons.SvgIcon]::TintPng((Join-Path $OutDir "$output.png"), $color)
+        Write-Host "  tinted $output.png"
+        continue
+    }
 
     $icon = [RepoIcons.SvgIcon]::Parse((Get-SvgText $name))
     switch ($Format) {
@@ -197,8 +236,16 @@ foreach ($entry in $Icons) {
         }
         "Geometry" {
             $key = $KeyPrefix + (ConvertTo-PascalCase $output)
-            [void]$xaml.AppendLine("    <!-- $source`: $name -->")
-            [void]$xaml.AppendLine("    <Geometry x:Key=`"$key`">$($icon.ToGeometryData())</Geometry>")
+            $data = $icon.ToGeometryData([bool]$StrokeGeometry, [bool]$PreserveViewBox)
+            if ($UpdateXaml) {
+                $pattern = '(?<=<Geometry x:Key="' + [regex]::Escape($key) + '">)[^<]*(?=</Geometry>)'
+                if ([regex]::Matches($media, $pattern).Count -ne 1) { throw "Expected one Geometry '$key' in $XamlOut." }
+                $media = [regex]::Replace($media, $pattern, $data)
+            }
+            else {
+                [void]$xaml.AppendLine("    <!-- $source`: $name -->")
+                [void]$xaml.AppendLine("    <Geometry x:Key=`"$key`">$data</Geometry>")
+            }
             Write-Host "  $name -> $key"
         }
         "DrawingImage" {
@@ -211,7 +258,11 @@ foreach ($entry in $Icons) {
     foreach ($warning in ($icon.Warnings | Select-Object -Unique)) { Write-Warning "$name`: $warning" }
 }
 
-if ($Format -ne "Png") {
+if ($UpdateXaml) {
+    [System.IO.File]::WriteAllText($XamlOut, $media, (New-Object System.Text.UTF8Encoding $false))
+    Write-Host "Updated $XamlOut"
+}
+elseif ($Format -notin @("Png", "TintPng")) {
     if ($XamlOut) {
         $header = "<!-- Generated by scripts/render-icons.ps1 from $source. Re-run it instead of editing by hand. -->`r`n" +
                   "<ResourceDictionary xmlns=`"http://schemas.microsoft.com/winfx/2006/xaml/presentation`"`r`n" +

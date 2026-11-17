@@ -43,11 +43,8 @@ Write-Host "Rendering screenshots for $($profile.name) ($Extension)..."
 $detailsOut = Join-Path $OutDir "screenshot-details.png"
 $settingsOut = Join-Path $OutDir "screenshot-settings.png"
 
-& node $nodeScript $detailsHtml $detailsOut
-if ($LASTEXITCODE -ne 0) { throw "Failed to render $detailsHtml" }
-
-& node $nodeScript $settingsHtml $settingsOut
-if ($LASTEXITCODE -ne 0) { throw "Failed to render $settingsHtml" }
+& node $nodeScript "$detailsHtml=$detailsOut" "$settingsHtml=$settingsOut"
+if ($LASTEXITCODE -ne 0) { throw "Failed to render screenshots for '$Extension'." }
 
 $base = "https://raw.githubusercontent.com/danitesler/playnite-extensions/main/" + (($profile.dir -replace "\\", "/").TrimEnd("/")) + "/art"
 Write-Host ""

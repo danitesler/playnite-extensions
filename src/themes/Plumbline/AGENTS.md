@@ -8,7 +8,7 @@ orange lozenge over the running game. No dark variant. Unofficial fan theme, not
 Electronic Arts or Maxis; it carries no game art, logo or font ([notice](info/NOTICE-Plumbline.txt)). The name only
 echoes the source (a plumb line hangs from a plumb bob) and the mark is an original plumb bob, not EA's plumbob.
 
-**Status: XAML phase written 2026-11-16: validator and layout tests pass, deployed; not yet reviewed live in Playnite (play hover bloom, sheen, gem animation, settings window).** Read [`HANDOFF.md`](HANDOFF.md) first.
+The XAML is built and validated on Windows. For live review, check the Play hover bloom, sheen, gem animation, and Settings window.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**.
 Loading rules and build checks: **`docs/themes/reference.md`**.
@@ -94,3 +94,14 @@ Everything in XAML: no theme file other than `Constants.template.xaml`, the four
 none of it has been built or loaded in Playnite (no PowerShell and no Windows in the authoring sandbox). `Constants.template.xaml`
 placeholders and key names were checked against `tokens.css` and the key catalog with a script, not by `build-theme.ps1`.
 Motion was not measured (stills only). Settings labels in the preview are approximations of Playnite's English strings.
+
+## Sprite reference
+
+| File | Use |
+|------|-----|
+| `facets.png` 1280x720 | frame, empty page, Settings backdrop (white mask, brush it) |
+| `facets-rail.png` 44x720 | icon rail (stretch to the rail's height) |
+| `bloom.png` 256x256 | Play and cover button hover ring |
+| `shadow-disc.png` 128x128, `shadow-plate.png` 48x48 (9-slice 18) | all drop shadows (black mask) |
+| `sheen.png` 160x40 | Play and button hover streak |
+| `gem-glow.png` 96x96 | halo behind the running gem |

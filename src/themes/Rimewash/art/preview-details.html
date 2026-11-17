@@ -1,0 +1,254 @@
+<!doctype html>
+<!-- Rimewash: HTML replica of Playnite's Game Details view (1280x720). Colours are var(--rw-*) tokens from src/tokens.css
+     (injected at render). Sprites are the white masks in src/Images/fx (art/sprites.py), tinted through mask-box-image /
+     mask-image exactly like the XAML OpacityMasks. Unofficial: inspired by the menus of Child of Light, no game assets. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rimewash - Details Preview</title>
+<style>
+  :root {
+    --serif: Constantia, Georgia;
+    --sans: Jost, "Segoe UI";
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; position: relative; background: var(--rw-wash); color: var(--rw-ink); font-family: var(--sans); font-size: 15px; }
+  svg.ic { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
+  .abs { position: absolute; }
+
+  /* ---- Page wash: cloud mottling, a vignette of deeper blue-grey, pencil roots on the right edge ---- */
+  .wash { position: absolute; inset: 0; background: var(--rw-wash); }
+  .wash::before { content: ""; position: absolute; inset: 0; background: var(--rw-snow); opacity: .5;
+    -webkit-mask-image: url(../src/Images/fx/cloud.png); -webkit-mask-size: 256px 256px; mask-image: url(../src/Images/fx/cloud.png); mask-size: 256px 256px; }
+  .wash::after { content: ""; position: absolute; inset: 0; background: var(--rw-wash-deep); opacity: .62;
+    -webkit-mask-image: url(../src/Images/fx/vignette.png); -webkit-mask-size: 100% 100%; mask-image: url(../src/Images/fx/vignette.png); mask-size: 100% 100%; }
+  .roots { position: absolute; right: 0; bottom: 0; width: 120px; height: 260px; background: var(--rw-ink); opacity: .28;
+    -webkit-mask-image: url(../src/Images/fx/roots.png); -webkit-mask-size: 100% 100%; mask-image: url(../src/Images/fx/roots.png); mask-size: 100% 100%; }
+
+  /* ---- Rail: 44px slate, main menu is a snow disc with the mark, current item is a swipe + chevron ---- */
+  .rail { position: absolute; left: 0; top: 0; bottom: 0; width: 44px; background: var(--rw-slate-deep); z-index: 5; }
+  .rail::after { content: ""; position: absolute; right: -1px; top: 0; bottom: 0; width: 1px; background: var(--rw-slate-press); }
+  .menu { position: absolute; left: 6px; top: 9px; width: 32px; height: 32px; border-radius: 50%; background: var(--rw-snow); color: var(--rw-slate-deep); display: flex; align-items: center; justify-content: center; }
+  .menu svg { width: 22px; height: 22px; stroke-width: 3.4; }
+  .item { position: absolute; left: 0; width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--rw-wash); }
+  .item.cur { color: var(--rw-ink); }
+  .item.cur::before { content: ""; position: absolute; left: 2px; right: -2px; top: 2px; bottom: 2px; background: var(--rw-snow);
+    -webkit-mask-box-image: url(../src/Images/fx/swipe.png) 0 80 0 80 fill / 0 40px 0 40px stretch; mask-border: url(../src/Images/fx/swipe.png) 0 80 0 80 fill / 0 40px 0 40px stretch; }
+  .item svg { position: relative; }
+  .chev-s { position: absolute; left: 36px; top: 12px; width: 12px; height: 16px; background: var(--rw-gold); -webkit-mask: url(../src/Images/fx/chevron.png) center/contain no-repeat; mask: url(../src/Images/fx/chevron.png) center/contain no-repeat; z-index: 2; }
+
+  /* ---- Top panel: 52px frost band closed by the dotted pencil rule ---- */
+  .top { position: absolute; left: 44px; right: 0; top: 0; height: 52px; background: var(--rw-frost-band); z-index: 4; }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px; background: var(--rw-pencil);
+    -webkit-mask: url(../src/Images/fx/pencil-rule.png) 0 0/32px 3px repeat-x; mask: url(../src/Images/fx/pencil-rule.png) 0 0/32px 3px repeat-x; }
+  .search { position: absolute; left: 12px; top: 10px; width: 244px; height: 32px; background: var(--rw-snow); border: 1px solid var(--rw-slate); border-radius: var(--rw-radius); padding: 0 10px; display: flex; align-items: center; gap: 8px; color: var(--rw-ink-muted); font-size: 14px; }
+  .tool { position: absolute; top: 9px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--rw-ink); }
+  .tool.on { color: var(--rw-snow); }
+  .tool.on::before { content: ""; position: absolute; inset: 1px 0; background: var(--rw-slate-deep); border-radius: var(--rw-radius-small); }
+  .tool svg { position: relative; }
+  .mark { position: absolute; top: 3px; right: 2px; width: 12px; height: 12px; background: var(--rw-gold-badge); -webkit-mask: url(../src/Images/fx/blob.png) center/contain no-repeat; mask: url(../src/Images/fx/blob.png) center/contain no-repeat; }
+  .wb { position: absolute; top: 0; width: 46px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--rw-ink); }
+
+  /* ---- Game list: rows on the wash, the selected one is the white swipe with the gold chevron ---- */
+  .list { position: absolute; left: 44px; top: 52px; width: 280px; bottom: 0; padding-top: 12px; z-index: 2; }
+  .row { position: relative; height: 40px; display: flex; align-items: center; padding-left: 26px; gap: 10px; font-size: 15px; color: var(--rw-ink); }
+  .row .ico { width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid var(--rw-snow); box-shadow: 0 1px 0 var(--rw-slate); }
+  .row.hover::before, .row.sel::before { content: ""; position: absolute; left: 8px; right: 6px; top: 2px; bottom: 2px; background: var(--rw-snow);
+    -webkit-mask-box-image: url(../src/Images/fx/swipe.png) 0 80 0 80 fill / 0 40px 0 40px stretch; mask-border: url(../src/Images/fx/swipe.png) 0 80 0 80 fill / 0 40px 0 40px stretch; }
+  .row.hover::before { opacity: .65; }
+  .row > * { position: relative; }
+  .row.sel { font-weight: 500; }
+  .row.sel .chev { position: absolute; left: 2px; top: 9px; width: 14px; height: 20px; background: var(--rw-gold); -webkit-mask: url(../src/Images/fx/chevron.png) center/contain no-repeat; mask: url(../src/Images/fx/chevron.png) center/contain no-repeat; }
+  .row.sel .chev::after { content: ""; position: absolute; inset: -9px -10px; background: var(--rw-gold-bright); opacity: .5; -webkit-mask: url(../src/Images/fx/chevron-glow.png) center/contain no-repeat; mask: url(../src/Images/fx/chevron-glow.png) center/contain no-repeat; }
+
+  /* ---- Game page: one torn snow sheet on a soft blue shadow ---- */
+  .stage { position: absolute; left: 332px; top: 64px; right: 14px; bottom: 14px; z-index: 3; }
+  .shadow { position: absolute; left: -16px; top: -10px; right: -16px; bottom: -22px; background: var(--rw-plate-shadow); opacity: .5;
+    -webkit-mask-box-image: url(../src/Images/fx/plate-shadow.png) 80 fill / 40px round; mask-border: url(../src/Images/fx/plate-shadow.png) 80 fill / 40px round; }
+  .sheet { position: absolute; inset: -6px; background: var(--rw-frost); overflow: hidden;
+    -webkit-mask-box-image: url(../src/Images/fx/plate-snow.png) 48 fill / 24px round; mask-border: url(../src/Images/fx/plate-snow.png) 48 fill / 24px round; }
+  .inner { position: absolute; inset: 6px; }
+  .banner { position: absolute; left: 14px; right: 14px; top: 18px; height: 200px; overflow: hidden; border-radius: 14px 14px 0 0;
+    background:
+      radial-gradient(ellipse 30% 60% at 78% 30%, rgba(214,255,250,.55), transparent 70%),
+      radial-gradient(ellipse 40% 50% at 22% 55%, rgba(94,241,227,.18), transparent 70%),
+      repeating-linear-gradient(98deg, rgba(10,20,24,.0) 0 38px, rgba(10,22,26,.55) 38px 52px, rgba(10,20,24,.0) 52px 96px),
+      linear-gradient(180deg, #2f5560 0%, #1d343b 55%, #152227 100%); }
+  .banner::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 0 12%, color-mix(in srgb, var(--rw-frost) 72%, transparent) 36%, var(--rw-frost) 52%); }
+  .head { position: absolute; left: 30px; right: 30px; top: 150px; height: 100px; z-index: 2; }
+  .gicon { position: absolute; left: 0; top: 22px; width: 60px; height: 60px; border-radius: 10px; border: 2px solid var(--rw-snow); box-shadow: 0 2px 0 var(--rw-slate), 0 6px 12px rgba(21,30,32,.25);
+    background: radial-gradient(circle at 70% 25%, #f6d98a 0 14%, transparent 15%), linear-gradient(160deg, #8fb7bf, #3d6772 60%, #26424b); }
+  .title { position: absolute; left: 76px; top: 12px; font-family: var(--serif); font-size: 36px; line-height: 1.05; color: var(--rw-ink); letter-spacing: .005em; }
+  .title small { display: block; font-family: var(--sans); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--rw-ink-muted); margin-top: 6px; }
+  .rule { position: absolute; left: 0; right: 0; height: 3px; background: var(--rw-pencil);
+    -webkit-mask: url(../src/Images/fx/pencil-rule.png) 0 0/32px 3px repeat-x; mask: url(../src/Images/fx/pencil-rule.png) 0 0/32px 3px repeat-x; }
+
+  /* Actions: the Play plate is the slate Craft-Oculi plate; hovered = the white swipe has crossed it, chevron lit, wisp trailing */
+  .acts { position: absolute; right: 30px; top: 166px; height: 44px; display: flex; gap: 10px; align-items: center; z-index: 2; }
+  .play { position: relative; width: 142px; height: 40px; border-radius: var(--rw-radius); background: var(--rw-slate-hover); border: 1px solid var(--rw-slate-deep);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 3px 0 var(--rw-slate-press), 0 7px 10px rgba(61,85,96,.35); display: flex; align-items: center; justify-content: center;
+    font-weight: 500; letter-spacing: .12em; text-transform: uppercase; font-size: 14px; color: var(--rw-ink); transform: translateY(-1px); }
+  .play .sw { position: absolute; left: 4px; right: 4px; top: 3px; bottom: 3px; background: var(--rw-snow);
+    -webkit-mask-box-image: url(../src/Images/fx/swipe.png) 0 80 0 80 fill / 0 40px 0 40px stretch; mask-border: url(../src/Images/fx/swipe.png) 0 80 0 80 fill / 0 40px 0 40px stretch; }
+  .play .txt { position: relative; padding-left: 8px; margin-right: 12px; }
+  .play .chev { position: absolute; left: 14px; top: 8px; width: 14px; height: 22px; background: var(--rw-gold); -webkit-mask: url(../src/Images/fx/chevron.png) center/contain no-repeat; mask: url(../src/Images/fx/chevron.png) center/contain no-repeat; }
+  .play .chev::after { content: ""; position: absolute; inset: -12px -12px; background: var(--rw-gold-bright); opacity: .55; -webkit-mask: url(../src/Images/fx/chevron-glow.png) center/contain no-repeat; mask: url(../src/Images/fx/chevron-glow.png) center/contain no-repeat; }
+  .play .wisp { position: absolute; right: 6px; top: 5px; width: 28px; height: 28px; background: var(--rw-wisp-deep); opacity: .8; -webkit-mask: url(../src/Images/fx/wisp.png) center/contain no-repeat; mask: url(../src/Images/fx/wisp.png) center/contain no-repeat; }
+  .play .tail { position: absolute; right: 22px; top: 13px; width: 30px; height: 12px; background: var(--rw-wisp-deep); opacity: .7; -webkit-mask: url(../src/Images/fx/wisp-tail.png) center/100% 100% no-repeat; mask: url(../src/Images/fx/wisp-tail.png) center/100% 100% no-repeat; }
+  .sq { width: 40px; height: 40px; border-radius: var(--rw-radius); background: var(--rw-frost-band); border: 1px solid var(--rw-slate); color: var(--rw-slate-deep); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 0 var(--rw-sky); }
+  .sq svg { width: 18px; height: 18px; }
+
+  /* Body: screenshots + description left, metadata card right (300px usable) */
+  .body { position: absolute; left: 30px; right: 30px; top: 280px; bottom: 20px; }
+  .left { position: absolute; left: 0; top: 0; right: 376px; bottom: 0; overflow: hidden; }
+  .shots { display: flex; gap: 12px; }
+  .shot { position: relative; width: 150px; height: 84px; border-radius: 6px; border: 2px solid var(--rw-snow); box-shadow: 0 0 0 1px var(--rw-slate), 0 3px 8px rgba(77,98,109,.35); }
+  .shot.hov { box-shadow: 0 0 0 2px var(--rw-gold), 0 0 14px rgba(230,179,28,.55), 0 4px 10px rgba(77,98,109,.35); transform: translateY(-2px); }
+  .shot::after { content: ""; position: absolute; inset: 0; border-radius: 4px; background: linear-gradient(180deg, rgba(255,255,255,.16), transparent 40%); }
+  .desc { margin-top: 24px; font-size: 15px; line-height: 1.55; color: var(--rw-ink-body); }
+  .desc h4 { font-family: var(--serif); font-weight: 400; font-size: 21px; color: var(--rw-ink); margin-bottom: 8px; }
+  .desc p + p { margin-top: 10px; }
+  .desc em { font-family: var(--serif); font-style: italic; color: var(--rw-ink); font-size: 16px; }
+
+  .meta { position: absolute; right: 0; top: 0; width: 352px; bottom: -10px; background: var(--rw-snow); padding: 18px 24px 16px 28px;
+    -webkit-mask-box-image: url(../src/Images/fx/plate-snow.png) 48 fill / 24px round; mask-border: url(../src/Images/fx/plate-snow.png) 48 fill / 24px round; }
+  .meta-sh { position: absolute; right: -4px; top: 6px; width: 362px; bottom: -14px; background: var(--rw-plate-shadow); opacity: .32;
+    -webkit-mask-box-image: url(../src/Images/fx/plate-shadow.png) 80 fill / 40px round; mask-border: url(../src/Images/fx/plate-shadow.png) 80 fill / 40px round; }
+  .f { display: grid; grid-template-columns: 2fr 3fr; gap: 12px; padding: 3px 0; font-size: 14px; align-items: baseline; }
+  .f .k { color: var(--rw-ink-muted); }
+  .f .v { color: var(--rw-ink); }
+  .f .v.n { color: var(--rw-amber-ink); font-weight: 500; font-size: 15px; }
+  .grp { height: 1px; margin: 9px 0 8px; background: var(--rw-pencil-blue); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { position: relative; isolation: isolate; height: 24px; padding: 0 9px 0 19px; font-size: 13px; display: flex; align-items: center; color: var(--rw-ink); }
+  .chip::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--rw-mist);
+    -webkit-mask-box-image: url(../src/Images/fx/plate-chip.png) 24 fill / 12px round; mask-border: url(../src/Images/fx/plate-chip.png) 24 fill / 12px round; }
+  .chip i { position: absolute; left: 9px; top: 9px; width: 7px; height: 7px; border-radius: 50%; }
+  .score { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+  .score b { color: var(--rw-leaf-ink); font-size: 15px; font-weight: 500; }
+  .foot { position: absolute; left: 58px; bottom: 14px; width: 250px; line-height: 1.35; font-size: 11px; color: var(--rw-ink-muted); z-index: 6; letter-spacing: .03em; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z M15.4 15.4L20.4 20.4"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5.5h16l-6 7.2V19l-4-1.8v-4.5z"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 5v13 M3.8 15l3.2 3.2 3.2-3.2 M13 7h8 M13 12h6 M13 17h4"/></symbol>
+    <symbol id="i-details" viewBox="0 0 24 24"><path d="M4 5.5h16v13H4z M9.5 5.5v13 M12.5 9h5 M12.5 12.5h4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4.5 4.5h6v6h-6z M13.5 4.5h6v6h-6z M4.5 13.5h6v6h-6z M13.5 13.5h6v6h-6z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 7h2 M9 7h11 M4 12h2 M9 12h11 M4 17h2 M9 17h11"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24"><path d="M12 4l8 4-8 4-8-4z M4 12.5l8 4 8-4 M4 16.5l8 4 8-4"/></symbol>
+    <symbol id="i-view" viewBox="0 0 24 24"><path d="M4 8h9 M17 8h3 M13 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0 M4 16h3 M11 16h9 M7 16a2 2 0 1 0 4 0 2 2 0 0 0-4 0"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.8 2H4.7z M10 20.5a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-lib" viewBox="0 0 24 24"><path d="M4.5 5v14 M9 5v14 M4.5 5H9 M4.5 19H9 M13 6.2l4.6-1.4 3.3 13.5-4.6 1.3z"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><path d="M5.5 19v-7 M10.5 19V6 M15.5 19v-5 M20.5 19V9 M3.5 19.5h18"/></symbol>
+    <symbol id="i-plug" viewBox="0 0 24 24"><path d="M8 3.5v4 M16 3.5v4 M6 7.5h12v3.5a6 6 0 0 1-12 0z M12 17v3.5"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><path d="M5.5 12h.01 M12 12h.01 M18.5 12h.01" stroke-width="3.2"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4.5 19.5l1-4.2L16.8 4a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.7 18.5z M14.5 6.5l3 3"/></symbol>
+    <symbol id="i-min" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+    <symbol id="i-max" viewBox="0 0 24 24"><path d="M6.5 6.5h11v11h-11z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12 M18 6L6 18"/></symbol>
+    <symbol id="i-mark" viewBox="0 0 96 96"><path d="M61.92,8.74 C80,14 91,31 89,52 C87,73 69,88 48,87.3 C32,86.7 20,79 12,66"/></symbol>
+  </defs>
+</svg>
+
+<div class="wash"></div>
+<div class="roots"></div>
+
+<div class="rail" data-part="sidebar">
+  <div class="menu" data-part="PART_ElemMainMenu"><svg class="ic" viewBox="0 0 96 96" style="stroke-width:3.6"><path d="M48,22 L48,74 M25.5,35 L70.5,61 M25.5,61 L70.5,35 M42,28 L48,34 L54,28 M42,68 L48,62 L54,68 M31,40 L38,40 L36,34 M65,56 L58,56 L60,62 M31,56 L38,56 L36,62 M65,40 L58,40 L60,34"/></svg></div>
+  <div class="item cur" style="top:58px"><svg class="ic"><use href="#i-lib"/></svg></div>
+  <div class="item" style="top:100px"><svg class="ic"><use href="#i-stats"/></svg></div>
+  <div class="item" style="top:142px"><svg class="ic"><use href="#i-plug"/></svg></div>
+  <div class="chev-s"></div>
+</div>
+
+<div class="top" data-part="top-panel">
+  <div class="search" data-part="PART_TextMainSearch"><svg class="ic" style="width:14px;height:14px"><use href="#i-search"/></svg>Search</div>
+  <div class="tool" data-part="PART_ToggleFilter" style="left:268px"><svg class="ic"><use href="#i-filter"/></svg><span class="mark"></span></div>
+  <div data-part="PART_PanelMainItems" style="position:absolute;left:308px;top:0;width:228px;height:52px">
+    <div class="tool" style="left:0"><svg class="ic"><use href="#i-sort"/></svg></div>
+    <div class="tool on" style="left:38px"><svg class="ic"><use href="#i-details"/></svg></div>
+    <div class="tool" style="left:76px"><svg class="ic"><use href="#i-grid"/></svg></div>
+    <div class="tool" style="left:114px"><svg class="ic"><use href="#i-list"/></svg></div>
+    <div class="tool" style="left:152px"><svg class="ic"><use href="#i-group"/></svg></div>
+    <div class="tool" style="left:190px"><svg class="ic"><use href="#i-view"/></svg></div>
+  </div>
+  <div class="tool" data-part="PART_ToggleNotifications" style="left:552px"><svg class="ic"><use href="#i-bell"/></svg></div>
+  <div class="wb" style="right:92px"><svg class="ic" style="width:14px;height:14px"><use href="#i-min"/></svg></div>
+  <div class="wb" style="right:46px"><svg class="ic" style="width:14px;height:14px"><use href="#i-max"/></svg></div>
+  <div class="wb" style="right:0"><svg class="ic" style="width:14px;height:14px"><use href="#i-x"/></svg></div>
+</div>
+
+<div class="list" data-part="game-list">
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#d9a35b,#8b4a3a)"></span><span>Ashgrove Radio</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#e8d8b4,#a07858)"></span><span>Cinder &amp; Lace</span></div>
+  <div class="row hover"><span class="ico" style="background:linear-gradient(150deg,#9bc7cf,#3b6670)"></span><span>Dovecote Drift</span></div>
+  <div class="row sel"><span class="chev"></span><span class="ico" style="background:linear-gradient(150deg,#8fb7bf,#3d6772 60%,#26424b)"></span><span>Winterbloom</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#d86e5e,#6d2c3a)"></span><span>Emberfall Terrace</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#b9a4d6,#5a4a86)"></span><span>Foxglove Run</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#a5d6c2,#3e7a68)"></span><span>Glasswater</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#c8c8d2,#5b5f73)"></span><span>Hollowmere</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#7da0d4,#2f4770)"></span><span>Inkwell Isles</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#b8d58a,#587a37)"></span><span>Juniper Hollow</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#e2b97a,#85552b)"></span><span>Kettle &amp; Crow</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#f0d78c,#a07d2a)"></span><span>Lanternfield</span></div>
+  <div class="row"><span class="ico" style="background:linear-gradient(150deg,#c9b7a7,#6c5646)"></span><span>Moth Orchard</span></div>
+</div>
+
+<div class="stage" data-part="game-page">
+  <div class="shadow"></div>
+  <div class="sheet">
+    <div class="inner">
+      <div class="banner"></div>
+      <div class="head">
+        <div class="gicon"></div>
+        <div class="title">Winterbloom<small>A hand-painted lantern puzzle</small></div>
+        <div class="rule" style="bottom:2px"></div>
+      </div>
+      <div class="acts">
+        <div class="play"><span class="sw"></span><span class="chev"></span><span class="txt">Play</span></div>
+        <div class="sq"><svg class="ic"><use href="#i-more"/></svg></div>
+        <div class="sq"><svg class="ic"><use href="#i-edit"/></svg></div>
+      </div>
+      <div class="body">
+        <div class="left">
+          <div class="shots">
+            <div class="shot" style="background:linear-gradient(160deg,#6aa0aa,#26424b)"></div>
+            <div class="shot hov" style="background:linear-gradient(160deg,#a8d4d8,#3d6a74 55%,#1c3138)"></div>
+            <div class="shot" style="background:linear-gradient(160deg,#c8b48f,#5d4a35 60%,#2a2a2a)"></div>
+            <div class="shot" style="background:linear-gradient(160deg,#8d9fd0,#2f3d6a)"></div>
+          </div>
+          <div class="desc">
+            <h4>About</h4>
+            <p><em>Journey across the frozen meadow, / Light each lantern as you go.</em></p>
+            <p>Winterbloom is a quiet puzzle adventure painted on frosted paper. Carry a single flame through a sleeping valley, wake the lanterns one by one and follow the snow-lit paths to the orchard at the top of the hill.</p>
+            <p>Every screen is a hand-painted watercolour; every puzzle is a poem to be read aloud.</p>
+          </div>
+        </div>
+        <div class="meta-sh"></div>
+        <div class="meta" data-part="metadata">
+          <div class="f"><span class="k">Completion</span><span class="v" style="display:flex;align-items:center;gap:7px"><i style="width:8px;height:8px;border-radius:50%;background:var(--rw-leaf-ink)"></i>Playing</span></div>
+          <div class="f"><span class="k">Time played</span><span class="v n">12h 40m</span></div>
+          <div class="grp"></div>
+          <div class="f"><span class="k">Community</span><span class="v"><span class="score"><b>86</b></span></span></div>
+          <div class="f"><span class="k">Critics</span><span class="v"><span class="score"><b style="color:var(--rw-amber-ink)">79</b></span></span></div>
+          <div class="grp"></div>
+          <div class="f"><span class="k">Developer</span><span class="v">Pale Orchard Studio</span></div>
+          <div class="f"><span class="k">Publisher</span><span class="v">Frostfold Games</span></div>
+          <div class="f"><span class="k">Released</span><span class="v">14 Feb 2021</span></div>
+          <div class="grp"></div>
+          <div class="f"><span class="k">Genres</span><span class="v chips"><span class="chip"><i style="background:var(--rw-gold)"></i>Adventure</span><span class="chip"><i style="background:var(--rw-gold)"></i>Puzzle</span></span></div>
+          <div class="f"><span class="k">Features</span><span class="v chips"><span class="chip"><i style="background:var(--rw-gold)"></i>Single-player</span><span class="chip"><i style="background:var(--rw-gold)"></i>Controller</span></span></div>
+          <div class="grp"></div>
+          <div class="f"><span class="k">Source</span><span class="v">Steam</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="foot">Rimewash: unofficial, inspired by the menus of Child of Light. Not affiliated with its creators. No game assets used.</div>
+</body>
+</html>
