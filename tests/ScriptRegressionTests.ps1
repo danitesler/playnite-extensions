@@ -321,6 +321,11 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
         & (Join-Path $scripts "build-theme.ps1") -Extension theme
         Assert-Events "theme-build|stop:$fullscreenExe|start:Fullscreen:$fullscreenExe"
         Assert-Equal "FixtureTheme" (Get-Content (Join-Path $portable "config.json") -Raw | ConvertFrom-Json).Theme "Default theme activation"
+        Set-Content -LiteralPath (Join-Path $portable "config.json") -Value '{"Theme":"before"}'
+        Reset-Fixture
+        & (Join-Path $scripts "build-theme.ps1") -Extension theme -Deploy -DataPath $portable
+        Assert-Events "theme-build"
+        Assert-Equal "FixtureTheme" (Get-Content (Join-Path $portable "config.json") -Raw | ConvertFrom-Json).Theme "Explicit -Deploy also activates theme"
         Reset-Fixture
         & (Join-Path $scripts "build-theme.ps1") -Extension theme -Restart -DataPath $portable
         Assert-Events "theme-build"
@@ -354,6 +359,7 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
         Set-Content -LiteralPath (Join-Path $themeSrc "Constants.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"></ResourceDictionary>'
         Set-Content -LiteralPath (Join-Path $themeSrc "DefaultControls/Expander.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><!-- custom-expander --></ResourceDictionary>'
         Set-Content -LiteralPath (Join-Path $themeSrc "CustomControls/ComboBoxList.template.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><!-- custom-combobox-template --></ResourceDictionary>'
+        Set-Content -LiteralPath (Join-Path $themeSrc "Common.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><ControlTemplate x:Key="LocalDemoTemplate" /></ResourceDictionary>'
         & {
             . (Join-Path $repoRoot "scripts/lib/extension-profiles.ps1")
             . (Join-Path $repoRoot "scripts/lib/theme-tools.ps1")
@@ -364,6 +370,11 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
                 extensionManifest = "info/theme.yaml"
             }
             Invoke-ThemeBuild -Profile $profile -OutDir $themeDrop | Out-Null
+            $buildErrors = @(Test-ThemeBuild -Directory $themeDrop -Mode Desktop)
+            Assert-Equal 0 $buildErrors.Count "Local* decorative key passes Test-ThemeBuild: $($buildErrors -join '; ')"
+            Set-Content -LiteralPath (Join-Path $themeDrop "Common.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><ControlTemplate x:Key="UnregisteredCustomTemplate" /></ResourceDictionary>'
+            $unregisteredErrors = @(Test-ThemeBuild -Directory $themeDrop -Mode Desktop)
+            Assert-Equal $true ($unregisteredErrors.Count -gt 0) "Non-Local unregistered key is still rejected by Test-ThemeBuild"
         }
         foreach ($defaultRel in @(
             "CustomControls/SliderEx.xaml",

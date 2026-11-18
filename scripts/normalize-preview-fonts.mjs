@@ -5,12 +5,11 @@
 // any machine. Declarations that use var(--token) are left alone.
 import fs from 'fs';
 import path from 'path';
-import { getThemeDirs, loadFontRegistry } from './preview-tokens.mjs';
+import { GENERIC_FONT_FAMILIES, bundledFontNames, getThemeDirs } from './preview-tokens.mjs';
 
-const reg = loadFontRegistry();
-const known = new Set([...Object.keys(reg.families), ...Object.keys(reg.aliases)].map((n) => n.toLowerCase()));
+const known = bundledFontNames();
 const DROP = new Set(['system-ui', '-apple-system', 'blinkmacsystemfont', 'inter', 'roboto', 'roboto condensed', 'geist', 'helvetica neue', 'helvetica', 'dejavu sans condensed', 'ui-sans-serif', 'ui-serif', 'ui-monospace', 'sf pro text', 'sf mono']);
-const GENERIC = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy']);
+const GENERIC = GENERIC_FONT_FAMILIES;
 
 const bare = (n) => n.trim().replace(/^["']|["']$/g, '');
 const split = (v) => v.split(',').map((x) => x.trim()).filter(Boolean);

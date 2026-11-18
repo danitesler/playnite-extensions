@@ -145,7 +145,7 @@ namespace RandomTheme
                 recent.Add(runningThemeId);
             }
 
-            var choice = ThemePicker.Choose(installed, category.ExcludedThemeIds, category.AvoidRepeat, recent, random);
+            var choice = ThemePicker.Choose(installed, category.ExcludedThemeIds, avoidRepeat: true, recent, random);
             Logger.Info($"RandomTheme [{mode}]: {installed.Count} compatible theme(s) installed, {category.ExcludedThemeIds.Count} unchecked.");
             if (choice == null)
             {
@@ -198,7 +198,6 @@ namespace RandomTheme
                             PlayniteHost.SaveSettings();
                             category.LastPickedUtc = DateTime.UtcNow;
                             settings.Persist();
-                            category.RefreshNextTheme();
                             AnnounceAndOfferRestart(mode, $"{modeName}: {picked.Name}", title);
                             return;
                     }

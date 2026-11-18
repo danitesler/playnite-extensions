@@ -1,4 +1,4 @@
-# Local verification gate (Windows, or Linux/macOS with PowerShell 7 and the .NET SDK).
+﻿# Local verification gate (Windows, or Linux/macOS with PowerShell 7 and the .NET SDK).
 # There is no hosted CI: run this before merging or releasing.
 # It replaces the old CI workflow: validate + build every plugin, unit tests, validate + build every
 # theme, generated READMEs, and the preview token and layout checks.
@@ -71,9 +71,22 @@ if (-not $onWindows) {
 }
 Step $testName { dotnet @testArgs } -Native
 Step "script regressions" { & (Join-Path $repoRoot "tests/ScriptRegressionTests.ps1") }
+
+if ($themes.Count -gt 0) {
+    Step "validate themes" { & (Join-Path $PSScriptRoot "validate-themes.ps1") -Keys $themes.key -Mode Ci -Configuration $Configuration -SkipPreviewChecks }
+    if (-not $Quick) {
+        Step "build themes" { & (Join-Path $PSScriptRoot "build-themes.ps1") -Keys $themes.key }
+    }
+}
+
 if ($onWindows) {
-    if (-not $PlaynitePath -and $env:LOCALAPPDATA) {
-        $PlaynitePath = Join-Path $env:LOCALAPPDATA "Playnite"
+    if (-not $PlaynitePath) {
+        $candidates = @(
+            $(if ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "Playnite" }),
+            $(if ($env:ProgramFiles) { Join-Path $env:ProgramFiles "Playnite" }),
+            $(if (${env:ProgramFiles(x86)}) { Join-Path ${env:ProgramFiles(x86)} "Playnite" })
+        )
+        $PlaynitePath = $candidates | Where-Object { $_ -and (Test-Path -LiteralPath (Join-Path $_ 'MathConverter.dll') -PathType Leaf) } | Select-Object -First 1
     }
     $requiresPlaynite = @(
         'DetailsViewLayoutRegressionTests.ps1'
@@ -82,8 +95,13 @@ if ($onWindows) {
         'GridOverviewLayoutRegressionTests.ps1'
         'SidePanelCloseButtonRegressionTests.ps1'
     )
+    $requiresBuiltDrops = @(
+        'RunningIndicatorRegressionTests.ps1'
+        'RunningLabelOverlapRegressionTests.ps1'
+    )
     $hasConverter = $PlaynitePath -and (Test-Path -LiteralPath (Join-Path $PlaynitePath 'MathConverter.dll') -PathType Leaf)
     foreach ($test in Get-ChildItem -LiteralPath (Join-Path $repoRoot "tests/wpf") -Filter '*RegressionTests.ps1' -File | Sort-Object Name) {
+        if ($Quick -and $test.Name -in $requiresBuiltDrops) { continue }
         $wpfArgs = @()
         if ($test.Name -in $requiresPlaynite) {
             if (-not $hasConverter) {
@@ -91,6 +109,10 @@ if ($onWindows) {
                 continue
             }
             $wpfArgs += @('-PlaynitePath', $PlaynitePath)
+        }
+        $testParams = (Get-Command $test.FullName).Parameters
+        if ($Keys.Count -gt 0 -and $themes.Count -gt 0 -and $testParams.ContainsKey('Keys')) {
+            $wpfArgs += @('-Keys', ($themes.key -join ','))
         }
         Step "$($test.BaseName) (WPF)" { pwsh -NoProfile -STA -File $test.FullName @wpfArgs } -Native
     }
@@ -100,13 +122,6 @@ if ($onWindows) {
     }
 } else {
     Write-Host "WPF regression scripts require Windows."
-}
-
-if ($themes.Count -gt 0) {
-    Step "validate themes" { & (Join-Path $PSScriptRoot "validate-themes.ps1") -Keys $themes.key -Mode Ci -Configuration $Configuration -SkipPreviewChecks }
-    if (-not $Quick) {
-        Step "build themes" { & (Join-Path $PSScriptRoot "build-themes.ps1") -Keys $themes.key }
-    }
 }
 
 # Whether an add-on counts as released comes from its <key>-v<version> tag: fetch tags first.

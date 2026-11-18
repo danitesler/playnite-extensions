@@ -68,7 +68,6 @@ namespace Autogrid
         {
             settings.PropertyChanged -= OnSettingsPropertyChanged;
             settings.PersistPluginSettings();
-            FlushPendingAppSettingsSave();
             DetachWindowHooks();
         }
 
@@ -732,13 +731,7 @@ namespace Autogrid
 
         private void SaveSettingsTimerOnTick(object sender, EventArgs e)
         {
-            saveSettingsTimer?.Stop();
-            var appSettings = pendingSaveAppSettings;
-            pendingSaveAppSettings = null;
-            if (appSettings != null)
-            {
-                GridLayoutService.TrySaveAppSettings(appSettings);
-            }
+            FlushPendingAppSettingsSave();
         }
 
         private void FlushPendingAppSettingsSave()

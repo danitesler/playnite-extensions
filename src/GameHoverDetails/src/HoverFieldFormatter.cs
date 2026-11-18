@@ -327,7 +327,7 @@ namespace GameHoverDetails
             return HoverLoc.Format("LOCPlayedHours", "{0}h {1}min", hours, minutes % 60);
         }
 
-        private static string JoinNames(IEnumerable<object> items)
+        private static string JoinNames(IEnumerable<DatabaseObject> items)
         {
             if (items == null)
             {
@@ -337,16 +337,9 @@ namespace GameHoverDetails
             var names = new List<string>();
             foreach (var item in items)
             {
-                if (item == null)
+                if (!string.IsNullOrWhiteSpace(item?.Name))
                 {
-                    continue;
-                }
-
-                var nameProp = item.GetType().GetProperty("Name");
-                var n = nameProp?.GetValue(item, null) as string;
-                if (!string.IsNullOrWhiteSpace(n))
-                {
-                    names.Add(n);
+                    names.Add(item.Name);
                 }
             }
 

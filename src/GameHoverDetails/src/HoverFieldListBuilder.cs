@@ -35,10 +35,10 @@ namespace GameHoverDetails
             };
         }
 
-        private static IReadOnlyList<ImageSource> LoadPlatformIcons(Game game, IPlayniteAPI api)
+        internal static IReadOnlyList<ImageSource> LoadPlatformIcons(Game game, IPlayniteAPI api)
         {
             var list = new List<ImageSource>();
-            if (game?.Platforms == null)
+            if (game?.Platforms == null || api == null)
             {
                 return list;
             }

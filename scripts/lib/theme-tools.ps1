@@ -729,9 +729,11 @@ function Test-ThemeBuild {
             $allOverlayKeys.Add($key) | Out-Null
             if ($node.LocalName -eq "Color") { $colorKeys.Add($key) | Out-Null }
             if ($playniteKeys.Contains($key)) { continue }
+            # Theme-local decorative templates, geometries, and styles stay out of theme-keys.json.
+            if ($key -cmatch '^Local[A-Z0-9]' -and $node.LocalName -ne "Color") { continue }
 
             if (-not $catalog.ByKey.ContainsKey($key)) {
-                $errors.Add("$relative defines '$key', which is neither a Playnite key nor a shared key. Use the role's name from scripts/data/theme-keys.json, or add the role there; design-system names stay in tokens.css.") | Out-Null
+                $errors.Add("$relative defines '$key', which is neither a Playnite key nor a shared key. Use the role's name from scripts/data/theme-keys.json, prefix a theme-only decorative resource with 'Local', or add a shared role there; design-system names stay in tokens.css.") | Out-Null
                 continue
             }
             $entry = $catalog.ByKey[$key]
@@ -832,6 +834,7 @@ function Get-PlayniteExePath {
     }
     if ($env:LOCALAPPDATA) {
         $candidates += (Join-Path $env:LOCALAPPDATA "Playnite\$exeName")
+        $candidates += (Join-Path $env:LOCALAPPDATA "Programs\Playnite\$exeName")
     }
     if ($env:ProgramFiles) {
         $candidates += (Join-Path $env:ProgramFiles "Playnite\$exeName")

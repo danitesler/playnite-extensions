@@ -58,18 +58,26 @@ export async function launchBrowser() {
   const proc = spawn(exe, ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${dir}`, '--no-first-run',
     '--no-default-browser-check', '--disable-gpu', '--hide-scrollbars', '--force-color-profile=srgb', '--allow-file-access-from-files', 'about:blank'],
   { stdio: 'ignore' });
-  const portFile = path.join(dir, 'DevToolsActivePort');
-  let ws = null;
-  for (let i = 0; i < 150 && !ws; i++) {
-    await new Promise((r) => setTimeout(r, 100));
-    if (fs.existsSync(portFile)) {
-      const [port, browserPath] = fs.readFileSync(portFile, 'utf8').trim().split('\n');
-      if (browserPath) ws = `ws://127.0.0.1:${port}${browserPath}`;
+  let socket;
+  try {
+    const portFile = path.join(dir, 'DevToolsActivePort');
+    let ws = null;
+    for (let i = 0; i < 150 && !ws; i++) {
+      await new Promise((r) => setTimeout(r, 100));
+      if (fs.existsSync(portFile)) {
+        const [port, browserPath] = fs.readFileSync(portFile, 'utf8').trim().split('\n');
+        if (browserPath) ws = `ws://127.0.0.1:${port}${browserPath}`;
+      }
     }
+    if (!ws) throw new Error('Browser did not start.');
+    socket = new WebSocket(ws);
+    await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = () => reject(new Error('DevTools connection failed.')); });
+  } catch (err) {
+    try { socket?.close(); } catch { /* ignore */ }
+    try { proc.kill(); } catch { /* ignore */ }
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    throw err;
   }
-  if (!ws) { proc.kill(); throw new Error('Browser did not start.'); }
-  const socket = new WebSocket(ws);
-  await new Promise((resolve, reject) => { socket.onopen = resolve; socket.onerror = () => reject(new Error('DevTools connection failed.')); });
   const conn = new Connection(socket);
   return {
     async newPage(opts = {}) {

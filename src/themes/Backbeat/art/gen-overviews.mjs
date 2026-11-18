@@ -1,69 +1,19 @@
 // Generates Backbeat's DetailsViewGameOverview.xaml and GridViewGameOverview.xaml from one field table.
 // Usage: node src/themes/Backbeat/art/gen-overviews.mjs src/themes/Backbeat/src
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { applyGamePageBreakpoints } from '../../../../scripts/game-page-breakpoints.mjs';
+import {
+  META_GROUPS,
+  bannerSpacer,
+  collapseEmptyTrigger,
+  indent,
+  metadataValue,
+  resolveThemeSrcDir,
+  writeOverviews,
+} from '../../../../scripts/overview-generator.mjs';
 
-const out = process.argv[2];
-if (!out) throw new Error('pass the theme src dir');
+const out = resolveThemeSrcDir(import.meta.url);
 
-const groups = [
-  ['MetaProgress', [
-    ['CompletionStatus', 'LOCCompletionStatus', 'button', 'PART_ButtonCompletionStatus'],
-    ['PlayTime', 'LOCTimePlayed', 'text', 'PART_TextPlayTime'],
-    ['LastPlayed', 'LOCLastPlayed', 'text', 'PART_TextLastActivity'],
-    ['RecentActivity', 'LOCRecentActivityLabel', 'text', 'PART_TextRecentActivity'],
-    ['Added', 'LOCDateAddedLabel', 'text', 'PART_TextAdded'],
-  ]],
-  ['MetaScores', [
-    ['CommunityScore', 'LOCCommunityScore', 'score', 'PART_TextCommunityScore'],
-    ['CriticScore', 'LOCCriticScore', 'score', 'PART_TextCriticScore'],
-    ['UserScore', 'LOCUserScore', 'score', 'PART_TextUserScore'],
-  ]],
-  ['MetaAbout', [
-    ['Developers', 'LOCDeveloperLabel', 'items', 'PART_ItemsDevelopers'],
-    ['Publishers', 'LOCPublisherLabel', 'items', 'PART_ItemsPublishers'],
-    ['ReleaseDate', 'LOCGameReleaseDateTitle', 'button', 'PART_ButtonReleaseDate'],
-    ['Series', 'LOCSeriesLabel', 'items', 'PART_ItemsSeries'],
-    ['AgeRating', 'LOCAgeRatingLabel', 'items', 'PART_ItemsAgeRatings'],
-    ['Region', 'LOCRegionLabel', 'items', 'PART_ItemsRegions'],
-  ]],
-  ['MetaTags', [
-    ['Platform', 'LOCPlatformTitle', 'chips', 'PART_ItemsPlatforms'],
-    ['Genres', 'LOCGenreLabel', 'chips', 'PART_ItemsGenres'],
-    ['Categories', 'LOCGameCategoriesTitle', 'chips', 'PART_ItemsCategories'],
-    ['Features', 'LOCFeaturesLabel', 'chips', 'PART_ItemsFeatures'],
-    ['Tags', 'LOCTagsLabel', 'chips', 'PART_ItemsTags'],
-  ]],
-  ['MetaLibrary', [
-    ['Library', 'LOCGameProviderTitle', 'button', 'PART_ButtonLibrary'],
-    ['Source', 'LOCSourceLabel', 'button', 'PART_ButtonSource'],
-    ['Version', 'LOCVersionLabel', 'button', 'PART_ButtonVersion'],
-    ['InstallSize', 'LOCInstallSizeLabel', 'text', 'PART_TextInstallSize'],
-    ['InstallDirectory', 'LOCGameInstallDirTitle', 'button', 'PART_ButtonInstallDirectory'],
-  ]],
-  ['MetaLinks', [
-    ['Links', 'LOCLinksLabel', 'items', 'PART_ItemsLinks'],
-  ]],
-];
+const groups = META_GROUPS;
 
-const ind = (s, n) => s.split('\n').map(l => (l ? ' '.repeat(n) + l : l)).join('\n');
-
-function value(kind, part) {
-  switch (kind) {
-    case 'button': return `<Button x:Name="${part}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource PropertyItemButton}" />`;
-    case 'text': return `<TextBlock x:Name="${part}" VerticalAlignment="Center" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" />`;
-    case 'score': return `<TextBlock x:Name="${part}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource TextBlockGameScore}" />`;
-    case 'items':
-    case 'chips': return `<ItemsControl x:Name="${part}" Tag="${kind === 'chips' ? 'Chip' : ''}">
-    <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate>
-            <WrapPanel />
-        </ItemsPanelTemplate>
-    </ItemsControl.ItemsPanel>
-</ItemsControl>`;
-  }
-}
 
 const caption = (loc, extra = '') =>
   `<TextBlock Text="{DynamicResource ${loc}}" FontSize="{DynamicResource FontSizeSmall}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrushDarker}" TextWrapping="Wrap"${extra || ' Margin="0,2,0,0"'} />`;
@@ -78,12 +28,12 @@ function field([name, loc, kind, part], layout) {
         </Grid.ColumnDefinitions>
         ${caption(loc)}
         <Border Grid.Column="1" Margin="8,0,0,0">
-${ind(value(kind, part), 12)}
+${indent(metadataValue(kind, part), 12)}
         </Border>
     </Grid>
 </Border>`;
   }
-  let gridValue = value(kind, part).replace(' x:Name=', ' Grid.Column="2" x:Name=');
+  let gridValue = metadataValue(kind, part).replace(' x:Name=', ' Grid.Column="2" x:Name=');
   if (kind === 'score') gridValue = gridValue.replace(' />', ' TextWrapping="Wrap" />');
   return `<Border x:Name="PART_Elem${name}" Margin="0,7">
     <Grid>
@@ -93,33 +43,23 @@ ${ind(value(kind, part), 12)}
             <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
         ${caption(loc, ' VerticalAlignment="Top"')}
-${ind(gridValue, 8)}
+${indent(gridValue, 8)}
     </Grid>
 </Border>`;
 }
 
 function group([gname, fields], layout) {
-  const conds = fields.map(f => `<Condition Binding="{Binding Visibility, ElementName=PART_Elem${f[0]}}" Value="Collapsed" />`);
-  const trig = fields.length === 1
-    ? `<DataTrigger Binding="{Binding Visibility, ElementName=PART_Elem${fields[0][0]}}" Value="Collapsed">
-    <Setter Property="Visibility" Value="Collapsed" />
-</DataTrigger>`
-    : `<MultiDataTrigger>
-    <MultiDataTrigger.Conditions>
-${ind(conds.join('\n'), 8)}
-    </MultiDataTrigger.Conditions>
-    <Setter Property="Visibility" Value="Collapsed" />
-</MultiDataTrigger>`;
+  const trig = collapseEmptyTrigger(fields.map(f => `PART_Elem${f[0]}`));
   return `<Border x:Name="${gname}" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,2,0,0" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}">
     <Border.Style>
         <Style TargetType="Border">
             <Style.Triggers>
-${ind(trig, 16)}
+${indent(trig, 16)}
             </Style.Triggers>
         </Style>
     </Border.Style>
     <StackPanel>
-${ind(fields.map(f => field(f, layout)).join('\n'), 8)}
+${indent(fields.map(f => field(f, layout)).join('\n'), 8)}
     </StackPanel>
 </Border>`;
 }
@@ -144,10 +84,10 @@ function pane(layout, widthKey, padding) {
              Width="180" Height="100" Margin="0,5,5,0" HorizontalAlignment="Right" VerticalAlignment="Top" Opacity="0.6" />
     <Border Padding="${padding}">
         <StackPanel Width="{DynamicResource ${widthKey}}">
-${ind(header('LOCGameDetails', 'TitleSuffixBrush', '0,0,0,4'), 12)}
+${indent(header('LOCGameDetails', 'TitleSuffixBrush', '0,0,0,4'), 12)}
             <Grid ClipToBounds="True">
                 <StackPanel Margin="0,-33,0,-7">
-${ind(groups.map(g => group(g, layout)).join('\n'), 20)}
+${indent(groups.map(g => group(g, layout)).join('\n'), 20)}
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -210,18 +150,7 @@ const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible
 // The slanted panel cut under the header. It sits in the content flow so it can never run behind the text columns.
 const panelCut = `<Path Data="M0,100 L100,0" Stretch="Fill" Height="14" Stroke="{DynamicResource FrameBrush}" StrokeThickness="3" IsHitTestVisible="False" />`;
 
-const spacer = (ratio, fallback) => `<Border>
-    <Border.Style>
-        <Style TargetType="Border">
-            <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='${ratio}'}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding ActualHeight, ElementName=HeroArt}" Value="0">
-                    <Setter Property="Height" Value="${fallback}" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Border.Style>
-</Border>`;
+const spacer = bannerSpacer;
 
 // The title is headline italics over a hard ink copy offset 3px. The copy is bound to the real title, so it empties with it.
 const titleStyle = `FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLargest}" FontStyle="Italic" TextWrapping="Wrap"`;
@@ -234,7 +163,7 @@ const title = `<DockPanel>
 </DockPanel>`;
 
 const actions = (margin) => `<StackPanel Orientation="Horizontal" Margin="${margin}">
-    <Grid Width="150" Height="40">
+    <Grid MinWidth="150" Height="40">
         <Button x:Name="PART_ButtonPlayAction" Style="{DynamicResource PlayButton}" />
         <Button x:Name="PART_ButtonContextAction" Tag="ContextAction" Style="{DynamicResource PlayButton}" />
         <Control Style="{DynamicResource RunningActionIndicator}" />
@@ -319,16 +248,16 @@ const steam = `<Grid x:Name="SteamScreenshotsGameScope">
 </Grid>`;
 
 const textColumn = `<StackPanel>
-${ind(steam, 4)}
+${indent(steam, 4)}
     <StackPanel x:Name="PART_ElemDescription">
-${ind(header('LOCGameDescriptionTitle', 'HeadingMarkerAltBrush'), 8)}
+${indent(header('LOCGameDescriptionTitle', 'HeadingMarkerAltBrush'), 8)}
         <HtmlTextView x:Name="PART_HtmlDescription" HtmlFontFamily="{DynamicResource FontFamily}" HtmlFontSize="{DynamicResource FontSize}"
                       TextElement.Foreground="{DynamicResource TextBrush}" Tag="{DynamicResource PropertyItemForegroundBrush}"
                       HtmlForeground="{Binding Path=(TextElement.Foreground).Color, RelativeSource={RelativeSource Self}}"
                       LinkForeground="{Binding Tag.Color, RelativeSource={RelativeSource Self}}" />
     </StackPanel>
     <StackPanel x:Name="PART_ElemNotes" Margin="0,24,0,0">
-${ind(header('LOCNotesLabel', 'HeadingMarkerBrush'), 8)}
+${indent(header('LOCNotesLabel', 'HeadingMarkerBrush'), 8)}
         <TextBox x:Name="PART_TextNotes" IsReadOnly="True" TextWrapping="Wrap" Style="{DynamicResource BareTextBox}" Foreground="{DynamicResource TextBrush}" />
     </StackPanel>
 </StackPanel>`;
@@ -379,9 +308,9 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
             <Path Data="M34,44 L190,36 200,112 116,120 86,150 92,122 26,126Z" Fill="{DynamicResource PanelShadowBrush}" Margin="6,6,0,0" />
             <Path Data="M34,44 L190,36 200,112 116,120 86,150 92,122 26,126Z" Fill="{DynamicResource TextBrush}" Stroke="{DynamicResource PanelShadowBrush}" StrokeThickness="4" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,72,8,0">
-${ind(beatDot('BeatA', '0:0:0'), 16)}
-${ind(beatDot('BeatB', '0:0:0.46'), 16)}
-${ind(beatDot('BeatC', '0:0:0.92'), 16)}
+${indent(beatDot('BeatA', '0:0:0'), 16)}
+${indent(beatDot('BeatB', '0:0:0.46'), 16)}
+${indent(beatDot('BeatC', '0:0:0.92'), 16)}
             </StackPanel>
         </Grid>
         <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,22,0,0"
@@ -431,24 +360,24 @@ const details = `<!--
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>
-${ind(heroArt, 28)}
+${indent(heroArt, 28)}
                             <StackPanel Margin="30,0,34,34">
                                 <StackPanel.Style>
-${ind(contentStyle, 36)}
+${indent(contentStyle, 36)}
                                 </StackPanel.Style>
-${ind(gridSpacer(spacer('x * 150 / 340', 28), 18, 'DetailsBannerSpacer'), 32)}
+${indent(gridSpacer(spacer('x * 150 / 340', 28), 18, 'DetailsBannerSpacer'), 32)}
                                 <DockPanel Margin="0,12,0,16">
-${ind(actions('16,0,0,0').replace('<StackPanel Orientation="Horizontal"', '<StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center"'), 36)}
-${ind(title, 36)}
+${indent(actions('16,0,0,0').replace('<StackPanel Orientation="Horizontal"', '<StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center"'), 36)}
+${indent(title, 36)}
                                 </DockPanel>
-${ind(panelCut, 32)}
+${indent(panelCut, 32)}
                                 <Grid Margin="0,16,0,0">
-${ind(columns, 36)}
-${ind(textColumn, 36)}
-${ind(pane('side', 'GameDetailsPaneWidth', '18,16,18,18').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 36)}
+${indent(columns, 36)}
+${indent(textColumn, 36)}
+${indent(pane('side', 'GameDetailsPaneWidth', '18,16,18,18').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 36)}
                                 </Grid>
                             </StackPanel>
-${ind(emptyState, 28)}
+${indent(emptyState, 28)}
                         </Grid>
                     </ScrollViewer>
                 </ControlTemplate>
@@ -559,20 +488,20 @@ const gridView = `<!--
                                             </Style.Triggers>
                                         </Style>
                                     </Grid.Style>
-${ind(heroArt, 36)}
+${indent(heroArt, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="24,0,30,30">
                                         <StackPanel.Style>
-${ind(contentStyle, 44)}
+${indent(contentStyle, 44)}
                                         </StackPanel.Style>
-${ind(gridSpacer(spacer('x * 120 / 340', 14), 14), 40)}
+${indent(gridSpacer(spacer('x * 120 / 340', 14), 14), 40)}
                                         <StackPanel Panel.ZIndex="2" Margin="0,10,0,16">
-${ind(gridTitle, 44)}
-${ind(actions('0,14,0,0'), 44)}
+${indent(gridTitle, 44)}
+${indent(actions('0,14,0,0'), 44)}
                                         </StackPanel>
-${ind(panelCut, 40)}
-${ind(responsiveBody(textColumn, pane('stack', 'GridDetailsPaneWidth', '16,14,16,16').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 28, "Margin=\"0,16,0,0\""), 40)}
+${indent(panelCut, 40)}
+${indent(responsiveBody(textColumn, pane('stack', 'GridDetailsPaneWidth', '16,14,16,16').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 28, "Margin=\"0,16,0,0\""), 40)}
                                     </StackPanel>
-${ind(emptyState, 36)}
+${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
                             <Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}"
@@ -629,8 +558,5 @@ ${ind(emptyState, 36)}
 </ResourceDictionary>
 `;
 
-const responsiveDetails = applyGamePageBreakpoints(details, 'Details');
-const responsiveGrid = applyGamePageBreakpoints(gridView, 'Grid');
-writeFileSync(join(out, 'Views', 'DetailsViewGameOverview.xaml'), responsiveDetails);
-writeFileSync(join(out, 'Views', 'GridViewGameOverview.xaml'), responsiveGrid);
+writeOverviews(out, details, gridView);
 console.log('wrote both overviews');

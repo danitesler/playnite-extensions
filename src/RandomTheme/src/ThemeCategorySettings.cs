@@ -61,18 +61,6 @@ namespace RandomTheme
             }
         }
 
-        private bool avoidRepeat = true;
-        /// <summary>Do not pick the theme that is already set (when another eligible theme exists).</summary>
-        public bool AvoidRepeat
-        {
-            get => avoidRepeat;
-            set
-            {
-                avoidRepeat = value;
-                OnPropertyChanged();
-            }
-        }
-
         /// <summary>Days between automatic changes for each slider step (0 = every launch).</summary>
         internal static readonly int[] CadenceDays = { 0, 1, 3, 7, 30 };
 
@@ -120,25 +108,10 @@ namespace RandomTheme
         private Func<ApplicationMode, List<ThemeInfo>> listInstalled;
 
         [DontSerialize]
-        private List<ThemeInfo> installed = new List<ThemeInfo>();
-
-        [DontSerialize]
         public ObservableCollection<ThemeChoice> Themes { get; } = new ObservableCollection<ThemeChoice>();
 
         [DontSerialize]
         public bool HasNoThemes => Themes.Count == 0;
-
-        private string nextThemeText;
-        [DontSerialize]
-        public string NextThemeText
-        {
-            get => nextThemeText;
-            private set
-            {
-                nextThemeText = value;
-                OnPropertyChanged();
-            }
-        }
 
         // Resolved on demand: the extension's localization may not be loaded yet when settings are constructed.
         private string Key => Mode == ApplicationMode.Fullscreen ? "Fullscreen" : "Desktop";
@@ -183,10 +156,10 @@ namespace RandomTheme
             RandomizeNowCommand = new RelayCommand(() => this.randomizeNow?.Invoke(this));
         }
 
-        /// <summary>Re-reads the installed themes (so newly installed ones show up) and the queued theme.</summary>
+        /// <summary>Re-reads the installed themes so newly installed ones show up.</summary>
         internal void Refresh()
         {
-            installed = listInstalled?.Invoke(Mode) ?? new List<ThemeInfo>();
+            var installed = listInstalled?.Invoke(Mode) ?? new List<ThemeInfo>();
             var excluded = new HashSet<string>(ExcludedThemeIds, StringComparer.OrdinalIgnoreCase);
 
             Themes.Clear();
@@ -196,15 +169,6 @@ namespace RandomTheme
             }
 
             OnPropertyChanged(nameof(HasNoThemes));
-            RefreshNextTheme();
-        }
-
-        /// <summary>Updates the "theme for the next launch" line from Playnite's current setting.</summary>
-        internal void RefreshNextTheme()
-        {
-            var id = PlayniteHost.GetTheme(Mode);
-            var name = installed.FirstOrDefault(t => string.Equals(t.Id, id, StringComparison.OrdinalIgnoreCase))?.Name ?? id ?? "-";
-            NextThemeText = RandomThemeLoc.Format("LOCRandomTheme_NextTheme", "Theme for the next launch: {0}", name);
         }
 
         // ─── Eligibility ──────────────────────────────────────────────────────
@@ -237,12 +201,11 @@ namespace RandomTheme
 
         // ─── Edit snapshot ────────────────────────────────────────────────────
 
-        internal Snapshot Capture() => new Snapshot(Enabled, AvoidRepeat, ExcludedThemeIds, CadenceStep);
+        internal Snapshot Capture() => new Snapshot(Enabled, ExcludedThemeIds, CadenceStep);
 
         internal void Restore(Snapshot snapshot)
         {
             Enabled = snapshot.Enabled;
-            AvoidRepeat = snapshot.AvoidRepeat;
             ExcludedThemeIds = new List<string>(snapshot.ExcludedThemeIds);
             CadenceStep = snapshot.CadenceStep;
         }
@@ -250,15 +213,13 @@ namespace RandomTheme
         internal sealed class Snapshot
         {
             public bool Enabled { get; }
-            public bool AvoidRepeat { get; }
             public List<string> ExcludedThemeIds { get; }
             public int CadenceStep { get; }
 
-            public Snapshot(bool enabled, bool avoidRepeat, IEnumerable<string> excluded, int cadenceStep)
+            public Snapshot(bool enabled, IEnumerable<string> excluded, int cadenceStep)
             {
                 CadenceStep = cadenceStep;
                 Enabled = enabled;
-                AvoidRepeat = avoidRepeat;
                 ExcludedThemeIds = new List<string>(excluded ?? Enumerable.Empty<string>());
             }
         }

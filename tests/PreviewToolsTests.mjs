@@ -6,6 +6,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { checkThemeFonts } from '../scripts/theme-fonts.mjs';
+import { META_GROUPS, collapseEmptyTrigger, resolveThemeSrcDir, writeOverviews } from '../scripts/overview-generator.mjs';
+import { loadFontRegistry } from '../scripts/preview-tokens.mjs';
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url));
 
@@ -68,5 +70,40 @@ test('theme-fonts resolves .dark token overrides over :root', () => {
     assert.deepEqual(checkThemeFonts(scratch), []);
   } finally {
     fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('overview-generator resolves theme src dirs and rejects Views paths', () => {
+  const metaUrl = new URL('../src/themes/Emberline/art/gen-overviews.mjs', import.meta.url).href;
+  assert.equal(
+    resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs']),
+    path.join(repoRoot, 'src', 'themes', 'Emberline', 'src')
+  );
+  assert.equal(
+    resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs', 'src/themes/Emberline/src']),
+    path.resolve('src/themes/Emberline/src')
+  );
+  assert.throws(
+    () => resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs', 'src/themes/Emberline/src/Views']),
+    /not Views/
+  );
+  assert.equal(META_GROUPS.length, 6);
+  assert.match(collapseEmptyTrigger(['PART_ElemA']), /^<DataTrigger /);
+  assert.match(collapseEmptyTrigger(['PART_ElemA', 'PART_ElemB']), /^<MultiDataTrigger>/);
+  assert.equal(typeof writeOverviews, 'function');
+});
+
+test('fonts.json has no duplicate faces and all referenced font files exist', () => {
+  const reg = loadFontRegistry();
+  for (const section of [reg.families, reg.aliases]) {
+    for (const [family, entry] of Object.entries(section)) {
+      const seen = new Set();
+      for (const face of entry.faces) {
+        const sig = `${face.file}|${face.weight}|${face.style}`;
+        assert.equal(seen.has(sig), false, `duplicate face ${sig} in ${family}`);
+        seen.add(sig);
+        assert.equal(fs.existsSync(path.join(repoRoot, 'scripts', 'fonts', face.file)), true, `missing font file ${face.file}`);
+      }
+    }
   }
 });

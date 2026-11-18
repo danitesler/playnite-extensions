@@ -13,8 +13,12 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.dotnet:$HOME/.dotnet/tools:$PATH" DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1
-if [[ "${1:-}" == "--quick" ]]; then
-    shift
-    set -- -Quick "$@"
-fi
-exec pwsh -NoProfile -File scripts/check-all.ps1 "$@"
+args=()
+for arg in "$@"; do
+    if [[ "$arg" == "--quick" ]]; then
+        args+=(-Quick)
+    else
+        args+=("$arg")
+    fi
+done
+exec pwsh -NoProfile -File scripts/check-all.ps1 "${args[@]}"

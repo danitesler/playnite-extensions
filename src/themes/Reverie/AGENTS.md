@@ -47,7 +47,7 @@ Search → filter → sorting at the left. Sorting is explicitly ordered. Indepe
 
 Generate both game overviews:
 
-    node src/themes/Reverie/art/gen-overviews.mjs src/themes/Reverie/src/Views
+    node src/themes/Reverie/art/gen-overviews.mjs src/themes/Reverie/src
 
 The generator owns Steam scope and loading reset, responsive metadata, banner floors, null-selection states and both close placements. At 119px the inline close is scroll-compensated; at 120px or with no selection the corner close stays visible.
 

@@ -170,13 +170,6 @@ namespace Autogrid
                     "Target rows must be between 1 and 10."));
             }
 
-            if (ViewportAdjustPx < -200 || ViewportAdjustPx > 200)
-            {
-                errors.Add(AutogridLoc.Get(
-                    "LOCAutogrid_Verify_ViewportAdjust",
-                    "Viewport adjust must be between -200 and 200 pixels."));
-            }
-
             return errors.Count == 0;
         }
     }

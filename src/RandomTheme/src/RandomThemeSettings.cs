@@ -39,10 +39,6 @@ namespace RandomTheme
                 Fullscreen = saved.Fullscreen ?? Fullscreen;
             }
 
-            // "Do not pick the theme that is already set" is enabled by default in the background
-            Desktop.AvoidRepeat = true;
-            Fullscreen.AvoidRepeat = true;
-
             Desktop.Attach(ApplicationMode.Desktop, plugin.GetInstalledThemes, plugin.RandomizeNow);
             Fullscreen.Attach(ApplicationMode.Fullscreen, plugin.GetInstalledThemes, plugin.RandomizeNow);
         }

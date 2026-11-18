@@ -5,9 +5,10 @@ using System.Windows.Media;
 using Playnite.SDK;
 using Playnite.SDK.Data;
 
+
 namespace GameHoverDetails
 {
-    public class GameHoverDetailsSettings : ObservableObject, ISettings
+    public partial class GameHoverDetailsSettings : ObservableObject, ISettings
     {
         private const int MinWidth = 120;
         private const int MaxWidth = 500;
@@ -276,21 +277,15 @@ namespace GameHoverDetails
         public double HoverBodyFontSize
         {
             get => hoverBodyFontSize;
-            set => SetValue(ref hoverBodyFontSize, ClampBodyFontSize(value), nameof(HoverBodyFontSize), nameof(HoverBodyLineHeight));
+            set => SetValue(ref hoverBodyFontSize, ClampBodyFontSize(value));
         }
 
         /// <summary>Field-title text size when titles are shown.</summary>
         public double HoverTitleFontSize
         {
             get => hoverTitleFontSize;
-            set => SetValue(ref hoverTitleFontSize, ClampTitleFontSize(value), nameof(HoverTitleFontSize), nameof(HoverTitleLineHeight));
+            set => SetValue(ref hoverTitleFontSize, ClampTitleFontSize(value));
         }
-
-        [DontSerialize]
-        public double HoverBodyLineHeight => HoverBodyFontSize * (18.0 / BodyLineHeightReferenceFontSize);
-
-        [DontSerialize]
-        public double HoverTitleLineHeight => HoverTitleFontSize * (14.0 / TitleLineHeightReferenceFontSize);
 
         /// <summary>Catalog glyph family: HugeIcons (default), Unicons, Phosphor, Sketchy, Iconsax, Pixel, or Pixelarticons.</summary>
         public string HoverIconStyle
@@ -424,81 +419,39 @@ namespace GameHoverDetails
         public string HoverChromeBackgroundHex
         {
             get => hoverChromeBackgroundHex;
-            set
-            {
-                if (!HoverChromePalette.TryNormalizeHex(value, out var hex))
-                {
-                    return;
-                }
-
-                if (string.Equals(hoverChromeBackgroundHex, hex, System.StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                SetValue(ref hoverChromeBackgroundHex, hex, nameof(HoverChromeBackgroundHex), nameof(ChromeBackgroundSwatchBrush));
-                UncheckThemeChromeIfUserEdited();
-            }
+            set => SetChromeHex(ref hoverChromeBackgroundHex, value, nameof(HoverChromeBackgroundHex), nameof(ChromeBackgroundSwatchBrush));
         }
 
         public string HoverChromeBorderHex
         {
             get => hoverChromeBorderHex;
-            set
-            {
-                if (!HoverChromePalette.TryNormalizeHex(value, out var hex))
-                {
-                    return;
-                }
-
-                if (string.Equals(hoverChromeBorderHex, hex, System.StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                SetValue(ref hoverChromeBorderHex, hex, nameof(HoverChromeBorderHex), nameof(ChromeBorderSwatchBrush));
-                UncheckThemeChromeIfUserEdited();
-            }
+            set => SetChromeHex(ref hoverChromeBorderHex, value, nameof(HoverChromeBorderHex), nameof(ChromeBorderSwatchBrush));
         }
 
         public string HoverChromeDividerHex
         {
             get => hoverChromeDividerHex;
-            set
-            {
-                if (!HoverChromePalette.TryNormalizeHex(value, out var hex))
-                {
-                    return;
-                }
-
-                if (string.Equals(hoverChromeDividerHex, hex, System.StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                SetValue(ref hoverChromeDividerHex, hex, nameof(HoverChromeDividerHex), nameof(ChromeDividerSwatchBrush));
-                UncheckThemeChromeIfUserEdited();
-            }
+            set => SetChromeHex(ref hoverChromeDividerHex, value, nameof(HoverChromeDividerHex), nameof(ChromeDividerSwatchBrush));
         }
 
         public string HoverChromeIconBackgroundHex
         {
             get => hoverChromeIconBackgroundHex;
-            set
+            set => SetChromeHex(ref hoverChromeIconBackgroundHex, value, nameof(HoverChromeIconBackgroundHex), nameof(ChromeIconBackgroundSwatchBrush));
+        }
+
+        private void SetChromeHex(ref string field, string value, string hexPropertyName, string swatchPropertyName)
+        {
+            if (!HoverChromePalette.TryNormalizeHex(value, out var hex) ||
+                string.Equals(field, hex, System.StringComparison.Ordinal))
             {
-                if (!HoverChromePalette.TryNormalizeHex(value, out var hex))
-                {
-                    return;
-                }
-
-                if (string.Equals(hoverChromeIconBackgroundHex, hex, System.StringComparison.Ordinal))
-                {
-                    return;
-                }
-
-                SetValue(ref hoverChromeIconBackgroundHex, hex, nameof(HoverChromeIconBackgroundHex), nameof(ChromeIconBackgroundSwatchBrush));
-                UncheckThemeChromeIfUserEdited();
+                return;
             }
+
+            field = hex;
+            OnPropertyChanged(hexPropertyName);
+            OnPropertyChanged(swatchPropertyName);
+            UncheckThemeChromeIfUserEdited();
         }
 
         /// <summary>Fill opacity (0–100) for theme and custom chrome.</summary>
@@ -566,24 +519,6 @@ namespace GameHoverDetails
             }
         }
 
-        public List<string> SelectedFieldKeys
-        {
-            get => selectedFieldKeys;
-            set
-            {
-                var norm = NormalizeKeys(value ?? new List<string>());
-                if (ListsEqual(selectedFieldKeys, norm))
-                {
-                    return;
-                }
-
-                SetValue(ref selectedFieldKeys, norm, nameof(SelectedFieldKeys), nameof(SelectedFieldCount));
-            }
-        }
-
-        [DontSerialize]
-        public int SelectedFieldCount => selectedFieldKeys.Count;
-
         internal IPlayniteAPI TryGetPlayniteApi() => plugin?.GetPlayniteApi();
 
         /// <summary>True when hover must not show (globally off, or Fullscreen with that option on).</summary>
@@ -623,636 +558,6 @@ namespace GameHoverDetails
         {
             this.plugin = plugin ?? throw new System.ArgumentNullException(nameof(plugin));
             LoadPersistedState(plugin.LoadPluginSettings<GameHoverDetailsPersistedState>());
-        }
-
-        /// <summary>
-        /// Applies saved JSON (including legacy shapes with missing / null fields) to the backing fields.
-        /// Null keeps the factory defaults. Split from the constructor so it can be tested without a plugin.
-        /// </summary>
-        internal void LoadPersistedState(GameHoverDetailsPersistedState saved)
-        {
-            if (saved != null)
-            {
-                hoverWidth = ClampWidth(saved.HoverWidth);
-                showDelayMs = ClampShowDelayMs(saved.ShowDelayMs);
-                hoverFieldBlockSpacingDip = saved.HoverFieldBlockSpacingDip <= 0
-                    ? LegacyMissingFieldBlockSpacingDip
-                    : ClampFieldBlockSpacingDip(saved.HoverFieldBlockSpacingDip);
-                hoverFieldColumnCount = saved.HoverFieldColumnCount == null || saved.HoverFieldColumnCount.Value <= 0
-                    ? DefaultFieldColumnCount
-                    : ClampFieldColumnCount(saved.HoverFieldColumnCount.Value);
-                hoverContentPaddingDip = saved.HoverContentPaddingDip == null
-                    ? LegacyMissingContentPaddingDip
-                    : ClampContentPaddingDip(saved.HoverContentPaddingDip.Value);
-                hoverDisabled = saved.HoverDisabled;
-                hoverDisabledInFullscreen = saved.HoverDisabledInFullscreen ?? true;
-                hideFieldTitlesInHover = saved.HideFieldTitlesInHover;
-                showGameNameHeader = saved.ShowGameNameHeader;
-                showFieldInlineIconsInHover = saved.ShowFieldInlineIconsInHover;
-                hideIconChipBackground = saved.HideIconChipBackground;
-                hideFieldDividers = saved.HideFieldDividers ?? true;
-                hidePanelBorder = saved.HidePanelBorder ?? false;
-                emptyFieldBehavior = saved.UseFallbackFields ? EmptyFieldsFallback
-                    : saved.HideEmptyFields == true ? EmptyFieldsHide : EmptyFieldsDoNothing;
-                hoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
-                    ? LegacyMissingBodyFontSize
-                    : ClampBodyFontSize(saved.HoverBodyFontSize.Value);
-                hoverTitleFontSize = saved.HoverTitleFontSize == null || saved.HoverTitleFontSize.Value <= 0
-                    ? LegacyMissingTitleFontSize
-                    : ClampTitleFontSize(saved.HoverTitleFontSize.Value);
-                hoverIconStyle = NormalizeIconStyle(saved.HoverIconStyle);
-                hoverIconChipSizeDip = saved.HoverIconChipSizeDip == null || saved.HoverIconChipSizeDip.Value <= 0
-                    ? LegacyMissingIconChipSizeDip
-                    : ClampIconChipSizeDip(saved.HoverIconChipSizeDip.Value);
-                hoverIconChipPaddingDip = saved.HoverIconChipPaddingDip == null
-                    ? LegacyMissingIconChipPaddingDip
-                    : ClampIconChipPaddingDip(saved.HoverIconChipPaddingDip.Value);
-                hoverIconChipShape = NormalizeIconChipShape(saved.HoverIconChipShape);
-                useThemeChrome = saved.UseThemeChrome ?? true;
-                hoverBackgroundStyle = NormalizeBackgroundStyle(saved.HoverBackgroundStyle);
-                hoverChromeBackgroundHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeBackgroundHex,
-                    HoverChromePalette.DefaultFillHex);
-                hoverChromeBorderHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeBorderHex,
-                    HoverChromePalette.DefaultBorderHex);
-                hoverChromeDividerHex = HoverChromePalette.NormalizeHexOrDefault(
-                    string.IsNullOrWhiteSpace(saved.HoverChromeDividerHex)
-                        ? saved.HoverChromeBorderHex
-                        : saved.HoverChromeDividerHex,
-                    HoverChromePalette.DefaultDividerHex);
-                hoverChromeIconBackgroundHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeIconBackgroundHex,
-                    HoverChromePalette.DefaultIconBackgroundHex);
-                hoverChromeBackgroundOpacity = saved.HoverChromeBackgroundOpacity == null
-                    ? DefaultChromeOpacity
-                    : ClampChromeOpacity(saved.HoverChromeBackgroundOpacity.Value);
-                selectedFieldKeys = NormalizeKeys(saved.SelectedFieldKeys ?? new List<string>());
-            }
-        }
-
-        public IReadOnlyList<string> GetOrderedSelectedKeys()
-        {
-            return selectedFieldKeys.Where(HoverFieldCatalog.IsKnownKey).ToList();
-        }
-
-        internal bool ApplyFieldPreset(string presetId)
-        {
-            var preset = HoverFieldPresets.All.FirstOrDefault(p => p.Id == presetId);
-            if (preset == null)
-            {
-                return false;
-            }
-
-            SelectedFieldKeys = new List<string>(preset.FieldKeys);
-            return true;
-        }
-
-        /// <summary>Catalog keys not currently selected, in catalog order (for Add-field UI).</summary>
-        public IReadOnlyList<string> GetAddableKeys()
-        {
-            var selected = new HashSet<string>(selectedFieldKeys);
-            return HoverFieldCatalog.GetAllKeysInCatalogOrder()
-                .Where(k => !selected.Contains(k))
-                .ToList();
-        }
-
-        public bool MoveEnabled(int fromIndex, int toIndex)
-        {
-            if (fromIndex < 0 || fromIndex >= selectedFieldKeys.Count)
-            {
-                return false;
-            }
-
-            if (toIndex < 0 || toIndex > selectedFieldKeys.Count)
-            {
-                return false;
-            }
-
-            if (fromIndex == toIndex)
-            {
-                return true;
-            }
-
-            var key = selectedFieldKeys[fromIndex];
-            selectedFieldKeys.RemoveAt(fromIndex);
-            var insert = toIndex;
-            if (insert > fromIndex)
-            {
-                insert--;
-            }
-
-            insert = System.Math.Max(0, System.Math.Min(insert, selectedFieldKeys.Count));
-            selectedFieldKeys.Insert(insert, key);
-            SetValue(ref selectedFieldKeys, new List<string>(selectedFieldKeys), nameof(SelectedFieldKeys), nameof(SelectedFieldCount));
-            return true;
-        }
-
-        public bool EnableFieldAt(string key, int enabledInsertIndex)
-        {
-            if (!HoverFieldCatalog.IsKnownKey(key))
-            {
-                return false;
-            }
-
-            if (selectedFieldKeys.Contains(key))
-            {
-                return true;
-            }
-
-            var ins = System.Math.Max(0, System.Math.Min(enabledInsertIndex, selectedFieldKeys.Count));
-            selectedFieldKeys.Insert(ins, key);
-            SetValue(ref selectedFieldKeys, new List<string>(selectedFieldKeys), nameof(SelectedFieldKeys), nameof(SelectedFieldCount));
-            return true;
-        }
-
-        public bool DisableFieldAt(int enabledIndex)
-        {
-            if (enabledIndex < 0 || enabledIndex >= selectedFieldKeys.Count)
-            {
-                return false;
-            }
-
-            selectedFieldKeys.RemoveAt(enabledIndex);
-            if (selectedFieldKeys.Count == 0)
-            {
-                foreach (var d in FactoryDefaultSelectedKeys)
-                {
-                    selectedFieldKeys.Add(d);
-                }
-            }
-
-            SetValue(ref selectedFieldKeys, new List<string>(selectedFieldKeys), nameof(SelectedFieldKeys), nameof(SelectedFieldCount));
-            return true;
-        }
-
-        public void BeginEdit()
-        {
-            SuppressHoverLiveUpdates = true;
-            editSnapshot = ToPersistedState();
-        }
-
-        public void CancelEdit()
-        {
-            SuppressSettingsViewRebuilds = true;
-            try
-            {
-                ApplyPersistedState(editSnapshot);
-            }
-            finally
-            {
-                SuppressSettingsViewRebuilds = false;
-                SuppressHoverLiveUpdates = false;
-            }
-
-            plugin.NotifyHoverSettingsApplied();
-        }
-
-        public void EndEdit()
-        {
-            // Persist only. Do not re-assign live properties here — that rebuilt the
-            // settings preview (library art scans) on the UI thread and froze Save.
-            plugin.SavePluginSettings(ToPersistedState());
-            SuppressHoverLiveUpdates = false;
-            // Idle so the settings dialog can close before any hover rebuild.
-            plugin.NotifyHoverSettingsApplied();
-        }
-
-        private void ApplyPersistedState(GameHoverDetailsPersistedState saved)
-        {
-            if (saved == null)
-            {
-                return;
-            }
-
-            HoverWidth = saved.HoverWidth;
-            ShowDelayMs = saved.ShowDelayMs;
-            HoverFieldBlockSpacingDip = saved.HoverFieldBlockSpacingDip <= 0
-                ? LegacyMissingFieldBlockSpacingDip
-                : saved.HoverFieldBlockSpacingDip;
-            HoverFieldColumnCount = saved.HoverFieldColumnCount == null || saved.HoverFieldColumnCount.Value <= 0
-                ? DefaultFieldColumnCount
-                : saved.HoverFieldColumnCount.Value;
-            HoverContentPaddingDip = saved.HoverContentPaddingDip == null
-                ? LegacyMissingContentPaddingDip
-                : saved.HoverContentPaddingDip.Value;
-            HoverDisabled = saved.HoverDisabled;
-            HoverDisabledInFullscreen = saved.HoverDisabledInFullscreen ?? true;
-            HideFieldTitlesInHover = saved.HideFieldTitlesInHover;
-            ShowGameNameHeader = saved.ShowGameNameHeader;
-            ShowFieldInlineIconsInHover = saved.ShowFieldInlineIconsInHover;
-            HideIconChipBackground = saved.HideIconChipBackground;
-            HideFieldDividers = saved.HideFieldDividers ?? true;
-            HidePanelBorder = saved.HidePanelBorder ?? false;
-            EmptyFieldBehavior = saved.UseFallbackFields ? EmptyFieldsFallback
-                : saved.HideEmptyFields == true ? EmptyFieldsHide : EmptyFieldsDoNothing;
-            HoverBodyFontSize = saved.HoverBodyFontSize == null || saved.HoverBodyFontSize.Value <= 0
-                ? LegacyMissingBodyFontSize
-                : saved.HoverBodyFontSize.Value;
-            HoverTitleFontSize = saved.HoverTitleFontSize == null || saved.HoverTitleFontSize.Value <= 0
-                ? LegacyMissingTitleFontSize
-                : saved.HoverTitleFontSize.Value;
-            HoverIconStyle = saved.HoverIconStyle;
-            HoverIconChipSizeDip = saved.HoverIconChipSizeDip == null || saved.HoverIconChipSizeDip.Value <= 0
-                ? LegacyMissingIconChipSizeDip
-                : saved.HoverIconChipSizeDip.Value;
-            HoverIconChipPaddingDip = saved.HoverIconChipPaddingDip == null
-                ? LegacyMissingIconChipPaddingDip
-                : saved.HoverIconChipPaddingDip.Value;
-            HoverIconChipShape = saved.HoverIconChipShape;
-            HoverBackgroundStyle = saved.HoverBackgroundStyle;
-            RunWithThemeHexSync(() =>
-            {
-                UseThemeChrome = saved.UseThemeChrome ?? true;
-                HoverChromeBackgroundHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeBackgroundHex,
-                    HoverChromePalette.DefaultFillHex);
-                HoverChromeBorderHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeBorderHex,
-                    HoverChromePalette.DefaultBorderHex);
-                HoverChromeDividerHex = HoverChromePalette.NormalizeHexOrDefault(
-                    string.IsNullOrWhiteSpace(saved.HoverChromeDividerHex)
-                        ? saved.HoverChromeBorderHex
-                        : saved.HoverChromeDividerHex,
-                    HoverChromePalette.DefaultDividerHex);
-                HoverChromeIconBackgroundHex = HoverChromePalette.NormalizeHexOrDefault(
-                    saved.HoverChromeIconBackgroundHex,
-                    HoverChromePalette.DefaultIconBackgroundHex);
-            });
-            HoverChromeBackgroundOpacity = saved.HoverChromeBackgroundOpacity == null
-                ? DefaultChromeOpacity
-                : saved.HoverChromeBackgroundOpacity.Value;
-            SelectedFieldKeys = new List<string>(saved.SelectedFieldKeys ?? new List<string>(FactoryDefaultSelectedKeys));
-        }
-
-        private GameHoverDetailsPersistedState ToPersistedState()
-        {
-            return new GameHoverDetailsPersistedState
-            {
-                HoverWidth = HoverWidth,
-                ShowDelayMs = ShowDelayMs,
-                HoverFieldBlockSpacingDip = HoverFieldBlockSpacingDip,
-                HoverFieldColumnCount = HoverFieldColumnCount,
-                HoverContentPaddingDip = HoverContentPaddingDip,
-                HoverDisabled = HoverDisabled,
-                HoverDisabledInFullscreen = HoverDisabledInFullscreen,
-                HideFieldTitlesInHover = HideFieldTitlesInHover,
-                ShowGameNameHeader = ShowGameNameHeader,
-                ShowFieldInlineIconsInHover = ShowFieldInlineIconsInHover,
-                HideIconChipBackground = HideIconChipBackground,
-                HideFieldDividers = HideFieldDividers,
-                HidePanelBorder = HidePanelBorder,
-                HideEmptyFields = HideEmptyFields,
-                UseFallbackFields = UseFallbackFields,
-                HoverBodyFontSize = HoverBodyFontSize,
-                HoverTitleFontSize = HoverTitleFontSize,
-                HoverIconStyle = HoverIconStyle,
-                HoverIconChipSizeDip = HoverIconChipSizeDip,
-                HoverIconChipPaddingDip = HoverIconChipPaddingDip,
-                HoverIconChipShape = HoverIconChipShape,
-                UseThemeChrome = UseThemeChrome,
-                HoverBackgroundStyle = HoverBackgroundStyle,
-                HoverChromeBackgroundHex = HoverChromeBackgroundHex,
-                HoverChromeBorderHex = HoverChromeBorderHex,
-                HoverChromeDividerHex = HoverChromeDividerHex,
-                HoverChromeIconBackgroundHex = HoverChromeIconBackgroundHex,
-                HoverChromeBackgroundOpacity = HoverChromeBackgroundOpacity,
-                SelectedFieldKeys = new List<string>(SelectedFieldKeys)
-            };
-        }
-
-        public bool VerifySettings(out List<string> errors)
-        {
-            errors = new List<string>();
-            if (HoverWidth < MinWidth || HoverWidth > MaxWidth)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_Width",
-                    "Hover width must be between {0} and {1} pixels.",
-                    MinWidth,
-                    MaxWidth));
-            }
-
-            if (HoverFieldBlockSpacingDip < MinFieldBlockSpacingDip || HoverFieldBlockSpacingDip > MaxFieldBlockSpacingDip)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_FieldSpacing",
-                    "Field spacing must be between {0} and {1} pixels.",
-                    MinFieldBlockSpacingDip,
-                    MaxFieldBlockSpacingDip));
-            }
-
-            if (HoverFieldColumnCount < MinFieldColumnCount || HoverFieldColumnCount > MaxFieldColumnCount)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_FieldColumns",
-                    "Field columns must be between {0} and {1}.",
-                    MinFieldColumnCount,
-                    MaxFieldColumnCount));
-            }
-
-            if (HoverContentPaddingDip < MinContentPaddingDip || HoverContentPaddingDip > MaxContentPaddingDip)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_ListPadding",
-                    "List padding must be between {0} and {1} pixels.",
-                    MinContentPaddingDip,
-                    MaxContentPaddingDip));
-            }
-
-            if (HoverChromeBackgroundOpacity < MinChromeOpacity || HoverChromeBackgroundOpacity > MaxChromeOpacity)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_BackgroundOpacity",
-                    "Background opacity must be between {0} and {1} percent.",
-                    MinChromeOpacity,
-                    MaxChromeOpacity));
-            }
-
-            if (HoverBodyFontSize < MinBodyFontSize || HoverBodyFontSize > MaxBodyFontSize)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_BodyTextSize",
-                    "Regular text size must be between {0} and {1}.",
-                    MinBodyFontSize,
-                    MaxBodyFontSize));
-            }
-
-            if (HoverTitleFontSize < MinTitleFontSize || HoverTitleFontSize > MaxTitleFontSize)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_TitleTextSize",
-                    "Title text size must be between {0} and {1}.",
-                    MinTitleFontSize,
-                    MaxTitleFontSize));
-            }
-
-            if (HoverIconChipSizeDip < MinIconChipSizeDip || HoverIconChipSizeDip > MaxIconChipSizeDip)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_IconSize",
-                    "Icon size must be between {0} and {1} pixels.",
-                    MinIconChipSizeDip,
-                    MaxIconChipSizeDip));
-            }
-
-            if (HoverIconChipPaddingDip < MinIconChipPaddingDip || HoverIconChipPaddingDip > MaxIconChipPaddingDip)
-            {
-                errors.Add(HoverLoc.Format(
-                    "LOCGameHoverDetails_Verify_IconPadding",
-                    "Icon padding must be between {0} and {1} pixels.",
-                    MinIconChipPaddingDip,
-                    MaxIconChipPaddingDip));
-            }
-
-            if (!HoverChromePalette.TryParseHex(HoverChromeBackgroundHex, out _))
-            {
-                errors.Add(HoverLoc.Get(
-                    "LOCGameHoverDetails_Verify_BackgroundColor",
-                    "Hover background color is not a valid hex color."));
-            }
-
-            if (!HoverChromePalette.TryParseHex(HoverChromeBorderHex, out _))
-            {
-                errors.Add(HoverLoc.Get(
-                    "LOCGameHoverDetails_Verify_BorderColor",
-                    "Hover border color is not a valid hex color."));
-            }
-
-            if (!HoverChromePalette.TryParseHex(HoverChromeDividerHex, out _))
-            {
-                errors.Add(HoverLoc.Get(
-                    "LOCGameHoverDetails_Verify_DividerColor",
-                    "Hover divider color is not a valid hex color."));
-            }
-
-            if (!HoverChromePalette.TryParseHex(HoverChromeIconBackgroundHex, out _))
-            {
-                errors.Add(HoverLoc.Get(
-                    "LOCGameHoverDetails_Verify_IconBackgroundColor",
-                    "Hover icon background color is not a valid hex color."));
-            }
-
-            if (SelectedFieldKeys.Count == 0)
-            {
-                errors.Add(HoverLoc.Get(
-                    "LOCGameHoverDetails_Verify_NoFields",
-                    "Select at least one field."));
-            }
-
-            return errors.Count == 0;
-        }
-
-        internal static string NormalizeIconChipShape(string value)
-        {
-            if (string.Equals(value, IconChipShapeRectangle, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "Square", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeRectangle;
-            }
-
-            if (string.Equals(value, IconChipShapeRounded, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "RoundedRectangle", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeRounded;
-            }
-
-            if (string.Equals(value, IconChipShapeSoftRounded, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeSoftRounded;
-            }
-
-            if (string.Equals(value, IconChipShapeSquircle, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeSquircle;
-            }
-
-            if (string.Equals(value, IconChipShapeArch, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeArch;
-            }
-
-            if (string.Equals(value, IconChipShapeTile, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeTile;
-            }
-
-            if (string.Equals(value, IconChipShapeLeaf, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconChipShapeLeaf;
-            }
-
-            return IconChipShapeCircle;
-        }
-
-        internal static CornerRadius ResolveIconChipCornerRadius(string shape, double chipSize)
-        {
-            var half = chipSize / 2.0;
-            if (half < 0)
-            {
-                half = 0;
-            }
-
-            switch (NormalizeIconChipShape(shape))
-            {
-                case IconChipShapeRectangle:
-                    return new CornerRadius(0);
-                case IconChipShapeRounded:
-                    return new CornerRadius(System.Math.Max(3, chipSize * 0.18));
-                case IconChipShapeSoftRounded:
-                    return new CornerRadius(System.Math.Max(4, chipSize * 0.28));
-                case IconChipShapeSquircle:
-                    return new CornerRadius(System.Math.Max(6, chipSize * 0.38));
-                case IconChipShapeArch:
-                    return new CornerRadius(half, half, 0, 0);
-                case IconChipShapeTile:
-                    return new CornerRadius(0, 0, half, half);
-                case IconChipShapeLeaf:
-                    return new CornerRadius(half, 0, half, 0);
-                default:
-                    return new CornerRadius(half);
-            }
-        }
-
-        private static int ClampIconChipPaddingDip(int v) => Clamp(v, MinIconChipPaddingDip, MaxIconChipPaddingDip);
-
-        internal static string NormalizeIconStyle(string value)
-        {
-            if (string.Equals(value, IconStylePhosphor, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconStylePhosphor;
-            }
-
-            if (string.Equals(value, IconStyleHugeIcons, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "Huge", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "Hugeicons", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconStyleHugeIcons;
-            }
-
-            if (string.Equals(value, IconStyleSketchy, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "SketchyIcons", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconStyleSketchy;
-            }
-
-            if (string.Equals(value, IconStyleIconsax, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "IconsaxBulk", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconStyleIconsax;
-            }
-
-            if (string.Equals(value, IconStylePixelarticons, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "PixelArtIcons", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "pixelart-icons", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconStylePixelarticons;
-            }
-
-            if (string.Equals(value, IconStylePixel, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "PixelIconLibrary", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "HackerNoon", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return IconStylePixel;
-            }
-
-            return IconStyleUnicons;
-        }
-
-        private static double ClampBodyFontSize(double v) => Clamp(v, MinBodyFontSize, MaxBodyFontSize);
-
-        private static double ClampTitleFontSize(double v) => Clamp(v, MinTitleFontSize, MaxTitleFontSize);
-
-        private static int ClampIconChipSizeDip(int v) => Clamp(v, MinIconChipSizeDip, MaxIconChipSizeDip);
-
-        private static string NormalizeBackgroundStyle(string value)
-        {
-            if (string.Equals(value, BackgroundStyleGameCover, System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "GameBackground", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "Background", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return BackgroundStyleGameCover;
-            }
-
-            return BackgroundStyleRegular;
-        }
-
-        private static int ClampWidth(int v) => Clamp(v, MinWidth, MaxWidth);
-
-        private static int ClampShowDelayMs(int v) => Clamp(v, MinShowDelayMs, MaxShowDelayMs);
-
-        private static int ClampFieldBlockSpacingDip(int v) => Clamp(v, MinFieldBlockSpacingDip, MaxFieldBlockSpacingDip);
-
-        private static int ClampFieldColumnCount(int v) => Clamp(v, MinFieldColumnCount, MaxFieldColumnCount);
-
-        private static int ClampContentPaddingDip(int v) => Clamp(v, MinContentPaddingDip, MaxContentPaddingDip);
-
-        private static int ClampChromeOpacity(int v) => Clamp(v, MinChromeOpacity, MaxChromeOpacity);
-
-        private static int Clamp(int v, int min, int max)
-        {
-            if (v < min)
-            {
-                return min;
-            }
-
-            return v > max ? max : v;
-        }
-
-        private static double Clamp(double v, double min, double max)
-        {
-            if (v < min)
-            {
-                return min;
-            }
-
-            return v > max ? max : v;
-        }
-
-        private static List<string> NormalizeKeys(List<string> keys)
-        {
-            var seen = new HashSet<string>();
-            var list = new List<string>();
-            foreach (var k in keys ?? new List<string>())
-            {
-                if (string.IsNullOrEmpty(k) || !HoverFieldCatalog.IsKnownKey(k) || seen.Contains(k))
-                {
-                    continue;
-                }
-
-                seen.Add(k);
-                list.Add(k);
-            }
-
-            if (list.Count == 0)
-            {
-                return new List<string>(FactoryDefaultSelectedKeys);
-            }
-
-            return list;
-        }
-
-        private static bool ListsEqual(List<string> a, List<string> b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (a == null || b == null || a.Count != b.Count)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < a.Count; i++)
-            {
-                if (!string.Equals(a[i], b[i], System.StringComparison.Ordinal))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
 }

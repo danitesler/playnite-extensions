@@ -51,7 +51,7 @@ if ((Get-ExtensionKind $profile) -ne "theme") {
 $manifest = Get-ExtensionManifestInfo -Profile $profile
 $mode = if ($manifest.Mode) { $manifest.Mode } else { "Desktop" }
 $context = if (-not $NoDeploy) { Get-PlayniteBuildContext -DataPath $DataPath -DeployPath $DeployPath -PlayniteExe $PlayniteExe -Mode $mode }
-if ($context -and -not $Deploy) {
+if ($context) {
     $Deploy = $true
     if (-not $NoRestart) { $SetTheme = $true }
 }

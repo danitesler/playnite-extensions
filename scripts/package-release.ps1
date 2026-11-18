@@ -91,7 +91,8 @@ try {
 
     $buildOutput = Join-RepoPath (Get-ExtensionOutputPath -Profile $profile -Configuration $Configuration)
     if (-not (Test-Path $buildOutput)) {
-        throw "Build output folder not found at $buildOutput. Run build-plugin.ps1 first."
+        $buildCmd = if ($isTheme) { "build-theme.ps1" } else { "build-plugin.ps1" }
+        throw "Build output folder not found at $buildOutput. Run $buildCmd first."
     }
 
     $dropManifestName = if ($isTheme) { "theme.yaml" } else { "extension.yaml" }

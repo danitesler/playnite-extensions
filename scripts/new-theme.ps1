@@ -67,8 +67,12 @@ if ($TokensCss) {
 
 $addonId = "{0}_{1}" -f $dirName, (([guid]::NewGuid()).ToString("N").Substring(0, 8).ToUpperInvariant())
 
+if ($index.extensions | Where-Object { $_.addonId -eq $addonId }) {
+    throw "Generated AddonId '$addonId' already exists."
+}
+
 # The index row holds only what cannot be derived; paths and URLs below come from the completed profile.
-$newProfile = [pscustomobject]@{
+$newProfile = [pscustomobject][ordered]@{
     key                = $Key
     name               = $Name
     kind               = "theme"

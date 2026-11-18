@@ -72,7 +72,6 @@ namespace RandomTheme
                     }
 
                     var name = type.GetProperty("Name")?.GetValue(manifest, null) as string;
-                    var directory = type.GetProperty("DirectoryPath")?.GetValue(manifest, null) as string;
                     var compatible = type.GetProperty("IsCompatible")?.GetValue(manifest, null) as bool? ?? true;
                     if (!compatible)
                     {
@@ -80,7 +79,7 @@ namespace RandomTheme
                         continue;
                     }
 
-                    result.Add(new ThemeInfo(id, string.IsNullOrWhiteSpace(name) ? id : name, directory ?? string.Empty, mode));
+                    result.Add(new ThemeInfo(id, string.IsNullOrWhiteSpace(name) ? id : name));
                 }
 
                 // Playnite always ships a built-in Default theme, so an empty list means the lookup did not work.
@@ -102,12 +101,12 @@ namespace RandomTheme
             var modeDir = mode == ApplicationMode.Fullscreen ? "Fullscreen" : "Desktop";
 
             // User-installed themes shadow the built-in ones with the same id.
-            AddFromFolder(Path.Combine(api?.Paths?.ConfigurationPath ?? string.Empty, "Themes", modeDir), mode, result, seen);
-            AddFromFolder(Path.Combine(api?.Paths?.ApplicationPath ?? string.Empty, "Themes", modeDir), mode, result, seen);
+            AddFromFolder(Path.Combine(api?.Paths?.ConfigurationPath ?? string.Empty, "Themes", modeDir), result, seen);
+            AddFromFolder(Path.Combine(api?.Paths?.ApplicationPath ?? string.Empty, "Themes", modeDir), result, seen);
             return result;
         }
 
-        private static void AddFromFolder(string folder, ApplicationMode mode, List<ThemeInfo> result, HashSet<string> seen)
+        private static void AddFromFolder(string folder, List<ThemeInfo> result, HashSet<string> seen)
         {
             if (!Directory.Exists(folder))
             {
@@ -130,7 +129,7 @@ namespace RandomTheme
                         continue;
                     }
 
-                    result.Add(new ThemeInfo(id, ReadYamlScalar(manifest, "Name") ?? id, themeDir, mode));
+                    result.Add(new ThemeInfo(id, ReadYamlScalar(manifest, "Name") ?? id));
                 }
                 catch (Exception ex)
                 {

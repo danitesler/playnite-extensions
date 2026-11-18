@@ -10,7 +10,7 @@ namespace PlayniteExtensions.Tests
     {
         private static ThemeInfo Theme(string id)
         {
-            return new ThemeInfo(id, id + " Theme", @"C:\Playnite\Themes\Desktop\" + id, ApplicationMode.Desktop);
+            return new ThemeInfo(id, id + " Theme");
         }
 
         /// <summary>Always returns the given index (clamped to the pool) and records the pool size it was asked for.</summary>

@@ -11,10 +11,7 @@ namespace Autogrid
     public sealed class ViewportMetrics
     {
         public double Viewport;
-        public double PanelWidth;
-        public double ScrollWidth;
         public double ViewportHeight;
-        public double ScrollHeight;
         public ScrollViewer PickedScrollViewer;
     }
 
@@ -65,7 +62,6 @@ namespace Autogrid
 
         internal const double MinGridItemWidth = 60;
         internal const double MaxGridItemWidth = 900;
-        internal const double SafetyPadding = 0;
 
         /// <summary>Approximate width of the narrow platform-icon sidebar strip (not the wide labeled sidebar).</summary>
         private const double IconSidebarWidthApprox = 80;
@@ -201,37 +197,26 @@ namespace Autogrid
             }
         }
 
-        public static bool TrySetGridItemWidth(object appSettings, double width)
+        public static bool TrySetGridItemWidth(object appSettings, double width) =>
+            TrySetAppSettingProperty(appSettings, "GridItemWidth", width);
+
+        public static bool TrySetGridItemSpacing(object appSettings, int spacing) =>
+            TrySetAppSettingProperty(appSettings, "GridItemSpacing", spacing);
+
+        private static bool TrySetAppSettingProperty(object appSettings, string propertyName, object value)
         {
             if (appSettings == null)
             {
                 return false;
             }
 
-            var prop = appSettings.GetType().GetProperty("GridItemWidth", BindingFlags.Instance | BindingFlags.Public);
+            var prop = appSettings.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             if (prop == null || !prop.CanWrite)
             {
                 return false;
             }
 
-            prop.SetValue(appSettings, width, null);
-            return true;
-        }
-
-        public static bool TrySetGridItemSpacing(object appSettings, int spacing)
-        {
-            if (appSettings == null)
-            {
-                return false;
-            }
-
-            var prop = appSettings.GetType().GetProperty("GridItemSpacing", BindingFlags.Instance | BindingFlags.Public);
-            if (prop == null || !prop.CanWrite)
-            {
-                return false;
-            }
-
-            prop.SetValue(appSettings, spacing, null);
+            prop.SetValue(appSettings, value, null);
             return true;
         }
 
@@ -306,35 +291,8 @@ namespace Autogrid
             }
         }
 
-        private static double GetEffectiveScrollViewerWidth(ScrollViewer sv)
-        {
-            if (sv == null)
-            {
-                return 0;
-            }
-
-            if (sv.ViewportWidth > 0)
-            {
-                return Math.Min(sv.ViewportWidth, sv.ActualWidth);
-            }
-
-            return sv.ActualWidth;
-        }
-
-        private static double GetEffectiveScrollViewerHeight(ScrollViewer sv)
-        {
-            if (sv == null)
-            {
-                return 0;
-            }
-
-            if (sv.ViewportHeight > 0)
-            {
-                return Math.Min(sv.ViewportHeight, sv.ActualHeight);
-            }
-
-            return sv.ActualHeight;
-        }
+        private static double GetEffectiveScrollExtent(double viewportExtent, double actualExtent) =>
+            viewportExtent > 0 ? Math.Min(viewportExtent, actualExtent) : actualExtent;
 
         public static double ComputeTargetGridItemWidth(
             double viewportWidth,
@@ -346,8 +304,7 @@ namespace Autogrid
                 return 0;
             }
 
-            var usable = Math.Max(0, viewportWidth - SafetyPadding);
-            var raw = (usable - targetColumns * horizontalMarginPerTile) / targetColumns;
+            var raw = (viewportWidth - targetColumns * horizontalMarginPerTile) / targetColumns;
             var floored = Math.Floor(raw);
             return Math.Max(MinGridItemWidth, Math.Min(MaxGridItemWidth, floored));
         }
@@ -369,8 +326,7 @@ namespace Autogrid
                 return 0;
             }
 
-            var usable = Math.Max(0, viewportHeight - SafetyPadding);
-            var targetRowPitch = usable / targetRows;
+            var targetRowPitch = viewportHeight / targetRows;
             var targetTileHeight = targetRowPitch;
 
             double targetWidth;
@@ -415,30 +371,21 @@ namespace Autogrid
             }
 
             var expected = GetExpectedLibraryWidth(window, api);
-            result.ScrollWidth = 0;
-            result.PanelWidth = 0;
-            result.ScrollHeight = 0;
             result.ViewportHeight = 0;
 
-            ScrollViewer picked = null;
-            if (TryPickGamesScrollViewer(window, api, out picked, out var scrollW, out var scrollH))
+            double scrollW = 0;
+            double scrollH = 0;
+            if (TryPickGamesScrollViewer(window, api, out var picked, out scrollW, out scrollH))
             {
-                result.ScrollWidth = scrollW;
-                result.ScrollHeight = scrollH;
                 result.PickedScrollViewer = picked;
             }
 
-            FrameworkElement presenter = null;
-            if (picked != null)
-            {
-                presenter = FindWidestItemsPresenterUnder(picked);
-                result.PanelWidth = presenter != null ? presenter.ActualWidth : 0;
-            }
+            var presenter = picked != null ? FindWidestItemsPresenterUnder(picked) : null;
 
             double baseV;
-            if (result.ScrollWidth > 100)
+            if (scrollW > 100)
             {
-                baseV = result.ScrollWidth;
+                baseV = scrollW;
                 if (presenter != null)
                 {
                     baseV -= presenter.Margin.Left + presenter.Margin.Right;
@@ -457,9 +404,9 @@ namespace Autogrid
 
             result.Viewport = Math.Max(100, baseV + viewportAdjustPx);
 
-            if (result.ScrollHeight > 100)
+            if (scrollH > 100)
             {
-                result.ViewportHeight = Math.Max(100, result.ScrollHeight + viewportAdjustPx);
+                result.ViewportHeight = Math.Max(100, scrollH + viewportAdjustPx);
             }
             else if (window.ActualHeight > 0)
             {
@@ -588,7 +535,7 @@ namespace Autogrid
                     continue;
                 }
 
-                var effectiveW = GetEffectiveScrollViewerWidth(sv);
+                var effectiveW = GetEffectiveScrollExtent(sv.ViewportWidth, sv.ActualWidth);
                 if (effectiveW < 200 || effectiveW > maxW)
                 {
                     continue;
@@ -600,7 +547,7 @@ namespace Autogrid
                     bestScore = score;
                     bestDepth = depth;
                     bestWidth = effectiveW;
-                    bestHeight = GetEffectiveScrollViewerHeight(sv);
+                    bestHeight = GetEffectiveScrollExtent(sv.ViewportHeight, sv.ActualHeight);
                     bestSv = sv;
                 }
             }

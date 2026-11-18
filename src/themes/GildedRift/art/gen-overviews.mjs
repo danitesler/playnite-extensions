@@ -3,54 +3,22 @@
 // Structure comes from the repo's validated overview skeleton (banner, proportional spacer, Steam gate, responsive body,
 // six metadata groups, close button, empty state); every visual is Gilded Rift's: notched navy frame, diamond rules,
 // caps-serif headings, the winged icon plate. Edit this file, then regenerate; never edit the views by hand.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { applyGamePageBreakpoints } from '../../../../scripts/game-page-breakpoints.mjs';
+import {
+  META_GROUPS,
+  bannerSpacer,
+  collapseEmptyTrigger,
+  hideWhenNoTitle,
+  indent,
+  resolveThemeSrcDir,
+  writeOverviews,
+} from '../../../../scripts/overview-generator.mjs';
 
-const out = process.argv[2];
-if (!out) throw new Error('pass the theme src dir');
+const out = resolveThemeSrcDir(import.meta.url);
 
-const groups = [
-  ['MetaProgress', [
-    ['CompletionStatus', 'LOCCompletionStatus', 'button', 'PART_ButtonCompletionStatus'],
-    ['PlayTime', 'LOCTimePlayed', 'text', 'PART_TextPlayTime'],
-    ['LastPlayed', 'LOCLastPlayed', 'text', 'PART_TextLastActivity'],
-    ['RecentActivity', 'LOCRecentActivityLabel', 'text', 'PART_TextRecentActivity'],
-    ['Added', 'LOCDateAddedLabel', 'text', 'PART_TextAdded'],
-  ]],
-  ['MetaScores', [
-    ['CommunityScore', 'LOCCommunityScore', 'score', 'PART_TextCommunityScore'],
-    ['CriticScore', 'LOCCriticScore', 'score', 'PART_TextCriticScore'],
-    ['UserScore', 'LOCUserScore', 'score', 'PART_TextUserScore'],
-  ]],
-  ['MetaAbout', [
-    ['Developers', 'LOCDeveloperLabel', 'items', 'PART_ItemsDevelopers'],
-    ['Publishers', 'LOCPublisherLabel', 'items', 'PART_ItemsPublishers'],
-    ['ReleaseDate', 'LOCGameReleaseDateTitle', 'button', 'PART_ButtonReleaseDate'],
-    ['Series', 'LOCSeriesLabel', 'items', 'PART_ItemsSeries'],
-    ['AgeRating', 'LOCAgeRatingLabel', 'items', 'PART_ItemsAgeRatings'],
-    ['Region', 'LOCRegionLabel', 'items', 'PART_ItemsRegions'],
-  ]],
-  ['MetaTags', [
-    ['Platform', 'LOCPlatformTitle', 'chips', 'PART_ItemsPlatforms'],
-    ['Genres', 'LOCGenreLabel', 'chips', 'PART_ItemsGenres'],
-    ['Categories', 'LOCGameCategoriesTitle', 'chips', 'PART_ItemsCategories'],
-    ['Features', 'LOCFeaturesLabel', 'chips', 'PART_ItemsFeatures'],
-    ['Tags', 'LOCTagsLabel', 'chips', 'PART_ItemsTags'],
-  ]],
-  ['MetaLibrary', [
-    ['Library', 'LOCGameProviderTitle', 'button', 'PART_ButtonLibrary'],
-    ['Source', 'LOCSourceLabel', 'button', 'PART_ButtonSource'],
-    ['Version', 'LOCVersionLabel', 'button', 'PART_ButtonVersion'],
-    ['InstallSize', 'LOCInstallSizeLabel', 'text', 'PART_TextInstallSize'],
-    ['InstallDirectory', 'LOCGameInstallDirTitle', 'button', 'PART_ButtonInstallDirectory'],
-  ]],
-  ['MetaLinks', [
-    ['Links', 'LOCLinksLabel', 'items', 'PART_ItemsLinks'],
-  ]],
-];
+const groups = META_GROUPS;
 
-const ind = (s, n) => s.split('\n').map(l => (l ? ' '.repeat(n) + l : l)).join('\n');
 const R = key => `{DynamicResource ${key}}`;
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -90,7 +58,7 @@ function field([name, loc, kind, part], layout) {
         </Grid.ColumnDefinitions>
         ${caption(loc)}
         <Border Grid.Column="1" Margin="10,0,0,0">
-${ind(value(kind, part), 12)}
+${indent(value(kind, part), 12)}
         </Border>
     </Grid>
 </Border>`;
@@ -106,7 +74,7 @@ ${ind(value(kind, part), 12)}
             <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
         ${caption(loc)}
-${ind(gridValue, 8)}
+${indent(gridValue, 8)}
     </Grid>
 </Border>`;
 }
@@ -115,28 +83,18 @@ ${ind(gridValue, 8)}
 const DIVIDER_BLOCK = 17;
 const divider = `<Control Template="${R('DividerTemplate')}" Foreground="${R('FrameBrush')}" Height="9" Margin="0,4,0,4" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />`;
 function group([gname, fields], layout) {
-  const conds = fields.map(f => `<Condition Binding="{Binding Visibility, ElementName=PART_Elem${f[0]}}" Value="Collapsed" />`);
-  const trig = fields.length === 1
-    ? `<DataTrigger Binding="{Binding Visibility, ElementName=PART_Elem${fields[0][0]}}" Value="Collapsed">
-    <Setter Property="Visibility" Value="Collapsed" />
-</DataTrigger>`
-    : `<MultiDataTrigger>
-    <MultiDataTrigger.Conditions>
-${ind(conds.join('\n'), 8)}
-    </MultiDataTrigger.Conditions>
-    <Setter Property="Visibility" Value="Collapsed" />
-</MultiDataTrigger>`;
+  const trig = collapseEmptyTrigger(fields.map(f => `PART_Elem${f[0]}`));
   return `<Border x:Name="${gname}" Margin="0,0,0,0">
     <Border.Style>
         <Style TargetType="Border">
             <Style.Triggers>
-${ind(trig, 16)}
+${indent(trig, 16)}
             </Style.Triggers>
         </Style>
     </Border.Style>
     <StackPanel>
-${ind(divider, 8)}
-${ind(fields.map(f => field(f, layout)).join('\n'), 8)}
+${indent(divider, 8)}
+${indent(fields.map(f => field(f, layout)).join('\n'), 8)}
     </StackPanel>
 </Border>`;
 }
@@ -168,15 +126,15 @@ function notch(inset, cut, brush) {
 function pane(layout, widthKey) {
   return `<Grid VerticalAlignment="Top">
     <Grid IsHitTestVisible="False">
-${ind(notch(0, 12, R('FrameBrush')), 8)}
-${ind(notch(2, 11, R('FrameInnerBrush')), 8)}
-${ind(notch(3, 11, R('NormalBrushDark')), 8)}
+${indent(notch(0, 12, R('FrameBrush')), 8)}
+${indent(notch(2, 11, R('FrameInnerBrush')), 8)}
+${indent(notch(3, 11, R('NormalBrushDark')), 8)}
     </Grid>
     <Border Padding="22,17,22,17">
         <StackPanel Width="${R(widthKey)}">
             <Grid ClipToBounds="True">
                 <StackPanel Margin="0,-${DIVIDER_BLOCK},0,0">
-${ind(groups.map(g => group(g, layout)).join('\n'), 20)}
+${indent(groups.map(g => group(g, layout)).join('\n'), 20)}
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -236,18 +194,7 @@ const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible
     </Rectangle>
 </Grid>`;
 
-const spacer = (ratio, fallback) => `<Border>
-    <Border.Style>
-        <Style TargetType="Border">
-            <Setter Property="Height" Value="{Binding ActualHeight, ElementName=HeroArt, Converter={StaticResource MathConverter}, ConverterParameter='${ratio}'}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding ActualHeight, ElementName=HeroArt}" Value="0">
-                    <Setter Property="Height" Value="${fallback}" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Border.Style>
-</Border>`;
+const spacer = bannerSpacer;
 function gridSpacer(markup, floor, name = 'GridBannerSpacer') {
   return markup.replace('<Border', '<Border x:Name="' + name + '" MinHeight="' + floor + '"')
     .replace(/(<Setter Property="Height" Value=")(\d+)(" \/>)/, (_, a, value, b) => a + floor + b)
@@ -258,18 +205,6 @@ function gridSpacer(markup, floor, name = 'GridBannerSpacer') {
 // ---------------------------------------------------------------------------------------------------------------------
 // Header: the winged icon plate, the game name in the caps serif with the diamond flourish under it, the actions.
 // ---------------------------------------------------------------------------------------------------------------------
-const hideWhenNoTitle = (type) => `<${type}.Style>
-    <Style TargetType="${type}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Text, ElementName=PART_TextDisplayName}" Value="">
-                <Setter Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding Text, ElementName=PART_TextDisplayName}" Value="{x:Null}">
-                <Setter Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
-</${type}.Style>`;
 // The icon plate: a chamfered (top-left, bottom-right) frame of three stacked strokes, so the 2px gradient frame follows theme brushes:
 // FrameBrush all round, BevelLightBrush fading out from the top-left, FrameInnerBrush fading in toward the bottom-right. The art sits in an
 // inner plate clipped to the same chamfer, one pixel smaller. The whole plate collapses when the game has no icon.
@@ -305,9 +240,9 @@ ${stops.map(([c, o]) => `            <GradientStop Color="${c}" Offset="${o}" />
         <Rectangle Fill="${R('ShellBackgroundBrush')}" />
         <Image x:Name="PART_ImageIcon" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" />
     </Grid>
-${ind(ring('FrameBrush'), 4)}
-${ind(ring('BevelLightBrush', [['Black', '0'], ['Black', '0.18'], ['Transparent', '0.6']]), 4)}
-${ind(ring('FrameInnerBrush', [['Transparent', '0.45'], ['Black', '0.95']]), 4)}
+${indent(ring('FrameBrush'), 4)}
+${indent(ring('BevelLightBrush', [['Black', '0'], ['Black', '0.18'], ['Transparent', '0.6']]), 4)}
+${indent(ring('FrameInnerBrush', [['Transparent', '0.45'], ['Black', '0.95']]), 4)}
 </Grid>`;
 }
 // The title: the game name in Cinzel Bold (it draws lowercase as small capitals, so no text transform is needed) with a tight line box,
@@ -317,7 +252,7 @@ function titleStack(fontSize, lineHeight, flourishWidth, margin, vertical) {
     <TextBlock x:Name="PART_TextDisplayName" FontFamily="${R('HeadingFontFamily')}" FontWeight="Bold" FontSize="${fontSize}"
                LineHeight="${lineHeight}" LineStackingStrategy="BlockLineHeight" Foreground="${R('HeadingForegroundBrush')}" TextWrapping="Wrap" />
     <Control Template="${R('DividerTemplate')}" Foreground="${R('GlyphBrush')}" Width="${flourishWidth}" Height="9" HorizontalAlignment="Left" Margin="0,8,0,0" Focusable="False" IsTabStop="False" IsHitTestVisible="False">
-${ind(hideWhenNoTitle('Control'), 8)}
+${indent(hideWhenNoTitle('Control'), 8)}
     </Control>
 </StackPanel>`;
 }
@@ -436,16 +371,16 @@ const header = (loc, margin = '0,0,0,8') => `<Grid Margin="${margin}">
     </Rectangle>
 </Grid>`;
 const textColumn = `<StackPanel>
-${ind(steam, 4)}
+${indent(steam, 4)}
     <StackPanel x:Name="PART_ElemDescription">
-${ind(header('LOCGameDescriptionTitle'), 8)}
+${indent(header('LOCGameDescriptionTitle'), 8)}
         <HtmlTextView x:Name="PART_HtmlDescription" HtmlFontFamily="${R('FontFamily')}" HtmlFontSize="13"
                       TextElement.Foreground="${R('TextBrushDarker')}" Tag="${R('LinkBrush')}"
                       HtmlForeground="{Binding Path=(TextElement.Foreground).Color, RelativeSource={RelativeSource Self}}"
                       LinkForeground="{Binding Tag.Color, RelativeSource={RelativeSource Self}}" />
     </StackPanel>
     <StackPanel x:Name="PART_ElemNotes" Margin="0,20,0,0">
-${ind(header('LOCNotesLabel'), 8)}
+${indent(header('LOCNotesLabel'), 8)}
         <TextBox x:Name="PART_TextNotes" IsReadOnly="True" TextWrapping="Wrap" Style="${R('BareTextBox')}" FontSize="13" Foreground="${R('TextBrushDarker')}" />
     </StackPanel>
 </StackPanel>`;
@@ -502,9 +437,9 @@ const pageRootStyle = `<Grid.Style>
 // Details view.
 // ---------------------------------------------------------------------------------------------------------------------
 const detailsHeader = `<DockPanel Margin="0,0,0,16">
-${ind(actions('details', '18,0,0,2').replace('<StackPanel Orientation="Horizontal"', '<StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Bottom"'), 4)}
-${ind(iconPlate(56, 7, '0,0,14,0'), 4)}
-${ind(titleStack(34, 40, 340, '0,0,0,2', 'Bottom'), 4)}
+${indent(actions('details', '18,0,0,2').replace('<StackPanel Orientation="Horizontal"', '<StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Bottom"'), 4)}
+${indent(iconPlate(56, 7, '0,0,14,0'), 4)}
+${indent(titleStack(34, 40, 340, '0,0,0,2', 'Bottom'), 4)}
 </DockPanel>`;
 
 const details = `<!--
@@ -523,23 +458,23 @@ const details = `<!--
                 <ControlTemplate TargetType="DetailsViewGameOverview">
                     <ScrollViewer x:Name="PART_ScrollViewHost" Visibility="Visible" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <Grid x:Name="PageRoot" UseLayoutRounding="True">
-${ind(pageRootStyle, 28)}
-${ind(heroArt, 28)}
+${indent(pageRootStyle, 28)}
+${indent(heroArt, 28)}
                             <StackPanel Margin="28,0,28,28">
-${ind(hideWhenEmpty, 32)}
-${ind(gridSpacer(spacer('x * 150 / 300', 28), 28, 'DetailsBannerSpacer'), 32)}
-${ind(detailsHeader, 32)}
+${indent(hideWhenEmpty, 32)}
+${indent(gridSpacer(spacer('x * 150 / 300', 28), 28, 'DetailsBannerSpacer'), 32)}
+${indent(detailsHeader, 32)}
                                 <Grid Margin="0,0,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="24" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
-${ind(textColumn, 36)}
-${ind(pane('side', 'GameDetailsPaneWidth').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 36)}
+${indent(textColumn, 36)}
+${indent(pane('side', 'GameDetailsPaneWidth').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 36)}
                                 </Grid>
                             </StackPanel>
-${ind(emptyState, 28)}
+${indent(emptyState, 28)}
                         </Grid>
                     </ScrollViewer>
                 </ControlTemplate>
@@ -609,8 +544,8 @@ const gridHeader = `<DockPanel Panel.ZIndex="2">
             <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
         </Button.RenderTransform>
     </Button>
-${ind(iconPlate(48, 6, '0,0,12,0').replace(' VerticalAlignment="Bottom"', ' VerticalAlignment="Center"'), 4)}
-${ind(titleStack(28, 32, 240, '0', 'Center'), 4)}
+${indent(iconPlate(48, 6, '0,0,12,0').replace(' VerticalAlignment="Bottom"', ' VerticalAlignment="Center"'), 4)}
+${indent(titleStack(28, 32, 240, '0', 'Center'), 4)}
 </DockPanel>`;
 
 const gridView = `<!--
@@ -643,18 +578,18 @@ const gridView = `<!--
                         <Grid>
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid x:Name="PageRoot" UseLayoutRounding="True">
-${ind(pageRootStyle, 36)}
-${ind(heroArt, 36)}
+${indent(pageRootStyle, 36)}
+${indent(heroArt, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="24,0,24,26">
-${ind(hideWhenEmpty, 40)}
-${ind(gridSpacer(spacer('x * 100 / 300', 14), 14), 40)}
+${indent(hideWhenEmpty, 40)}
+${indent(gridSpacer(spacer('x * 100 / 300', 14), 14), 40)}
                                         <StackPanel Panel.ZIndex="2" Margin="0,10,0,16">
-${ind(gridHeader, 44)}
-${ind(actions('grid', '0,16,0,0'), 44)}
+${indent(gridHeader, 44)}
+${indent(actions('grid', '0,16,0,0'), 44)}
                                         </StackPanel>
-${ind(responsiveBody(textColumn, pane('stack', 'GridDetailsPaneWidth').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 24, 'Margin="0,4,0,0"'), 40)}
+${indent(responsiveBody(textColumn, pane('stack', 'GridDetailsPaneWidth').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 24, 'Margin="0,4,0,0"'), 40)}
                                     </StackPanel>
-${ind(emptyState, 36)}
+${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
                             <Button x:Name="SidePanelCloseButton" Tag="${R('GameBannerHeight')}"
@@ -713,9 +648,6 @@ ${ind(emptyState, 36)}
 </ResourceDictionary>
 `;
 
-const responsiveDetails = applyGamePageBreakpoints(details, 'Details');
-const responsiveGrid = applyGamePageBreakpoints(gridView, 'Grid');
 mkdirSync(join(out, 'Views'), { recursive: true });
-writeFileSync(join(out, 'Views', 'DetailsViewGameOverview.xaml'), responsiveDetails);
-writeFileSync(join(out, 'Views', 'GridViewGameOverview.xaml'), responsiveGrid);
+writeOverviews(out, details, gridView);
 console.log('wrote both overviews');

@@ -14,6 +14,12 @@ export { launchBrowser };
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 let cachedFontRegistry = null;
 
+export const GENERIC_FONT_FAMILIES = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy']);
+
+export function bundledFontNames(reg = loadFontRegistry()) {
+  return new Set([...Object.keys(reg.families), ...Object.keys(reg.aliases)].map((n) => n.toLowerCase()));
+}
+
 export function loadFontRegistry() {
   if (!cachedFontRegistry) {
     cachedFontRegistry = JSON.parse(fs.readFileSync(path.join(HERE, 'data', 'fonts.json'), 'utf8'));
@@ -149,10 +155,14 @@ function previewFiles(themeDir) {
 }
 
 // Hex literals that are real CSS colors: not attribute values (fill="#...", href="#...") and not url(#id).
+function isColorLiteralContext(html, index) {
+  const before = html.slice(Math.max(0, index - 3), index);
+  return !/=["']?$/.test(before) && !/\($/.test(before);
+}
+
 function* colorLiterals(html) {
   for (const m of html.matchAll(HEX)) {
-    const before = html.slice(Math.max(0, m.index - 3), m.index);
-    if (/=["']?$/.test(before) || /\($/.test(before)) continue;
+    if (!isColorLiteralContext(html, m.index)) continue;
     yield m;
   }
 }
@@ -162,8 +172,16 @@ export function getThemeDirs(themeArgs) {
   if (themeArgs.length && !themeArgs.includes('--all')) {
     return themeArgs.map((dir) => path.resolve(dir));
   }
-  const here = path.dirname(fileURLToPath(import.meta.url));
-  const repoRoot = path.resolve(here, '..');
+  const repoRoot = path.resolve(HERE, '..');
+  const indexPath = path.join(repoRoot, 'src', 'extensions.json');
+  if (fs.existsSync(indexPath)) {
+    const catalog = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+    return (catalog.extensions || [])
+      .filter((e) => e.kind === 'theme')
+      .map((e) => path.join(repoRoot, e.dir))
+      .filter((d) => fs.existsSync(path.join(d, 'info', 'theme.yaml')))
+      .sort();
+  }
   const themesDir = path.join(repoRoot, 'src', 'themes');
   if (!fs.existsSync(themesDir)) return [];
   return fs.readdirSync(themesDir, { withFileTypes: true })
@@ -195,8 +213,7 @@ async function processTheme(cmd, themeDir, browser, isMulti) {
     if (cmd === 'link') {
       let n = 0;
       const next = html.replace(HEX, (lit, _g, offset) => {
-        const before = html.slice(Math.max(0, offset - 3), offset);
-        if (/=["']?$/.test(before) || /\($/.test(before)) return lit;
+        if (!isColorLiteralContext(html, offset)) return lit;
         const name = byHex.get(normalizeHex(lit.slice(1)));
         if (!name || lit.length === 9) return lit;
         // A preview alias such as "--accent: #fff" must not become "--accent: var(--accent)".
@@ -220,9 +237,8 @@ async function processTheme(cmd, themeDir, browser, isMulti) {
     console.log(`${label}: ${linked} var(--token) uses, ${total} hex literals (${seen.size - stray.length}/${seen.size} distinct are tokens)`);
     if (stray.length) console.log(`  not in tokens.css: ${stray.slice(0, 8).map(([h, c]) => `#${h}${c > 1 ? `×${c}` : ''}`).join(' ')}${stray.length > 8 ? ' …' : ''}`);
     // Fonts: every name in a font-family stack should be bundled (scripts/data/fonts.json), or the render depends on the machine.
-    const reg = loadFontRegistry();
-    const bundled = new Set([...Object.keys(reg.families), ...Object.keys(reg.aliases)].map((n) => n.toLowerCase()));
-    const generic = new Set(['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy', 'inherit', 'initial']);
+    const bundled = bundledFontNames();
+    const generic = new Set([...GENERIC_FONT_FAMILIES, 'inherit', 'initial']);
     const unknown = new Set();
     for (const m of html.replace(/&quot;/g, "'").matchAll(/font-family\s*:\s*((?:"[^"]*"|'[^']*'|[^;}"'])+)/g)) {
       if (/var\(/.test(m[1])) continue;

@@ -1,60 +1,23 @@
 // Writes src/Views/DetailsViewGameOverview.xaml and GridViewGameOverview.xaml from one set of fragments, then applies the
 // repo's responsive breakpoints (scripts/game-page-breakpoints.mjs) to both.
 //
-//   node art/gen-overviews.mjs
+//   node src/themes/Hallowtide/art/gen-overviews.mjs [src/themes/Hallowtide/src]
 //
 // The game page is the open quest book: the dark void page carries a title in carved caps, a thorn rule, the Steam
 // screenshots, and then two parchment pages side by side (or stacked when narrow): the left page is the description
 // and the notes, the right page is the metadata (every field, six groups divided by the thorn rule). Each page is parchment
 // with a burnt edge and the hand-inked rope frame in ink; text on a page is ink (Parchment* brushes), chips are ink plates.
-import { writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { applyGamePageBreakpoints } from '../../../../scripts/game-page-breakpoints.mjs';
+import {
+  META_GROUPS,
+  collapseEmptyTrigger,
+  resolveThemeSrcDir,
+  writeOverviews,
+} from '../../../../scripts/overview-generator.mjs';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const views = join(here, '..', 'src', 'Views');
+const out = resolveThemeSrcDir(import.meta.url);
 
 // ---------------------------------------------------------------------------------------------- metadata model
-const G = {
-  progress: ['MetaProgress', [
-    ['CompletionStatus', 'LOCCompletionStatus', 'button', 'PART_ButtonCompletionStatus'],
-    ['PlayTime', 'LOCTimePlayed', 'text', 'PART_TextPlayTime'],
-    ['LastPlayed', 'LOCLastPlayed', 'text', 'PART_TextLastActivity'],
-    ['RecentActivity', 'LOCRecentActivityLabel', 'text', 'PART_TextRecentActivity'],
-    ['Added', 'LOCDateAddedLabel', 'text', 'PART_TextAdded'],
-  ]],
-  scores: ['MetaScores', [
-    ['CommunityScore', 'LOCCommunityScore', 'score', 'PART_TextCommunityScore'],
-    ['CriticScore', 'LOCCriticScore', 'score', 'PART_TextCriticScore'],
-    ['UserScore', 'LOCUserScore', 'score', 'PART_TextUserScore'],
-  ]],
-  about: ['MetaAbout', [
-    ['Developers', 'LOCDeveloperLabel', 'items', 'PART_ItemsDevelopers'],
-    ['Publishers', 'LOCPublisherLabel', 'items', 'PART_ItemsPublishers'],
-    ['ReleaseDate', 'LOCGameReleaseDateTitle', 'button', 'PART_ButtonReleaseDate'],
-    ['Series', 'LOCSeriesLabel', 'items', 'PART_ItemsSeries'],
-    ['AgeRating', 'LOCAgeRatingLabel', 'items', 'PART_ItemsAgeRatings'],
-    ['Region', 'LOCRegionLabel', 'items', 'PART_ItemsRegions'],
-  ]],
-  tags: ['MetaTags', [
-    ['Platform', 'LOCPlatformTitle', 'chips', 'PART_ItemsPlatforms'],
-    ['Genres', 'LOCGenreLabel', 'chips', 'PART_ItemsGenres'],
-    ['Categories', 'LOCGameCategoriesTitle', 'chips', 'PART_ItemsCategories'],
-    ['Features', 'LOCFeaturesLabel', 'chips', 'PART_ItemsFeatures'],
-    ['Tags', 'LOCTagsLabel', 'chips', 'PART_ItemsTags'],
-  ]],
-  library: ['MetaLibrary', [
-    ['Library', 'LOCGameProviderTitle', 'button', 'PART_ButtonLibrary'],
-    ['Source', 'LOCSourceLabel', 'button', 'PART_ButtonSource'],
-    ['Version', 'LOCVersionLabel', 'button', 'PART_ButtonVersion'],
-    ['InstallSize', 'LOCInstallSizeLabel', 'text', 'PART_TextInstallSize'],
-    ['InstallDirectory', 'LOCGameInstallDirTitle', 'button', 'PART_ButtonInstallDirectory'],
-  ]],
-  links: ['MetaLinks', [
-    ['Links', 'LOCLinksLabel', 'items', 'PART_ItemsLinks'],
-  ]],
-};
+const G = Object.fromEntries(META_GROUPS.map(g => [g[0].replace(/^Meta/, '').toLowerCase(), g]));
 
 function value(kind, part, col) {
   const c = col ? ` Grid.Column="2"` : '';
@@ -94,9 +57,7 @@ function group(view, key) {
   const [name, fields] = G[key];
   const prefix = view;
   const names = fields.map(f => `PART_Elem${f[0]}`);
-  const triggers = names.length === 1
-    ? `<DataTrigger Binding="{Binding Visibility, ElementName=${names[0]}}" Value="Collapsed"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>`
-    : `<MultiDataTrigger><MultiDataTrigger.Conditions>${names.map(n => `<Condition Binding="{Binding Visibility, ElementName=${n}}" Value="Collapsed" />`).join('')}</MultiDataTrigger.Conditions><Setter Property="Visibility" Value="Collapsed" /></MultiDataTrigger>`;
+  const triggers = collapseEmptyTrigger(names, { inline: true });
   return `<Border x:Name="${name}" Margin="0,12,0,0" Padding="0,22,0,0">
 <Border.Style><Style TargetType="Border"><Style.Triggers>${triggers}</Style.Triggers></Style></Border.Style>
 <Grid>
@@ -561,12 +522,5 @@ ${closeButtonTemplate()}
 }
 
 // ---------------------------------------------------------------------------------------------- write
-const outputs = [
-  ['DetailsViewGameOverview.xaml', detailsFile()],
-  ['GridViewGameOverview.xaml', gridFile()],
-];
-for (const [file, text] of outputs) {
-  const result = applyGamePageBreakpoints(text);
-  writeFileSync(join(views, file), result, 'utf8');
-  console.log(`wrote ${file} (${result.length} chars)`);
-}
+writeOverviews(out, detailsFile(), gridFile());
+console.log('wrote both overviews');

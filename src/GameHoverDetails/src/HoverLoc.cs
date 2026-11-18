@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Reflection;
 using System.Windows;
 using Playnite.SDK;
 
@@ -87,14 +86,7 @@ namespace GameHoverDetails
         {
             try
             {
-                var settings = api?.ApplicationSettings;
-                if (settings == null)
-                {
-                    return null;
-                }
-
-                var prop = settings.GetType().GetProperty("Language", BindingFlags.Instance | BindingFlags.Public);
-                return prop?.GetValue(settings, null) as string;
+                return api?.ApplicationSettings?.Language;
             }
             catch
             {

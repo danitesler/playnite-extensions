@@ -11,13 +11,21 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
-& (Join-Path $PSScriptRoot "validate-extension.ps1") -Extension $Extension -Mode Package -Configuration $Configuration
+$profile = Get-ExtensionProfile -Extension $Extension
+$isTheme = (Get-ExtensionKind $profile) -eq "theme"
 
 if ($VerifyInstaller) {
+    $ToolboxExe = Get-PlayniteToolboxExe -ToolboxExe $ToolboxExe -Download
     & (Join-Path $PSScriptRoot "package-release.ps1") -Extension $Extension -ToolboxExe $ToolboxExe -VerifyOnly `
         -AllowUnpublishedPackageUrl:(-not $StrictInstallerVerification)
 }
 
-& (Join-Path $PSScriptRoot "build-plugin.ps1") -Extension $Extension -Configuration $Configuration -NoDeploy
+if ($isTheme) {
+    & (Join-Path $PSScriptRoot "build-theme.ps1") -Extension $Extension -NoDeploy
+}
+else {
+    & (Join-Path $PSScriptRoot "build-plugin.ps1") -Extension $Extension -Configuration $Configuration -NoDeploy
+}
 & (Join-Path $PSScriptRoot "package-release.ps1") -Extension $Extension -Configuration $Configuration -ToolboxExe $ToolboxExe

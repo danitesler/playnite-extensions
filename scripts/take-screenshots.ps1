@@ -49,10 +49,10 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to render $detailsHtml" }
 & node $nodeScript $settingsHtml $settingsOut
 if ($LASTEXITCODE -ne 0) { throw "Failed to render $settingsHtml" }
 
-$base = "https://raw.githubusercontent.com/danitesler/playnite-extensions/main/" + (($profile.dir -replace "\\", "/").TrimEnd("/")) + "/art"
+$base = $profile.rawBaseUrl.TrimEnd("/") + "/" + (($profile.dir -replace "\\", "/").TrimEnd("/")) + "/art"
 Write-Host ""
 Write-Host "Screenshots generated in $OutDir"
-Write-Host "Manifest configuration for info/danitesler_$Extension.yaml:"
+Write-Host "Manifest configuration for $($profile.databaseManifest):"
 Write-Host "Screenshots:"
 Write-Host "  - Thumbnail: $base/screenshot-details.png"
 Write-Host "    Image: $base/screenshot-details.png"
