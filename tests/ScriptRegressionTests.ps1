@@ -396,10 +396,11 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
                 extensionManifest = "info/theme.yaml"
             }
             Invoke-ThemeBuild -Profile $profile -OutDir $themeDrop | Out-Null
-            $buildErrors = @(Test-ThemeBuild -Directory $themeDrop -Mode Desktop)
+            # Only errors about the key under test count: the bare fixture also misses keys the injected defaults use.
+            $buildErrors = @(Test-ThemeBuild -Directory $themeDrop -Mode Desktop | Where-Object { $_ -match 'LocalDemoTemplate' })
             Assert-Equal 0 $buildErrors.Count "Local* decorative key passes Test-ThemeBuild: $($buildErrors -join '; ')"
             Set-Content -LiteralPath (Join-Path $themeDrop "Common.xaml") -Value '<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"><ControlTemplate x:Key="UnregisteredCustomTemplate" /></ResourceDictionary>'
-            $unregisteredErrors = @(Test-ThemeBuild -Directory $themeDrop -Mode Desktop)
+            $unregisteredErrors = @(Test-ThemeBuild -Directory $themeDrop -Mode Desktop | Where-Object { $_ -match 'UnregisteredCustomTemplate' })
             Assert-Equal $true ($unregisteredErrors.Count -gt 0) "Non-Local unregistered key is still rejected by Test-ThemeBuild"
         }
         foreach ($defaultRel in @(
