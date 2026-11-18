@@ -306,11 +306,26 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
         Set-Content -LiteralPath (Join-Path $deployed "a-keep.txt") -Value "keep"
         $global:fixtureInstallLock = [IO.File]::Open((Join-Path $deployed "z-locked.bin"),
             [IO.FileMode]::Create, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+        # Windows refuses to rename a folder holding an exclusively open file. Unix locks are advisory, so the
+        # swap would succeed there; refuse the same rename of the installed folder instead. ($env:OS is faked above.)
+        $simulateLock = [Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT
+        $global:fixtureLockedFolder = [IO.Path]::GetFullPath($deployed)
+        $global:fixtureLockHit = $false
+        if ($simulateLock) {
+            function Rename-Item {
+                if ($args -contains $global:fixtureLockedFolder) { $global:fixtureLockHit = $true; throw "Simulated locked install: $($global:fixtureLockedFolder)" }
+                Microsoft.PowerShell.Management\Rename-Item @args
+            }
+        }
         $failed = $false
         try { & (Join-Path $scripts "build-plugin.ps1") -Extension plugin -DataPath $portable }
         catch { $failed = $true }
-        finally { $global:fixtureInstallLock.Dispose(); $global:fixtureInstallLock = $null }
+        finally {
+            $global:fixtureInstallLock.Dispose(); $global:fixtureInstallLock = $null
+            if ($simulateLock) { Remove-Item -LiteralPath Function:\Rename-Item }
+        }
         Assert-Equal $true $failed "Locked install file fails the deploy"
+        Assert-Equal $simulateLock $global:fixtureLockHit "Simulated lock refused the installed folder swap"
         Assert-Equal "keep" (Get-Content -LiteralPath (Join-Path $deployed "a-keep.txt") -Raw).Trim() "Failed deploy keeps the previous install"
         Assert-Events "plugin-build|stop:$desktopExe|start:Desktop:$desktopExe"
 
