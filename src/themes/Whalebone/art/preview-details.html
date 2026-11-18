@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Whalebone - details view</title>
+<style>
+  /* Whalebone details view replica. Colors are var(--wb-*) from src/tokens.css (injected by the renderer).
+     Sizes follow the XAML: rail 44 (items 44x40, 16px glyphs), top bar 52 with 34px cells, 32px fields. */
+  :root {
+    --body: "Zilla Slab", "Georgia";
+    --caps: "Cinzel", "Georgia";
+    --script: "Marck Script", "Georgia";
+    --fx: "../src/Images/fx/";
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--wb-slate); color: var(--wb-chalk);
+         font: 14px/1.4 var(--body); display: flex; position: relative; }
+  svg.i { width: 16px; height: 16px; fill: currentColor; flex: none; }
+
+  /* Masks shared by the plates (same PNGs the XAML uses as OpacityMask). */
+  .stroke { -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .inkplate { -webkit-mask: url("../src/Images/fx/ink-plate.png") center / 100% 100% no-repeat; }
+  .smear { -webkit-mask: url("../src/Images/fx/ink-smear.png") left center / 100% 100% no-repeat; }
+  .frost { -webkit-mask-box-image: url("../src/Images/fx/frost-frame.png") 24 fill / 24px; }
+
+  /* ---------- Rail ---------- */
+  .rail { width: 44px; flex: none; background: var(--wb-pitch); border-right: 1px solid var(--wb-line);
+          display: flex; flex-direction: column; align-items: center; padding-top: 6px; position: relative; z-index: 2; }
+  .medallion { width: 44px; height: 44px; display: grid; place-items: center; margin-bottom: 6px; }
+  .medallion .disc { width: 32px; height: 32px; border-radius: 50%; background: var(--wb-ink);
+                     box-shadow: inset 0 0 0 1px var(--wb-pewter-hi); display: grid; place-items: center; color: var(--wb-bone); }
+  .medallion svg.i { width: 20px; height: 20px; }
+  .ritem { width: 44px; height: 40px; display: grid; place-items: center; color: var(--wb-ash); position: relative; }
+  .ritem.cur { color: var(--wb-ink-text); }
+  .ritem.cur::before { content: ""; position: absolute; left: 2px; top: 7px; width: 40px; height: 26px;
+                       background: var(--wb-bone); -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .ritem svg { position: relative; }
+  .ritem.cur::after { content: ""; position: absolute; left: 0; top: 13px; width: 2px; height: 14px; background: var(--wb-frost); }
+
+  /* ---------- Top bar ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
+  .top { height: 52px; flex: none; background: var(--wb-ink); display: flex; align-items: center; padding-left: 10px; position: relative; z-index: 3; }
+  .top .rule { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--wb-line); }
+  .top .crack { position: absolute; left: 0; bottom: -6px; width: 520px; height: 12px; pointer-events: none; }
+  .search { width: 260px; height: 32px; position: relative; display: flex; align-items: center; gap: 8px; padding: 0 20px;
+            color: var(--wb-ash); font-style: italic; }
+  .search::before { content: ""; position: absolute; inset: 0; background: var(--wb-violet);
+                    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%); }
+  .search::after { content: ""; position: absolute; inset: 0; background: var(--wb-bone); opacity: .32;
+                   clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%,
+                                      1px 50%, 10.5px 99%, calc(100% - 10.5px) 99%, calc(100% - 1px) 50%, calc(100% - 10.5px) 1px, 10.5px 1px, 1px 50%); }
+  .search > * { position: relative; }
+  .cell { width: 34px; height: 34px; display: grid; place-items: center; color: var(--wb-ash); position: relative; flex: none; }
+  .cell.on { color: var(--wb-ink-text); }
+  .cell.on::before { content: ""; position: absolute; inset: 4px -3px; background: var(--wb-bone);
+                     -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .cell.hov::before { content: ""; position: absolute; inset: 3px -1px; background: var(--wb-pewter);
+                      -webkit-mask: url("../src/Images/fx/ink-plate.png") center / 100% 100% no-repeat; }
+  .cell.hov { color: var(--wb-chalk); }
+  .cell svg { position: relative; }
+  .cell .mark { position: absolute; right: 6px; top: 6px; width: 9px; height: 9px; border-radius: 50%;
+                background: var(--wb-teal-hi); box-shadow: 0 0 0 1px var(--wb-ink), 0 0 6px 1px color-mix(in srgb, var(--wb-teal) 70%, transparent); }
+  .cell .count { position: absolute; right: 2px; top: 3px; width: 15px; height: 15px; border-radius: 50%;
+                 background: var(--wb-teal-hi); color: var(--wb-ink-text); font: 700 10px/15px var(--body); text-align: center;
+                 box-shadow: 0 0 6px color-mix(in srgb, var(--wb-teal) 60%, transparent); }
+  .items { display: flex; align-items: center; margin-left: 4px; }
+  .pipe { width: 1px; height: 18px; background: var(--wb-line); margin: 0 6px; transform: skewX(-16deg); }
+  .sp { flex: 1; }
+  .win { display: flex; align-self: flex-start; }
+  .win div { width: 44px; height: 32px; display: grid; place-items: center; color: var(--wb-ash); }
+  .win svg.i { width: 12px; height: 12px; }
+
+  /* ---------- Library list ---------- */
+  .view { flex: 1; display: flex; min-height: 0; }
+  .list { width: 264px; flex: none; padding: 10px 8px 0 8px; display: flex; flex-direction: column; gap: 2px; position: relative; }
+  .group { font: 15px/1 var(--script); color: var(--wb-ash); padding: 8px 10px 6px; }
+  .row { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; position: relative; color: var(--wb-chalk); white-space: nowrap; }
+  .row .ic { width: 20px; height: 20px; flex: none; position: relative; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px); }
+  .row span { position: relative; }
+  .row.hov::before { content: ""; position: absolute; inset: 0 -2px; background: var(--wb-pewter);
+                     -webkit-mask: url("../src/Images/fx/ink-plate.png") center / 100% 100% no-repeat; }
+  .row.sel { color: var(--wb-ink-text); }
+  .row.sel .paper { position: absolute; inset: 0; background: var(--wb-bone); box-shadow: 0 -1px 0 var(--wb-frost), 0 1px 0 var(--wb-frost), 0 0 8px 1px color-mix(in srgb, var(--wb-frost-blue) 55%, transparent); }
+  .row.sel .vein { position: absolute; inset: 0; background: var(--wb-bone-shade); opacity: .55;
+                   -webkit-mask: url("../src/Images/fx/marble.png") 0 0 / 256px 96px repeat; }
+  .row.sel .edge { position: absolute; inset: -10px -12px; background: var(--wb-frost);
+                   -webkit-mask-box-image: url("../src/Images/fx/frost-frame.png") 24 / 24px; }
+  .row.sel .hooks { position: absolute; inset: -6px -9px; width: calc(100% + 18px); height: 44px; overflow: visible; }
+  .row.run { color: var(--wb-chalk); }
+  .row.run .wash { position: absolute; inset: 0; background: var(--wb-oil); opacity: .12; }
+  .row.run .frame { position: absolute; inset: 0; border: 2px solid var(--wb-oil); box-shadow: inset 0 0 0 1px var(--wb-pitch); }
+  .row.run .lamps { position: absolute; right: 8px; top: 9px; display: flex; gap: 3px; }
+  .row.run .lamps i { width: 7px; height: 12px; background: var(--wb-oil); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .row.run .lamps i:nth-child(2) { opacity: .65; } .row.run .lamps i:nth-child(3) { opacity: .3; }
+
+  /* ---------- Game page ---------- */
+  .page { flex: 1; position: relative; overflow: hidden; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 300px; overflow: hidden; }
+  .banner .art { position: absolute; inset: 0;
+                 background: radial-gradient(ellipse 50% 70% at 72% 30%, #6f7f86 0%, #3a464d 38%, transparent 70%),
+                             radial-gradient(ellipse 60% 60% at 18% 20%, #4f3a3d 0%, transparent 70%),
+                             linear-gradient(180deg, #2d353c 0%, #20262c 100%); }
+  .banner .fade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, var(--wb-slate) 96%); }
+  .banner .crack { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .header { position: absolute; left: 28px; top: 118px; right: 28px; }
+  .titlewrap { position: relative; display: inline-block; padding: 6px 30px 4px 6px; }
+  .titlewrap .smear { position: absolute; left: -22px; top: 14px; width: 470px; height: 44px; background: var(--wb-wine); }
+  .title { position: relative; font: 700 30px/1.1 var(--caps); letter-spacing: 1px; color: var(--wb-chalk); text-transform: uppercase;
+           text-shadow: 0 1px 2px var(--wb-pitch); }
+  .actions { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+  .actions .play { margin: 0 20px 0 10px; }
+  .play { width: 176px; height: 40px; position: relative; display: flex; align-items: center; justify-content: center; gap: 10px;
+          color: var(--wb-ink-text); font: 700 16px/1 var(--caps); letter-spacing: 2px; }
+  .play .bloom { position: absolute; left: -36px; right: -36px; top: -26px; bottom: -26px; background: var(--wb-frost); opacity: .38;
+                 -webkit-mask: url("../src/Images/fx/bloom.png") center / 100% 100% no-repeat; }
+  .play .plate { position: absolute; inset: -3px -10px; background: var(--wb-bone);
+                 -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .play .wet { position: absolute; inset: 2px -4px; background: var(--wb-frost); opacity: .55;
+               -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .play .rim { position: absolute; inset: -22px -26px; background: var(--wb-frost);
+               -webkit-mask-box-image: url("../src/Images/fx/frost-frame.png") 24 / 24px; }
+  .play .hooks, .play .shards { position: absolute; overflow: visible; }
+  .play .hooks { left: -10px; top: -7px; width: 196px; height: 54px; }
+  .play .shards { left: 160px; top: -30px; width: 70px; height: 70px; }
+  .play svg.i, .play b { position: relative; font-weight: 700; }
+  .key { width: 40px; height: 40px; border-radius: 4px; background: var(--wb-ink); color: var(--wb-chalk); display: grid; place-items: center;
+         box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wb-bone) 45%, transparent), inset 0 2px 0 color-mix(in srgb, var(--wb-bone) 12%, transparent), 0 1px 0 var(--wb-pitch); }
+
+  .body { position: absolute; left: 28px; right: 28px; top: 270px; display: flex; gap: 24px; }
+  .col { flex: 1; min-width: 0; }
+  .caption { position: relative; display: inline-block; font: 21px/1 var(--script); color: var(--wb-chalk); padding: 6px 40px 8px 10px; margin-left: -10px; }
+  .caption::before { content: ""; position: absolute; inset: 0 0 0 0; width: 220px; background: var(--wb-ink); opacity: .95;
+                     -webkit-mask: url("../src/Images/fx/ink-smear.png") left center / 100% 100% no-repeat; }
+  .caption span { position: relative; }
+  .shots { display: flex; gap: 12px; margin: 8px 0 16px; }
+  .shot { flex: 1; height: 96px; position: relative; }
+  .shot .img { position: absolute; inset: 0;
+               clip-path: polygon(6px 0, calc(100% - 6px) 0, calc(100% - 6px) 1px, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+  .shot:nth-child(1) .img { background: linear-gradient(160deg, #56646a, #252c33 60%, #1a1c22); }
+  .shot:nth-child(2) .img { background: linear-gradient(200deg, #6b4b3f, #2a2224 55%, #15161b); }
+  .shot:nth-child(3) .img { background: linear-gradient(170deg, #3c4b5d, #1d2430 60%, #121318); }
+  .shot .line { position: absolute; inset: 3px; border: 1px solid color-mix(in srgb, var(--wb-bone) 22%, transparent); }
+  .desc { color: var(--wb-chalk); font-size: 14px; line-height: 1.55; margin-top: 8px; max-width: 560px; }
+  .desc + .desc { margin-top: 10px; }
+  .desc a { color: var(--wb-teal); text-decoration: none; }
+  .desc em { color: var(--wb-ash); }
+
+  .meta { width: 334px; flex: none; background: color-mix(in srgb, var(--wb-ink) 88%, transparent); padding: 12px 16px; position: relative; }
+  .meta .frame { position: absolute; inset: 4px; border: 1px solid var(--wb-line); pointer-events: none; }
+  .meta .corner { position: absolute; width: 22px; height: 22px; }
+  .meta .corner.tl { left: -1px; top: -1px; } .meta .corner.br { right: -1px; bottom: -1px; transform: rotate(180deg); }
+  .mg { padding: 7px 0; border-top: 1px solid var(--wb-line); position: relative; }
+  .mg:first-of-type { border-top: 0; padding-top: 2px; }
+  .mr { display: flex; align-items: baseline; gap: 8px; padding: 2px 0; position: relative; }
+  .mr .l { font-style: italic; color: var(--wb-ash); font-size: 13px; white-space: nowrap; }
+  .mr .lead { flex: 1; border-bottom: 1px dotted color-mix(in srgb, var(--wb-ash) 45%, transparent); transform: translateY(-4px); min-width: 12px; }
+  .mr .v { color: var(--wb-chalk); text-align: right; }
+  .mr .v.caps { font: 700 13px/1 var(--caps); letter-spacing: 1px; }
+  .mr .v.pos { color: var(--wb-teal); } .mr .v.mix { color: var(--wb-frost-blue); }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; }
+  .chip { height: 22px; padding: 0 9px; font-size: 12px; line-height: 22px; color: var(--wb-chalk); background: var(--wb-violet); border-radius: 2px;
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wb-bone) 22%, transparent); }
+  .mr .v a { color: var(--wb-teal); text-decoration: none; }
+
+  .note { position: absolute; left: 20px; width: 240px; bottom: 8px; line-height: 1.35; font: italic 11px/1 var(--body); color: color-mix(in srgb, var(--wb-ash) 70%, transparent); }
+</style>
+</head>
+<body>
+<!-- icons:begin -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-Search" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10,2.6 L15.2,4.8 L17.4,10 L15.2,15.2 L10,17.4 L4.8,15.2 L2.6,10 L4.8,4.8 Z M10,5.2 L6.6,6.6 L5.2,10 L6.6,13.4 L10,14.8 L13.4,13.4 L14.8,10 L13.4,6.6 Z M14.4,16.4 L16.4,14.4 L21.8,20.6 L20.6,21.8 Z"/></symbol>
+  <symbol id="i-Clear" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,4 L12,9.8 L19,4 L20,5 L14.2,12 L20,19 L19,20 L12,14.2 L5,20 L4,19 L9.8,12 L4,5 Z"/></symbol>
+  <symbol id="i-ViewSettings" viewBox="0 0 24 24"><path fill-rule="nonzero" d="M3,6.3 H21 V7.7 H3 Z M3,11.3 H21 V12.7 H3 Z M3,16.3 H21 V17.7 H3 Z M8,3.6 L10.8,7 L8,10.4 L5.2,7 Z M15.5,8.6 L18.3,12 L15.5,15.4 L12.7,12 Z M10,13.6 L12.8,17 L10,20.4 L7.2,17 Z"/></symbol>
+  <symbol id="i-FilterPresets" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,4.5 H20 L19,6.5 H5 Z M6.5,9.5 H17.5 L16.5,11.5 H7.5 Z M9,14.5 H15 L14,16.5 H10 Z M11,19 H13 L12.5,20.8 H11.5 Z"/></symbol>
+  <symbol id="i-Group" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,4 H11 V10 L10,11 H4 Z M13,4 H20 V11 H14 L13,10 Z M4,13 H10 L11,14 V20 H4 Z M13,16.5 H20 V18.5 H13 Z"/></symbol>
+  <symbol id="i-Sort" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,5.5 H14 V7.5 H3 Z M3,10.8 H11 V12.8 H3 Z M3,16 H8 V18 H3 Z M17,4 H19 V16 H21.6 L18,21 L14.4,16 H17 Z"/></symbol>
+  <symbol id="i-DetailsView" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,4 H9 V20 H3 Z M11,4 H21 V10 L20,11 H11 Z M11,13 H20 L21,14 V20 H11 Z"/></symbol>
+  <symbol id="i-GridView" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,5 L5,4 H10 L11,5 V10 L10,11 H5 L4,10 Z M13,5 L14,4 H19 L20,5 V10 L19,11 H14 L13,10 Z M4,14 L5,13 H10 L11,14 V19 L10,20 H5 L4,19 Z M13,14 L14,13 H19 L20,14 V19 L19,20 H14 L13,19 Z"/></symbol>
+  <symbol id="i-ListView" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8,5.5 H21 V7.5 H8 Z M8,11 H21 V13 H8 Z M8,16.5 H21 V18.5 H8 Z M3,6.5 L4.5,5 L6,6.5 L4.5,8 Z M3,12 L4.5,10.5 L6,12 L4.5,13.5 Z M3,17.5 L4.5,16 L6,17.5 L4.5,19 Z"/></symbol>
+  <symbol id="i-Update" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2.5 L19,10 H14.5 V16 H9.5 V10 H5 Z M4,19 H20 L19,21 H5 Z"/></symbol>
+  <symbol id="i-Explorer" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2.5,5 C5.5,4 9,4.3 11.2,6 V20 C9,18.5 5.5,18.2 2.5,19 Z M21.5,5 C18.5,4 15,4.3 12.8,6 V20 C15,18.5 18.5,18.2 21.5,19 Z"/></symbol>
+  <symbol id="i-Random" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2 L21,12 L12,22 L3,12 Z M12,5.4 L6.4,12 L12,18.6 L17.6,12 Z M12,9.6 L14.4,12 L12,14.4 L9.6,12 Z"/></symbol>
+  <symbol id="i-ViewRandom" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2 L21,12 L12,22 L3,12 Z M12,5.4 L6.4,12 L12,18.6 L17.6,12 Z M10.4,9 L14.6,12 L10.4,15 Z"/></symbol>
+  <symbol id="i-Filter" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,4.5 H21 L14,12.8 V19 L10,21 V12.8 Z"/></symbol>
+  <symbol id="i-Notifications" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,3 C15.4,3 17.6,5.6 17.6,9 V13.6 L19.8,17 H4.2 L6.4,13.6 V9 C6.4,5.6 8.6,3 12,3 Z M9.6,18.4 H14.4 C14.2,19.9 13.2,20.8 12,20.8 C10.8,20.8 9.8,19.9 9.6,18.4 Z"/></symbol>
+  <symbol id="i-MainMenu" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,1.4 A10.6,10.6 0 1,1 11.99,1.4 Z M12,3 A9,9 0 1,0 12.01,3 Z M12,4.4 C13.6,7.5 14.2,9.6 14.2,12 C14.2,14.4 13.6,16.5 12,19.6 C10.4,16.5 9.8,14.4 9.8,12 C9.8,9.6 10.4,7.5 12,4.4 Z M6.6,11.2 H17.4 V12.8 H6.6 Z M15.2,9.4 L19.6,4.6 L17.6,10.2 Z"/></symbol>
+  <symbol id="i-Library" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,5 H8 V19 H4 Z M9.5,5 H13.5 V19 H9.5 Z M15,6.2 L18.6,5 L21.4,18.4 L17.8,19.6 Z"/></symbol>
+  <symbol id="i-Statistics" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,13 L7,12 V19 H4 Z M10,7 L13,6 V19 H10 Z M16,10 L19,9 V19 H16 Z M3,20 H20 L19.4,21.2 H3 Z"/></symbol>
+  <symbol id="i-WindowMinimize" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,11.2 H19 L18.4,12.8 H5.6 Z"/></symbol>
+  <symbol id="i-WindowMaximize" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,6 L6,5 H18 L19,6 V18 L18,19 H6 L5,18 Z M7,7 V17 H17 V7 Z"/></symbol>
+  <symbol id="i-WindowRestore" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8,3 H21 V16 H19 V5 H8 Z M3,8 H16 V21 H3 Z M5,10 V19 H14 V10 Z"/></symbol>
+  <symbol id="i-WindowClose" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,4 L12,9.8 L19,4 L20,5 L14.2,12 L20,19 L19,20 L12,14.2 L5,20 L4,19 L9.8,12 L4,5 Z"/></symbol>
+  <symbol id="i-DropDown" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5.5,8.5 L12,15.5 L18.5,8.5 L17,7 L12,12.4 L7,7 Z"/></symbol>
+  <symbol id="i-Submenu" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8.5,5.5 L15.5,12 L8.5,18.5 L7,17 L12.4,12 L7,7 Z"/></symbol>
+  <symbol id="i-Check" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3.8,12.6 L6.4,10 L10,13.6 L18,5 L20.4,7.4 L10,18.6 Z"/></symbol>
+  <symbol id="i-Add" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11,4 H13 V11 H20 V13 H13 V20 H11 V13 H4 V11 H11 Z"/></symbol>
+  <symbol id="i-Edit" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.8,3.2 C14,4.6 9.4,9.4 6.6,15.6 L5.2,19.6 L6.8,20.2 L8.4,16.8 C12.6,15.2 16.8,10.8 19.8,3.2 Z M4,20.6 H12.5 L12,21.8 H4 Z"/></symbol>
+  <symbol id="i-Remove" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,5.5 H9 V3.5 H15 V5.5 H20 V7.5 H4 Z M6,9.5 H18 L17,20.5 H7 Z"/></symbol>
+  <symbol id="i-Options" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,10 L7,12 L5,14 L3,12 Z M12,10 L14,12 L12,14 L10,12 Z M19,10 L21,12 L19,14 L17,12 Z"/></symbol>
+  <symbol id="i-Play" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M6,3.5 L20.5,12 L6,20.5 L7.6,12 Z"/></symbol>
+  <symbol id="i-Info" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,3 L14,5 L12,7 L10,5 Z M10.6,9.5 H13.4 V18 H15.4 V20 H8.6 V18 H10.6 Z"/></symbol>
+  <symbol id="i-Download" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10.5,3 H13.5 V11 H18 L12,17.5 L6,11 H10.5 Z M4,19 H20 L19,21 H5 Z"/></symbol>
+</svg>
+<!-- icons:end -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Frost hooks: the curled tips at both ends of a chosen plate (Video Settings row, Play). -->
+    <symbol id="hooks-row" viewBox="0 0 264 44" preserveAspectRatio="none">
+      <path d="M14,6 C6,6 2,10 3,16 C4,12 8,10 13,10 Z M250,38 C258,38 262,34 261,28 C260,32 256,34 251,34 Z" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>
+
+<aside class="rail" data-part="sidebar">
+  <div class="medallion" data-part="PART_ElemMainMenu"><div class="disc"><svg class="i"><use href="#i-MainMenu"/></svg></div></div>
+  <div class="ritem cur"><svg class="i"><use href="#i-Library"/></svg></div>
+  <div class="ritem"><svg class="i"><use href="#i-Statistics"/></svg></div>
+  <div class="ritem"><svg class="i"><use href="#i-Explorer"/></svg></div>
+</aside>
+
+<div class="main">
+  <header class="top" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="i"><use href="#i-Search"/></svg><span>Search</span></div>
+    <div class="cell on" data-part="PART_ToggleFilter" style="margin-left:6px"><svg class="i"><use href="#i-Filter"/></svg><span class="mark"></span></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="cell"><svg class="i"><use href="#i-Sort"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#i-ViewSettings"/></svg></div>
+      <div class="cell hov"><svg class="i"><use href="#i-FilterPresets"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#i-Group"/></svg></div>
+      <span class="pipe"></span>
+      <div class="cell on"><svg class="i"><use href="#i-DetailsView"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#i-GridView"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#i-ListView"/></svg></div>
+      <div class="cell"><svg class="i"><use href="#i-Random"/></svg></div>
+    </div>
+    <div class="cell" data-part="PART_ToggleNotifications"><svg class="i"><use href="#i-Notifications"/></svg><span class="count">3</span></div>
+    <div class="sp"></div>
+    <div class="win">
+      <div><svg class="i"><use href="#i-WindowMinimize"/></svg></div>
+      <div><svg class="i"><use href="#i-WindowMaximize"/></svg></div>
+      <div><svg class="i"><use href="#i-WindowClose"/></svg></div>
+    </div>
+    <div class="rule"></div>
+    <!-- The fracture rule: the hairline cracks once, a lit frost segment and a glass shard at the break. -->
+    <svg class="crack" viewBox="0 0 520 12" preserveAspectRatio="none">
+      <polyline points="0,6.5 300,6.5 318,3.5 520,3.5" fill="none" stroke="var(--wb-frost-blue)" stroke-opacity=".55" stroke-width="1"/>
+      <polyline points="210,6.5 300,6.5 318,3.5 380,3.5" fill="none" stroke="var(--wb-frost)" stroke-width="1"/>
+      <path d="M306,6.5 L316,0.5 L313,8 Z" fill="var(--wb-frost)"/>
+    </svg>
+  </header>
+
+  <div class="view">
+    <aside class="list" data-part="game-list">
+      <div class="group">Harbour Quarter</div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#5b6a70,#262b31)"></span><span>Ashen Lighthouse</span></div>
+      <div class="row hov"><span class="ic" style="background:linear-gradient(135deg,#7a5a48,#2b2224)"></span><span>Brine &amp; Lantern</span></div>
+      <div class="row sel"><span class="paper"></span><span class="vein"></span><span class="edge"></span>
+        <svg class="hooks" viewBox="0 0 264 44" preserveAspectRatio="none" style="color:var(--wb-frost)"><use href="#hooks-row"/></svg>
+        <span class="ic" style="background:linear-gradient(135deg,#6f7f86,#2d353c)"></span><span>The Salt Hollow</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#46566a,#1b2029)"></span><span>Clockwork Conservatory</span></div>
+      <div class="row run"><span class="wash"></span><span class="frame"></span>
+        <span class="ic" style="background:linear-gradient(135deg,#8a6a3a,#2a2420)"></span><span>Dustwind Quarter</span><span class="lamps"><i></i><i></i><i></i></span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#4b3a44,#1a1619)"></span><span>Iron Ledger</span></div>
+      <div class="group">Old Tower</div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#5d5148,#211c1b)"></span><span>Kennel Row</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#3f4e52,#171b1e)"></span><span>The Pale Widow</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#6a5d52,#24201c)"></span><span>Oil Barge Nine</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#4c4a5e,#1b1a24)"></span><span>Tincture Hall</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#584640,#1e1919)"></span><span>Whisper Gutter</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#465a5c,#181d1e)"></span><span>Widow's Bellows</span></div>
+      <div class="row"><span class="ic" style="background:linear-gradient(135deg,#5f574b,#201d19)"></span><span>Fog Ferry</span></div>
+    </aside>
+
+    <main class="page" data-part="game-page">
+      <div class="banner">
+        <div class="art"></div>
+        <div class="fade"></div>
+        <svg class="crack" viewBox="0 0 972 300" preserveAspectRatio="none">
+          <polyline points="600,0 760,120 972,170" fill="none" stroke="var(--wb-frost)" stroke-opacity=".35" stroke-width="1"/>
+          <polyline points="972,40 820,96" fill="none" stroke="var(--wb-frost)" stroke-opacity=".25" stroke-width="1"/>
+          <path d="M792,58 L812,44 L806,72 Z" fill="var(--wb-frost)" fill-opacity=".85"/>
+          <path d="M806,72 L812,44 L816,64 Z" fill="var(--wb-bone-shade)" fill-opacity=".8"/>
+          <path d="M900,128 L912,120 L908,138 Z" fill="var(--wb-frost)" fill-opacity=".6"/>
+        </svg>
+      </div>
+
+      <div class="header">
+        <div class="titlewrap"><span class="smear"></span><div class="title">The Salt Hollow</div></div>
+        <div class="actions">
+          <div class="play">
+            <span class="bloom"></span><span class="plate"></span><span class="wet"></span>
+            <svg class="hooks" viewBox="0 0 196 54" preserveAspectRatio="none" style="color:var(--wb-frost)">
+              <path d="M10,0.5 C4,0.5 0,3 0.6,9.5 C1.6,5.7 4.6,2.7 10,2.5 Z M186,53.5 C192,53.5 196,51 195.4,44.5 C194.4,48.3 191.4,51.3 186,51.5 Z" fill="currentColor"/>
+              <path d="M6,0.5 H190" stroke="currentColor" stroke-width="1"/><path d="M6,53.5 H190" stroke="currentColor" stroke-width="1"/>
+            </svg>
+            <svg class="shards" viewBox="0 0 70 70">
+              <path d="M18,22 L40,10 L30,32 Z" fill="var(--wb-frost)"/><path d="M30,32 L40,10 L42,26 Z" fill="var(--wb-bone-shade)"/>
+              <path d="M44,40 L60,36 L48,50 Z" fill="var(--wb-frost)" fill-opacity=".8"/>
+              <path d="M30,52 L40,58 L28,62 Z" fill="var(--wb-frost)" fill-opacity=".55"/>
+            </svg>
+            <svg class="i"><use href="#i-Play"/></svg><b>PLAY</b>
+          </div>
+          <div class="key" title="More"><svg class="i"><use href="#i-Options"/></svg></div>
+          <div class="key" title="Edit"><svg class="i"><use href="#i-Edit"/></svg></div>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="col">
+          <div class="caption"><span>Screenshots</span></div>
+          <div class="shots">
+            <div class="shot"><div class="img"></div><div class="line"></div></div>
+            <div class="shot"><div class="img"></div><div class="line"></div></div>
+            <div class="shot"><div class="img"></div><div class="line"></div></div>
+          </div>
+          <div class="caption"><span>Description</span></div>
+          <p class="desc">A plague of salt has crusted the harbour. Slip through the lighthouse quarter after curfew, turn the guard's own clockwork against them and decide who walks out of the Hollow alive.</p>
+          <p class="desc">Every district has three ways in: the rooftops, the sewers, or the front door with a forged writ. <a href="#">The Watchman's Ledger</a> records which you chose. <em>Notes: the third bell tower key is behind the fishmonger.</em></p>
+        </div>
+
+        <aside class="meta" data-part="metadata">
+          <span class="frame"></span>
+          <svg class="corner tl" viewBox="0 0 22 22"><path d="M1,21 V1 H21" fill="none" stroke="var(--wb-bone-shade)" stroke-width="1.2"/><path d="M4,12 C4,7 7,4 12,4" fill="none" stroke="var(--wb-bone-shade)" stroke-width="1"/><circle cx="12" cy="4" r="1.3" fill="var(--wb-bone-shade)"/></svg>
+          <svg class="corner br" viewBox="0 0 22 22"><path d="M1,21 V1 H21" fill="none" stroke="var(--wb-bone-shade)" stroke-width="1.2"/><path d="M4,12 C4,7 7,4 12,4" fill="none" stroke="var(--wb-bone-shade)" stroke-width="1"/><circle cx="12" cy="4" r="1.3" fill="var(--wb-bone-shade)"/></svg>
+          <div class="mg">
+            <div class="mr"><span class="l">Completion Status</span><span class="lead"></span><span class="v">Playing</span></div>
+            <div class="mr"><span class="l">Time Played</span><span class="lead"></span><span class="v">37h 42m</span></div>
+            <div class="mr"><span class="l">Last Played</span><span class="lead"></span><span class="v">Yesterday</span></div>
+          </div>
+          <div class="mg">
+            <div class="mr"><span class="l">Community Score</span><span class="lead"></span><span class="v pos">88</span></div>
+            <div class="mr"><span class="l">Critic Score</span><span class="lead"></span><span class="v mix">71</span></div>
+          </div>
+          <div class="mg">
+            <div class="mr"><span class="l">Developers</span><span class="lead"></span><span class="v">Tidewater Guild</span></div>
+            <div class="mr"><span class="l">Release Date</span><span class="lead"></span><span class="v">11/10/2016</span></div>
+          </div>
+          <div class="mg">
+            <div class="mr"><span class="l">Genres</span><span class="lead"></span><span class="v chips"><span class="chip">Stealth</span><span class="chip">Immersive Sim</span></span></div>
+            <div class="mr"><span class="l">Features</span><span class="lead"></span><span class="v chips"><span class="chip">Single Player</span></span></div>
+          </div>
+          <div class="mg">
+            <div class="mr"><span class="l">Library</span><span class="lead"></span><span class="v">Steam</span></div>
+            <div class="mr"><span class="l">Install Size</span><span class="lead"></span><span class="v">38.2 GB</span></div>
+          </div>
+          <div class="mg">
+            <div class="mr"><span class="l">Links</span><span class="lead"></span><span class="v"><a href="#">Field Guide</a></span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <div class="note" style="left:8px">Whalebone is an unofficial fan theme inspired by Dishonored 2. Not affiliated with Arkane or Bethesda; no game art, logo or fonts.</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Whalebone - settings window</title>
+<style>
+  /* Whalebone Settings window replica (SettingsWindow.xaml, 800x620 minimum, drawn ~920x680).
+     Colors are var(--wb-*) from src/tokens.css. Title band 44px, tree rows 30px, fields 32px. */
+  :root { --body: "Zilla Slab", "Georgia"; --caps: "Cinzel", "Georgia"; --script: "Marck Script", "Georgia"; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; color: var(--wb-chalk); font: 14px/1.4 var(--body);
+         background: radial-gradient(ellipse 70% 80% at 50% 40%, var(--wb-slate-hi), var(--wb-pitch) 80%); position: relative; }
+  svg.i { width: 16px; height: 16px; fill: currentColor; flex: none; }
+  .backdrop { position: absolute; inset: 0; pointer-events: none; }
+
+  .window { position: absolute; left: 180px; top: 12px; width: 920px; height: 692px; background: var(--wb-slate);
+            box-shadow: 0 0 0 1px var(--wb-line), 0 12px 40px var(--wb-pitch); display: flex; flex-direction: column; }
+
+  /* Title band: mark in a medallion, script title on a crimson smear, fracture hairline with one shard. */
+  .band { height: 44px; flex: none; background: var(--wb-pitch); position: relative; display: flex; align-items: center; padding-left: 12px; }
+  .band .seal { width: 28px; height: 28px; border-radius: 50%; background: var(--wb-ink); box-shadow: inset 0 0 0 1px var(--wb-pewter-hi);
+                display: grid; place-items: center; color: var(--wb-bone); position: relative; }
+  .band .seal svg.i { width: 18px; height: 18px; }
+  .band .ticks { position: absolute; left: 6px; top: 2px; width: 40px; height: 40px; }
+  .band .ttl { position: relative; margin-left: 14px; padding: 4px 46px 6px 12px; font: 22px/1 var(--script); color: var(--wb-chalk); }
+  .band .ttl::before { content: ""; position: absolute; inset: 2px 0 0 0; background: var(--wb-wine);
+                       -webkit-mask: url("../src/Images/fx/ink-smear.png") left center / 100% 100% no-repeat; }
+  .band .ttl span { position: relative; }
+  .band .crack { position: absolute; left: 0; right: 0; bottom: -5px; height: 10px; width: 100%; }
+  .band .caps { margin-left: auto; display: flex; align-self: flex-start; }
+  .band .caps div { width: 44px; height: 32px; display: grid; place-items: center; color: var(--wb-ash); }
+  .band .caps div.close { background: var(--wb-blood); color: var(--wb-chalk); }
+  .band .caps svg.i { width: 12px; height: 12px; }
+
+  .middle { flex: 1; display: flex; min-height: 0; }
+  .tree { width: 248px; flex: none; padding: 6px 0 6px 8px; border-right: 1px solid var(--wb-line); overflow: hidden; }
+  .node { height: 28px; display: flex; align-items: center; gap: 6px; padding-left: 10px; color: var(--wb-ash); position: relative; white-space: nowrap; }
+  .node.child { padding-left: 34px; }
+  .node .chev { width: 12px; height: 12px; color: var(--wb-ash); position: relative; }
+  .node .chev.open { transform: none; } .node .chev.shut { transform: rotate(-90deg); }
+  .node .pad { width: 12px; flex: none; }
+  .node span { position: relative; }
+  .node.hov::before { content: ""; position: absolute; inset: 1px 8px 1px 0; background: var(--wb-pewter); opacity: .35;
+                      -webkit-mask: url("../src/Images/fx/ink-plate.png") center / 100% 100% no-repeat; }
+  .node.hov { color: var(--wb-chalk); }
+  .node.sel { color: var(--wb-chalk); }
+  .node.sel::before { content: ""; position: absolute; inset: 0 8px 0 -4px; background: var(--wb-bone); opacity: .2;
+                      -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .node.sel::after { content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 2px; background: var(--wb-frost);
+                     box-shadow: 0 0 6px var(--wb-frost-blue); }
+
+  .content { flex: 1; padding: 16px 26px 10px 24px; position: relative; min-width: 0; }
+  .crumb { font: 700 15px/1 var(--caps); letter-spacing: 1.5px; text-transform: uppercase; color: var(--wb-chalk); margin-bottom: 14px; }
+  .crumb em { font: italic 14px var(--body); letter-spacing: 0; text-transform: none; color: var(--wb-ash); }
+
+  /* Tabs: idle ink plates; selected = paper plate in an iron bracket frame with a "v" notch. */
+  .tabs { display: flex; gap: 6px; align-items: flex-end; height: 40px; margin-bottom: 18px; position: relative; }
+  .tabs::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--wb-line); }
+  .tab { height: 32px; padding: 0 18px; display: grid; place-items: center; font: 700 13px/1 var(--caps); letter-spacing: 1.2px; color: var(--wb-ash);
+         position: relative; text-transform: uppercase; }
+  .tab::before { content: ""; position: absolute; inset: 2px -2px; background: var(--wb-ink); -webkit-mask: url("../src/Images/fx/ink-plate.png") center / 100% 100% no-repeat; }
+  .tab span { position: relative; }
+  .tab.sel { color: var(--wb-ink-text); }
+  .tab.sel::before { inset: 0; background: var(--wb-bone); -webkit-mask: none; }
+  .tab.sel .vein { position: absolute; inset: 0; background: var(--wb-bone-shade); opacity: .5; -webkit-mask: url("../src/Images/fx/marble.png") 0 0 / 256px 96px repeat; }
+  .tab.sel .iron { position: absolute; left: -5px; top: -5px; width: calc(100% + 10px); height: 50px; overflow: visible; }
+
+  .section { position: relative; display: inline-block; font: 20px/1 var(--script); padding: 5px 46px 8px 10px; margin: 0 0 10px -10px; }
+  .section::before { content: ""; position: absolute; inset: 0; background: var(--wb-ink); -webkit-mask: url("../src/Images/fx/ink-smear.png") left center / 100% 100% no-repeat; }
+  .section span { position: relative; }
+  .field { display: grid; grid-template-columns: 210px 1fr; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .lbl { font-style: italic; color: var(--wb-ash); }
+
+  /* ComboBox = value plate with pointed ends + round chevron button. */
+  .combo { width: 260px; height: 32px; position: relative; display: flex; align-items: center; padding: 0 44px 0 18px; }
+  .combo::before, .tbox::before { content: ""; position: absolute; inset: 0; background: var(--wb-violet);
+       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%); }
+  .combo::after, .tbox::after { content: ""; position: absolute; inset: 0; background: var(--wb-bone); opacity: .3;
+       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%,
+                          1px 50%, 10.5px 99%, calc(100% - 10.5px) 99%, calc(100% - 1px) 50%, calc(100% - 10.5px) 1px, 10.5px 1px, 1px 50%); }
+  .combo span, .tbox span { position: relative; }
+  .combo .knob { position: absolute; right: 12px; top: 6px; width: 20px; height: 20px; border-radius: 50%; background: var(--wb-bone);
+                 color: var(--wb-ink-text); display: grid; place-items: center; z-index: 1; box-shadow: 0 0 6px color-mix(in srgb, var(--wb-frost-blue) 60%, transparent); }
+  .combo .knob svg.i { width: 11px; height: 11px; }
+  .tbox { width: 340px; height: 32px; position: relative; display: flex; align-items: center; padding: 0 18px; }
+  .tbox.focus::after { background: var(--wb-frost); opacity: .85; }
+  .tbox .caret { width: 1px; height: 16px; background: var(--wb-chalk); position: relative; margin-left: 1px; }
+
+  /* CheckBox: ink square with a pale rim; checked = bone fill with an ink check. */
+  .check { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .check .box { width: 18px; height: 18px; border-radius: 2px; background: var(--wb-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wb-bone) 45%, transparent);
+                display: grid; place-items: center; color: var(--wb-ink-text); flex: none; }
+  .check.on .box { background: var(--wb-bone); box-shadow: 0 0 6px color-mix(in srgb, var(--wb-frost-blue) 55%, transparent); }
+  .check .box svg.i { width: 14px; height: 14px; }
+  /* RadioButton: ring medallion; checked = bone disc in a frost ring. */
+  .radios { display: flex; gap: 26px; }
+  .radio { display: flex; align-items: center; gap: 10px; }
+  .radio .dot { width: 18px; height: 18px; border-radius: 50%; background: var(--wb-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wb-bone) 45%, transparent); position: relative; flex: none; }
+  .radio.on .dot { box-shadow: inset 0 0 0 1px var(--wb-frost), 0 0 6px color-mix(in srgb, var(--wb-frost-blue) 60%, transparent); }
+  .radio.on .dot::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--wb-bone); }
+
+  /* Slider: dotted track between two arrows, white disc thumb holding the value. */
+  .slider { display: flex; align-items: center; gap: 6px; width: 340px; }
+  .slider .arr { width: 14px; height: 14px; color: var(--wb-ash); }
+  .slider .track { flex: 1; height: 8px; position: relative; }
+  .slider .track::before { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 2px;
+                           background: repeating-linear-gradient(90deg, var(--wb-ash) 0 2px, transparent 2px 4px); opacity: .55; }
+  .slider .fill { position: absolute; left: 0; top: 2.5px; height: 3px; width: 40%; background: var(--wb-bone); border-radius: 1.5px; }
+  .slider .thumb { position: absolute; left: calc(40% - 8px); top: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--wb-bone);
+                   box-shadow: 0 0 0 1px var(--wb-pitch), 0 0 10px 2px color-mix(in srgb, var(--wb-frost-blue) 45%, transparent); }
+
+  .buttons { display: flex; gap: 10px; margin-top: 18px; }
+  .btn { height: 32px; padding: 0 18px; display: grid; place-items: center; position: relative; font: 700 13px/1 var(--caps); letter-spacing: 1.2px; text-transform: uppercase; color: var(--wb-chalk); }
+  .btn::before { content: ""; position: absolute; inset: 0 -4px; background: var(--wb-ink); -webkit-mask: url("../src/Images/fx/ink-plate.png") center / 100% 100% no-repeat; }
+  .btn.hov::before { background: var(--wb-pewter); }
+  .btn.primary { color: var(--wb-ink-text); }
+  .btn.primary::before { inset: -3px -12px; background: var(--wb-bone); -webkit-mask: url("../src/Images/fx/brush-stroke.png") center / 100% 100% no-repeat; }
+  .btn span { position: relative; }
+
+  .bottom { height: 56px; flex: none; border-top: 1px solid var(--wb-line); display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+  .bottom .req { font-style: italic; color: var(--wb-ash); margin-right: auto; }
+  .note { position: absolute; left: 180px; bottom: 3px; font: italic 11px/1 var(--body); color: color-mix(in srgb, var(--wb-ash) 70%, transparent); }
+</style>
+</head>
+<body>
+<!-- icons:begin -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-Search" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10,2.6 L15.2,4.8 L17.4,10 L15.2,15.2 L10,17.4 L4.8,15.2 L2.6,10 L4.8,4.8 Z M10,5.2 L6.6,6.6 L5.2,10 L6.6,13.4 L10,14.8 L13.4,13.4 L14.8,10 L13.4,6.6 Z M14.4,16.4 L16.4,14.4 L21.8,20.6 L20.6,21.8 Z"/></symbol>
+  <symbol id="i-Clear" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,4 L12,9.8 L19,4 L20,5 L14.2,12 L20,19 L19,20 L12,14.2 L5,20 L4,19 L9.8,12 L4,5 Z"/></symbol>
+  <symbol id="i-ViewSettings" viewBox="0 0 24 24"><path fill-rule="nonzero" d="M3,6.3 H21 V7.7 H3 Z M3,11.3 H21 V12.7 H3 Z M3,16.3 H21 V17.7 H3 Z M8,3.6 L10.8,7 L8,10.4 L5.2,7 Z M15.5,8.6 L18.3,12 L15.5,15.4 L12.7,12 Z M10,13.6 L12.8,17 L10,20.4 L7.2,17 Z"/></symbol>
+  <symbol id="i-FilterPresets" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,4.5 H20 L19,6.5 H5 Z M6.5,9.5 H17.5 L16.5,11.5 H7.5 Z M9,14.5 H15 L14,16.5 H10 Z M11,19 H13 L12.5,20.8 H11.5 Z"/></symbol>
+  <symbol id="i-Group" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,4 H11 V10 L10,11 H4 Z M13,4 H20 V11 H14 L13,10 Z M4,13 H10 L11,14 V20 H4 Z M13,16.5 H20 V18.5 H13 Z"/></symbol>
+  <symbol id="i-Sort" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,5.5 H14 V7.5 H3 Z M3,10.8 H11 V12.8 H3 Z M3,16 H8 V18 H3 Z M17,4 H19 V16 H21.6 L18,21 L14.4,16 H17 Z"/></symbol>
+  <symbol id="i-DetailsView" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,4 H9 V20 H3 Z M11,4 H21 V10 L20,11 H11 Z M11,13 H20 L21,14 V20 H11 Z"/></symbol>
+  <symbol id="i-GridView" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,5 L5,4 H10 L11,5 V10 L10,11 H5 L4,10 Z M13,5 L14,4 H19 L20,5 V10 L19,11 H14 L13,10 Z M4,14 L5,13 H10 L11,14 V19 L10,20 H5 L4,19 Z M13,14 L14,13 H19 L20,14 V19 L19,20 H14 L13,19 Z"/></symbol>
+  <symbol id="i-ListView" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8,5.5 H21 V7.5 H8 Z M8,11 H21 V13 H8 Z M8,16.5 H21 V18.5 H8 Z M3,6.5 L4.5,5 L6,6.5 L4.5,8 Z M3,12 L4.5,10.5 L6,12 L4.5,13.5 Z M3,17.5 L4.5,16 L6,17.5 L4.5,19 Z"/></symbol>
+  <symbol id="i-Update" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2.5 L19,10 H14.5 V16 H9.5 V10 H5 Z M4,19 H20 L19,21 H5 Z"/></symbol>
+  <symbol id="i-Explorer" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M2.5,5 C5.5,4 9,4.3 11.2,6 V20 C9,18.5 5.5,18.2 2.5,19 Z M21.5,5 C18.5,4 15,4.3 12.8,6 V20 C15,18.5 18.5,18.2 21.5,19 Z"/></symbol>
+  <symbol id="i-Random" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2 L21,12 L12,22 L3,12 Z M12,5.4 L6.4,12 L12,18.6 L17.6,12 Z M12,9.6 L14.4,12 L12,14.4 L9.6,12 Z"/></symbol>
+  <symbol id="i-ViewRandom" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,2 L21,12 L12,22 L3,12 Z M12,5.4 L6.4,12 L12,18.6 L17.6,12 Z M10.4,9 L14.6,12 L10.4,15 Z"/></symbol>
+  <symbol id="i-Filter" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3,4.5 H21 L14,12.8 V19 L10,21 V12.8 Z"/></symbol>
+  <symbol id="i-Notifications" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,3 C15.4,3 17.6,5.6 17.6,9 V13.6 L19.8,17 H4.2 L6.4,13.6 V9 C6.4,5.6 8.6,3 12,3 Z M9.6,18.4 H14.4 C14.2,19.9 13.2,20.8 12,20.8 C10.8,20.8 9.8,19.9 9.6,18.4 Z"/></symbol>
+  <symbol id="i-MainMenu" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,1.4 A10.6,10.6 0 1,1 11.99,1.4 Z M12,3 A9,9 0 1,0 12.01,3 Z M12,4.4 C13.6,7.5 14.2,9.6 14.2,12 C14.2,14.4 13.6,16.5 12,19.6 C10.4,16.5 9.8,14.4 9.8,12 C9.8,9.6 10.4,7.5 12,4.4 Z M6.6,11.2 H17.4 V12.8 H6.6 Z M15.2,9.4 L19.6,4.6 L17.6,10.2 Z"/></symbol>
+  <symbol id="i-Library" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,5 H8 V19 H4 Z M9.5,5 H13.5 V19 H9.5 Z M15,6.2 L18.6,5 L21.4,18.4 L17.8,19.6 Z"/></symbol>
+  <symbol id="i-Statistics" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,13 L7,12 V19 H4 Z M10,7 L13,6 V19 H10 Z M16,10 L19,9 V19 H16 Z M3,20 H20 L19.4,21.2 H3 Z"/></symbol>
+  <symbol id="i-WindowMinimize" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,11.2 H19 L18.4,12.8 H5.6 Z"/></symbol>
+  <symbol id="i-WindowMaximize" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,6 L6,5 H18 L19,6 V18 L18,19 H6 L5,18 Z M7,7 V17 H17 V7 Z"/></symbol>
+  <symbol id="i-WindowRestore" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8,3 H21 V16 H19 V5 H8 Z M3,8 H16 V21 H3 Z M5,10 V19 H14 V10 Z"/></symbol>
+  <symbol id="i-WindowClose" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,4 L12,9.8 L19,4 L20,5 L14.2,12 L20,19 L19,20 L12,14.2 L5,20 L4,19 L9.8,12 L4,5 Z"/></symbol>
+  <symbol id="i-DropDown" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5.5,8.5 L12,15.5 L18.5,8.5 L17,7 L12,12.4 L7,7 Z"/></symbol>
+  <symbol id="i-Submenu" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8.5,5.5 L15.5,12 L8.5,18.5 L7,17 L12.4,12 L7,7 Z"/></symbol>
+  <symbol id="i-Check" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3.8,12.6 L6.4,10 L10,13.6 L18,5 L20.4,7.4 L10,18.6 Z"/></symbol>
+  <symbol id="i-Add" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11,4 H13 V11 H20 V13 H13 V20 H11 V13 H4 V11 H11 Z"/></symbol>
+  <symbol id="i-Edit" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M19.8,3.2 C14,4.6 9.4,9.4 6.6,15.6 L5.2,19.6 L6.8,20.2 L8.4,16.8 C12.6,15.2 16.8,10.8 19.8,3.2 Z M4,20.6 H12.5 L12,21.8 H4 Z"/></symbol>
+  <symbol id="i-Remove" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4,5.5 H9 V3.5 H15 V5.5 H20 V7.5 H4 Z M6,9.5 H18 L17,20.5 H7 Z"/></symbol>
+  <symbol id="i-Options" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M5,10 L7,12 L5,14 L3,12 Z M12,10 L14,12 L12,14 L10,12 Z M19,10 L21,12 L19,14 L17,12 Z"/></symbol>
+  <symbol id="i-Play" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M6,3.5 L20.5,12 L6,20.5 L7.6,12 Z"/></symbol>
+  <symbol id="i-Info" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12,3 L14,5 L12,7 L10,5 Z M10.6,9.5 H13.4 V18 H15.4 V20 H8.6 V18 H10.6 Z"/></symbol>
+  <symbol id="i-Download" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10.5,3 H13.5 V11 H18 L12,17.5 L6,11 H10.5 Z M4,19 H20 L19,21 H5 Z"/></symbol>
+</svg>
+<!-- icons:end -->
+<svg class="backdrop" viewBox="0 0 1280 720" preserveAspectRatio="none">
+  <polyline points="0,520 300,600 1280,560" fill="none" stroke="var(--wb-frost)" stroke-opacity=".12"/>
+  <polyline points="1280,90 1000,0" fill="none" stroke="var(--wb-frost)" stroke-opacity=".12"/>
+  <path d="M90,140 L120,118 L112,160 Z" fill="var(--wb-frost)" fill-opacity=".35"/>
+  <path d="M1160,520 L1196,500 L1180,548 Z" fill="var(--wb-frost)" fill-opacity=".3"/>
+</svg>
+
+<div class="window" data-part="settings-window">
+  <div class="band">
+    <svg class="ticks" viewBox="0 0 40 40"><g stroke="var(--wb-frost-blue)" stroke-width="1" stroke-opacity=".8">
+      <path d="M20,1 V4"/><path d="M33.4,6.6 L31.3,8.7"/><path d="M39,20 H36"/><path d="M33.4,33.4 L31.3,31.3"/><path d="M20,39 V36"/><path d="M6.6,33.4 L8.7,31.3"/><path d="M1,20 H4"/><path d="M6.6,6.6 L8.7,8.7"/></g></svg>
+    <div class="seal"><svg class="i"><use href="#i-MainMenu"/></svg></div>
+    <div class="ttl"><span>Settings</span></div>
+    <div class="caps"><div><svg class="i"><use href="#i-WindowMinimize"/></svg></div><div><svg class="i"><use href="#i-WindowMaximize"/></svg></div><div class="close"><svg class="i"><use href="#i-WindowClose"/></svg></div></div>
+    <svg class="crack" viewBox="0 0 920 10" preserveAspectRatio="none">
+      <polyline points="0,5.5 520,5.5 534,2.5 920,2.5" fill="none" stroke="var(--wb-line)" stroke-width="1"/>
+      <polyline points="380,5.5 520,5.5 534,2.5 640,2.5" fill="none" stroke="var(--wb-frost)" stroke-opacity=".8" stroke-width="1"/>
+      <path d="M524,5.5 L534,0 L531,8 Z" fill="var(--wb-frost)"/>
+    </svg>
+  </div>
+
+  <div class="middle">
+    <nav class="tree" data-part="settings-nav">
+      <div class="node"><span class="pad"></span><span>General</span></div>
+      <div class="node"><svg class="i chev open"><use href="#i-DropDown"/></svg><span>Appearance</span></div>
+      <div class="node child sel"><span>General</span></div>
+      <div class="node child"><span>Advanced</span></div>
+      <div class="node child hov"><span>Details View</span></div>
+      <div class="node child"><span>Grid View</span></div>
+      <div class="node child"><span>List View</span></div>
+      <div class="node child"><span>Layout</span></div>
+      <div class="node child"><span>Top panel</span></div>
+      <div class="node"><span class="pad"></span><span>Search</span></div>
+      <div class="node"><span class="pad"></span><span>Updating</span></div>
+      <div class="node"><span class="pad"></span><span>Metadata</span></div>
+      <div class="node"><span class="pad"></span><span>Sorting</span></div>
+      <div class="node"><span class="pad"></span><span>Scripts</span></div>
+      <div class="node"><span class="pad"></span><span>Auto Close Clients</span></div>
+      <div class="node"><span class="pad"></span><span>Import Exclusion List</span></div>
+      <div class="node"><span class="pad"></span><span>Backup</span></div>
+      <div class="node"><span class="pad"></span><span>For developers</span></div>
+      <div class="node"><span class="pad"></span><span>Input</span></div>
+      <div class="node"><svg class="i chev shut"><use href="#i-DropDown"/></svg><span>Advanced</span></div>
+    </nav>
+
+    <section class="content" data-part="settings-content">
+      <div class="crumb">Appearance <em>&mdash; General</em></div>
+      <div class="tabs">
+        <div class="tab sel"><span class="vein"></span>
+          <svg class="iron" viewBox="0 0 100 50" preserveAspectRatio="none" style="color:var(--wb-bone-shade)">
+            <path d="M3,8 V3 H12 M88,3 H97 V8 M3,34 V39 H12 M88,39 H97 V34" fill="none" stroke="currentColor" stroke-width="1.4" vector-effect="non-scaling-stroke"/>
+            <path d="M44,41 L50,47 L56,41" fill="none" stroke="var(--wb-bone)" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+          </svg><span>General</span></div>
+        <div class="tab"><span>Layout</span></div>
+        <div class="tab"><span>Grid View</span></div>
+        <div class="tab"><span>Details View</span></div>
+      </div>
+
+      <div class="section"><span>Theme</span></div>
+      <div class="field"><span class="lbl">Theme</span><div class="combo"><span>Whalebone</span><span class="knob"><svg class="i"><use href="#i-DropDown"/></svg></span></div></div>
+      <div class="field"><span class="lbl">Custom font</span><div class="tbox focus"><span>Zilla Slab</span><span class="caret"></span></div></div>
+      <div class="field"><span class="lbl">Startup mode</span><div class="radios"><div class="radio on"><span class="dot"></span>Desktop</div><div class="radio"><span class="dot"></span>Fullscreen</div></div></div>
+      <div class="field"><span class="lbl">Banner height</span><div class="slider"><div class="track"><span class="fill"></span><span class="thumb"></span></div></div></div>
+
+      <div class="section" style="margin-top:8px"><span>Window</span></div>
+      <div class="check on"><span class="box"><svg class="i"><use href="#i-Check"/></svg></span>Use game background image as window background</div>
+      <div class="check"><span class="box"></span>Minimize to tray when closing window</div>
+
+      <div class="buttons"><div class="btn primary"><span>Accept</span></div><div class="btn hov"><span>Restore Defaults</span></div></div>
+    </section>
+  </div>
+
+  <footer class="bottom" data-part="settings-buttons">
+    <span class="req">* Requires restart to apply</span>
+    <div class="btn primary"><span>Save</span></div>
+    <div class="btn"><span>Cancel</span></div>
+  </footer>
+</div>
+<div class="note">Whalebone is an unofficial fan theme inspired by Dishonored 2. Not affiliated with Arkane or Bethesda; no game art, logo or fonts.</div>
+</body>
+</html>

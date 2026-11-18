@@ -1,0 +1,116 @@
+// Whalebone icons: hand-drawn filled ink silhouettes on a 24x24 grid with cut, shard-like corners, the language of
+// Dishonored 2's medallion icons (no pack, no game asset). One source for both outputs:
+//   node src/themes/Whalebone/art/icons.mjs
+// writes src/Media.xaml (Icon<Role> geometries + templates) and the <symbol> block between the
+// <!-- icons:begin --> / <!-- icons:end --> markers of both previews.
+// rule "evenodd" = WPF default (F0); "nonzero" = "F1" prefix in WPF (shapes that overlap without holes).
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(here, '..');
+
+const MARK =
+  'M12,1.4 A10.6,10.6 0 1,1 11.99,1.4 Z M12,3 A9,9 0 1,0 12.01,3 Z ' +
+  'M12,4.4 C13.6,7.5 14.2,9.6 14.2,12 C14.2,14.4 13.6,16.5 12,19.6 C10.4,16.5 9.8,14.4 9.8,12 C9.8,9.6 10.4,7.5 12,4.4 Z ' +
+  'M6.6,11.2 H17.4 V12.8 H6.6 Z M15.2,9.4 L19.6,4.6 L17.6,10.2 Z';
+
+export const icons = {
+  Search: ['evenodd', 'M10,2.6 L15.2,4.8 L17.4,10 L15.2,15.2 L10,17.4 L4.8,15.2 L2.6,10 L4.8,4.8 Z M10,5.2 L6.6,6.6 L5.2,10 L6.6,13.4 L10,14.8 L13.4,13.4 L14.8,10 L13.4,6.6 Z M14.4,16.4 L16.4,14.4 L21.8,20.6 L20.6,21.8 Z'],
+  Clear: ['evenodd', 'M5,4 L12,9.8 L19,4 L20,5 L14.2,12 L20,19 L19,20 L12,14.2 L5,20 L4,19 L9.8,12 L4,5 Z'],
+  ViewSettings: ['nonzero', 'M3,6.3 H21 V7.7 H3 Z M3,11.3 H21 V12.7 H3 Z M3,16.3 H21 V17.7 H3 Z M8,3.6 L10.8,7 L8,10.4 L5.2,7 Z M15.5,8.6 L18.3,12 L15.5,15.4 L12.7,12 Z M10,13.6 L12.8,17 L10,20.4 L7.2,17 Z'],
+  FilterPresets: ['evenodd', 'M4,4.5 H20 L19,6.5 H5 Z M6.5,9.5 H17.5 L16.5,11.5 H7.5 Z M9,14.5 H15 L14,16.5 H10 Z M11,19 H13 L12.5,20.8 H11.5 Z'],
+  Group: ['evenodd', 'M4,4 H11 V10 L10,11 H4 Z M13,4 H20 V11 H14 L13,10 Z M4,13 H10 L11,14 V20 H4 Z M13,16.5 H20 V18.5 H13 Z'],
+  Sort: ['evenodd', 'M3,5.5 H14 V7.5 H3 Z M3,10.8 H11 V12.8 H3 Z M3,16 H8 V18 H3 Z M17,4 H19 V16 H21.6 L18,21 L14.4,16 H17 Z'],
+  DetailsView: ['evenodd', 'M3,4 H9 V20 H3 Z M11,4 H21 V10 L20,11 H11 Z M11,13 H20 L21,14 V20 H11 Z'],
+  GridView: ['evenodd', 'M4,5 L5,4 H10 L11,5 V10 L10,11 H5 L4,10 Z M13,5 L14,4 H19 L20,5 V10 L19,11 H14 L13,10 Z M4,14 L5,13 H10 L11,14 V19 L10,20 H5 L4,19 Z M13,14 L14,13 H19 L20,14 V19 L19,20 H14 L13,19 Z'],
+  ListView: ['evenodd', 'M8,5.5 H21 V7.5 H8 Z M8,11 H21 V13 H8 Z M8,16.5 H21 V18.5 H8 Z M3,6.5 L4.5,5 L6,6.5 L4.5,8 Z M3,12 L4.5,10.5 L6,12 L4.5,13.5 Z M3,17.5 L4.5,16 L6,17.5 L4.5,19 Z'],
+  Update: ['evenodd', 'M12,2.5 L19,10 H14.5 V16 H9.5 V10 H5 Z M4,19 H20 L19,21 H5 Z'],
+  Explorer: ['evenodd', 'M2.5,5 C5.5,4 9,4.3 11.2,6 V20 C9,18.5 5.5,18.2 2.5,19 Z M21.5,5 C18.5,4 15,4.3 12.8,6 V20 C15,18.5 18.5,18.2 21.5,19 Z'],
+  Random: ['evenodd', 'M12,2 L21,12 L12,22 L3,12 Z M12,5.4 L6.4,12 L12,18.6 L17.6,12 Z M12,9.6 L14.4,12 L12,14.4 L9.6,12 Z'],
+  ViewRandom: ['evenodd', 'M12,2 L21,12 L12,22 L3,12 Z M12,5.4 L6.4,12 L12,18.6 L17.6,12 Z M10.4,9 L14.6,12 L10.4,15 Z'],
+  Filter: ['evenodd', 'M3,4.5 H21 L14,12.8 V19 L10,21 V12.8 Z'],
+  Notifications: ['evenodd', 'M12,3 C15.4,3 17.6,5.6 17.6,9 V13.6 L19.8,17 H4.2 L6.4,13.6 V9 C6.4,5.6 8.6,3 12,3 Z M9.6,18.4 H14.4 C14.2,19.9 13.2,20.8 12,20.8 C10.8,20.8 9.8,19.9 9.6,18.4 Z'],
+  MainMenu: ['evenodd', MARK],
+  Library: ['evenodd', 'M4,5 H8 V19 H4 Z M9.5,5 H13.5 V19 H9.5 Z M15,6.2 L18.6,5 L21.4,18.4 L17.8,19.6 Z'],
+  Statistics: ['evenodd', 'M4,13 L7,12 V19 H4 Z M10,7 L13,6 V19 H10 Z M16,10 L19,9 V19 H16 Z M3,20 H20 L19.4,21.2 H3 Z'],
+  WindowMinimize: ['evenodd', 'M5,11.2 H19 L18.4,12.8 H5.6 Z'],
+  WindowMaximize: ['evenodd', 'M5,6 L6,5 H18 L19,6 V18 L18,19 H6 L5,18 Z M7,7 V17 H17 V7 Z'],
+  WindowRestore: ['evenodd', 'M8,3 H21 V16 H19 V5 H8 Z M3,8 H16 V21 H3 Z M5,10 V19 H14 V10 Z'],
+  WindowClose: ['evenodd', 'M5,4 L12,9.8 L19,4 L20,5 L14.2,12 L20,19 L19,20 L12,14.2 L5,20 L4,19 L9.8,12 L4,5 Z'],
+  DropDown: ['evenodd', 'M5.5,8.5 L12,15.5 L18.5,8.5 L17,7 L12,12.4 L7,7 Z'],
+  Submenu: ['evenodd', 'M8.5,5.5 L15.5,12 L8.5,18.5 L7,17 L12.4,12 L7,7 Z'],
+  Check: ['evenodd', 'M3.8,12.6 L6.4,10 L10,13.6 L18,5 L20.4,7.4 L10,18.6 Z'],
+  Add: ['evenodd', 'M11,4 H13 V11 H20 V13 H13 V20 H11 V13 H4 V11 H11 Z'],
+  Edit: ['evenodd', 'M19.8,3.2 C14,4.6 9.4,9.4 6.6,15.6 L5.2,19.6 L6.8,20.2 L8.4,16.8 C12.6,15.2 16.8,10.8 19.8,3.2 Z M4,20.6 H12.5 L12,21.8 H4 Z'],
+  Remove: ['evenodd', 'M4,5.5 H9 V3.5 H15 V5.5 H20 V7.5 H4 Z M6,9.5 H18 L17,20.5 H7 Z'],
+  Options: ['evenodd', 'M5,10 L7,12 L5,14 L3,12 Z M12,10 L14,12 L12,14 L10,12 Z M19,10 L21,12 L19,14 L17,12 Z'],
+  Play: ['evenodd', 'M6,3.5 L20.5,12 L6,20.5 L7.6,12 Z'],
+  Info: ['evenodd', 'M12,3 L14,5 L12,7 L10,5 Z M10.6,9.5 H13.4 V18 H15.4 V20 H8.6 V18 H10.6 Z'],
+  Download: ['evenodd', 'M10.5,3 H13.5 V11 H18 L12,17.5 L6,11 H10.5 Z M4,19 H20 L19,21 H5 Z'],
+};
+
+const wpf = ([rule, d]) => (rule === 'nonzero' ? 'F1 ' : '') + d;
+
+const media = `<!--
+    Whalebone icons: hand-drawn filled ink silhouettes on a 24x24 grid with cut, shard-like corners (Dishonored 2's
+    medallion icon language, drawn for this theme). Generated by art/icons.mjs: edit it, not this file.
+    IconMainMenu and EmptyGameIcon are the Whalebone mark (art/mark.svg): a medallion ring around a carved bone spindle
+    crossed by a slit bar, with one glass shard breaking through the ring.
+    Playnite's menu icons keep icofont glyphs with theme brushes.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+${Object.entries(icons).map(([k, v]) => `    <Geometry x:Key="Icon${k}">${wpf(v)}</Geometry>`).join('\n')}
+    <Geometry x:Key="EmptyGameIcon">${MARK}</Geometry>
+
+    <DataTemplate x:Key="IconTemplate">
+        <Viewbox Width="{DynamicResource IconSize}" Height="{DynamicResource IconSize}">
+            <Canvas Width="24" Height="24">
+                <Path Data="{Binding}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+    <DataTemplate x:Key="IconSmallTemplate">
+        <Viewbox Width="12" Height="12">
+            <Canvas Width="24" Height="24">
+                <Path Data="{Binding}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ContentControl}}" />
+            </Canvas>
+        </Viewbox>
+    </DataTemplate>
+    <DataTemplate x:Key="ClearTextIconTemplate">
+        <ContentPresenter Width="14" Height="14" Content="{DynamicResource IconClear}" ContentTemplate="{DynamicResource IconTemplate}" />
+    </DataTemplate>
+    <DataTemplate x:Key="SearchTextIconTemplate">
+        <ContentPresenter Width="16" Height="16" Content="{DynamicResource IconSearch}" ContentTemplate="{DynamicResource IconTemplate}" />
+    </DataTemplate>
+
+    <!-- Playnite menu icons keeping icofont glyphs with theme brushes. -->
+    <TextBlock x:Key="ExitIcon" Text="&#xef1d;" FontFamily="{DynamicResource FontIcoFont}" Foreground="{DynamicResource DangerBrush}" FontWeight="Light" />
+    <TextBlock x:Key="RemoveGameIcon" Text="&#xec53;" FontFamily="{DynamicResource FontIcoFont}" Foreground="{DynamicResource DangerBrush}" FontWeight="Light" />
+    <TextBlock x:Key="AddFavoritesIcon" Text="&#xef25;" FontFamily="{DynamicResource FontIcoFont}" Foreground="{DynamicResource WarningBrush}" FontWeight="Light" />
+</ResourceDictionary>
+`;
+fs.writeFileSync(path.join(root, 'src', 'Media.xaml'), media.replace(/\n/g, '\r\n'));
+
+const symbols = [
+  '<!-- icons:begin -->',
+  '<svg width="0" height="0" style="position:absolute" aria-hidden="true">',
+  ...Object.entries(icons).map(([k, [rule, d]]) => `  <symbol id="i-${k}" viewBox="0 0 24 24"><path fill-rule="${rule}" d="${d}"/></symbol>`),
+  '</svg>',
+  '<!-- icons:end -->',
+].join('\n');
+for (const f of ['preview-details.html', 'preview-settings.html']) {
+  const p = path.join(here, f);
+  if (!fs.existsSync(p)) continue;
+  const html = fs.readFileSync(p, 'utf8');
+  if (!html.includes('<!-- icons:begin -->')) continue;
+  fs.writeFileSync(p, html.replace(/<!-- icons:begin -->[\s\S]*?<!-- icons:end -->/, symbols));
+}
+
+fs.writeFileSync(path.join(here, 'mark.svg'),
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="512" height="512">\n` +
+  `  <!-- Whalebone mark: a medallion ring around a carved bone spindle crossed by a slit bar, one glass shard at its shoulder. -->\n` +
+  `  <path fill="#ff7a1a" fill-rule="evenodd" d="${MARK}"/>\n</svg>\n`);
+console.log(`wrote Media.xaml (${Object.keys(icons).length} icons), previews, mark.svg`);
