@@ -6,7 +6,7 @@ param(
     [string]$Configuration = "Release",
     [string]$ToolboxExe = $env:TOOLBOX_EXE,
     [switch]$VerifyInstaller,
-    # Verify the installer manifest only; no packaging.
+    # Verify the installer and add-on manifests without packaging.
     [switch]$VerifyOnly,
     [switch]$AllowUnpublishedPackageUrl
 )
@@ -15,15 +15,27 @@ $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "lib/extension-profiles.ps1")
 
 function Test-OnlyUnreachablePackageUrl([string]$Text) {
-    if ($Text -notmatch "PackageUrl doesn't point to reachable HTTP location") { return $false }
+    $unreachablePackageUrl = $false
+    $expectUrl = $false
     foreach ($line in ($Text -split '\r?\n')) {
         $trim = $line.Trim()
         if (-not $trim) { continue }
-        if ($trim -match "PackageUrl doesn't point to reachable HTTP location") { continue }
-        if ($trim -match "didn't pass verification") { continue }
+        if ($trim -match "^(?:Package > )?PackageUrl doesn't point to reachable HTTP location\.?$") {
+            $unreachablePackageUrl = $true
+            $expectUrl = $true
+            continue
+        }
+        # Toolbox prints the offending URL on the line after the diagnostic.
+        if ($expectUrl -and $trim -match '^https?://\S+$') {
+            $expectUrl = $false
+            continue
+        }
+        $expectUrl = $false
+        if ($trim -match '^Verifying (?:installer|addon) manifest .+ \.\.\.$') { continue }
+        if ($trim -match "^(?:(?:Installer|Addon) )?manifest didn't pass verification\.?$") { continue }
         return $false
     }
-    return $true
+    return $unreachablePackageUrl
 }
 
 if ($VerifyOnly) {
@@ -77,7 +89,7 @@ try {
                 Write-Warning "Addon manifest PackageUrl is not reachable yet. Continuing because package-only builds may run before the GitHub Release asset is uploaded."
             }
             else {
-                throw "Addon manifest verification failed (usual cause: unquoted ':' in ShortDescription; quote the value)."
+                throw "Addon manifest verification failed. See the Toolbox output above."
             }
         }
     }

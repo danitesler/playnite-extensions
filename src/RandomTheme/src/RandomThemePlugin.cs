@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Events;
 using Playnite.SDK.Plugins;
 
@@ -73,7 +74,7 @@ namespace RandomTheme
                         {
                             PlayniteApi.Notifications.Add(new NotificationMessage(
                                 "RandomTheme_ApplyFailed_" + mode,
-                                RandomThemeLoc.Format(
+                                PlayniteLoc.Format(
                                     "LOCRandomTheme_Error_Apply",
                                     "The {0} theme could not be changed because Playnite's settings could not be accessed. See extensions.log for details.",
                                     RandomThemeLoc.ModeName(mode)),
@@ -98,7 +99,7 @@ namespace RandomTheme
 
         public override IEnumerable<MainMenuItem> GetMainMenuItems(GetMainMenuItemsArgs args)
         {
-            var section = "@" + RandomThemeLoc.Get("LOCRandomTheme_Section", "Random Theme");
+            var section = "@" + PlayniteLoc.Get("LOCRandomTheme_Section", "Random Theme");
             foreach (var mode in Modes)
             {
                 var category = settings.For(mode);
@@ -170,7 +171,7 @@ namespace RandomTheme
             {
                 var mode = category.Mode;
                 var modeName = RandomThemeLoc.ModeName(mode);
-                var title = RandomThemeLoc.Get("LOCRandomTheme_Section", "Random Theme");
+                var title = PlayniteLoc.Get("LOCRandomTheme_Section", "Random Theme");
 
                 try
                 {
@@ -178,7 +179,7 @@ namespace RandomTheme
                     {
                         case PickOutcome.NoCandidates:
                             PlayniteApi.Dialogs.ShowErrorMessage(
-                                RandomThemeLoc.Format(
+                                PlayniteLoc.Format(
                                     "LOCRandomTheme_Error_NoThemes",
                                     "No {0} themes are available to choose from. Install a compatible theme or select at least one in the extension settings.",
                                     modeName),
@@ -187,7 +188,7 @@ namespace RandomTheme
 
                         case PickOutcome.ApplyFailed:
                             PlayniteApi.Dialogs.ShowErrorMessage(
-                                RandomThemeLoc.Format(
+                                PlayniteLoc.Format(
                                     "LOCRandomTheme_Error_Apply",
                                     "The {0} theme could not be changed because Playnite's settings could not be accessed. See extensions.log for details.",
                                     modeName),
@@ -217,7 +218,7 @@ namespace RandomTheme
             if (mode != runningMode)
             {
                 PlayniteApi.Dialogs.ShowMessage(
-                    summary + "\n\n" + RandomThemeLoc.Get(
+                    summary + "\n\n" + PlayniteLoc.Get(
                         "LOCRandomTheme_AppliedLater",
                         "The new theme will be used the next time Playnite starts in that mode."),
                     title);
@@ -225,7 +226,7 @@ namespace RandomTheme
             }
 
             var answer = PlayniteApi.Dialogs.ShowMessage(
-                summary + "\n\n" + RandomThemeLoc.Get(
+                summary + "\n\n" + PlayniteLoc.Get(
                     "LOCRandomTheme_RestartQuestion",
                     "The new theme will be used after Playnite restarts. Restart now?"),
                 title,
@@ -241,7 +242,7 @@ namespace RandomTheme
             if (!PlayniteHost.Restart())
             {
                 PlayniteApi.Dialogs.ShowErrorMessage(
-                    RandomThemeLoc.Get("LOCRandomTheme_Error_Restart", "Playnite could not restart itself. Please restart it manually."),
+                    PlayniteLoc.Get("LOCRandomTheme_Error_Restart", "Playnite could not restart itself. Please restart it manually."),
                     title);
             }
         }

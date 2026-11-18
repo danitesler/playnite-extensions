@@ -1,0 +1,840 @@
+﻿<!doctype html>
+<!-- Wyldcrown: HTML replica of Playnite's Game Details view (1280x720).
+     Armello-inspired (unofficial): nocturne obsidian damask chrome, heraldic diamond medallions,
+     royal sapphire diamond-quilted beveled Play CTA, deckled parchment character tome with pennant bookmarks,
+     gold filigree corners, and crimson wax filter mark. Colors read exclusively from src/tokens.css (--ar-*). -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Wyldcrown - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--ar-void);
+    color: var(--ar-ivory);
+    font-family: var(--font-body), "Palatino Linotype", Georgia, serif;
+    font-size: 14px;
+    display: flex;
+    position: relative;
+  }
+  svg { display: block; fill: currentColor; }
+
+  .damask-bg { position: relative; }
+  .damask-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--ar-gold);
+    opacity: 0.045;
+    -webkit-mask-image: url("../src/Images/fx/damask-tile.png");
+    -webkit-mask-size: 96px 96px;
+    -webkit-mask-repeat: repeat;
+  }
+
+  /* Compact 44px Left Sidebar Rail */
+  .rail {
+    width: 44px;
+    flex: none;
+    background: var(--ar-void);
+    border-right: 1px solid var(--ar-rule-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 6px;
+    gap: 2px;
+    z-index: 20;
+    position: relative;
+  }
+  .rail::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--ar-gold), var(--ar-rule-dim) 28%, var(--ar-rule-dim));
+    opacity: 0.55;
+  }
+  .menu-seal {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 6px;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 35% 30%, var(--ar-sapphire-lit), var(--ar-sapphire-deep));
+    border: 1.5px solid var(--ar-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ar-gold-bright);
+    box-shadow: 0 0 0 2px var(--ar-abyss), 0 0 10px var(--ar-indigo-wash);
+  }
+  .menu-seal svg { width: 19px; height: 19px; }
+
+  .rail-item {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ar-parchment-mute);
+    position: relative;
+  }
+  .rail-item svg { width: 16px; height: 16px; position: relative; z-index: 2; }
+  .rail-item.active { color: var(--ar-gold-bright); }
+  .rail-item.active::before {
+    content: "";
+    position: absolute;
+    left: 4px; right: 3px; top: 4px; bottom: 4px;
+    background: linear-gradient(135deg, var(--ar-indigo-select), var(--ar-obsidian));
+    border: 1px solid var(--ar-gold);
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 50%, calc(100% - 5px) 100%, 0 100%);
+  }
+  .rail-item.active::after {
+    content: "";
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 3px;
+    background: var(--ar-gold-bright);
+  }
+
+  /* Main Column */
+  .main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--ar-velvet);
+  }
+
+  /* Top Panel (52px) closed by diamond filigree gold rule */
+  .top-bar {
+    height: 52px;
+    flex: none;
+    background: linear-gradient(to bottom, var(--ar-obsidian), var(--ar-velvet));
+    display: flex;
+    align-items: center;
+    padding: 0 8px 0 12px;
+    gap: 8px;
+    position: relative;
+    z-index: 15;
+  }
+  .top-bar::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -5px;
+    height: 11px;
+    pointer-events: none;
+    background: var(--ar-gold);
+    -webkit-mask-image: url("../src/Images/fx/diamond-seam.png");
+    -webkit-mask-size: 100% 100%;
+    z-index: 5;
+  }
+  .top-bar-border {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1px;
+    background: var(--ar-bronze);
+    opacity: 0.7;
+  }
+
+  .search {
+    width: 244px;
+    height: 32px;
+    background: var(--ar-void);
+    border: 1px solid var(--ar-bronze);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    color: var(--ar-parchment-mute);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 1px 4px var(--ar-abyss);
+  }
+  .search svg { width: 15px; height: 15px; color: var(--ar-gold); flex: none; }
+
+  .tool {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ar-parchment-mute);
+    position: relative;
+  }
+  .tool svg { width: 16px; height: 16px; }
+  .tool.on {
+    background: linear-gradient(to bottom, var(--ar-indigo-select), var(--ar-obsidian));
+    border: 1px solid var(--ar-gold);
+    color: var(--ar-gold-bright);
+  }
+  .filter-badge {
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 8px; height: 8px;
+    background: var(--ar-crimson-bright);
+    border: 1px solid var(--ar-ivory);
+    transform: rotate(45deg);
+  }
+
+  .items { display: flex; align-items: center; gap: 4px; }
+  .tool-sep { width: 1px; height: 18px; background: var(--ar-rule-dim); margin: 0 3px; }
+  .top-spacer { flex: 1; }
+
+  .notif-wrap { display: flex; align-items: center; gap: 6px; margin-right: 10px; }
+  .notif-count {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 13px; height: 13px;
+    border-radius: 9999px;
+    background: var(--ar-crimson);
+    border: 1px solid var(--ar-gold-bright);
+    color: var(--ar-cream-bright);
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display), serif;
+  }
+
+  .win-btns { display: flex; align-items: center; gap: 3px; }
+  .win-btn {
+    width: 34px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ar-parchment-mute);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+  }
+  .win-btn svg { width: 12px; height: 12px; }
+  .win-btn.close { color: var(--ar-ivory); }
+
+  /* Split View */
+  .view { flex: 1; min-height: 0; display: flex; }
+
+  /* Left Game List */
+  .game-list {
+    width: 266px;
+    flex: none;
+    background: var(--ar-velvet);
+    border-right: 1px solid var(--ar-rule-dim);
+    padding: 8px 14px 8px 6px;
+    position: relative;
+    overflow: hidden;
+  }
+  .game-row {
+    height: 33px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 10px;
+    margin-bottom: 1px;
+    color: var(--ar-parchment-mute);
+    font-size: 13.5px;
+    position: relative;
+    border-radius: var(--radius-sm);
+  }
+  .cursor-spacer { width: 12px; height: 12px; flex: none; display: flex; align-items: center; justify-content: center; }
+  .game-icon {
+    width: 19px; height: 19px;
+    border-radius: 3px;
+    border: 1px solid var(--ar-rule-dim);
+    flex: none;
+    background: linear-gradient(135deg, var(--ar-indigo-deep), var(--ar-void));
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ar-gold);
+    font-size: 10px;
+    font-family: var(--font-display), serif;
+  }
+  .game-row span.title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .game-row.hov {
+    background: linear-gradient(to right, var(--ar-indigo-wash), var(--ar-obsidian));
+    color: var(--ar-ivory);
+    border: 1px solid var(--ar-bronze);
+  }
+  .game-row.sel {
+    background: linear-gradient(to right, var(--ar-indigo-select), var(--ar-indigo-deep) 78%, var(--ar-velvet));
+    color: var(--ar-ivory);
+    font-weight: 700;
+    border-top: 1px solid var(--ar-gold);
+    border-bottom: 1px solid var(--ar-gold);
+  }
+  .diamond-cursor {
+    width: 9px; height: 9px;
+    border: 1.5px solid var(--ar-gold-bright);
+    transform: rotate(45deg);
+    position: relative;
+  }
+  .diamond-cursor::after { content: ""; position: absolute; inset: 1.5px; background: var(--ar-ivory); }
+
+  /* Subtle Running row showcase */
+  .game-row.running {
+    border: 1.5px solid var(--ar-wyld);
+    background: linear-gradient(to right, rgba(40, 156, 82, 0.16), var(--ar-velvet));
+    color: var(--ar-ivory);
+    padding-right: 26px;
+  }
+  .running-foot { position: absolute; left: 2px; right: 2px; bottom: 1px; height: 2px; background: var(--ar-wyld-lit); opacity: 0.85; }
+  .running-star {
+    position: absolute; right: 6px; width: 14px; height: 14px;
+    background: var(--ar-wyld-lit);
+    -webkit-mask-image: url("../src/Images/fx/wyld-star.png");
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+  }
+
+  .scroll-lane { position: absolute; top: 12px; bottom: 12px; right: 4px; width: 8px; display: flex; justify-content: center; }
+  .scroll-wire { width: 1px; height: 100%; background: var(--ar-bronze); opacity: 0.7; }
+  .scroll-thumb {
+    position: absolute; top: 46px; width: 8px; height: 68px; border-radius: 4px;
+    background: linear-gradient(to right, var(--ar-bronze), var(--ar-gold), var(--ar-bronze));
+    border: 1px solid var(--ar-gold-bright);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  }
+  .scroll-thumb i { width: 4px; height: 1px; background: var(--ar-abyss); display: block; }
+
+  /* Game Page */
+  .game-page {
+    flex: 1; min-width: 0;
+    background: var(--ar-obsidian);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Rich Painterly Fairytale Twilight Sky & Forest Tapestry Banner (original pure CSS artwork) */
+  .hero-banner {
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 270px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 68% 90% at 68% 26%, var(--ar-sapphire) 0%, var(--ar-indigo-deep) 46%, var(--ar-void) 100%);
+  }
+  .hero-halo {
+    position: absolute;
+    right: 110px; top: 10px;
+    width: 240px; height: 240px;
+    border-radius: 9999px;
+    background: radial-gradient(circle, rgba(255, 228, 122, 0.36) 0%, rgba(201, 168, 76, 0.16) 44%, transparent 72%);
+  }
+  .hero-ridge-far {
+    position: absolute;
+    left: 0; right: 0; bottom: 0; height: 165px;
+    background: linear-gradient(172deg, transparent 28%, var(--ar-indigo-deep) 64%, var(--ar-obsidian) 96%);
+  }
+  .hero-towers {
+    position: absolute;
+    right: 145px; top: 54px;
+    width: 170px; height: 120px;
+    background: var(--ar-void);
+    opacity: 0.48;
+    clip-path: polygon(
+      0% 100%, 10% 62%, 18% 42%, 26% 62%, 34% 62%, 44% 22%, 50% 6%, 56% 22%, 66% 62%, 74% 48%, 82% 62%, 90% 40%, 100% 100%
+    );
+  }
+  .hero-frieze {
+    position: absolute;
+    left: 0; right: 0; top: 0; height: 10px;
+    background: var(--ar-gold);
+    opacity: 0.14;
+    -webkit-mask-image: url("../src/Images/fx/checker-frieze.png");
+    -webkit-mask-size: 48px 12px;
+    -webkit-mask-repeat: repeat-x;
+  }
+  .hero-wash {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 32%, var(--ar-obsidian) 96%);
+  }
+
+  .page-body {
+    position: relative;
+    z-index: 2;
+    padding: 86px 24px 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .game-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .game-title-block { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .game-crest {
+    width: 44px; height: 44px; flex: none;
+    border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--ar-indigo-select), var(--ar-void));
+    border: 1.5px solid var(--ar-gold);
+    box-shadow: 0 0 0 1px var(--ar-abyss);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ar-gold-bright);
+  }
+  .game-crest svg { width: 26px; height: 26px; }
+  .game-title {
+    font-family: var(--font-display), Cinzel, Georgia, serif;
+    font-size: 29px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ar-ivory);
+    text-shadow: 0 2px 6px var(--ar-abyss);
+    line-height: 1.1;
+  }
+
+  /* HERO PLAY PLAQUE: Full 6-sided Gold Beveled Rim (zero clipped diagonals!) + Sapphire Quilt + Crown Aureole */
+  .action-row { display: flex; align-items: center; gap: 10px; flex: none; }
+  .play-wrap {
+    position: relative;
+    width: 152px;
+    height: 40px;
+  }
+  .play-bloom {
+    position: absolute;
+    inset: -24px -28px;
+    pointer-events: none;
+    background: var(--ar-gold-glow);
+    opacity: 0.72;
+    -webkit-mask-image: url("../src/Images/fx/glow-frame.png");
+    -webkit-mask-size: 100% 100%;
+  }
+  /* Outer burnished gold polygon frame + inner recessed sapphire diamond-quilted polygon */
+  .play-gold-rim {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, var(--ar-gold-bright), var(--ar-gold) 55%, var(--ar-bronze));
+    clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 9px 100%, 0 50%);
+    padding: 2px;
+    display: flex;
+  }
+  .play-core {
+    position: relative;
+    flex: 1;
+    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
+    background: linear-gradient(180deg, var(--ar-sapphire-lit), var(--ar-sapphire) 56%, var(--ar-sapphire-deep));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--ar-cream-bright);
+    font-family: var(--font-display), Cinzel, Georgia, serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+  }
+  .play-core::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ar-cream-bright);
+    opacity: 0.25;
+    -webkit-mask-image: url("../src/Images/fx/sapphire-quilt.png");
+    -webkit-mask-size: 32px 32px;
+    -webkit-mask-repeat: repeat;
+  }
+  .play-core svg { width: 13px; height: 13px; position: relative; z-index: 2; color: var(--ar-gold-bright); }
+  .play-core span { position: relative; z-index: 2; text-shadow: 0 1px 2px var(--ar-abyss); }
+
+  /* Twin equal 40x40 obsidian damask secondary plates (chamfered gold rim via nested polygons) */
+  .sub-btn {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(180deg, var(--ar-gold-bright), var(--ar-gold) 65%, var(--ar-bronze));
+    clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px);
+    padding: 1.5px;
+    display: flex;
+  }
+  .sub-core {
+    flex: 1;
+    clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+    background: linear-gradient(180deg, var(--ar-drawer), var(--ar-void));
+    color: var(--ar-ivory);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .sub-core::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ar-gold);
+    opacity: 0.09;
+    -webkit-mask-image: url("../src/Images/fx/damask-tile.png");
+    -webkit-mask-size: 48px 48px;
+  }
+  .sub-core svg { width: 17px; height: 17px; position: relative; z-index: 1; }
+
+  /* Two Columns */
+  .columns {
+    display: flex;
+    gap: 22px;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 8px;
+  }
+  .left-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Clean Steam Screenshots Strip (first card shows Armello Cerulean Spirit Aura) */
+  .screenshots-row { display: flex; gap: 14px; flex: none; }
+  .screen-wrap { flex: 1; position: relative; }
+  .screen-aura {
+    position: absolute;
+    inset: -12px;
+    pointer-events: none;
+    background: var(--ar-spirit-cyan);
+    opacity: 0.52;
+    -webkit-mask-image: url("../src/Images/fx/glow-frame.png");
+    -webkit-mask-size: 100% 100%;
+  }
+  .screen-thumb {
+    position: relative;
+    height: 112px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--ar-bronze);
+    background: linear-gradient(145deg, var(--ar-indigo-deep), var(--ar-void));
+    overflow: hidden;
+  }
+  .screen-wrap.hovered .screen-thumb {
+    border-color: var(--ar-spirit-cyan);
+    background: linear-gradient(145deg, var(--ar-sapphire-deep), var(--ar-indigo-deep) 60%, var(--ar-void));
+  }
+  .screen-scene-1 {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 72% 35%, var(--ar-wyld) 0%, transparent 48%),
+      radial-gradient(circle at 26% 70%, var(--ar-spirit-cyan) 0%, transparent 42%),
+      linear-gradient(160deg, transparent 40%, var(--ar-abyss) 92%);
+    opacity: 0.65;
+  }
+  .screen-scene-2 {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 34%, var(--ar-gold) 0%, transparent 46%),
+      linear-gradient(165deg, transparent 35%, var(--ar-abyss) 95%);
+    opacity: 0.56;
+  }
+
+  /* Description Panel */
+  .desc-card {
+    flex: 1; min-height: 0;
+    background: var(--ar-velvet);
+    border: 1px solid var(--ar-bronze);
+    border-radius: var(--radius);
+    padding: 15px 18px 12px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .corner-tl, .corner-tr, .corner-bl, .corner-br {
+    position: absolute;
+    width: 24px; height: 24px;
+    background: var(--ar-gold);
+    opacity: 0.85;
+    pointer-events: none;
+    -webkit-mask-image: url("../src/Images/fx/filigree-corner.png");
+    -webkit-mask-size: contain;
+  }
+  .corner-tl { top: 4px; left: 4px; }
+  .corner-tr { top: 4px; right: 4px; transform: scaleX(-1); }
+  .corner-bl { bottom: 4px; left: 4px; transform: scaleY(-1); }
+  .corner-br { bottom: 4px; right: 4px; transform: scale(-1); }
+
+  .sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; position: relative; z-index: 2; }
+  .sec-head-diamond { width: 7px; height: 7px; border: 1.5px solid var(--ar-gold-bright); transform: rotate(45deg); flex: none; }
+  .sec-head-title {
+    font-family: var(--font-display), Cinzel, serif;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
+    color: var(--ar-gold-bright);
+    text-transform: uppercase;
+  }
+  .sec-head-rule {
+    flex: 1; height: 8px;
+    background: var(--ar-gold);
+    opacity: 0.65;
+    -webkit-mask-image: url("../src/Images/fx/diamond-seam.png");
+    -webkit-mask-size: 100% 100%;
+  }
+
+  .desc-text { position: relative; z-index: 2; color: var(--ar-ivory); line-height: 1.56; font-size: 13px; }
+  .desc-text p + p { margin-top: 8px; color: var(--ar-parchment-mute); }
+
+  .unofficial-note {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 10.5px;
+    color: var(--ar-parchment-mute);
+    opacity: 0.85;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* RIGHT METADATA TOME: Deckled Parchment (true 9-slice mask!) + Hanging Heraldic Pennants */
+  .meta-wrap {
+    width: 288px;
+    flex: none;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-top: 6px;
+  }
+  .pennants {
+    position: absolute;
+    top: -11px;
+    right: 16px;
+    display: flex;
+    gap: 5px;
+    z-index: 5;
+  }
+  .pennant {
+    width: 20px; height: 25px;
+    background: var(--ar-drawer);
+    border: 1px solid var(--ar-gold);
+    border-top: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 74%, 50% 100%, 0 74%);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ar-gold);
+    font-size: 9px;
+    font-family: var(--font-display), serif;
+  }
+  .pennant.active { background: linear-gradient(to bottom, var(--ar-gold-bright), var(--ar-gold)); color: var(--ar-ink); font-weight: 700; }
+  .pennant.sapphire { background: linear-gradient(to bottom, var(--ar-sapphire-lit), var(--ar-sapphire-deep)); color: var(--ar-cream-bright); }
+
+  .meta {
+    flex: 1;
+    position: relative;
+    padding: 22px 18px 16px;
+    color: var(--ar-ink);
+    background: var(--ar-parchment);
+    -webkit-mask-box-image: url("../src/Images/fx/plate-torn.png") 40 40 40 40 repeat;
+  }
+  .meta-group { padding: 8px 0; border-top: 1px solid var(--ar-parchment-edge); }
+  .meta-group.first { padding-top: 0; border-top: 0; }
+  .meta-row { display: flex; align-items: baseline; gap: 10px; padding: 3px 0; font-size: 12.5px; }
+  .meta-label { width: 88px; flex: none; color: var(--ar-ink-muted); font-size: 11.5px; font-weight: 700; }
+  .meta-val { color: var(--ar-ink); font-weight: 400; }
+  .score-seal {
+    display: inline-flex; align-items: center;
+    padding: 1px 8px; border-radius: 3px;
+    background: linear-gradient(to bottom, var(--ar-void), var(--ar-drawer));
+    border: 1px solid var(--ar-gold);
+    color: var(--ar-gold-bright);
+    font-family: var(--font-display), serif; font-weight: 700; font-size: 11.5px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    background: var(--ar-chip-bg);
+    border: 1px solid var(--ar-gold);
+    border-radius: 3px;
+    padding: 1.5px 7px;
+    font-size: 11px;
+    color: var(--ar-ivory);
+  }
+  .meta-link { color: var(--ar-ink-link); text-decoration: underline; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="rail damask-bg" data-part="sidebar">
+  <div class="menu-seal" data-part="PART_ElemMainMenu" title="Main Menu">
+    <svg viewBox="0 0 64 64"><path fill-rule="evenodd" d="M 32,9 L 37,23 L 49,14 L 46,28 L 56,24 L 49,40 L 15,40 L 8,24 L 18,28 L 15,14 L 27,23 Z M 32,21 L 26,29.5 L 32,37 L 38,29.5 Z"/><path d="M 15,43 L 49,43 L 46,48 L 18,48 Z M 22,51 L 42,51 L 32,57 Z"/></svg>
+  </div>
+  <div class="rail-item active" title="Library"><svg viewBox="0 0 24 24"><path d="M4 4h7v16H4V4zm9 0h7v16h-7V4zm-7 2v12h3V6H6zm9 0v12h3V6h-3z"/></svg></div>
+  <div class="rail-item" title="Statistics"><svg viewBox="0 0 24 24"><path d="M5 19V9h3v10H5zm6 0V5h3v14h-3zm6 0v-7h3v7h-3z"/></svg></div>
+  <div class="rail-item" title="Extensions"><svg viewBox="0 0 24 24"><path d="M12 2l3 6.5L22 9l-5 4.8L18.2 21 12 17.5 5.8 21 7 13.8 2 9l7-.5L12 2z"/></svg></div>
+</div>
+
+<div class="main">
+  <div class="top-bar damask-bg" data-part="top-panel">
+    <div class="top-bar-border"></div>
+    <div class="search" data-part="PART_TextMainSearch">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+      <span>Search</span>
+    </div>
+    <div class="tool on" data-part="PART_ToggleFilter" title="Filter">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16l-6.5 7.5v5.5l-3 1.5v-7L4 5z"/></svg>
+      <div class="filter-badge"></div>
+    </div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool" title="Sort"><svg viewBox="0 0 24 24"><path d="M3 7h18v2H3V7zm0 5h12v2H3v-2zm0 5h7v2H3v-2z"/></svg></div>
+      <div class="tool-sep"></div>
+      <div class="tool on" title="Details view"><svg viewBox="0 0 24 24"><path d="M3 4h6v16H3V4zm8 0h10v7H11V4zm0 9h10v7H11v-7z"/></svg></div>
+      <div class="tool" title="Grid view"><svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg></div>
+      <div class="tool" title="List view"><svg viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg></div>
+      <div class="tool" title="Group"><svg viewBox="0 0 24 24"><path d="M3 5h8v6H3V5zm10 2h8v2h-8V7zM3 13h8v6H3v-6zm10 2h8v2h-8v-2z"/></svg></div>
+      <div class="tool" title="View settings"><svg viewBox="0 0 24 24"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm8 2.5l-1.8-.3a6.5 6.5 0 0 0-.6-1.5l1.1-1.5-1.7-1.7-1.5 1.1a6.5 6.5 0 0 0-1.5-.6L13 4h-2l-.3 1.8a6.5 6.5 0 0 0-1.5.6L7.7 5.3 6 7l1.1 1.5a6.5 6.5 0 0 0-.6 1.5L4 11v2l1.8.3c.1.5.3 1 .6 1.5L5.3 16.3 7 18l1.5-1.1c.5.3 1 .5 1.5.6L11 20h2l.3-1.8c.5-.1 1-.3 1.5-.6l1.5 1.1 1.7-1.7-1.1-1.5c.3-.5.5-1 .6-1.5L20 13v-2z"/></svg></div>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="notif-wrap">
+      <div class="tool" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.1-1.6-5.6-4.5-6.3V4a1.5 1.5 0 0 0-3 0v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+        <div class="notif-count">2</div>
+      </div>
+    </div>
+    <div class="win-btns">
+      <div class="win-btn"><svg viewBox="0 0 12 12"><rect x="1" y="6" width="10" height="1.5"/></svg></div>
+      <div class="win-btn"><svg viewBox="0 0 12 12"><path d="M2 2v8h8V2H2zm1.5 1.5h5v5h-5v-5z"/></svg></div>
+      <div class="win-btn close"><svg viewBox="0 0 12 12"><path d="M2.2 1.1L6 4.9 9.8 1.1l1.1 1.1L7.1 6l3.8 3.8-1.1 1.1L6 7.1 2.2 10.9 1.1 9.8 4.9 6 1.1 2.2z"/></svg></div>
+    </div>
+  </div>
+
+  <div class="view">
+    <div class="game-list" data-part="game-list">
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">A</div><span class="title">Amber Vale</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">B</div><span class="title">Briarheart</span></div>
+      <div class="game-row hov"><span class="cursor-spacer"></span><div class="game-icon">C</div><span class="title">Chronicle of Oak</span></div>
+      <div class="game-row sel"><span class="cursor-spacer"><span class="diamond-cursor"></span></span><div class="game-icon">W</div><span class="title">The Wyldwood Pact</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">D</div><span class="title">Dawnward Gate</span></div>
+      <div class="game-row running"><span class="cursor-spacer"></span><div class="game-icon">K</div><span class="title">King's Gambit</span><div class="running-foot"></div><div class="running-star"></div></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">F</div><span class="title">Fable of Wolves</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">G</div><span class="title">Gilded Peril</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">H</div><span class="title">Hollow Spire</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">I</div><span class="title">Ironwood</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">M</div><span class="title">Mire &amp; Manor</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">N</div><span class="title">Nightfall Court</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">R</div><span class="title">Rotstone Keep</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">S</div><span class="title">Sunshard</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">T</div><span class="title">Thorn &amp; Crown</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">V</div><span class="title">Vespera</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">W</div><span class="title">Winterfang</span></div>
+      <div class="game-row"><span class="cursor-spacer"></span><div class="game-icon">Z</div><span class="title">Zephyr Seal</span></div>
+
+      <div class="scroll-lane">
+        <div class="scroll-wire"></div>
+        <div class="scroll-thumb"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+
+    <div class="game-page" data-part="game-page">
+      <div class="hero-banner">
+        <div class="hero-halo"></div>
+        <div class="hero-towers"></div>
+        <div class="hero-ridge-far"></div>
+        <div class="hero-frieze"></div>
+        <div class="hero-wash"></div>
+      </div>
+
+      <div class="page-body">
+        <div class="game-head">
+          <div class="game-title-block">
+            <div class="game-crest">
+              <svg viewBox="0 0 64 64"><path fill-rule="evenodd" d="M 32,8 L 38,24 L 51,14 L 47,29 L 57,25 L 49,42 L 15,42 L 7,25 L 17,29 L 13,14 L 26,24 Z M 32,21 L 26,30 L 32,37 L 38,30 Z"/><path d="M 16,45 L 48,45 L 44,50 L 20,50 Z"/></svg>
+            </div>
+            <div class="game-title">The Wyldwood Pact</div>
+          </div>
+
+          <div class="action-row">
+            <div class="play-wrap">
+              <div class="play-bloom"></div>
+              <div class="play-gold-rim">
+                <div class="play-core">
+                  <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+                  <span>PLAY</span>
+                </div>
+              </div>
+            </div>
+            <div class="sub-btn" title="Edit">
+              <div class="sub-core"><svg viewBox="0 0 24 24"><path d="M4 17.2V20h2.8l10-10-2.8-2.8-10 10zM19.4 7.4a.8.8 0 0 0 0-1.1l-1.7-1.7a.8.8 0 0 0-1.1 0L15 6.2l2.8 2.8 1.6-1.6z"/></svg></div>
+            </div>
+            <div class="sub-btn" title="More">
+              <div class="sub-core"><svg viewBox="0 0 24 24"><path d="M12 4l2.5 2.5L12 9 9.5 6.5 12 4zm0 5.5l2.5 2.5-2.5 2.5L9.5 12 12 9.5zm0 5.5l2.5 2.5L12 20l-2.5-2.5L12 15z"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="columns">
+          <div class="left-col">
+            <div class="screenshots-row">
+              <div class="screen-wrap hovered">
+                <div class="screen-aura"></div>
+                <div class="screen-thumb"><div class="screen-scene-1"></div></div>
+              </div>
+              <div class="screen-wrap">
+                <div class="screen-thumb"><div class="screen-scene-2"></div></div>
+              </div>
+            </div>
+
+            <div class="desc-card damask-bg">
+              <div class="corner-tl"></div>
+              <div class="corner-tr"></div>
+              <div class="corner-bl"></div>
+              <div class="corner-br"></div>
+
+              <div class="sec-head">
+                <div class="sec-head-diamond"></div>
+                <div class="sec-head-title">Description</div>
+                <div class="sec-head-rule"></div>
+              </div>
+              <div class="desc-text">
+                <p>Four rival animal clans contest a fractured hex kingdom across dusk and dawn, combining tactical deckbuilding, stealth ambushes, and dice-driven perils to claim the cursed throne before the Wyld consumes the realm.</p>
+                <p>Forge temporary pacts in sunlit settlements, hoard arcane Spirit Stones beneath silver mountains, or embrace corruption to turn every perilous draw into lethal advantage.</p>
+              </div>
+              <div class="unofficial-note">Unofficial fan theme inspired by Armello UI. No game assets or fonts included.</div>
+            </div>
+          </div>
+
+          <div class="meta-wrap" data-part="metadata">
+            <div class="pennants">
+              <div class="pennant sapphire">I</div>
+              <div class="pennant">II</div>
+              <div class="pennant active">III</div>
+              <div class="pennant">IV</div>
+            </div>
+            <div class="meta">
+              <div class="meta-group first">
+                <div class="meta-row"><span class="meta-label">Completion Status</span><span class="meta-val">Completed</span></div>
+                <div class="meta-row"><span class="meta-label">Time Played</span><span class="meta-val">142h 20m</span></div>
+                <div class="meta-row"><span class="meta-label">Last Played</span><span class="meta-val">Yesterday</span></div>
+              </div>
+
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Community Score</span><span class="meta-val"><span class="score-seal">94</span></span></div>
+                <div class="meta-row"><span class="meta-label">Critic Score</span><span class="meta-val"><span class="score-seal">86</span></span></div>
+              </div>
+
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Developers</span><span class="meta-val">Guild of Dusk</span></div>
+                <div class="meta-row"><span class="meta-label">Release Date</span><span class="meta-val">Sep 2015</span></div>
+              </div>
+
+              <div class="meta-group">
+                <div class="meta-row">
+                  <span class="meta-label">Genres</span>
+                  <div class="chips">
+                    <span class="chip">Strategy</span>
+                    <span class="chip">Tabletop</span>
+                    <span class="chip">Dark Fairytale</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-label">Library</span><span class="meta-val">Steam</span></div>
+                <div class="meta-row"><span class="meta-label">Links</span><span class="meta-val meta-link">Royal Codex</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

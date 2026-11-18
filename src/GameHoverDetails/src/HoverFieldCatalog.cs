@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Playnite.SDK;
+using PlayniteExtensions;
 
 namespace GameHoverDetails
 {
@@ -177,7 +178,7 @@ namespace GameHoverDetails
                 return fallback;
             }
 
-            return HoverLoc.Get("LOCGameHoverDetails_Field_" + key, fallback);
+            return PlayniteLoc.Get("LOCGameHoverDetails_Field_" + key, fallback);
         }
 
         private sealed class GlyphFaces

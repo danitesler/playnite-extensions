@@ -1,9 +1,11 @@
 # Run with pwsh -STA -File tests/wpf/SearchClearRegressionTests.ps1.
+param([string[]]$Keys = @())
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework, PresentationCore
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $failures = [Collections.Generic.List[string]]::new()
 $count = 0
 # InputHitTest needs a presentation source. Keep it offscreen and never show it.

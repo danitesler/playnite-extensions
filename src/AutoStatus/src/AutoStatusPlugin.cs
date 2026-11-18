@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Threading;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Events;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
@@ -80,7 +81,7 @@ namespace AutoStatus
             yield return new MainMenuItem
             {
                 MenuSection = "@AutoStatus",
-                Description = AutoStatusLoc.Get("LOCAutoStatus_Menu_ApplyNow", "Apply status rules now"),
+                Description = PlayniteLoc.Get("LOCAutoStatus_Menu_ApplyNow", "Apply status rules now"),
                 Action = _ => ApplyNowFromMenu()
             };
         }
@@ -164,7 +165,7 @@ namespace AutoStatus
             string message;
             if (result.Skip != StaleSkip.None)
             {
-                message = AutoStatusLoc.Format("LOCAutoStatus_Result_Skipped", "Status rules did not run. {0}", SkipReason(result.Skip));
+                message = PlayniteLoc.Format("LOCAutoStatus_Result_Skipped", "Status rules did not run. {0}", SkipReason(result.Skip));
             }
             else if (result.Moved > 0)
             {
@@ -172,7 +173,7 @@ namespace AutoStatus
             }
             else
             {
-                message = AutoStatusLoc.Get("LOCAutoStatus_Result_NothingToDo", "No games needed a status change.");
+                message = PlayniteLoc.Get("LOCAutoStatus_Result_NothingToDo", "No games needed a status change.");
             }
 
             PlayniteApi.Dialogs.ShowMessage(message, "AutoStatus");
@@ -192,22 +193,22 @@ namespace AutoStatus
             switch (skip)
             {
                 case StaleSkip.Off:
-                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Off", "They are turned off in the AutoStatus settings.");
+                    return PlayniteLoc.Get("LOCAutoStatus_Skip_Off", "They are turned off in the AutoStatus settings.");
                 case StaleSkip.Editing:
-                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Editing", "Save or cancel the AutoStatus settings first.");
+                    return PlayniteLoc.Get("LOCAutoStatus_Skip_Editing", "Save or cancel the AutoStatus settings first.");
                 case StaleSkip.Statuses:
-                    return AutoStatusLoc.Get("LOCAutoStatus_Verify_StaleStatuses", "Games I stopped playing: pick two different statuses.");
+                    return PlayniteLoc.Get("LOCAutoStatus_Verify_StaleStatuses", "Games I stopped playing: pick two different statuses.");
                 case StaleSkip.MarksUnreadable:
-                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Marks", "AutoStatus could not read its saved status dates. Details are in the Playnite log.");
+                    return PlayniteLoc.Get("LOCAutoStatus_Skip_Marks", "AutoStatus could not read its saved status dates. Details are in the Playnite log.");
                 default:
-                    return AutoStatusLoc.Get("LOCAutoStatus_Skip_Error", "Something went wrong. Details are in the Playnite log.");
+                    return PlayniteLoc.Get("LOCAutoStatus_Skip_Error", "Something went wrong. Details are in the Playnite log.");
             }
         }
 
         private string MovedMessage(int moved)
         {
             var target = PlayniteApi.Database.CompletionStatuses.Get(settings.StaleToStatusId)?.Name ?? string.Empty;
-            return AutoStatusLoc.Format(
+            return PlayniteLoc.Format(
                 "LOCAutoStatus_Result_Moved",
                 "Changed to {1} after {2} days without play: {0}",
                 moved,

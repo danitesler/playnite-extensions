@@ -26,7 +26,7 @@ Requested in Playnite issues #2828 (status rules from last played), #1028 (Aband
 | Mark persistence | `src/AutoStatus/src/StatusMarks.cs` |
 | Settings model | `src/AutoStatus/src/AutoStatusSettings.cs` |
 | Settings UI | `src/AutoStatus/src/AutoStatusSettingsView.xaml` |
-| Loc helper | `src/AutoStatus/src/AutoStatusLoc.cs` |
+| Loc helper | `src/Shared/PlayniteLoc.cs` |
 | Localization | `src/AutoStatus/Localization/*.xaml` (Playnite Crowdin set; English fallback) |
 
 ## Settings

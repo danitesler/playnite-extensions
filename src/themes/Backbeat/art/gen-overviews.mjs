@@ -1,68 +1,27 @@
-// Generates Backbeat's DetailsViewGameOverview.xaml and GridViewGameOverview.xaml from one field table.
+// Generates Backbeat's DetailsViewGameOverview.xaml and GridViewGameOverview.xaml from the shared overview helpers.
 // Usage: node src/themes/Backbeat/art/gen-overviews.mjs src/themes/Backbeat/src
 import {
   META_GROUPS,
+  bannerDarkeningFloor,
   bannerSpacer,
-  collapseEmptyTrigger,
+  heroVisibilityStyle,
+  hideWhenNoGame,
   indent,
-  metadataValue,
+  inlineCloseButton,
+  metadataGroup,
+  pageRootStyle,
   resolveThemeSrcDir,
+  sidePanelCloseButton,
+  steamScreenshotsGate,
   writeOverviews,
 } from '../../../../scripts/overview-generator.mjs';
 
 const out = resolveThemeSrcDir(import.meta.url);
 
-const groups = META_GROUPS;
-
-
-const caption = (loc, extra = '') =>
-  `<TextBlock Text="{DynamicResource ${loc}}" FontSize="{DynamicResource FontSizeSmall}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrushDarker}" TextWrapping="Wrap"${extra || ' Margin="0,2,0,0"'} />`;
-
-function field([name, loc, kind, part], layout) {
-  if (layout === 'side') {
-    return `<Border x:Name="PART_Elem${name}" Margin="0,7">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="104" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        ${caption(loc)}
-        <Border Grid.Column="1" Margin="8,0,0,0">
-${indent(metadataValue(kind, part), 12)}
-        </Border>
-    </Grid>
-</Border>`;
-  }
-  let gridValue = metadataValue(kind, part).replace(' x:Name=', ' Grid.Column="2" x:Name=');
-  if (kind === 'score') gridValue = gridValue.replace(' />', ' TextWrapping="Wrap" />');
-  return `<Border x:Name="PART_Elem${name}" Margin="0,7">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="12" />
-            <ColumnDefinition Width="3*" />
-        </Grid.ColumnDefinitions>
-        ${caption(loc, ' VerticalAlignment="Top"')}
-${indent(gridValue, 8)}
-    </Grid>
-</Border>`;
-}
-
-function group([gname, fields], layout) {
-  const trig = collapseEmptyTrigger(fields.map(f => `PART_Elem${f[0]}`));
-  return `<Border x:Name="${gname}" Margin="0,12,0,0" Padding="0,12,0,0" BorderThickness="0,2,0,0" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}">
-    <Border.Style>
-        <Style TargetType="Border">
-            <Style.Triggers>
-${indent(trig, 16)}
-            </Style.Triggers>
-        </Style>
-    </Border.Style>
-    <StackPanel>
-${indent(fields.map(f => field(f, layout)).join('\n'), 8)}
-    </StackPanel>
-</Border>`;
-}
+const fieldOptions = {
+  sideColumnWidth: '104',
+  captionFontWeight: 'SemiBold',
+};
 
 // Section header: the word on a slanted sticker, then a hard rule ending in four beat ticks.
 const header = (loc, marker, margin = '0,0,0,12') => `<DockPanel Margin="${margin}">
@@ -87,7 +46,7 @@ function pane(layout, widthKey, padding) {
 ${indent(header('LOCGameDetails', 'TitleSuffixBrush', '0,0,0,4'), 12)}
             <Grid ClipToBounds="True">
                 <StackPanel Margin="0,-33,0,-7">
-${indent(groups.map(g => group(g, layout)).join('\n'), 20)}
+${indent(META_GROUPS.map(g => metadataGroup(g, layout, { borderThickness: '0,2,0,0', fieldOptions })).join('\n'), 20)}
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -98,39 +57,9 @@ ${indent(groups.map(g => group(g, layout)).join('\n'), 20)}
 // No OpacityMask on the art: the Play star animates over this area. The fade is a plain gradient to the page color.
 // The halftone patch stays in the top 30% of the banner, clear of the Play star at any banner height.
 const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible="False" ClipToBounds="True">
-    <Grid.Style>
-        <Style TargetType="Grid">
-            <Setter Property="Height" Value="{DynamicResource GameBannerHeight}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Visibility, ElementName=PART_ImageBackground}" Value="Collapsed">
-                    <Setter Property="Height" Value="0" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
-                    <Setter Property="Height" Value="0" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Game.BackgroundImage}" Value="{x:Null}">
-                    <Setter Property="Height" Value="0" />
-                </DataTrigger>
-                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Grid.Style>
+${indent(heroVisibilityStyle(), 4)}
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill" />
-    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
-    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
-    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
-        <Rectangle.Style>
-            <Style TargetType="Rectangle">
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Rectangle.Style>
-    </Rectangle>
+${indent(bannerDarkeningFloor(), 4)}
     <Rectangle>
         <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -149,8 +78,6 @@ const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible
 
 // The slanted panel cut under the header. It sits in the content flow so it can never run behind the text columns.
 const panelCut = `<Path Data="M0,100 L100,0" Stretch="Fill" Height="14" Stroke="{DynamicResource FrameBrush}" StrokeThickness="3" IsHitTestVisible="False" />`;
-
-const spacer = bannerSpacer;
 
 // The title is headline italics over a hard ink copy offset 3px. The copy is bound to the real title, so it empties with it.
 const titleStyle = `FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLargest}" FontStyle="Italic" TextWrapping="Wrap"`;
@@ -178,74 +105,20 @@ const actions = (margin) => `<StackPanel Orientation="Horizontal" Margin="${marg
     </Button>
 </StackPanel>`;
 
-const steam = `<Grid x:Name="SteamScreenshotsGameScope">
-    <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
-    <Grid.Style>
-        <Style TargetType="Grid">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Grid.Style>
-<ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Margin="0,0,0,18">
-    <ContentControl.Style>
-        <Style TargetType="ContentControl">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </ContentControl.Style>
-</ContentControl>
-<Grid>
-    <Grid.Style>
-        <Style TargetType="Grid">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <MultiDataTrigger>
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding Game.PluginId}" Value="CB91DFC9-B977-43BF-8E70-55F46E410FAB" />
-                        <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
-                    </MultiDataTrigger.Conditions>
-                    <Setter Property="Visibility" Value="Visible" />
-                </MultiDataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Grid.Style>
-    <Border Tag="{Binding Game.Id, NotifyOnTargetUpdated=True}" Visibility="Collapsed" Height="150" Margin="0,0,0,18"
-            Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}" BorderThickness="2">
-        <Border.Triggers>
-            <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
-                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
-                            <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
-                        </ObjectAnimationUsingKeyFrames>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-        </Border.Triggers>
-        <Grid x:Name="SkeletonCells" Margin="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="8" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Border Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2" />
-            <Border Grid.Column="2" Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2" />
-        </Grid>
-    </Border>
-</Grid>
-</Grid>`;
+const steam = steamScreenshotsGate({
+  margin: '0,0,0,18',
+  borderBrush: 'WindowPanelSeparatorBrush',
+  borderThickness: '2',
+  skeletonContent: `<Grid x:Name="SkeletonCells" Margin="8">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="8" />
+        <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+    <Border Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2" />
+    <Border Grid.Column="2" Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2" />
+</Grid>`,
+});
 
 const textColumn = `<StackPanel>
 ${indent(steam, 4)}
@@ -322,13 +195,7 @@ ${indent(beatDot('BeatC', '0:0:0.92'), 16)}
 const ns = `xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"`;
 
-const contentStyle = `<Style TargetType="StackPanel">
-    <Style.Triggers>
-        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-            <Setter Property="Visibility" Value="Collapsed" />
-        </DataTrigger>
-    </Style.Triggers>
-</Style>`;
+const hideWhenEmpty = hideWhenNoGame('StackPanel');
 
 const columns = `<Grid.ColumnDefinitions>
     <ColumnDefinition Width="*" />
@@ -350,22 +217,11 @@ const details = `<!--
                 <ControlTemplate TargetType="DetailsViewGameOverview">
                     <ScrollViewer x:Name="PART_ScrollViewHost" Visibility="Visible" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <Grid x:Name="PageRoot" UseLayoutRounding="True">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                            <Setter Property="Background" Value="Transparent" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
+${indent(pageRootStyle(), 28)}
 ${indent(heroArt, 28)}
                             <StackPanel Margin="30,0,34,34">
-                                <StackPanel.Style>
-${indent(contentStyle, 36)}
-                                </StackPanel.Style>
-${indent(gridSpacer(spacer('x * 150 / 340', 28), 18, 'DetailsBannerSpacer'), 32)}
+${indent(hideWhenEmpty, 32)}
+${indent(bannerSpacer('x * 150 / 340', 18, 'DetailsBannerSpacer'), 32)}
                                 <DockPanel Margin="0,12,0,16">
 ${indent(actions('16,0,0,0').replace('<StackPanel Orientation="Horizontal"', '<StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center"'), 36)}
 ${indent(title, 36)}
@@ -387,68 +243,7 @@ ${indent(emptyState, 28)}
 </ResourceDictionary>
 `;
 
-function gridSpacer(markup, floor, name = 'GridBannerSpacer') {
-  return markup.replace('<Border', '<Border x:Name="' + name + '" MinHeight="' + floor + '"')
-    .replace(/(<Setter Property="Height" Value=")(\d+)(" \/>)/, (_, a, value, b) => a + floor + b)
-    .replace('</Style.Triggers>', `<DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed"><Setter Property="Height" Value="$FLOOR" /></DataTrigger>
-`.replace('$FLOOR', floor) + '</Style.Triggers>');
-}
-
-// Grid-only layout: retain each pane's markup while allowing metadata to move below it.
-function responsiveBody(main, metadata, gap = 24, attrs = '') {
-  const unposition = (text, role) => text.replace(/^<[^>]+>/, tag => tag.replace(/\s(?:Grid\.Column|Grid\.Row|DockPanel\.Dock)="[^"]*"/g, '').replace(/Margin="([^"]+)"/, (_, value) => { const m = value.split(','); if (m.length === 4) m[role === 'Metadata' ? 0 : 2] = '0'; return 'Margin="' + m.join(',') + '"'; }));
-  metadata = unposition(metadata, 'Metadata').replace(/<(\w+)([^>]*?)\sWidth="\{DynamicResource GridDetailsPaneWidth\}"([^>]*)>/, (_, tag, before, after) => '<' + tag + before + after + ' x:Name="GridMetadataContent" MaxWidth="{DynamicResource GridDetailsPaneWidth}" Tag="{DynamicResource GridDetailsPaneWidth}">\n' + `<$TAG.Style><Style TargetType="$TAG">
-    <Setter Property="Width" Value="{DynamicResource GridDetailsPaneWidth}" />
-    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /></DataTrigger></Style.Triggers>
-</Style></$TAG.Style>`.replaceAll('$TAG', tag));
-  main = unposition(main, 'Main');
-  const column = (role, content) => `<Grid x:Name="Grid$ROLEColumn" VerticalAlignment="Top">
-<Grid.Style><Style TargetType="Grid">
-    <Setter Property="Grid.Column" Value="$COL" /><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.ColumnSpan" Value="1" />
-    $MARGIN
-    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
-        <Setter Property="Grid.Column" Value="0" /><Setter Property="Grid.Row" Value="$ROW" /><Setter Property="Grid.ColumnSpan" Value="2" />
-        $NARROWMARGIN
-    </DataTrigger></Style.Triggers>
-</Style></Grid.Style>
-$WIDTH
-$CONTENT
-</Grid>`
-    .replaceAll('$ROLE', role).replaceAll('$COL', role === 'Main' ? '0' : '1').replaceAll('$ROW', role === 'Main' ? '0' : '1')
-    .replace('$MARGIN', role === 'Metadata' ? '<Setter Property="Margin" Value="' + gap + ',0,0,0" />' : '')
-    .replace('$NARROWMARGIN', role === 'Metadata' ? '<Setter Property="Margin" Value="0,24,0,0" />' : '')
-    .replace('$WIDTH', role === 'Main' ? `<Grid.MaxWidth><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - $GAP)">
-    <Binding Path="ActualWidth" ElementName="GridOverviewBody" /><Binding Path="ActualWidth" ElementName="GridMetadataColumn" /><Binding Path="Tag" ElementName="GridOverviewBody" />
-</MultiBinding></Grid.MaxWidth>` : '').replace('$CONTENT', content);
-  return `<Grid x:Name="GridOverviewBody" $ATTRS>
-<Grid.Tag><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + $GAP + 400">
-    <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" /><Binding Path="Tag" ElementName="GridMetadataContent" />
-</MultiBinding></Grid.Tag>
-<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-$MAIN
-$META
-</Grid>`.replace('$ATTRS', attrs).replace('$MAIN', column('Main', main)).replace('$META', column('Metadata', metadata)).replaceAll('$GAP', gap);
-}
-
-const gridTitle = title.replace('<DockPanel>', '<DockPanel Panel.ZIndex="2">').replace('    <Image', `    <Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
-            Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
-            ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
-            Template="{Binding Template, ElementName=SidePanelCloseButton}">
-        <Button.Style>
-            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="Visibility" Value="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Visible\` : \`Collapsed\`'}" />
-                <Style.Triggers>
-                    <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                        <Setter Property="Visibility" Value="Visible" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Button.Style>
-                <Button.RenderTransform>
-                    <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
-                </Button.RenderTransform>
-        </Button>\n    <Image`);
+const gridTitle = title.replace('<DockPanel>', '<DockPanel Panel.ZIndex="2">').replace('    <Image', `${indent(inlineCloseButton(), 4)}\n    <Image`);
 
 const gridView = `<!--
     Backbeat: grid side panel. Generated by art/gen-overviews.mjs; edit the generator, not this file.
@@ -478,77 +273,26 @@ const gridView = `<!--
                         <Grid>
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid x:Name="PageRoot" UseLayoutRounding="True">
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                                    <Setter Property="Background" Value="Transparent" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
+${indent(pageRootStyle(), 36)}
 ${indent(heroArt, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="24,0,30,30">
-                                        <StackPanel.Style>
-${indent(contentStyle, 44)}
-                                        </StackPanel.Style>
-${indent(gridSpacer(spacer('x * 120 / 340', 14), 14), 40)}
+${indent(hideWhenEmpty, 40)}
+${indent(bannerSpacer('x * 120 / 340', 14, 'GridBannerSpacer'), 40)}
                                         <StackPanel Panel.ZIndex="2" Margin="0,10,0,16">
 ${indent(gridTitle, 44)}
 ${indent(actions('0,14,0,0'), 44)}
                                         </StackPanel>
 ${indent(panelCut, 40)}
-${indent(responsiveBody(textColumn, pane('stack', 'GridDetailsPaneWidth', '16,14,16,16').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 28, "Margin=\"0,16,0,0\""), 40)}
+                                        <Grid Margin="0,16,0,0">
+${indent(columns, 44)}
+${indent(textColumn, 44)}
+${indent(pane('stack', 'GridDetailsPaneWidth', '16,14,16,16').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 44)}
+                                        </Grid>
                                     </StackPanel>
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-                            <Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}"
-
-                                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
-                                    Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}"
-                                    Command="{MainViewModel CloseGameSideBarCommand}">
-<Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-    <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Collapsed\` : \`Visible\`'}" />
-    <Style.Triggers>
-            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                <Setter Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-</Style></Button.Style>
-                                <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
-                                <Button.Template>
-                                    <ControlTemplate TargetType="{x:Type Button}">
-                                        <Grid Background="Transparent">
-                                            <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource ButtonBackgroundBrush}"
-                                                    BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                                            <Border x:Name="HoverPlate" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource DangerBrush}" Opacity="0" IsHitTestVisible="False" />
-                                            <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
-                                                            Content="{DynamicResource IconWindowClose}" ContentTemplate="{DynamicResource IconTemplate}"
-                                                            Foreground="{DynamicResource TextBrush}" />
-                                        </Grid>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
-                                                <Trigger.EnterActions>
-                                                    <BeginStoryboard><Storyboard>
-                                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                                    </Storyboard></BeginStoryboard>
-                                                </Trigger.EnterActions>
-                                                <Trigger.ExitActions>
-                                                    <BeginStoryboard><Storyboard>
-                                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
-                                                    </Storyboard></BeginStoryboard>
-                                                </Trigger.ExitActions>
-                                            </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+${indent(sidePanelCloseButton(), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>
@@ -559,4 +303,3 @@ ${indent(emptyState, 36)}
 `;
 
 writeOverviews(out, details, gridView);
-console.log('wrote both overviews');

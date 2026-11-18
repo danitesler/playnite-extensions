@@ -97,7 +97,7 @@ Skeleton and metadata pane as in `../AGENTS.md`. Differences: the page is butter
 | Empty game page (both overviews) | A chalkboard card (`TooltipBackgroundBrush`) with the paw drawn in dashed chalk and a few chalk marks, and a taped yellow sticky note holding `LOCErrorNoGameSelected` in handwriting; the note sways 2.2 degrees every 4.2s (`ControlTemplate.Triggers`, named transform) |
 | `NotificationMessage` | Cream card with a ghost close glyph |
 
-No sprites: the source is flat color with lips, so nothing is generated. `art/tint-menu-icons.py` tints the menu PNGs (`src/Images/Lucide`) from `tokens.css`. `art/mark.svg` is the paw (the same path is `PawGeometry` in `Media.xaml`).
+No sprites: the source is flat color with lips, so nothing is generated. `scripts/render-icons.ps1 -Extension rumpus` uses `icons.json` to tint the menu PNGs (`src/Images/Lucide`) from `tokens.css`. `art/mark.svg` is the paw (the same path is `PawGeometry` in `Media.xaml`).
 
 ## Previews
 

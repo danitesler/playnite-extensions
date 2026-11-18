@@ -1,11 +1,12 @@
 # Run with pwsh -STA -File tests/wpf/DetailsViewLayoutRegressionTests.ps1.
-param([string]$PlaynitePath = (Join-Path $env:LOCALAPPDATA 'Playnite'))
+param([string]$PlaynitePath = (Join-Path $env:LOCALAPPDATA 'Playnite'), [string[]]$Keys = @())
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework, PresentationCore
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
 [Reflection.Assembly]::LoadFrom((Join-Path $PlaynitePath 'MathConverter.dll')) | Out-Null
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $namespace = 'http://schemas.microsoft.com/winfx/2006/xaml/presentation'
 $xNamespace = 'http://schemas.microsoft.com/winfx/2006/xaml'
 $assembly = [HexInnovation.MathConverter].Assembly.GetName().Name
@@ -53,59 +54,67 @@ foreach ($theme in $themes) {
     $bannerChecks++
 }
 $spacingChecks = 0
-foreach ($view in 'Details','Grid') {
-    [xml]$xml = Get-Content "$root/src/themes/Ace/src/Views/${view}ViewGameOverview.xaml" -Raw
-    $first = $xml.SelectSingleNode('//*[@*[local-name()="Name"]="MetaProgress"]')
-    $groupsHost = $first.ParentNode
-    $clip = $groupsHost.ParentNode.CloneNode($true)
-    $clipName = $clip.GetAttribute('Name', $xNamespace)
-    if (-not $clipName) { $clipName = $clip.GetAttribute('Name') }
-    if (-not $clipName) {
-        $clipName = 'MetadataClip'
-        $clip.SetAttribute('Name', $xNamespace, $clipName) | Out-Null
-    }
-    # Check the original row spacing in the preferred-width side pane. The
-    # breakpoint regression covers the full-width stacked pane separately.
-    $clip.SetAttribute('Width', '300')
-    # Populate the existing fields, including wrapping captions. The theme's real
-    # row/group margins, collapse triggers and clip compensation remain intact.
-    foreach ($text in $clip.SelectNodes('.//*[local-name()="TextBlock"]')) {
-        $text.SetAttribute('Text','A wrapping caption or value')
-    }
-    foreach ($button in $clip.SelectNodes('.//*[local-name()="Button"]')) { $button.SetAttribute('Content','Value') }
-    $control = Parse-Template $clip.OuterXml
-    $clipControl = $control.Template.FindName($clipName,$control)
-    $rowNodes = @($clip.SelectNodes('.//*[local-name()="Grid"][@*[starts-with(local-name(),"Name") and starts-with(.,"PART_Elem")]]'))
-    $groups = @($clip.SelectNodes('.//*[local-name()="Border"][@*[starts-with(.,"Meta") and local-name()="Name"]]'))
-    foreach ($hideCount in 0, 1, 2) {
-        foreach ($groupIndex in 0..($groups.Count-1)) {
-            foreach ($node in $groups[$groupIndex].SelectNodes('.//*[local-name()="Grid"][@*[local-name()="Name" and starts-with(.,"PART_Elem")]]')) {
+if ('ace' -in $themes.key) {
+    foreach ($view in 'Details','Grid') {
+        [xml]$xml = Get-Content "$root/src/themes/Ace/src/Views/${view}ViewGameOverview.xaml" -Raw
+        $first = $xml.SelectSingleNode('//*[@*[local-name()="Name"]="MetaProgress"]')
+        $groupsHost = $first.ParentNode
+        $clip = $groupsHost.ParentNode.CloneNode($true)
+        $clipName = $clip.GetAttribute('Name', $xNamespace)
+        if (-not $clipName) { $clipName = $clip.GetAttribute('Name') }
+        if (-not $clipName) {
+            $clipName = 'MetadataClip'
+            $clip.SetAttribute('Name', $xNamespace, $clipName) | Out-Null
+        }
+        # Check the original row spacing in the preferred-width side pane. The
+        # breakpoint regression covers the full-width stacked pane separately.
+        $clip.SetAttribute('Width', '300')
+        # Populate the existing fields, including wrapping captions. The theme's real
+        # row/group margins, collapse triggers and clip compensation remain intact.
+        foreach ($text in $clip.SelectNodes('.//*[local-name()="TextBlock"]')) {
+            $text.SetAttribute('Text','A wrapping caption or value')
+        }
+        foreach ($button in $clip.SelectNodes('.//*[local-name()="Button"]')) { $button.SetAttribute('Content','Value') }
+        $control = Parse-Template $clip.OuterXml
+        $clipControl = $control.Template.FindName($clipName,$control)
+        $rowNodes = @($clip.SelectNodes('.//*[local-name()="Grid"][@*[starts-with(local-name(),"Name") and starts-with(.,"PART_Elem")]]'))
+        $groupByRow = @{}
+        $groupIndex = -1
+        foreach ($child in $clip.SelectSingleNode('.//*[local-name()="WrapPanel"][@*[local-name()="Name" and contains(.,"MetadataGroups")]]').ChildNodes) {
+            if ($child -isnot [Xml.XmlElement]) { continue }
+            $cname = $child.GetAttribute('Name', $xNamespace)
+            if (-not $cname) { $cname = $child.GetAttribute('Name') }
+            if ($cname -like 'Meta*') { $groupIndex++ }
+            elseif ($cname -like 'PART_Elem*') { $groupByRow[$cname] = $groupIndex }
+        }
+        foreach ($hideCount in 0, 1, 2) {
+            foreach ($node in $rowNodes) {
                 $rowName = $node.GetAttribute('Name',$xNamespace)
                 if (-not $rowName) { $rowName = $node.GetAttribute('Name') }
-                $control.Template.FindName($rowName,$control).Visibility = $(if ($groupIndex -lt $hideCount) { 'Collapsed' } else { 'Visible' })
+                $control.Template.FindName($rowName,$control).Visibility = $(if ($groupByRow[$rowName] -lt $hideCount) { 'Collapsed' } else { 'Visible' })
             }
-        }
-        Settle $control
-        $previous = $null
-        $previousGroup = $null
-        foreach ($node in $rowNodes) {
-            $rowName = $node.GetAttribute('Name',$xNamespace)
-            if (-not $rowName) { $rowName = $node.GetAttribute('Name') }
-            $row = $control.Template.FindName($rowName,$control)
-            if ($row.Visibility -eq 'Collapsed') { continue }
-            $group = $node.ParentNode.ParentNode
-            $point = $row.TranslatePoint([Windows.Point]::new(0,0),$clipControl)
-            if (-not $previous) {
-                if ([math]::Abs($point.Y) -gt 0.1) { throw "Ace $view first visible metadata row is clipped or offset ($($point.Y))" }
-            } else {
-                $before = $previous.TranslatePoint([Windows.Point]::new(0,0),$clipControl)
-                $gap = $point.Y-$before.Y-$previous.ActualHeight
-                $expected = if ($group -eq $previousGroup) { 8 } else { 25 }
-                if ([math]::Abs($gap-$expected) -gt 0.1) { throw "Ace $view metadata gap is $gap; expected $expected" }
+            Settle $control
+            $previous = $null
+            $previousGroup = $null
+            foreach ($node in $rowNodes) {
+                $rowName = $node.GetAttribute('Name',$xNamespace)
+                if (-not $rowName) { $rowName = $node.GetAttribute('Name') }
+                $row = $control.Template.FindName($rowName,$control)
+                if ($row.Visibility -eq 'Collapsed') { continue }
+                $group = $groupByRow[$rowName]
+                $point = $row.TranslatePoint([Windows.Point]::new(0,0),$clipControl)
+                if (-not $previous) {
+                    if ([math]::Abs($point.Y) -gt 0.1) { throw "Ace $view first visible metadata row is clipped or offset ($($point.Y))" }
+                } else {
+                    $before = $previous.TranslatePoint([Windows.Point]::new(0,0),$clipControl)
+                    $gap = $point.Y-$before.Y-$previous.ActualHeight
+                    $expected = if ($group -eq $previousGroup) { 8 } else { 25 }
+                    if ([math]::Abs($gap-$expected) -gt 0.1) { throw "Ace $view metadata gap is $gap; expected $expected" }
+                }
+                $previous = $row
+                $previousGroup = $group
+                $spacingChecks++
             }
-            $previous = $row
-            $previousGroup = $group
-            $spacingChecks++
         }
     }
 }

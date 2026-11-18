@@ -5,66 +5,11 @@
 # -RenderDir <folder> also saves <key>-<case>.png of each item running and selected (no art: a sizing and colour check).
 param([string[]]$Keys, [string]$RenderDir)
 $ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Xaml
-if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
-if (-not ('RunningIndicatorFakeGame' -as [type])) {
-    Add-Type -TypeDefinition @"
-using System.ComponentModel;
-public class RunningIndicatorFakeGame : INotifyPropertyChanged {
-    bool r, l, i = true;
-    public event PropertyChangedEventHandler PropertyChanged;
-    void N(string p) { if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(p)); }
-    public bool IsRunning { get { return r; } set { r = value; N("IsRunning"); } }
-    public bool IsLaunching { get { return l; } set { l = value; N("IsLaunching"); } }
-    public bool IsInstalled { get { return i; } set { i = value; N("IsInstalled"); } }
-    public string Name { get { return "Game"; } }
-    public override string ToString() { return "Game"; }
-}
-"@
-}
+. (Join-Path $PSScriptRoot 'RunningIndicatorHarness.ps1')
 
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
 if ($Keys) { $Keys = @($Keys | ForEach-Object { $_ -split "," } | Where-Object { $_ }); $themes = $themes | Where-Object { $Keys -contains $_.key } }
-
-function Pump([int]$ms) {
-    $frame = New-Object Windows.Threading.DispatcherFrame
-    $timer = New-Object Windows.Threading.DispatcherTimer
-    $timer.Interval = [TimeSpan]::FromMilliseconds($ms)
-    $timer.Add_Tick({ $frame.Continue = $false; $timer.Stop() }.GetNewClosure())
-    $timer.Start()
-    [Windows.Threading.Dispatcher]::PushFrame($frame)
-}
-function ConvertTo-TestXaml([string]$text) {
-    # Playnite-only markup has no meaning here: {Settings} values become literals, their triggers go.
-    # {x:Null} is a real ImageSource. Leaving the attribute empty makes Show() throw ImageSourceConverter.
-    $text = $text -replace '\{Settings [A-Za-z.]+\}', '4'
-    $text = $text -replace '\{ThemeFile [^}]*\}', '{x:Null}'
-    $text = $text -replace '<DataTrigger Binding="4"[^>]*>[\s\S]*?</DataTrigger>', ''
-    return $text
-}
-function Read-Dictionary([string]$path) {
-    return [Windows.Markup.XamlReader]::Parse((ConvertTo-TestXaml (Get-Content -Raw -LiteralPath $path)))
-}
-function New-Items($game) {
-    $items = New-Object 'System.Collections.ObjectModel.ObservableCollection[object]'
-    $items.Add($game.psobject.BaseObject)
-    return , $items
-}
-
-if (-not ('RunningIndicatorUpperConverter' -as [type])) {
-    Add-Type -ReferencedAssemblies PresentationFramework, WindowsBase, System.Xaml -TypeDefinition @"
-public class RunningIndicatorUpperConverter : System.Windows.Data.IValueConverter {
-    public object Convert(object v, System.Type t, object p, System.Globalization.CultureInfo c) { return v == null ? null : v.ToString().ToUpperInvariant(); }
-    public object ConvertBack(object v, System.Type t, object p, System.Globalization.CultureInfo c) { return v; }
-}
-"@
-}
-# StaticResource BaseStyle resolves while parsing, so it lives in Application resources.
-$app = [Windows.Application]::Current
-if (-not $app) { $app = New-Object Windows.Application; $app.ShutdownMode = 'OnExplicitShutdown' }
-if (-not $app.Resources.Contains('StringToUpperCaseConverter')) { $app.Resources.Add('StringToUpperCaseConverter', (New-Object RunningIndicatorUpperConverter)) }
-if (-not $app.Resources.Contains('BaseStyle')) { $app.Resources.Add('BaseStyle', (New-Object Windows.Style ([Windows.Controls.Control]))) }
 
 # A ThemeFile brush in an item template must survive sanitizing and Show(). Empty ImageSource does not.
 $themeFileFixture = ConvertTo-TestXaml @'
@@ -97,27 +42,7 @@ finally { $fixtureWindow.Close() }
 $failures = [System.Collections.Generic.List[string]]::new()
 $checks = 0
 foreach ($theme in $themes) {
-    $drop = Join-Path $root "artifacts/builds/themes/$($theme.key)"
-    if (-not (Test-Path (Join-Path $drop 'Constants.xaml'))) { $failures.Add("$($theme.key): no build drop; run build-theme.ps1 -NoDeploy first"); continue }
-    $res = New-Object Windows.ResourceDictionary
-    try {
-        $res.MergedDictionaries.Add((Read-Dictionary (Join-Path $drop 'Constants.xaml')))
-        # Shared templates (chamfers, slants, glows) live in Common.xaml. Load it when it parses on its own, so shaped frames draw.
-        # Playnite-side base styles it names (BaseTextBlockStyle, ...) are stubbed as empty FrameworkElement styles.
-        for ($try = 0; $try -lt 12; $try++) {
-            try { $res.MergedDictionaries.Add((Read-Dictionary (Join-Path $drop 'Common.xaml'))); break }
-            catch {
-                $msg = $_.Exception.GetBaseException().Message
-                if ($msg -match "Cannot find resource named '([^']+)'" -and -not $app.Resources.Contains($Matches[1])) {
-                    $app.Resources.Add($Matches[1], (New-Object Windows.Style ([Windows.FrameworkElement])))
-                }
-                else { Write-Host "note: $($theme.key) Common.xaml not loaded ($($msg.Split([char]10)[0]))"; break }
-            }
-        }
-        foreach ($rel in 'DerivedStyles/DetailsViewItemStyle.xaml', 'DerivedStyles/GridViewItemStyle.xaml', 'DefaultControls/ListView.xaml', 'DerivedStyles/PlayButton.xaml') {
-            $res.MergedDictionaries.Add((Read-Dictionary (Join-Path $drop $rel)))
-        }
-    }
+    try { $res = Load-Theme $theme }
     catch { $failures.Add("$($theme.key): XAML did not load: $($_.Exception.GetBaseException().Message)"); continue }
 
     $cases = @(
@@ -130,16 +55,17 @@ foreach ($theme in $themes) {
                 $col.DisplayMemberBinding = New-Object Windows.Data.Binding 'Name'
                 $gv.Columns.Add($col); $lv.View = $gv; $lv } },
         @{ Name = 'game page action'; Make = {
-                # The real cell: the context action drawn with the theme's PlayButton (Tag ContextAction), the overlay on top.
+                # The real cell: Play (collapsed while running, as Playnite leaves PART_ButtonPlayAction in the cell) + context action + overlay.
                 $g = New-Object Windows.Controls.Grid; $g.Width = 190; $g.Height = 48
                 $b = New-Object Windows.Controls.Button; $b.Content = 'Running'; $b.Tag = 'ContextAction'
-                if ($res['PlayButton']) { $b.Style = $res['PlayButton'] }
+                $bCollapsed = New-Object Windows.Controls.Button; $bCollapsed.Content = 'Play'; $bCollapsed.Visibility = [Windows.Visibility]::Collapsed
+                if ($res['PlayButton']) { $b.Style = $res['PlayButton']; $bCollapsed.Style = $res['PlayButton'] }
                 $c = New-Object Windows.Controls.Control; $c.Style = $res['RunningActionIndicator']
-                $g.Children.Add($b) | Out-Null; $g.Children.Add($c) | Out-Null; $g } }
+                $g.Children.Add($b) | Out-Null; $g.Children.Add($c) | Out-Null; $g.Children.Add($bCollapsed) | Out-Null; $g } }
     )
     foreach ($case in $cases) {
         $checks++
-        $game = New-Object RunningIndicatorFakeGame
+        $game = New-Object RunningTestGame
         $control = & $case.Make
         $isList = $control -is [Windows.Controls.ItemsControl]
         if ($isList) { $control.ItemsSource = (New-Items $game) } else { $control.DataContext = $game }
@@ -186,13 +112,7 @@ foreach ($theme in $themes) {
                 $win.Background = $back; $control.Background = $back
                 $win.UpdateLayout(); Pump 120
                 $target = if ($isList) { $el } else { $control }
-                $bmp = New-Object Windows.Media.Imaging.RenderTargetBitmap ([int][math]::Ceiling($target.ActualWidth + 16)), ([int][math]::Ceiling($target.ActualHeight + 16)), 96, 96, ([Windows.Media.PixelFormats]::Pbgra32)
-                $dv = New-Object Windows.Media.DrawingVisual
-                $dc = $dv.RenderOpen()
-                $dc.DrawRectangle($back, $null, (New-Object Windows.Rect 0, 0, ($target.ActualWidth + 16), ($target.ActualHeight + 16)))
-                $vb = New-Object Windows.Media.VisualBrush $target
-                $dc.DrawRectangle($vb, $null, (New-Object Windows.Rect 8, 8, $target.ActualWidth, $target.ActualHeight))
-                $dc.Close(); $bmp.Render($dv)
+                $bmp = Get-TestBitmap $target $target.ActualWidth $target.ActualHeight $back -Pad 8
                 New-Item -ItemType Directory -Force -Path $RenderDir | Out-Null
                 $enc = New-Object Windows.Media.Imaging.PngBitmapEncoder
                 $enc.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($bmp))

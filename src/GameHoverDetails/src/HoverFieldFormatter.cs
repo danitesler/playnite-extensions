@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Models;
 using Playnite.SDK.Plugins;
 
@@ -134,7 +135,7 @@ namespace GameHoverDetails
                 // ignore
             }
 
-            return HoverLoc.Get("LOCGameHoverDetails_Value_UnknownLibrary", "Unknown library");
+            return PlayniteLoc.Get("LOCGameHoverDetails_Value_UnknownLibrary", "Unknown library");
         }
 
         /// <summary>
@@ -168,16 +169,16 @@ namespace GameHoverDetails
 
             if (days == 0)
             {
-                return HoverLoc.Get("LOCToday", "Today");
+                return PlayniteLoc.Get("LOCToday", "Today");
             }
 
             if (days == 1)
             {
-                return HoverLoc.Get("LOCYesterday", "Yesterday");
+                return PlayniteLoc.Get("LOCYesterday", "Yesterday");
             }
 
             var dow = localDateTime.DayOfWeek.ToString();
-            return HoverLoc.Get("LOC" + dow, CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(localDateTime.DayOfWeek));
+            return PlayniteLoc.Get("LOC" + dow, CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(localDateTime.DayOfWeek));
         }
 
         private static string FormatReleaseDateLong(ReleaseDate? releaseDate, IPlayniteAPI api)
@@ -241,7 +242,7 @@ namespace GameHoverDetails
                 }
 
                 var name = string.IsNullOrWhiteSpace(link.Name)
-                    ? HoverLoc.Get("LOCGameHoverDetails_Value_Link", "Link")
+                    ? PlayniteLoc.Get("LOCGameHoverDetails_Value_Link", "Link")
                     : link.Name;
                 var url = link.Url ?? "";
                 if (sb.Length > 0)
@@ -275,7 +276,7 @@ namespace GameHoverDetails
                 b /= 1024;
             }
 
-            var unit = HoverLoc.Get(SizeUnitKeys[order], SizeUnitFallbacks[order]);
+            var unit = PlayniteLoc.Get(SizeUnitKeys[order], SizeUnitFallbacks[order]);
             return string.Format(CultureInfo.CurrentCulture, "{0:0.##} {1}", b, unit);
         }
 
@@ -309,22 +310,22 @@ namespace GameHoverDetails
             // Like Playnite's converter, use integer arithmetic: SDK values can exceed TimeSpan's range.
             if (playtimeSeconds < 60)
             {
-                return HoverLoc.Format("LOCPlayedSeconds", "{0} seconds", playtimeSeconds);
+                return PlayniteLoc.Format("LOCPlayedSeconds", "{0} seconds", playtimeSeconds);
             }
 
             var minutes = playtimeSeconds / 60;
             if (minutes < 60)
             {
-                return HoverLoc.Format("LOCPlayedMinutes", "{0} minutes", minutes);
+                return PlayniteLoc.Format("LOCPlayedMinutes", "{0} minutes", minutes);
             }
 
             var hours = minutes / 60;
             if (useDays && hours >= 24)
             {
-                return HoverLoc.Format("LOCPlayedDays", "{0}d {1}h {2}min", hours / 24, hours % 24, minutes % 60);
+                return PlayniteLoc.Format("LOCPlayedDays", "{0}d {1}h {2}min", hours / 24, hours % 24, minutes % 60);
             }
 
-            return HoverLoc.Format("LOCPlayedHours", "{0}h {1}min", hours, minutes % 60);
+            return PlayniteLoc.Format("LOCPlayedHours", "{0}h {1}min", hours, minutes % 60);
         }
 
         private static string JoinNames(IEnumerable<DatabaseObject> items)

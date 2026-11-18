@@ -455,6 +455,10 @@ function Test-StyleTriggerComplexAnimation {
             if ($path -notmatch "\)\.\(" -or $node.GetAttribute("Storyboard.TargetName")) { continue }
             $errors.Add("${where}: a Style trigger animates '$path', which crashes Playnite when game details open (the transform is read-only while the page is built). Animate a plain property (Opacity, Margin, Height in a fixed-size host), or move the storyboard to the page's ControlTemplate.Triggers with an x:Name'd transform and Storyboard.TargetName (docs/themes/reference.md, Hard rules).") | Out-Null
         }
+        foreach ($node in $doc.SelectNodes("//*[local-name()='ControlTemplate'][not(contains(@TargetType,'WindowBase'))]/*[local-name()='ControlTemplate.Triggers']/*[local-name()='EventTrigger'][contains(@RoutedEvent,'Loaded')]//*[@*[local-name()='Storyboard.TargetName']]")) {
+            $target = $node.GetAttribute("Storyboard.TargetName")
+            $errors.Add("${where}: ControlTemplate.Triggers has a Loaded EventTrigger targeting '$target', which crashes Playnite when a control using that template starts Collapsed (BroadcastLoadedEvent fires before ApplyTemplate builds the template's NameScope). Move the Loaded EventTrigger onto the target element's own Triggers inside the template visual tree.") | Out-Null
+        }
     }
     return @($errors | Select-Object -Unique)
 }
@@ -857,6 +861,17 @@ function Test-WindowBackground {
         $doc = Read-XamlDocument $path
         if (-not $doc) { continue }
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $relative
+        $prefix = if ($view -eq 'DetailsViewGameOverview') { 'Details' } else { 'Grid' }
+        $placementColumn = $doc.SelectSingleNode("//*[@*[local-name()='Name']='${prefix}MetadataColumn']")
+        $placementMain = $doc.SelectSingleNode("//*[@*[local-name()='Name']='${prefix}MainColumn']")
+        $placementBody = if ($placementColumn) { $placementColumn.ParentNode } else { $null }
+        $bodyColumns = if ($placementBody) { @($placementBody.SelectNodes("./*[local-name()='Grid.ColumnDefinitions']/*")).Count } else { 0 }
+        $hasStretchPlacement = $placementColumn -and $placementColumn.SelectSingleNode(".//*[local-name()='DataTrigger'][@Value='Stretch']")
+        $groupsHost = $doc.SelectSingleNode("//*[@*[local-name()='Name']='${prefix}MetadataGroups']")
+        $hasFlatStretchItems = $groupsHost -and $groupsHost.SelectSingleNode("./*[@*[local-name()='Name' and starts-with(.,'PART_Elem')]]") -and $groupsHost.SelectSingleNode("./*[@*[local-name()='Name']='MetaProgress']//*[local-name()='DataTrigger'][@Value='Center']") -and $groupsHost.SelectSingleNode("./*[@*[local-name()='Name']='MetaProgress']//*[local-name()='DataTrigger'][@Value='Stretch']")
+        if (-not $placementColumn -or -not $placementMain -or $placementMain.ParentNode -ne $placementBody -or $placementColumn.GetAttribute('Tag') -ne '{DynamicResource GameDetailsPanePosition}' -or $bodyColumns -ne 3 -or -not $hasStretchPlacement -or -not $hasFlatStretchItems) {
+            $errors.Add("${where}: the metadata pane cannot move (Left / Center / Stretch / Right) or lacks flat Stretch item-grid flow. ${prefix}MetadataColumn needs Tag=`"{DynamicResource GameDetailsPanePosition}`" with Stretch item-grid layout in a three-column body grid; run node scripts/game-page-breakpoints.mjs on the file (src/themes/AGENTS.md Game page).") | Out-Null
+        }
         $banners = @($doc.SelectNodes("//*[@Height='{DynamicResource GameBannerHeight}' or @MaxHeight='{DynamicResource GameBannerHeight}']"))
         if ($banners.Count -gt 0 -and -not $doc.SelectSingleNode("//*[@Opacity='0.5' and @Tag='{DynamicResource GameBannerDarken}']")) {
             $errors.Add("${where}: no banner darkening floor. After the darkening layer add the same brush at Opacity=`"0.5`" with Tag=`"{DynamicResource GameBannerDarken}`", collapsed by a DataTrigger on Tag = 0, so any value above 0 starts at 50% (src/themes/AGENTS.md Window background).") | Out-Null
@@ -1325,22 +1340,26 @@ if ($isTheme) {
             }
         }
 
-        # Build into a scratch folder and run the same checks build-theme.ps1 runs.
-        $scratch = Join-Path ([System.IO.Path]::GetTempPath()) ("playnite-theme-validate-" + [guid]::NewGuid().ToString("N"))
+        # Standalone validation builds in scratch. The verification gate supplies a fresh build drop.
+        $tempRoot = [System.IO.Path]::GetTempPath()
+        $scratch = if (-not $RequireBuildOutput) {
+            Join-Path $tempRoot ("playnite-theme-validate-" + [guid]::NewGuid().ToString("N"))
+        }
+        $themeDrop = if ($RequireBuildOutput) { $outputPath } else { $scratch }
         try {
-            Invoke-ThemeBuild -Profile $profile -OutDir $scratch | Out-Null
-            foreach ($themeError in @(Test-ThemeBuild -Directory $scratch -Mode $manifest.Mode)) {
+            if ($scratch) { Invoke-ThemeBuild -Profile $profile -OutDir $scratch | Out-Null }
+            foreach ($themeError in @(Test-ThemeBuild -Directory $themeDrop -Mode $manifest.Mode)) {
                 $errors.Add($themeError)
             }
-            $missing = @(Get-ThemeMissingRequiredKeys -Directory $scratch)
+            $missing = @(Get-ThemeMissingRequiredKeys -Directory $themeDrop)
             if ($missing.Count -gt 0) {
                 $errors.Add("Required shared keys missing (scripts/data/theme-keys.json): $($missing -join ', ')")
             }
             $themeSourceRoot = "$($profile.dir)/src"
-            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-RunningIndicator -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-WindowBackground -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $scratch -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $scratch -SourceRoot $themeSourceRoot)) {
+            foreach ($ruleError in @(Test-SidebarIconPadding -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-PillCornerRadius -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-ThemeModifierIconButtons -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-GroupBoxContentSized -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-ComboBoxChevronRoom -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-GameActionButtons -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-StyleTriggerComplexAnimation -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-PathDataSyntax -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-FormControlHeight -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-TabItemColors -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-SettingsChrome -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-FilterActiveIndicator -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-RunningIndicator -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-WindowBackground -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-TileButtonHitArea -Directory $themeDrop -SourceRoot $themeSourceRoot) + @(Test-SidePanelCloseButton -Directory $themeDrop -SourceRoot $themeSourceRoot)) {
                 $errors.Add($ruleError)
             }
-            foreach ($ruleError in @(Test-SettingsChrome -Directory $scratch -SourceRoot $themeSourceRoot -Advisory)) {
+            foreach ($ruleError in @(Test-SettingsChrome -Directory $themeDrop -SourceRoot $themeSourceRoot -Advisory)) {
                 $previewNotes.Add($ruleError)
             }
         }
@@ -1348,7 +1367,13 @@ if ($isTheme) {
             $errors.Add("Theme build failed: $($_.Exception.Message)")
         }
         finally {
-            if (Test-Path $scratch) { Remove-Item -Path $scratch -Recurse -Force }
+            if ($scratch -and (Test-Path -LiteralPath $scratch)) {
+                $cleanup = Get-Item -LiteralPath $scratch
+                if ($cleanup.Parent.FullName -eq (Get-Item -LiteralPath $tempRoot).FullName -and
+                    -not ($cleanup.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                    Remove-Item -LiteralPath $cleanup.FullName -Recurse -Force
+                }
+            }
         }
     }
 }

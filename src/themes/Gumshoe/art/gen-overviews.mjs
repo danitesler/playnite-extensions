@@ -1,70 +1,38 @@
-// Generates Gumshoe's DetailsViewGameOverview.xaml and GridViewGameOverview.xaml from one field table.
+// Generates Gumshoe's DetailsViewGameOverview.xaml and GridViewGameOverview.xaml from the shared overview helpers.
 // Usage: node src/themes/Gumshoe/art/gen-overviews.mjs src/themes/Gumshoe/src
 import {
   META_GROUPS,
+  bannerDarkeningFloor,
   bannerSpacer,
-  collapseEmptyTrigger,
+  heroVisibilityStyle,
+  hideWhenNoGame,
   hideWhenNoTitle,
   indent,
+  inlineCloseButton,
+  metadataGroup,
+  pageRootStyle,
   resolveThemeSrcDir,
+  sidePanelCloseButton,
+  steamScreenshotsGate,
   writeOverviews,
 } from '../../../../scripts/overview-generator.mjs';
 
 const out = resolveThemeSrcDir(import.meta.url);
 
-const groups = META_GROUPS;
-
-
-function value(kind, part) {
-  switch (kind) {
-    case 'button': return `<Button x:Name="${part}" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{DynamicResource PropertyItemButton}" />`;
-    case 'text': return `<TextBlock x:Name="${part}" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="{DynamicResource FontSizeLarge}" Foreground="{DynamicResource ParchmentTextBrush}" />`;
-    // A score is a small pill with an ink rim, like the price tags: ink on paper whatever the rating (the green and red of the default score style are unreadable on paper).
-    case 'score': return `<Border HorizontalAlignment="Left" VerticalAlignment="Center" BorderBrush="{DynamicResource ParchmentLabelBrush}" BorderThickness="2" CornerRadius="6" Padding="8,0,8,1">
+// A score is a small pill with an ink rim, like the price tags: ink on paper whatever the rating (the green and red of the default score style are unreadable on paper).
+const scoreRenderer = (part, layout) => `<Border${layout === 'stack' ? ' Grid.Column="2"' : ''} HorizontalAlignment="Left" VerticalAlignment="Center" BorderBrush="{DynamicResource ParchmentLabelBrush}" BorderThickness="2" CornerRadius="6" Padding="8,0,8,1">
     <TextBlock x:Name="${part}" Style="{DynamicResource TextBlockGameScore}" Foreground="{DynamicResource ParchmentTextBrush}" />
 </Border>`;
-    case 'items':
-    case 'chips': return `<ItemsControl x:Name="${part}" Tag="${kind === 'chips' ? 'Chip' : ''}">
-    <ItemsControl.ItemsPanel>
-        <ItemsPanelTemplate>
-            <WrapPanel />
-        </ItemsPanelTemplate>
-    </ItemsControl.ItemsPanel>
-</ItemsControl>`;
-  }
-}
-const caption = (loc, extra = '') =>
-  `<TextBlock Text="{DynamicResource ${loc}}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource ParchmentLabelBrush}" TextWrapping="Wrap"${extra || ' Margin="0,1,0,0"'} />`;
-function field([name, loc, kind, part], layout) {
-  if (layout === 'side') {
-    return `<Border x:Name="PART_Elem${name}" Margin="0,3">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="108" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        ${caption(loc)}
-        <Border Grid.Column="1" Margin="8,0,0,0">
-${indent(value(kind, part), 12)}
-        </Border>
-    </Grid>
-</Border>`;
-  }
-  const gridValue = kind === 'score'
-    ? value(kind, part).replace('<Border ', '<Border Grid.Column="2" ')
-    : value(kind, part).replace(' x:Name=', ' Grid.Column="2" x:Name=');
-  return `<Border x:Name="PART_Elem${name}" Margin="0,3">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="12" />
-            <ColumnDefinition Width="3*" />
-        </Grid.ColumnDefinitions>
-        ${caption(loc, ' VerticalAlignment="Top"')}
-${indent(gridValue, 8)}
-    </Grid>
-</Border>`;
-}
+
+const fieldOptions = {
+  margin: '0,3',
+  captionFontSize: 'FontSize',
+  captionForeground: 'ParchmentLabelBrush',
+  captionMargin: '0,1,0,0',
+  valueOptions: { textFontSize: 'FontSizeLarge', textForeground: 'ParchmentTextBrush' },
+  scoreRenderer,
+};
+
 // A group rule is the ruled-paper dash: a 2px top border painted by a tiled dash brush (6px dash, 4px gap).
 const dashRule = `<Border.BorderBrush>
     <DrawingBrush TileMode="Tile" Viewport="0,0,10,2" ViewportUnits="Absolute" Viewbox="0,0,10,2" ViewboxUnits="Absolute">
@@ -77,22 +45,7 @@ const dashRule = `<Border.BorderBrush>
         </DrawingBrush.Drawing>
     </DrawingBrush>
 </Border.BorderBrush>`;
-function group([gname, fields], layout) {
-  const trig = collapseEmptyTrigger(fields.map(f => `PART_Elem${f[0]}`));
-  return `<Border x:Name="${gname}" Margin="0,6,0,0" Padding="0,6,0,0" BorderThickness="0,2,0,0">
-${indent(dashRule, 4)}
-    <Border.Style>
-        <Style TargetType="Border">
-            <Style.Triggers>
-${indent(trig, 16)}
-            </Style.Triggers>
-        </Style>
-    </Border.Style>
-    <StackPanel>
-${indent(fields.map(f => field(f, layout)).join('\n'), 8)}
-    </StackPanel>
-</Border>`;
-}
+
 // Section header: the HUD's swallowtail ribbon (SECRET FOUND): a RibbonTemplate band behind the section's own Playnite caption in ink.
 // The ribbon takes its width from its text.
 const header = (loc, margin = '0,0,0,10') => `<Grid Margin="${margin}" Height="30" HorizontalAlignment="Left">
@@ -100,6 +53,7 @@ const header = (loc, margin = '0,0,0,10') => `<Grid Margin="${margin}" Height="3
     <TextBlock Margin="28,0,28,2" VerticalAlignment="Center" FontSize="{DynamicResource FontSizeLarge}" Foreground="{DynamicResource HeaderBandForegroundBrush}"
                TextTrimming="CharacterEllipsis" Text="{DynamicResource ${loc}}" />
 </Grid>`;
+
 // The metadata pane: the case-file page. Ink on paper, two offset sheets behind it for the stacked page edges, the top-right corner turned down
 // (the DogEarTemplate flap sits in a 28x28 cell where the page is cut away) and masking tape across the top-left. Groups sit in a clipping wrapper
 // whose panel is pulled up by 2 x 6 + 2 + 3 = 17 (first rule hidden) and down by 3.
@@ -124,7 +78,14 @@ function pane(layout, widthKey, padding) {
             <StackPanel Width="{DynamicResource ${widthKey}}">
                 <Grid ClipToBounds="True">
                     <StackPanel Margin="0,-17,0,-3">
-${indent(groups.map(g => group(g, layout)).join('\n'), 28)}
+${indent(META_GROUPS.map(g => metadataGroup(g, layout, {
+  margin: '0,6,0,0',
+  padding: '0,6,0,0',
+  borderThickness: '0,2,0,0',
+  borderBrush: '',
+  extraBorderContent: dashRule,
+  fieldOptions,
+})).join('\n'), 28)}
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -141,42 +102,13 @@ ${indent(groups.map(g => group(g, layout)).join('\n'), 28)}
     </Grid>
 </Grid>`;
 }
+
 // No OpacityMask on the banner: masked art repainted in part behind the animated Play button leaves dark seams on scaled
 // displays. The fade is a plain gradient to the page color; a second gradient darkens the head. No wash: the source shows its art clean.
 const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible="False">
-    <Grid.Style>
-        <Style TargetType="Grid">
-            <Setter Property="Height" Value="{DynamicResource GameBannerHeight}" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Visibility, ElementName=PART_ImageBackground}" Value="Collapsed">
-                    <Setter Property="Height" Value="0" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Source, ElementName=PART_ImageBackground}" Value="{x:Null}">
-                    <Setter Property="Height" Value="0" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Game.BackgroundImage}" Value="{x:Null}">
-                    <Setter Property="Height" Value="0" />
-                </DataTrigger>
-                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Grid.Style>
+${indent(heroVisibilityStyle(), 4)}
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill" />
-    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="{DynamicResource GameBannerDarken}" IsHitTestVisible="False" />
-    <!-- banner darkening floor: any value above 0 starts at 50%, so the result is 50% + 50% x the slider -->
-    <Rectangle Fill="{DynamicResource GameBannerTintBrush}" Opacity="0.5" Tag="{DynamicResource GameBannerDarken}" IsHitTestVisible="False">
-        <Rectangle.Style>
-            <Style TargetType="Rectangle">
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="0">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Rectangle.Style>
-    </Rectangle>
+${indent(bannerDarkeningFloor(), 4)}
     <Rectangle Height="120" VerticalAlignment="Top" Opacity="0.7">
         <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -195,9 +127,6 @@ const heroArt = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible
     </Rectangle>
 </Grid>`;
 
-const ribbon = () => '';
-const spacer = bannerSpacer;
-
 // Title: the book's page title: the game name in the heading face with the hand-drawn underline stroke under it (UnderlineTemplate takes the
 // width of the name). PART_TextDisplayName is the real part; the underline vanishes when it is empty. No blurred shadow: DropShadowEffect is not used in this repo.
 const title = `<DockPanel>
@@ -210,6 +139,7 @@ ${indent(hideWhenNoTitle('Control'), 12)}
         </Control>
     </StackPanel>
 </DockPanel>`;
+
 const actions = (margin) => `<StackPanel Orientation="Horizontal" Margin="${margin}">
     <Grid Width="150" Height="44" VerticalAlignment="Center">
         <Button x:Name="PART_ButtonPlayAction" Style="{DynamicResource PlayButton}" />
@@ -226,74 +156,19 @@ const actions = (margin) => `<StackPanel Orientation="Horizontal" Margin="${marg
     </Button>
 </StackPanel>`;
 
-const steam = `<Grid x:Name="SteamScreenshotsGameScope">
-    <!-- Plugin visibility is shared: a late Steam load must never reveal a different game's section. -->
-    <Grid.Style>
-        <Style TargetType="Grid">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Game.PluginId}" Value="cb91dfc9-b977-43bf-8e70-55f46e410fab">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Game.Source.Name}" Value="Steam">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Grid.Style>
-<ContentControl x:Name="SteamScreenshots_SteamScreenshotsViewControl" Margin="0,0,0,20">
-    <ContentControl.Style>
-        <Style TargetType="ContentControl">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <DataTrigger Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="True">
-                    <Setter Property="Visibility" Value="Visible" />
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-    </ContentControl.Style>
-</ContentControl>
-<Grid>
-    <Grid.Style>
-        <Style TargetType="Grid">
-            <Setter Property="Visibility" Value="Collapsed" />
-            <Style.Triggers>
-                <MultiDataTrigger>
-                    <MultiDataTrigger.Conditions>
-                        <Condition Binding="{Binding Game.PluginId}" Value="CB91DFC9-B977-43BF-8E70-55F46E410FAB" />
-                        <Condition Binding="{PluginSettings Plugin=SteamScreenshots, Path=IsControlVisible, FallbackValue=PluginUnavailable}" Value="False" />
-                    </MultiDataTrigger.Conditions>
-                    <Setter Property="Visibility" Value="Visible" />
-                </MultiDataTrigger>
-            </Style.Triggers>
-        </Style>
-    </Grid.Style>
-    <Border Tag="{Binding Game.Id, NotifyOnTargetUpdated=True}" Visibility="Collapsed" Height="150" Margin="0,0,0,20"
-            Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="2" CornerRadius="{DynamicResource CornerRadiusLarge}">
-        <Border.Triggers>
-            <EventTrigger RoutedEvent="Binding.TargetUpdated">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Visibility">
-                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
-                            <DiscreteObjectKeyFrame KeyTime="0:0:12" Value="{x:Static Visibility.Collapsed}" />
-                        </ObjectAnimationUsingKeyFrames>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-        </Border.Triggers>
-        <Grid x:Name="SkeletonCells" Margin="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition Width="8" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Border Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="2" CornerRadius="{DynamicResource ControlCornerRadius}" />
-            <Border Grid.Column="2" Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="2" CornerRadius="{DynamicResource ControlCornerRadius}" />
-        </Grid>
-    </Border>
-</Grid>
-</Grid>`;
+const steam = steamScreenshotsGate({
+  borderThickness: '2',
+  skeletonAttrs: 'CornerRadius="{DynamicResource CornerRadiusLarge}"',
+  skeletonContent: `<Grid x:Name="SkeletonCells" Margin="8">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="8" />
+        <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+    <Border Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="2" CornerRadius="{DynamicResource ControlCornerRadius}" />
+    <Border Grid.Column="2" Background="{DynamicResource NormalBrush}" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="2" CornerRadius="{DynamicResource ControlCornerRadius}" />
+</Grid>`,
+});
 
 const textColumn = `<StackPanel>
 ${indent(steam, 4)}
@@ -327,6 +202,7 @@ ${indent(story, 24)}
         </Style.Triggers>
     </Style>
 </${type}.Style>`;
+
 // The spotlight's boil: three discrete frames, 160 ms apart, then a long hold (cartoon line boil).
 const flicker = `<Storyboard RepeatBehavior="Forever">
     <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
@@ -337,6 +213,7 @@ const flicker = `<Storyboard RepeatBehavior="Forever">
         <DiscreteDoubleKeyFrame KeyTime="0:0:2.4" Value="0.2" />
     </DoubleAnimationUsingKeyFrames>
 </Storyboard>`;
+
 // Empty state: the Roadhouse stage. A proscenium frame (two rounded rims) around a void stage, pleated curtains drawn to each side under a
 // valance, marquee bulbs along the top, a spotlight cone with the Gumshoe mark in it and the "no game" line on a swallowtail ribbon at the foot.
 // The spotlight's boil is an Opacity loop in its own Style (Opacity only: never animate a RenderTransform from a Style trigger here, the template is
@@ -374,15 +251,8 @@ ${indent(whenEmpty('Control', 'SpotBoil', flicker), 16)}
         </Grid>
     </Grid>
 </Grid>`;
-const hideWhenEmpty = `<StackPanel.Style>
-    <Style TargetType="StackPanel">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-                <Setter Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
-</StackPanel.Style>`;
+
+const hideWhenEmpty = hideWhenNoGame('StackPanel');
 
 const ns = `xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -404,20 +274,11 @@ const details = `<!--
                 <ControlTemplate TargetType="DetailsViewGameOverview">
                     <ScrollViewer x:Name="PART_ScrollViewHost" Visibility="Visible" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <Grid x:Name="PageRoot" UseLayoutRounding="True">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                            <Setter Property="Background" Value="Transparent" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
+${indent(pageRootStyle(), 28)}
 ${indent(heroArt, 28)}
                             <StackPanel Margin="30,0,30,30">
 ${indent(hideWhenEmpty, 32)}
-${indent(gridSpacer(spacer('x * 126 / 300', 28), 20, 'DetailsBannerSpacer'), 32)}
+${indent(bannerSpacer('x * 126 / 300', 20, 'DetailsBannerSpacer'), 32)}
                                 <DockPanel Margin="0,10,0,18">
 ${indent(actions('18,0,0,0').replace('<StackPanel Orientation="Horizontal"', '<StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center"'), 36)}
 ${indent(title, 36)}
@@ -442,68 +303,7 @@ ${indent(emptyState, 28)}
 </ResourceDictionary>
 `;
 
-function gridSpacer(markup, floor, name = 'GridBannerSpacer') {
-  return markup.replace('<Border', '<Border x:Name="' + name + '" MinHeight="' + floor + '"')
-    .replace(/(<Setter Property="Height" Value=")(\d+)(" \/>)/, (_, a, value, b) => a + floor + b)
-    .replace('</Style.Triggers>', `<DataTrigger Binding="{Binding Visibility, ElementName=HeroArt}" Value="Collapsed"><Setter Property="Height" Value="$FLOOR" /></DataTrigger>
-`.replace('$FLOOR', floor) + '</Style.Triggers>');
-}
-
-// Grid-only layout: retain each pane's markup while allowing metadata to move below it.
-function responsiveBody(main, metadata, gap = 24, attrs = '') {
-  const unposition = (text, role) => text.replace(/^<[^>]+>/, tag => tag.replace(/\s(?:Grid\.Column|Grid\.Row|DockPanel\.Dock)="[^"]*"/g, '').replace(/Margin="([^"]+)"/, (_, value) => { const m = value.split(','); if (m.length === 4) m[role === 'Metadata' ? 0 : 2] = '0'; return 'Margin="' + m.join(',') + '"'; }));
-  metadata = unposition(metadata, 'Metadata').replace(/<(\w+)([^>]*?)\sWidth="\{DynamicResource GridDetailsPaneWidth\}"([^>]*)>/, (_, tag, before, after) => '<' + tag + before + after + ' x:Name="GridMetadataContent" MaxWidth="{DynamicResource GridDetailsPaneWidth}" Tag="{DynamicResource GridDetailsPaneWidth}">\n' + `<$TAG.Style><Style TargetType="$TAG">
-    <Setter Property="Width" Value="{DynamicResource GridDetailsPaneWidth}" />
-    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True"><Setter Property="Width" Value="NaN" /></DataTrigger></Style.Triggers>
-</Style></$TAG.Style>`.replaceAll('$TAG', tag));
-  main = unposition(main, 'Main');
-  const column = (role, content) => `<Grid x:Name="Grid$ROLEColumn" VerticalAlignment="Top">
-<Grid.Style><Style TargetType="Grid">
-    <Setter Property="Grid.Column" Value="$COL" /><Setter Property="Grid.Row" Value="0" /><Setter Property="Grid.ColumnSpan" Value="1" />
-    $MARGIN
-    <Style.Triggers><DataTrigger Binding="{Binding Tag, ElementName=GridOverviewBody}" Value="True">
-        <Setter Property="Grid.Column" Value="0" /><Setter Property="Grid.Row" Value="$ROW" /><Setter Property="Grid.ColumnSpan" Value="2" />
-        $NARROWMARGIN
-    </DataTrigger></Style.Triggers>
-</Style></Grid.Style>
-$WIDTH
-$CONTENT
-</Grid>`
-    .replaceAll('$ROLE', role).replaceAll('$COL', role === 'Main' ? '0' : '1').replaceAll('$ROW', role === 'Main' ? '0' : '1')
-    .replace('$MARGIN', role === 'Metadata' ? '<Setter Property="Margin" Value="' + gap + ',0,0,0" />' : '')
-    .replace('$NARROWMARGIN', role === 'Metadata' ? '<Setter Property="Margin" Value="0,24,0,0" />' : '')
-    .replace('$WIDTH', role === 'Main' ? `<Grid.MaxWidth><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="z == true ? x : Max(0, x - y - $GAP)">
-    <Binding Path="ActualWidth" ElementName="GridOverviewBody" /><Binding Path="ActualWidth" ElementName="GridMetadataColumn" /><Binding Path="Tag" ElementName="GridOverviewBody" />
-</MultiBinding></Grid.MaxWidth>` : '').replace('$CONTENT', content);
-  return `<Grid x:Name="GridOverviewBody" $ATTRS>
-<Grid.Tag><MultiBinding Converter="{StaticResource MathConverter}" ConverterParameter="x &lt; y + $GAP + 400">
-    <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" /><Binding Path="Tag" ElementName="GridMetadataContent" />
-</MultiBinding></Grid.Tag>
-<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-<Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-$MAIN
-$META
-</Grid>`.replace('$ATTRS', attrs).replace('$MAIN', column('Main', main)).replace('$META', column('Metadata', metadata)).replaceAll('$GAP', gap);
-}
-
-const gridTitle = title.replace('<DockPanel>', '<DockPanel Panel.ZIndex="2">').replace('    <Image', `    <Button x:Name="InlineSidePanelCloseButton" DockPanel.Dock="Left" HorizontalAlignment="Left" VerticalAlignment="Center"
-            Margin="0,0,10,0" Width="28" Height="28" Padding="0" Focusable="False" Cursor="Hand"
-            ToolTip="{DynamicResource LOCCloseLabel}" Command="{MainViewModel CloseGameSideBarCommand}"
-            Template="{Binding Template, ElementName=SidePanelCloseButton}">
-        <Button.Style>
-            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="Visibility" Value="{Binding Tag, ElementName=SidePanelCloseButton, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Visible\` : \`Collapsed\`'}" />
-                <Style.Triggers>
-                    <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                        <Setter Property="Visibility" Value="Visible" />
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </Button.Style>
-                <Button.RenderTransform>
-                    <TranslateTransform Y="{Binding ContentVerticalOffset, ElementName=PART_ScrollViewHost}" />
-                </Button.RenderTransform>
-        </Button>\n    <Image`);
+const gridTitle = title.replace('<DockPanel>', '<DockPanel Panel.ZIndex="2">').replace('    <Image', `${indent(inlineCloseButton(), 4)}\n    <Image`);
 
 const gridView = `<!--
     Gumshoe: grid side panel. Generated by art/gen-overviews.mjs; edit the generator, not this file.
@@ -534,74 +334,29 @@ const gridView = `<!--
                         <Grid>
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid x:Name="PageRoot" UseLayoutRounding="True">
-                                    <Grid.Style>
-                                        <Style TargetType="Grid">
-                                            <Setter Property="Background" Value="{DynamicResource GameOverviewBackgroundBrush}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                                                    <Setter Property="Background" Value="Transparent" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Grid.Style>
+${indent(pageRootStyle(), 36)}
 ${indent(heroArt, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="24,0,24,26">
 ${indent(hideWhenEmpty, 40)}
-${indent(gridSpacer(spacer('x * 100 / 300', 14), 14), 40)}
+${indent(bannerSpacer('x * 100 / 300', 14, 'GridBannerSpacer'), 40)}
                                         <StackPanel Panel.ZIndex="2" Margin="0,10,0,16">
 ${indent(gridTitle, 44)}
 ${indent(actions('0,16,0,0'), 44)}
                                         </StackPanel>
-${indent(responsiveBody(textColumn, pane('stack', 'GridDetailsPaneWidth', '18,24,18,14').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 24, "Margin=\"0,20,0,0\""), 40)}
+                                        <Grid Margin="0,20,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="24" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+${indent(textColumn, 44)}
+${indent(pane('stack', 'GridDetailsPaneWidth', '18,24,18,14').replace('<Grid VerticalAlignment=', '<Grid Grid.Column="2" VerticalAlignment='), 44)}
+                                        </Grid>
                                     </StackPanel>
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-                            <Button x:Name="SidePanelCloseButton" Tag="{DynamicResource GameBannerHeight}"
-
-                                    HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,12,0,0" Width="28" Height="28" Padding="0"
-                                    Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCCloseLabel}"
-                                    Command="{MainViewModel CloseGameSideBarCommand}">
-<Button.Style><Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-    <Setter Property="Visibility" Value="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource MathConverter}, ConverterParameter='x &lt; 120 ? \`Collapsed\` : \`Visible\`'}" />
-    <Style.Triggers>
-            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
-                <Setter Property="Visibility" Value="Collapsed" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
-</Style></Button.Style>
-                                <!-- Close: a 28x28 plate that reads at rest (the theme's button plate, a rim and a bright glyph) and turns the danger color on hover. -->
-                                <Button.Template>
-                                    <ControlTemplate TargetType="{x:Type Button}">
-                                        <Grid Background="Transparent">
-                                            <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource ButtonBackgroundBrush}"
-                                                    BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                                            <Border x:Name="HoverPlate" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource DangerBrush}" Opacity="0" IsHitTestVisible="False" />
-                                            <ContentControl x:Name="Glyph" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
-                                                            Content="{DynamicResource IconWindowClose}" ContentTemplate="{DynamicResource IconTemplate}"
-                                                            Foreground="{DynamicResource TextBrush}" />
-                                        </Grid>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
-                                                <Trigger.EnterActions>
-                                                    <BeginStoryboard><Storyboard>
-                                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                                    </Storyboard></BeginStoryboard>
-                                                </Trigger.EnterActions>
-                                                <Trigger.ExitActions>
-                                                    <BeginStoryboard><Storyboard>
-                                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                                    </Storyboard></BeginStoryboard>
-                                                </Trigger.ExitActions>
-                                            </Trigger>
-                                            <Trigger Property="IsPressed" Value="True">
-                                                <Setter TargetName="HoverPlate" Property="Opacity" Value="0.7" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
+${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>
@@ -612,4 +367,3 @@ ${indent(emptyState, 36)}
 `;
 
 writeOverviews(out, details, gridView);
-console.log('wrote both overviews');

@@ -37,6 +37,7 @@ A grunge-ink dark theme with cobalt lightning, inspired by Infamous 2 (unofficia
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
+- [NOTICE-Inkbolt.txt](info/NOTICE-Inkbolt.txt)
 
 ---
 

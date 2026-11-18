@@ -1,6 +1,8 @@
 # Run with pwsh -STA -File tests/wpf/SteamScreenshotsRegressionTests.ps1 on Windows.
 # Exercise the actual theme eligibility styles in WPF, including stale plugin state
 # and a child Visibility animation that outlives the selected game.
+param([string[]]$Keys = @())
+if ($Keys.Count -and 'coldseat' -notin ($Keys -split ',')) { return }
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run this test with pwsh -STA.' }

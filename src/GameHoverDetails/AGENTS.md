@@ -29,7 +29,7 @@ Playnite **GenericPlugin** (`net462`, WPF). Hover popup anchored to a library ti
 | Chrome / theme | `HoverChromePalette.cs` |
 | Field catalog / text | `HoverFieldCatalog.cs`, `HoverFieldFormatter.cs`, `HoverDetailValuePresenter.cs`, `HoverLoc.cs` |
 | Art decode | `HoverBitmapLoader.cs` (no cache — do not probe twice) |
-| Localization | `Localization/*.xaml` (Playnite Crowdin set; English fallback) |
+| Localization | `Localization/*.xaml` (Playnite Crowdin set), `../Shared/PlayniteLoc.cs` (English fallback) |
 | Glyphs | `fonts/` Phosphor, Unicons Line, Huge Icons Stroke Rounded, Pixel Icon Library (copied next to the DLL). Sketchy Icons, Iconsax Bulk, and Pixelarticons are catalog path subsets in `HoverIconSvgCatalog.cs`. |
 | Manifest | `src/GameHoverDetails/info/extension.yaml` |
 

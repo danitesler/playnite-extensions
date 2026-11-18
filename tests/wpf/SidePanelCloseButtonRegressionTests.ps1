@@ -1,11 +1,12 @@
 # Run with pwsh -STA -File tests/wpf/SidePanelCloseButtonRegressionTests.ps1.
-param([string]$PlaynitePath = (Join-Path $env:LOCALAPPDATA 'Playnite'))
+param([string]$PlaynitePath = (Join-Path $env:LOCALAPPDATA 'Playnite'), [string[]]$Keys = @())
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework, PresentationCore
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
 [Reflection.Assembly]::LoadFrom((Join-Path $PlaynitePath 'MathConverter.dll')) | Out-Null
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $checks = 0
 foreach ($theme in $themes) {
     [xml]$xml = Get-Content "$root/$($theme.dir)/src/Views/GridViewGameOverview.xaml" -Raw
@@ -74,7 +75,7 @@ foreach ($theme in $themes) {
         [Windows.Media.Brushes]::Gray, $null, [Windows.Media.RectangleGeometry]::new([Windows.Rect]::new(0, 0, 32, 32))))
     foreach ($showBg in $false, $true) {
         # ShowBackgroundImageOnWindow keeps the close inline at every banner height.
-        $control.DataContext = [pscustomobject]@{ Game = [pscustomobject]@{ Id = 'selected' }; ShowBg = $showBg }
+        $control.DataContext = [pscustomobject]@{ Game = [pscustomobject]@{ Id = 'selected'; Icon = 'fixture.png' }; ShowBg = $showBg }
         foreach ($height in 320, 119, 120, 0, 5, 10, 20, 119.999, 121, 60, 600, 0, 320) {
             # Replacing the resource models a ThemeModifier edit while the view is open.
             $control.Resources['GameBannerHeight'] = [double]$height

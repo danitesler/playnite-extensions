@@ -14,7 +14,7 @@
 | Selection rules | `src/ThemePicker.cs` | Pure function: exclusions, avoid-repeat, uniform random. No Playnite dependencies, unit-testable |
 | Settings model | `src/RandomThemeSettings.cs`, `src/ThemeCategorySettings.cs` | Root settings = `Desktop` + `Fullscreen` `ThemeCategorySettings` (`Enabled`, `AvoidRepeat`, `ExcludedThemeIds`, `CadenceStep`, `LastPickedUtc`) plus the runtime view-model bits (theme checklist, commands, texts) |
 | Settings view | `src/RandomThemeSettingsView.xaml` | One `DataTemplate` rendered twice (Desktop, Fullscreen). Stock Playnite controls only |
-| Loc helper | `src/RandomThemeLoc.cs` | `LOCRandomTheme_*` strings with English fallbacks |
+| Loc helper | `../Shared/PlayniteLoc.cs`, `src/RandomThemeLoc.cs` | Shared English fallbacks and localized mode names |
 | Strings | `Localization/*.xaml` | All 45 Playnite locales, same 27 keys each |
 
 ## Rules that are easy to get wrong (each was a real bug)

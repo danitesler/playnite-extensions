@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Data;
 
 namespace RandomTheme
@@ -117,23 +118,23 @@ namespace RandomTheme
         private string Key => Mode == ApplicationMode.Fullscreen ? "Fullscreen" : "Desktop";
 
         [DontSerialize]
-        public string EnableText => RandomThemeLoc.Get("LOCRandomTheme_Enable_" + Key, $"Pick a random {RandomThemeLoc.ModeName(Mode)} theme on every startup");
+        public string EnableText => PlayniteLoc.Get("LOCRandomTheme_Enable_" + Key, $"Pick a random {RandomThemeLoc.ModeName(Mode)} theme on every startup");
         [DontSerialize]
-        public string CadenceText => RandomThemeLoc.Get("LOCRandomTheme_Cadence_Label", "Change theme") + ": "
-            + RandomThemeLoc.Get("LOCRandomTheme_Cadence_" + CadenceStep, DefaultCadence[Math.Max(0, Math.Min(4, CadenceStep))]);
+        public string CadenceText => PlayniteLoc.Get("LOCRandomTheme_Cadence_Label", "Change theme") + ": "
+            + PlayniteLoc.Get("LOCRandomTheme_Cadence_" + CadenceStep, DefaultCadence[Math.Max(0, Math.Min(4, CadenceStep))]);
         private static readonly string[] DefaultCadence = { "Every launch", "Every day", "Every 3 days", "Every 7 days", "Every 30 days" };
         [DontSerialize]
-        public string ThemesLabel => RandomThemeLoc.Get("LOCRandomTheme_ThemesLabel_" + Key, $"{RandomThemeLoc.ModeName(Mode)} themes to choose from");
+        public string ThemesLabel => PlayniteLoc.Get("LOCRandomTheme_ThemesLabel_" + Key, $"{RandomThemeLoc.ModeName(Mode)} themes to choose from");
         [DontSerialize]
-        public string RandomizeNowText => RandomThemeLoc.Get("LOCRandomTheme_RandomizeNow", "Randomize now");
+        public string RandomizeNowText => PlayniteLoc.Get("LOCRandomTheme_RandomizeNow", "Randomize now");
         [DontSerialize]
-        public string RandomizeNowMenuText => RandomThemeLoc.Get("LOCRandomTheme_RandomizeNow_" + Key, $"Randomize {RandomThemeLoc.ModeName(Mode)} theme now");
+        public string RandomizeNowMenuText => PlayniteLoc.Get("LOCRandomTheme_RandomizeNow_" + Key, $"Randomize {RandomThemeLoc.ModeName(Mode)} theme now");
         [DontSerialize]
-        public string SelectAllText => RandomThemeLoc.Get("LOCRandomTheme_SelectAll", "Select all");
+        public string SelectAllText => PlayniteLoc.Get("LOCRandomTheme_SelectAll", "Select all");
         [DontSerialize]
-        public string SelectNoneText => RandomThemeLoc.Get("LOCRandomTheme_SelectNone", "Select none");
+        public string SelectNoneText => PlayniteLoc.Get("LOCRandomTheme_SelectNone", "Select none");
         [DontSerialize]
-        public string NoThemesText => RandomThemeLoc.Get("LOCRandomTheme_NoThemes", "No compatible themes are installed.");
+        public string NoThemesText => PlayniteLoc.Get("LOCRandomTheme_NoThemes", "No compatible themes are installed.");
 
         [DontSerialize]
         public RelayCommand SelectAllCommand { get; private set; }

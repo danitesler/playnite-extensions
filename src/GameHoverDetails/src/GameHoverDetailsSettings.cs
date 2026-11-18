@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Data;
 
 

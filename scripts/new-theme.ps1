@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$Name,
@@ -213,6 +213,8 @@ $sharedBlock = $sharedLines -join "`n"
     <!-- Usable metadata content width; apply inside the pane's horizontal padding and frame. -->
     <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
     <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+    <!-- Game page metadata pane: Left, Center / Stretch (full-width divider-free 3/2/1-col item grid above content), or Right. ThemeModifier edits it. -->
+    <HorizontalAlignment x:Key="GameDetailsPanePosition">Right</HorizontalAlignment>
 
     <!-- Shape (Playnite keys). ControlCornerRadius is the medium step of the radius scale. -->
     <Thickness x:Key="PopupBorderThickness">1</Thickness>
@@ -319,7 +321,9 @@ Both game overview files must include a designed empty state using ``LOCErrorNoG
 
 ``GameDetailsPaneWidth`` and ``GridDetailsPaneWidth`` both default to 300px of usable metadata content. Apply them inside horizontal padding and borders so the outer frame can size to content without shrinking the labels and properties. Preserve the exterior column gap and dynamic resizing through ThemeModifier.
 
-Apply the responsive game-page breakpoints in both overview files. Keep metadata at the side when the body fits the preferred pane width, the theme's gap and 400px for content. Below that, use the full width under the content with two metadata columns at 560px of usable inner width and one below 560px. See the theme-development reference's Responsive game pages section.
+Apply the responsive game-page breakpoints in both overview files. Keep metadata at the side when the body fits the preferred pane width, the theme's gap and 400px for content. Below that, use the full width under the content with three metadata columns at 900px+ of usable inner width, two columns at 560–899px, and one below 560px. See the theme-development reference's Responsive game pages section.
+
+Both overview views honour ``GameDetailsPanePosition`` (ThemeModifier dropdown: Left, Center/Stretch, Right; default Right). Left puts metadata left of screenshots and description; Center and Stretch stretch it full-width above them and hide group dividers so every visible metadata item flows sequentially in 3 / 2 / 1 columns without blank space. On narrow pages Left, Center and Stretch stack metadata first, then screenshots and description. ``scripts/game-page-breakpoints.mjs`` writes this; never hard-code the pane to one place.
 
 | Playnite file | $DesignSystem component |
 |---------------|-------------------------|

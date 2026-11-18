@@ -6,7 +6,7 @@ if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run wit
 [Reflection.Assembly]::LoadFrom((Join-Path $PlaynitePath 'MathConverter.dll')) | Out-Null
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
-if ($Keys.Count) { $themes = $themes | Where-Object key -in $Keys }
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $namespace = 'http://schemas.microsoft.com/winfx/2006/xaml/presentation'
 $converterAssembly = [HexInnovation.MathConverter].Assembly.GetName().Name
 function Parse-TestControl([string]$body, [string]$tag = 'Grid') {
@@ -79,7 +79,8 @@ foreach ($theme in $themes) {
     $bodyMarkup = $body.OuterXml
     # Exercise the real deferred ControlTemplate namescope: during template
     # creation the responsive state can still be null, even though widths exist.
-    $maxWidthBinding = $mainNode.SelectSingleNode('./*[local-name()="Grid.MaxWidth"]/*[local-name()="MultiBinding"]')
+    $maxWidthBinding = $mainNode.SelectSingleNode('.//*[local-name()="Setter"][@Property="MaxWidth"]//*[local-name()="MultiBinding"]')
+    if (-not $maxWidthBinding) { $maxWidthBinding = $mainNode.SelectSingleNode('./*[local-name()="Grid.MaxWidth"]/*[local-name()="MultiBinding"]') }
     $math = [Windows.Data.IMultiValueConverter][HexInnovation.MathConverter]::new()
     $initial = $math.Convert([object[]]@(0.0, 0.0, $null), [double], $maxWidthBinding.ConverterParameter, [Globalization.CultureInfo]::InvariantCulture)
     if ($initial -ne 0) { throw "$($theme.key): invalid width during template initialization" }

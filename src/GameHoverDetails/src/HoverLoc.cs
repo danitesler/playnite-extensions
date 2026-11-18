@@ -1,60 +1,13 @@
-using System;
 using System.Globalization;
 using System.Windows;
 using Playnite.SDK;
+using PlayniteExtensions;
 
 namespace GameHoverDetails
 {
-    /// <summary>Playnite loc strings (<c>LOCGameHoverDetails_*</c>) with English fallbacks — never shows raw keys.</summary>
     internal static class HoverLoc
     {
-        public static string Get(string key, string fallback)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return fallback ?? string.Empty;
-            }
-
-            try
-            {
-                // Playnite returns "<!key!>" (older builds: the key) instead of throwing for a missing string.
-                var value = ResourceProvider.GetString(key);
-                if (string.IsNullOrEmpty(value)
-                    || string.Equals(value, key, StringComparison.Ordinal)
-                    || value.StartsWith("<!", StringComparison.Ordinal))
-                {
-                    return fallback ?? string.Empty;
-                }
-
-                return value;
-            }
-            catch
-            {
-                return fallback ?? string.Empty;
-            }
-        }
-
-        public static string Format(string key, string fallbackFormat, params object[] args)
-        {
-            var format = Get(key, fallbackFormat);
-            try
-            {
-                return string.Format(CultureInfo.CurrentCulture, format, args);
-            }
-            catch (FormatException)
-            {
-                try
-                {
-                    return string.Format(CultureInfo.CurrentCulture, fallbackFormat ?? "{0}", args);
-                }
-                catch
-                {
-                    return fallbackFormat ?? string.Empty;
-                }
-            }
-        }
-
-        public static string Empty => Get("LOCGameHoverDetails_Value_Empty", "—");
+        public static string Empty => PlayniteLoc.Get("LOCGameHoverDetails_Value_Empty", "—");
 
         /// <summary>
         /// Playnite UI direction: language setting, then main window, then OS UI culture.

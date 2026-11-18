@@ -5,7 +5,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run with pwsh -STA.' }
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $themes = (Get-Content "$root/src/extensions.json" -Raw | ConvertFrom-Json).extensions | Where-Object kind -eq theme
-if ($Keys.Count) { $themes = $themes | Where-Object key -in $Keys }
+if ($Keys.Count) { $themes = $themes | Where-Object key -in ($Keys -split ',') }
 $namespace = 'http://schemas.microsoft.com/winfx/2006/xaml/presentation'
 function Settle-Layout($control, [double]$width) {
     foreach ($iteration in 1..5) {

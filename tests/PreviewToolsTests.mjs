@@ -34,6 +34,17 @@ test('preview tools load HTML from paths containing spaces, # and %', () => {
       encoding: 'utf8', timeout: 30000,
     });
     assert.equal(baseline.status, 0, `baseline render: ${baseline.error || ''}\n${baseline.stderr}`);
+    const settingsHtml = path.join(theme, 'art', 'preview-settings.html');
+    fs.writeFileSync(settingsHtml, '<!doctype html><body data-part="settings-page" style="background:blue"></body>');
+    const settingsOut = path.join(scratch, 'settings=preview.png');
+    const detailsOut = path.join(scratch, 'details.png');
+    const batch = spawnSync(process.execPath, [
+      path.join(scratch, 'scripts/render-theme-preview.mjs'),
+      `${html}=${detailsOut}`, `${settingsHtml}=${settingsOut}`,
+    ], { encoding: 'utf8', timeout: 30000 });
+    assert.equal(batch.status, 0, `batch render: ${batch.error || ''}\n${batch.stderr}`);
+    assert.deepEqual(fs.readFileSync(detailsOut), fs.readFileSync(expectedOutput));
+    assert.notDeepEqual(fs.readFileSync(settingsOut), fs.readFileSync(detailsOut));
     const output = path.join(scratch, 'screenshot-details.png');
     for (const [script, args] of [
       ['render-theme-preview.mjs', [html, output]],
@@ -73,7 +84,7 @@ test('theme-fonts resolves .dark token overrides over :root', () => {
   }
 });
 
-test('overview-generator resolves theme src dirs and rejects Views paths', () => {
+test('overview-generator resolves theme src dirs and keeps Views paths for writeOverviews', () => {
   const metaUrl = new URL('../src/themes/Emberline/art/gen-overviews.mjs', import.meta.url).href;
   assert.equal(
     resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs']),
@@ -83,9 +94,9 @@ test('overview-generator resolves theme src dirs and rejects Views paths', () =>
     resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs', 'src/themes/Emberline/src']),
     path.resolve('src/themes/Emberline/src')
   );
-  assert.throws(
-    () => resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs', 'src/themes/Emberline/src/Views']),
-    /not Views/
+  assert.equal(
+    resolveThemeSrcDir(metaUrl, ['node', 'gen-overviews.mjs', 'src/themes/Emberline/src/Views']),
+    path.resolve('src/themes/Emberline/src/Views')
   );
   assert.equal(META_GROUPS.length, 6);
   assert.match(collapseEmptyTrigger(['PART_ElemA']), /^<DataTrigger /);

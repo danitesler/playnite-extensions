@@ -10,7 +10,7 @@
 | 2005 game | Title screen, attaché case and merchant thumbnails (residentevil.fandom.com, YouTube). Used for context only: the theme follows the remake. |
 | Icons | Phosphor Icons, Light weight, `phosphor-icons/core` main, `assets/light` (MIT, `info/LICENSE-phosphor.txt`). |
 | Smoke texture | `art/smoke.py` → `src/Images/smoke.png` (seeded value noise, white at low alpha). |
-| Game pages | `art/gamepage.py` → `src/Views/DetailsViewGameOverview.xaml`, `GridViewGameOverview.xaml`. Edit the script, not the XAML. |
+| Game pages | Hand-maintained directly in `src/Views/DetailsViewGameOverview.xaml` and `src/Views/GridViewGameOverview.xaml`. |
 
 What the screenshots show, and what the theme follows:
 - **The menus use no red.** Red appears only in the logo. The palette is warm greys on near black.

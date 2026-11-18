@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Playnite.SDK;
+using PlayniteExtensions;
 using Playnite.SDK.Data;
 using Playnite.SDK.Models;
 
@@ -180,7 +181,7 @@ namespace AutoStatus
         // English stock name, then Playnite's own localized label for it (best effort: key may not exist).
         private static Guid FindStock(List<KeyValuePair<Guid, string>> pairs, string englishName, string playniteLocKey)
         {
-            return StatusRules.FindByName(pairs, englishName, AutoStatusLoc.TryGet(playniteLocKey));
+            return StatusRules.FindByName(pairs, englishName, PlayniteLoc.TryGet(playniteLocKey));
         }
 
         public void BeginEdit()
@@ -229,14 +230,14 @@ namespace AutoStatus
             if (StaleRuleEnabled
                 && (StaleFromStatusId == Guid.Empty || StaleToStatusId == Guid.Empty || StaleFromStatusId == StaleToStatusId))
             {
-                errors.Add(AutoStatusLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCAutoStatus_Verify_StaleStatuses",
                     "Games I stopped playing: pick two different statuses."));
             }
 
             if (ResumeRuleEnabled && (ResumeToStatusId == Guid.Empty || SelectedResumeFromIds().Count == 0))
             {
-                errors.Add(AutoStatusLoc.Get(
+                errors.Add(PlayniteLoc.Get(
                     "LOCAutoStatus_Verify_ResumeStatuses",
                     "Games I start: pick at least one status and the status to change to."));
             }

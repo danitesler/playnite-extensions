@@ -7,7 +7,7 @@
 | Captures | interfaceingame.com, The Sims 4 page (https://interfaceingame.com/games/the-sims-4/): 1920x1080 PNGs at `https://interfaceingame.com/wp-content/uploads/the-sims-4/the-sims-4-<slug>.png` for `main-menu`, `start-screen`, `audio`, `graphics`, `buy-toys`, `happy`, `full-body`, `paint-mode`, `walk-style`, `new-question`, `select-a-place-to-live`, `friend-of-the-animals`, `credits`. The page lists 48 captures (Menu 16, Overlay 11, Character 10, In game 5, Settings 4, ...). The site's bot check blocks some fetchers; `curl` with a browser user agent works. Captures are not committed (third-party art); re-download to re-measure. |
 | Tokens | None published. Measured from the captures, below. |
 | Type | The game's face is proprietary (EA's Sims Sans, a Proxima Nova-like humanist sans; headings in small caps). Not bundled. |
-| Icons | Hand-drawn for this theme (`art/icons-geometry.xaml`). The game's icons are chunky filled glyphs on discs; ours are 2.4px rounded strokes on a 24px grid. |
+| Icons | Hand-drawn for this theme (`src/Media.xaml`). The game's icons are chunky filled glyphs on discs; ours are 2.4px rounded strokes on a 24px grid. |
 | Mark | Original plumb bob (`art/mark.svg`). The game's plumbob (a double-pointed green diamond) is EA's mark and is not drawn. |
 
 ## Measured values
@@ -71,4 +71,4 @@ band (2.2:1) and white on orange (about 3:1); this theme prints deep ink on thos
 
 Motion. The captures are stills, so the curves in `BRIEF.md` (springy `BackEase`, 110/200/380ms) are chosen from
 how the menus look and from general knowledge of the game's feel, not from frame-stepped video. If a screen recording
-becomes available, check the Play hover and the tab press and adjust the durations in `HANDOFF.md`.
+becomes available, check the Play hover and the tab press and adjust the durations in the relevant XAML styles.
