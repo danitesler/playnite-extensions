@@ -199,7 +199,7 @@ Always: fades, never snaps; loops only while visible; exit animations `FillBehav
 | `{{a?b}}` | first token that exists |
 | `{{name\|#hex}}` | fallback literal |
 | `{{px:name[\|fallback]}}` | length in px (rem, px, var(), calc()) |
-| `{{text:name\|fallback}}` | raw text (font names) |
+| `{{text:name\|fallback}}` | font stack: `"Sora", "Segoe UI"` renders as `Sora, Segoe UI` |
 | `{{TODO}}` | fails the build with "not mapped yet" |
 
 Tokens are read from `:root`/`@theme`; selectors containing `dark` override them. Errors report file, line and key.

@@ -1,6 +1,6 @@
 # Exercises the real packaging/deployment scripts against scratch files and mocked Playnite processes/Toolbox.
 [CmdletBinding()]
-param([ValidateSet("All", "PluginZip", "PortableDeploy", "BuildRestart", "ThemeDefaults")] [string]$Case = "All")
+param([ValidateSet("All", "PluginZip", "PortableDeploy", "BuildRestart", "ThemeDefaults", "TemplateText")] [string]$Case = "All")
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path $PSScriptRoot -Parent
@@ -394,6 +394,46 @@ function Get-ThemeMissingRequiredKeys($Directory) { @() }
         $comboOut = Get-Content -Raw -LiteralPath (Join-Path $themeDrop "CustomControls/ComboBoxList.xaml")
         Assert-Equal $true ($comboOut.Contains("custom-combobox-template")) "Theme template ComboBoxList.template.xaml wins over shared default"
         Write-Host "PASS: Invoke-ThemeBuild supplies missing shared defaults and preserves theme overrides."
+    }
+
+    if ($Case -in @("All", "TemplateText")) {
+        # {{text:}} renders a CSS font stack as a WPF FontFamily string. Stormrift's "Sora", "Segoe UI" used to build
+        # as Sora&quot;, &quot;Segoe UI because only the value's outer quotes were dropped.
+        $textScratch = Join-Path $scratch "template-text"
+        New-Item -ItemType Directory -Path $textScratch -Force | Out-Null
+        $textTokens = Join-Path $textScratch "tokens.css"
+        Set-Content -LiteralPath $textTokens -Value @'
+:root {
+  --double: "Sora", "Segoe UI";
+  --mixed: Sora, "Segoe UI";
+  --single: 'Belwe Bd BT',  'Georgia' ;
+  --one: "Segoe UI";
+  --plain: Verdana, Tahoma, Arial;
+  --amp: "A&B Sans", Georgia;
+}
+'@
+        $rendered = & {
+            . (Join-Path $repoRoot "scripts/lib/extension-profiles.ps1")
+            . (Join-Path $repoRoot "scripts/lib/theme-tools.ps1")
+            $tokens = Read-ThemeTokens -Path $textTokens
+            @{
+                Double   = Expand-ThemeTemplate -Tokens $tokens -Template './Typography/#Sora, {{text:double|Sora}}, Segoe UI'
+                Mixed    = Expand-ThemeTemplate -Tokens $tokens -Template '{{text:mixed}}'
+                Single   = Expand-ThemeTemplate -Tokens $tokens -Template '{{ text:single|Georgia }}'
+                One      = Expand-ThemeTemplate -Tokens $tokens -Template '{{text:one}}'
+                Plain    = Expand-ThemeTemplate -Tokens $tokens -Template '{{text:plain}}'
+                Amp      = Expand-ThemeTemplate -Tokens $tokens -Template '{{text:amp}}'
+                Fallback = Expand-ThemeTemplate -Tokens $tokens -Template '{{text:missing|"Bahnschrift SemiCondensed",Arial Narrow}}'
+            }
+        }
+        Assert-Equal "./Typography/#Sora, Sora, Segoe UI, Segoe UI" $rendered.Double "Quoted multi-name stack"
+        Assert-Equal "Sora, Segoe UI" $rendered.Mixed "Stack with one quoted name last"
+        Assert-Equal "Belwe Bd BT, Georgia" $rendered.Single "Single-quoted stack with extra spaces"
+        Assert-Equal "Segoe UI" $rendered.One "Single quoted name"
+        Assert-Equal "Verdana, Tahoma, Arial" $rendered.Plain "Unquoted stack stays as written"
+        Assert-Equal "A&amp;B Sans, Georgia" $rendered.Amp "Names stay XML-escaped"
+        Assert-Equal "Bahnschrift SemiCondensed, Arial Narrow" $rendered.Fallback "Fallback stack is normalized the same way"
+        Write-Host "PASS: {{text:}} renders quoted CSS font stacks as clean WPF FontFamily strings."
     }
 }
 finally {

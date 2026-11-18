@@ -446,6 +446,18 @@ function Resolve-TemplateColor {
     return $color
 }
 
+function Format-TemplateText {
+    <#
+        {{text:}} value -> XML-escaped text. The value is read as a comma-separated list (a CSS font stack): each
+        name loses its quotes and the names are joined with ", ". WPF reads a FontFamily string as given, so the CSS
+        stack "Sora", "Segoe UI" must render as Sora, Segoe UI; trimming only the outer quotes left Sora", "Segoe UI.
+    #>
+    param([Parameter(Mandatory = $true)] [AllowEmptyString()] [string]$Value)
+
+    $names = @($Value -split "," | ForEach-Object { $_.Trim('"', "'", ' ', "`t", "`r", "`n") } | Where-Object { $_ })
+    return [System.Security.SecurityElement]::Escape($names -join ", ")
+}
+
 function Expand-ThemeTemplate {
     <#
         Fills the double-brace placeholders of a *.template.xaml from a token map (Read-ThemeTokens).
@@ -456,7 +468,7 @@ function Expand-ThemeTemplate {
           {{a?b@card?c/50}}      first alternative whose tokens all exist
           {{name|#F59E0B}}       literal CSS color when no alternative exists (optionally "|#hex/NN")
           {{px:name}}            length token in px as a plain number (rem, px, var(), calc(); below 0 clamps to 0)
-          {{text:name|Segoe UI}} raw token text, XML-escaped, with an optional fallback
+          {{text:name|Segoe UI}} font stack from --name (or the fallback): names unquoted, joined with ", ", XML-escaped
 
         Throws with every unresolved placeholder listed, each with its line and the x:Key on that line.
     #>
@@ -500,8 +512,8 @@ function Expand-ThemeTemplate {
 
             if ($expr -match "^text:(?<name>[A-Za-z0-9_-]+)(?:\|(?<fallback>.*))?$") {
                 $name = $Matches["name"]
-                if ($Tokens.Contains($name)) { return [System.Security.SecurityElement]::Escape($Tokens[$name].Trim('"', "'", ' ')) }
-                if ($Matches["fallback"]) { return [System.Security.SecurityElement]::Escape($Matches["fallback"]) }
+                if ($Tokens.Contains($name)) { return Format-TemplateText -Value $Tokens[$name] }
+                if ($Matches["fallback"]) { return Format-TemplateText -Value $Matches["fallback"] }
                 return (& $fail $match "missing --$name")
             }
 
