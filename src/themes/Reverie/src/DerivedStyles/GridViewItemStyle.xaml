@@ -8,8 +8,13 @@
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ListBoxItem}">
           <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid">
-            <Border CornerRadius="10" x:Name="SelectionBorder" BorderThickness="3" Margin="-3" />
-            <ContentPresenter />
+            <Border CornerRadius="10" x:Name="SelectionBorder" BorderThickness="3" Margin="-3" Visibility="Collapsed" Opacity="0" BorderBrush="{DynamicResource PrimaryButtonBackgroundBrush}" IsHitTestVisible="False" />
+            <Grid RenderTransformOrigin="0.5,0.5">
+              <Grid.RenderTransform>
+                <ScaleTransform x:Name="ContentConfirmScale" ScaleX="1" ScaleY="1" />
+              </Grid.RenderTransform>
+              <ContentPresenter />
+            </Grid>
             <!-- Running game: the dream spark in the cover's bottom-right corner, a mint mote circling a small orbit over a
                  low mint glow, inside the cover (the cream ring and the orange hover ring stay outside). -->
             <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
@@ -48,20 +53,60 @@
                 </Grid>
               </Grid>
             </Grid>
-            <Border x:Name="FringeC" Margin="-1.5,-1.5,1.5,1.5" CornerRadius="10" BorderThickness="1.5" BorderBrush="{DynamicResource DataChangeNotifBrush}" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
-<Border x:Name="FringeP" Margin="1.5,1.5,-1.5,-1.5" CornerRadius="10" BorderThickness="1.5" BorderBrush="{DynamicResource HighlightGlyphBrush}" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
-            <Border x:Name="HoverRing" Opacity="0" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2" CornerRadius="10" IsHitTestVisible="False" />
+            <Border x:Name="FringeC" Margin="-1.5,-1.5,1.5,1.5" CornerRadius="10" BorderThickness="1.5" BorderBrush="{DynamicResource DataChangeNotifBrush}" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
+            <Border x:Name="FringeP" Margin="1.5,1.5,-1.5,-1.5" CornerRadius="10" BorderThickness="1.5" BorderBrush="{DynamicResource HighlightGlyphBrush}" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
+            <Border x:Name="HoverRing" Visibility="Collapsed" Opacity="0" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2" CornerRadius="10" IsHitTestVisible="False" />
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsSelected" Value="True">
-              <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonBackgroundBrush}" TargetName="SelectionBorder" />
               <Setter Property="Canvas.ZIndex" Value="90" />
+              <Trigger.EnterActions>
+                <BeginStoryboard Name="GridSelectEnter">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentConfirmScale" Storyboard.TargetProperty="ScaleX">
+                      <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                      <SplineDoubleKeyFrame KeyTime="0:0:0.22" Value="1" KeySpline="0.2,0.85 0.2,1" />
+                    </DoubleAnimationUsingKeyFrames>
+                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentConfirmScale" Storyboard.TargetProperty="ScaleY">
+                      <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                      <SplineDoubleKeyFrame KeyTime="0:0:0.22" Value="1" KeySpline="0.2,0.85 0.2,1" />
+                    </DoubleAnimationUsingKeyFrames>
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <RemoveStoryboard BeginStoryboardName="GridSelectEnter" />
+                <BeginStoryboard Name="GridSelectExit">
+                  <Storyboard FillBehavior="Stop">
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.2" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.ExitActions>
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
               <Setter Property="Canvas.ZIndex" Value="91" />
               <Trigger.EnterActions>
-                <BeginStoryboard>
+                <BeginStoryboard Name="GridHoverEnter">
                   <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
                     <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
                     <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.18" />
                     <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.18" />
@@ -69,20 +114,37 @@
                 </BeginStoryboard>
               </Trigger.EnterActions>
               <Trigger.ExitActions>
-                <BeginStoryboard>
-                  <Storyboard>
-                    <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
-                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
-                    <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
-                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" /><DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" /><ThicknessAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" To="-1.5,-1.5,1.5,1.5" Duration="0:0:0.25" /><ThicknessAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" To="1.5,1.5,-1.5,-1.5" Duration="0:0:0.25" />
+                <RemoveStoryboard BeginStoryboardName="GridHoverEnter" />
+                <BeginStoryboard Name="GridHoverExit">
+                  <Storyboard FillBehavior="Stop">
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.18" />
+                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Opacity" From="0.85" To="0" Duration="0:0:0.18" />
+                    <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Opacity" From="0.85" To="0" Duration="0:0:0.18" />
+                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" />
+                    <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" />
+                    <ThicknessAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" To="-1.5,-1.5,1.5,1.5" Duration="0:0:0.25" />
+                    <ThicknessAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" To="1.5,1.5,-1.5,-1.5" Duration="0:0:0.25" />
                   </Storyboard>
                 </BeginStoryboard>
               </Trigger.ExitActions>
             </Trigger>
-<MultiDataTrigger>
-<MultiDataTrigger.Conditions><Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" /><Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True" /></MultiDataTrigger.Conditions>
-<MultiDataTrigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.9" Value="-0.7" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="0.5" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="-0.8" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.0" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="-0.4" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="-1.5,-1.5,1.5,1.5" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.5" Value="-3.1799999999999997,-0.78,2.7,2.2199999999999998" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.1" Value="-1.74,-2.7,2.2199999999999998,1.26" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.7" Value="-1.5,-1.5,1.5,1.5" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="1.5,1.5,-1.5,-1.5" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.6" Value="2.94,1.02,-3.1799999999999997,-1.02" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.2" Value="1.26,2.94,-1.02,-2.7" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.9" Value="1.5,1.5,-1.5,-1.5" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames></Storyboard></BeginStoryboard></MultiDataTrigger.EnterActions>
-</MultiDataTrigger>
+            <MultiDataTrigger>
+              <MultiDataTrigger.Conditions><Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" /><Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True" /></MultiDataTrigger.Conditions>
+              <MultiDataTrigger.EnterActions><BeginStoryboard Name="GridFringeWobble"><Storyboard><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.9" Value="-0.7" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="0.5" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="-0.8" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.0" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="-0.4" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="-1.5,-1.5,1.5,1.5" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.5" Value="-3.1799999999999997,-0.78,2.7,2.2199999999999998" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.1" Value="-1.74,-2.7,2.2199999999999998,1.26" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.7" Value="-1.5,-1.5,1.5,1.5" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="1.5,1.5,-1.5,-1.5" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.6" Value="2.94,1.02,-3.1799999999999997,-1.02" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.2" Value="1.26,2.94,-1.02,-2.7" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.9" Value="1.5,1.5,-1.5,-1.5" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames></Storyboard></BeginStoryboard></MultiDataTrigger.EnterActions>
+              <MultiDataTrigger.ExitActions><RemoveStoryboard BeginStoryboardName="GridFringeWobble" /></MultiDataTrigger.ExitActions>
+            </MultiDataTrigger>
             <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
               <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
             </DataTrigger>

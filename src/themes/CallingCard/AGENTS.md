@@ -82,7 +82,7 @@ Empty state (no game selected): both overviews hide the page and show a slanted 
 |---------------|--------------|
 | `Button`, `ToggleButton`, `RepeatButton` | Command plate: ink, 2px paper edge; hover paper with ink text; pressed / checked red. Default button red. Not slanted (plugins reuse it at every size). |
 | `TextBox`, `PasswordBox`, `ComboBox`, `SearchBox`, `HighlightBorder` | Coal field in a 2px smoke edge; paper on hover; red on keyboard focus or open. |
-| `ComboBoxItem`, `Menu` items, `ListBoxItem`, `DetailsViewItemStyle` | Current / hovered command on the slanted red plate with the blue sliver (list hover: soot plate, no sliver). |
+| `ContextMenu`, `Menu`, `ComboBox`, `ComboBoxList`, `FilterSelectionBox` | Calling Card command sheet (`LocalCallingCardPanelTemplate`: ink card, 2px paper edge, 4px offset red slab, 2px red crown + 5px paper sawtooth tear), 30px rows taking a -12° slanted red plate with Tactica blue sliver and 4-point paper star, slanted red slash + 2px ash rule group breaks, slanted coal/paper-flipping shortcut tags, inverted paper-with-red-border Exit plate with bold ink text, paper-rimmed 4-point star checked boxes. |
 | `TabControl` | Heavy capitals, fog; selected on the slanted red plate. Strip on a 2px ash rule. |
 | `GroupBox` | Heavy caption behind a red slash over a 2px ash rule. |
 | `CheckBox` / `RadioButton` | 18px square, red fill and paper tick when checked / a 14px diamond with a red inner diamond. |

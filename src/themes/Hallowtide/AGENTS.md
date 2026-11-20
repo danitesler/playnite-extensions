@@ -79,7 +79,7 @@ Empty state: an open book with a lantern bloom and a wand spark that drifts and 
 | `CheckBox`, `RadioButton` | Ink box and circle; the tick is ink on parchment and draws itself |
 | `Slider`, `SliderEx`, `ProgressBar`, `ScrollViewer`, `Thumb` | Ticked rail with a diamond thumb; spark on the progress head; rope-twist scroll thumb |
 | `ToolTip` | A pinned note: torn parchment, a red wax pin, a hand font, tilted a degree |
-| `ContextMenu`, `Menu`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` | The dialogue box: teal, lit hover rows with a lantern bar |
+| `ContextMenu`, `Menu`, `GameMenu`, `GameGroupMenu`, `TrayContextMenu` | Dialogue box (`LocalDialogueBoxTemplate`: deep teal, lantern top glint, red wax push pin top-right) across all menus, submenus, ComboBox and multi-select lists; 30px rows with dream-indigo `InkPlateTemplate` + turning lantern spiral on highlight, 10px thorn-vine breaks, lantern-underlined shortcuts, neon-red Exit plate, parchment check seals |
 | `TabControl`, `GroupBox`, `ListBox` | Blue bookmark tab with a lantern line; cards with a thorn rule under the heading; indigo selected plate |
 | `PlayButton` | Torn parchment plate with lantern bloom, five fireflies that drift up while hovered, ink underline written in; pressed is its own plate |
 | `GridViewItemStyle` | Selected = static blue rope frame and a blue bookmark ribbon; hover = lantern rope frame settles in and a red wax pin drops with an overshoot |

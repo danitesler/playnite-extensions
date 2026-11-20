@@ -3,9 +3,9 @@
     Fluent Dropdown, outline, medium (react-combobox): colorNeutralBackground1 fill, 1px colorNeutralStroke1 edge with
     a colorNeutralStrokeAccessible bottom (StrokeAccessibleHover under the pointer), borderRadiusMedium, 32px,
     chevron_down_20_regular in colorNeutralStrokeAccessible. Keyboard focus grows a 2px colorCompoundBrandStroke
-    underline from the center (0.2s in, 0.1s out). The listbox is a popover like the MenuPopover
-    (colorNeutralBackground1, borderRadiusMedium, 4px padding) with Options: 6px 8px, borderRadiusMedium,
-    colorNeutralBackground1Hover under the pointer, and checkmark_16_filled before the selected option's label.
+    underline from the center (0.2s in, 0.1s out). The listbox is the menus' Windows 11 flyout (LocalFlyoutTemplate,
+    ContextMenu.xaml) with Options as 30px menu rows: colorNeutralBackground1Hover and the selection pill on
+    IsHighlighted, and checkmark_16_filled before the selected option's label.
     Part names (PART_EditableTextBox, PART_Popup) are Playnite's.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -71,15 +71,13 @@
                                        Placement="Bottom" VerticalOffset="4" Focusable="False" AllowsTransparency="True">
                                     <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                        <Border BorderBrush="{DynamicResource PopupBorderBrush}"
-                                                BorderThickness="{DynamicResource PopupBorderThickness}"
-                                                Background="{DynamicResource PopupBackgroundBrush}"
-                                                CornerRadius="{DynamicResource ControlCornerRadius}" Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                                <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                            </ScrollViewer>
-                                        </Border>
+                                        <!-- The menus' Windows 11 flyout (LocalFlyoutTemplate, ContextMenu.xaml) -->
+                                        <Control Template="{DynamicResource LocalFlyoutTemplate}" Focusable="False" IsTabStop="False" />
+                                        <ScrollViewer Margin="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                            <ItemsPresenter Name="ItemsPresenter" Margin="{DynamicResource ComboBoxDropDownPadding}"
+                                                            KeyboardNavigation.DirectionalNavigation="Contained"
+                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                        </ScrollViewer>
                                     </Grid>
                                 </Popup>
                             </Grid>
@@ -138,27 +136,75 @@
         <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
         <Setter Property="Template">
             <Setter.Value>
+                <!-- A list row like the menu rows (Menu.xaml): 30px, the hover fill fades in with the selection pill growing at
+                     the left edge; the chosen option keeps checkmark_16_filled in the compound brand. -->
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Border x:Name="ItemBorder" Background="{TemplateBinding Background}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}" Padding="{TemplateBinding Padding}">
-                        <DockPanel>
-                            <!-- Option checkIcon: 16px, spacingHorizontalXS (4px) before the label. -->
-                            <ContentPresenter x:Name="CheckIcon" DockPanel.Dock="Left" Visibility="Hidden"
-                                              Width="16" Height="16" Margin="0,0,4,0" VerticalAlignment="Center"
-                                              Content="{DynamicResource IconCheck}"
-                                              ContentTemplate="{DynamicResource IconSmallTemplate}" />
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </DockPanel>
-                    </Border>
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="ListFill" Background="{DynamicResource MenuItemHoverBrush}" CornerRadius="{DynamicResource ControlCornerRadius}"
+                                Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" />
+                        <Rectangle x:Name="ListPill" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5" HorizontalAlignment="Left"
+                                   VerticalAlignment="Center" Fill="{DynamicResource GlyphBrush}" Visibility="Collapsed" IsHitTestVisible="False"
+                                   RenderTransformOrigin="0.5,0.5">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="ListPillScale" ScaleY="0" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Grid Margin="12,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- Option checkIcon: 16px before the label. -->
+                            <ContentControl x:Name="CheckIcon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                            Visibility="Hidden" Focusable="False" IsTabStop="False" Foreground="{DynamicResource GlyphBrush}"
+                                            Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconSmallTemplate}" />
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Visibility" Value="Visible" TargetName="CheckIcon" />
                         </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MenuItemHoverBrush}" TargetName="ItemBorder" />
-                        </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MenuItemHoverBrush}" TargetName="ItemBorder" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListFillIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListFill" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPill" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListFill" Storyboard.TargetProperty="Opacity">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.1" Value="1" KeySpline="0.33,0 0.67,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListPillScale" Storyboard.TargetProperty="ScaleY">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.15" Value="1" KeySpline="0.1,0.9 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListFillOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListFill" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPill" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListFill" Storyboard.TargetProperty="Opacity">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.15" Value="0" KeySpline="0.33,0 0.67,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListPillScale" Storyboard.TargetProperty="ScaleY">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.15" Value="0" KeySpline="1,0 1,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

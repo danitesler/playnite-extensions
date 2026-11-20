@@ -13,62 +13,77 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     mc:Ignorable="d">
 
-    <!-- GridTileButton: a 44px navy slot in a steel edge with a 20px glyph, the
-         source's ability hotbar (Tag 1 marks Play). Hover lifts the slot and turns its edge cyan (0.1s); the Play slot (Tag 1) lights brass
-         instead. The glyph pops 1.12 to 1 (0.18s, CubicEase out). Leaving fades back in 0.18s. The whole slot is the hit area. -->
+    <!-- GridTileButton: a hex cell, the tile of the source's campaign map. Info (Tag unset) is a hollow navy hex in a steel edge with a
+         dim inner hex; hover turns the edge cyan and sends one ping ring out of the cell. Play (Tag 1) is the solid brass hex with a double
+         rim and an amber core glow; hover lights it brass-hot and pings amber. Both pings are a single 0.45s ring (scale and opacity only). -->
     <Style x:Key="GridTileButton" TargetType="Button">
-        <Setter Property="Width" Value="44" />
-        <Setter Property="Height" Value="44" />
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid UseLayoutRounding="True" Background="Transparent">
-                        <Border Background="{DynamicResource ButtonBackgroundBrush}" BorderBrush="{DynamicResource FrameBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <Border x:Name="Lit" Background="{DynamicResource ButtonHoverBackgroundBrush}" BorderBrush="{DynamicResource FrameHoverBrush}" BorderThickness="1" Opacity="0" IsHitTestVisible="False" />
-                        <Border x:Name="BrassLit" Background="{DynamicResource PrimaryButtonBackgroundBrush}" BorderBrush="{DynamicResource PrimaryButtonGlowBrush}" BorderThickness="1" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" />
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
-                            <Grid.RenderTransform>
-                                <ScaleTransform x:Name="GlyphScale" ScaleX="1" ScaleY="1" />
-                            </Grid.RenderTransform>
-                            <Viewbox Width="20" Height="20">
-                                <ContentControl x:Name="Glyph" Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}"
-                                                Foreground="{TemplateBinding Foreground}" Focusable="False" />
-                            </Viewbox>
-                        </Grid>
+                    <Grid UseLayoutRounding="False" Background="Transparent">
+                        <Polygon x:Name="Ping" Points="21,0 42,12 42,36 21,48 0,36 0,12" Stretch="Fill" Width="42" Height="48"
+                                 Stroke="{DynamicResource FrameHoverBrush}" StrokeThickness="1.5" Opacity="0" IsHitTestVisible="False"
+                                 RenderTransformOrigin="0.5,0.5">
+                            <Polygon.RenderTransform>
+                                <ScaleTransform x:Name="PingScale" ScaleX="1" ScaleY="1" />
+                            </Polygon.RenderTransform>
+                        </Polygon>
+                        <Polygon x:Name="Cell" Points="21,0 42,12 42,36 21,48 0,36 0,12" Stretch="Fill" Width="42" Height="48"
+                                 Fill="{DynamicResource ButtonBackgroundBrush}" Stroke="{DynamicResource FrameBrush}" StrokeThickness="1.5" StrokeLineJoin="Miter" IsHitTestVisible="False" />
+                        <Polygon x:Name="CellInner" Points="21,0 42,12 42,36 21,48 0,36 0,12" Stretch="Fill" Width="32" Height="37"
+                                 Stroke="{DynamicResource FrameBrush}" StrokeThickness="1" Opacity="0.55" IsHitTestVisible="False" />
+                        <ContentControl x:Name="Glyph" Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}"
+                                        Foreground="{TemplateBinding Foreground}" Width="18" Height="18"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Tag" Value="1">
-                            <Setter TargetName="BrassLit" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="Lit" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Cell" Property="Fill" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+                            <Setter TargetName="Cell" Property="Stroke" Value="{DynamicResource PrimaryButtonBorderBrush}" />
+                            <Setter TargetName="CellInner" Property="Stroke" Value="{DynamicResource PrimaryButtonGlowBrush}" />
+                            <Setter TargetName="Ping" Property="Stroke" Value="{DynamicResource PrimaryButtonGlowBrush}" />
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Cell" Property="Fill" Value="{DynamicResource ButtonHoverBackgroundBrush}" />
+                            <Setter TargetName="Cell" Property="Stroke" Value="{DynamicResource FrameHoverBrush}" />
+                            <Setter TargetName="CellInner" Property="Opacity" Value="0.9" />
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <BeginStoryboard x:Name="CellIn">
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
-                                        <DoubleAnimation Storyboard.TargetName="BrassLit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
-                                        <DoubleAnimation Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleX" From="1.12" To="1" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleY" From="1.12" To="1" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PingScale" Storyboard.TargetProperty="ScaleX" From="1" To="1.32" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PingScale" Storyboard.TargetProperty="ScaleY" From="1" To="1.32" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Ping" Storyboard.TargetProperty="Opacity" From="0.9" To="0" Duration="0:0:0.45" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BrassLit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
-                                    </Storyboard>
-                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="CellIn" />
                             </Trigger.ExitActions>
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="Tag" Value="1" />
+                                <Condition Property="IsMouseOver" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Cell" Property="Fill" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                            <Setter TargetName="Cell" Property="Stroke" Value="{DynamicResource PrimaryButtonGlowBrush}" />
+                        </MultiTrigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Cell" Property="Fill" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
+                            <Setter TargetName="Glyph" Property="Opacity" Value="0.8" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+
     <Style x:Key="GridViewItemTemplate" TargetType="{x:Type GameListItem}">
         <Setter Property="Template">
             <Setter.Value>

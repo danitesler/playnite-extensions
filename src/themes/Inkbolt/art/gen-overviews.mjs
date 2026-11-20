@@ -209,7 +209,31 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
     <Control Template="{DynamicResource RibbonCornerTemplate}" Foreground="{DynamicResource StripeDeepBrush}" Opacity="0.9" Width="300" Height="300"
              HorizontalAlignment="Right" VerticalAlignment="Top" Focusable="False" IsHitTestVisible="False" />
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
-        <Control Template="{DynamicResource BrandMarkTemplate}" Foreground="{DynamicResource SelectedBrush}" Width="96" Height="96" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False" />
+        <Control Template="{DynamicResource BrandMarkTemplate}" Foreground="{DynamicResource SelectedBrush}" Width="96" Height="96" HorizontalAlignment="Center" Focusable="False" IsHitTestVisible="False">
+            <Control.Style>
+                <Style TargetType="Control">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard x:Name="MarkFloat">
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <ThicknessAnimation Storyboard.TargetProperty="Margin" From="0,-4,0,4" To="0,4,0,-4" Duration="0:0:3.6">
+                                            <ThicknessAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></ThicknessAnimation.EasingFunction>
+                                        </ThicknessAnimation>
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.72" Duration="0:0:3.6">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="MarkFloat" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Control.Style>
+        </Control>
         <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,16,0,0" Style="{DynamicResource HeadingTextBlock}"
                    FontWeight="SemiBold" FontSize="{DynamicResource FontSizeLarger}" />
         <Grid Width="260" Height="28" Margin="0,10,0,0" HorizontalAlignment="Center" IsHitTestVisible="False">
@@ -331,7 +355,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '16,10,16,16').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', exitDuration: '0:0:0.2' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

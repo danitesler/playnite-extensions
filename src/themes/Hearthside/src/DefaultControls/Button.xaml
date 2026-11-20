@@ -1,13 +1,8 @@
 <!--
-    Overlay on Playnite Default/DefaultControls/Button.xaml. A Hearthstone menu button as a wood plate: ButtonBackgroundBrush
-    (wood-mid 5d422a) on a 1px brass edge (ButtonBorderBrush, brass-dark 8a6327), ControlCornerRadius, cream type
-    (ButtonForegroundBrush), ButtonPadding (36 tall). The bevel: a 1px light line along the inside of the top edge
-    (BevelLightBrush at 25%) and the plate shaded toward the bottom (BevelShadowBrush through a vertical mask at 35%).
-    Hover: the plate lights up (ButtonHoverBackgroundBrush, wood-light 765535) and the edge turns gold (FrameHoverBrush),
-    the game's "you can press this" glint. Pressed: a sunken plate (ButtonPressedBackgroundBrush), no bevel light.
-    A default button (IsDefault, the OK of a dialog) is the End Turn button: yellow (PrimaryButtonBackgroundBrush,
-    endturn f5c518) with dark ink (PrimaryButtonForegroundBrush).
-    Keyboard focus: FocusVisual (the green playable ring). Disabled: BaseStyle opacity.
+    Overlay on Playnite Default/DefaultControls/Button.xaml.
+    Sculpted carved oak plank with smooth hover overlay fade (130ms in / 190ms out), subtle BackEase micro-lift
+    (1.022) and tactile press thud (0.965). IsDefault buttons (Save, OK, Browse...) render as End Turn burnished
+    gold plates with twin flank rivets and a golden sheen sweep on hover. Preserves ThemeModifier Width=41 rule.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -15,7 +10,7 @@
     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="Background" Value="{DynamicResource ButtonBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource FrameBrush}" />
         <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ButtonPadding}" />
@@ -23,12 +18,31 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Grid>
+                    <Grid Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="BtnScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
                         <Border x:Name="Border" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}">
                             <Grid>
-                                <Border x:Name="Shade" Background="{DynamicResource BevelShadowBrush}" Opacity="0.35"
+                                <!-- Smooth hover fill overlay (collapsed at rest) -->
+                                <Border x:Name="HoverFill" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                        Background="{DynamicResource ButtonHoverBackgroundBrush}"
+                                        CornerRadius="{DynamicResource ControlCornerRadius}" />
+                                <!-- Golden sheen sweep for default buttons on hover -->
+                                <Border x:Name="BtnSweep" Visibility="Collapsed" Opacity="0.55" IsHitTestVisible="False"
+                                        Background="{DynamicResource LocalParchmentLightBrush}"
+                                        CornerRadius="{DynamicResource ControlCornerRadius}">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.35">
+                                            <GradientStop x:Name="BtnSweepTail" Color="#00000000" Offset="-0.32" />
+                                            <GradientStop x:Name="BtnSweepPeak" Color="#FF000000" Offset="-0.16" />
+                                            <GradientStop x:Name="BtnSweepHead" Color="#00000000" Offset="0" />
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                                <Border x:Name="Shade" Background="{DynamicResource BevelShadowBrush}" Opacity="0.34" IsHitTestVisible="False"
                                         CornerRadius="{DynamicResource ControlCornerRadius}">
                                     <Border.OpacityMask>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -37,8 +51,14 @@
                                         </LinearGradientBrush>
                                     </Border.OpacityMask>
                                 </Border>
-                                <Border x:Name="Light" Height="1" Margin="3,0,3,0" VerticalAlignment="Top"
-                                        Background="{DynamicResource BevelLightBrush}" Opacity="0.25" />
+                                <Border x:Name="Light" Height="1" Margin="3,0,3,0" VerticalAlignment="Top" IsHitTestVisible="False"
+                                        Background="{DynamicResource BevelLightBrush}" Opacity="0.32" />
+                                <Ellipse x:Name="DefaultRivetL" Visibility="Collapsed" Width="4" Height="4" Margin="7,0,0,0"
+                                         HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
+                                         Fill="{DynamicResource NormalBorderBrush}" Stroke="{DynamicResource PrimaryButtonForegroundBrush}" StrokeThickness="0.8" />
+                                <Ellipse x:Name="DefaultRivetR" Visibility="Collapsed" Width="4" Height="4" Margin="0,0,7,0"
+                                         HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False"
+                                         Fill="{DynamicResource NormalBorderBrush}" Stroke="{DynamicResource PrimaryButtonForegroundBrush}" StrokeThickness="0.8" />
                                 <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                   VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                                   Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" />
@@ -46,21 +66,92 @@
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ButtonHoverBackgroundBrush}" TargetName="Border" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource FrameHoverBrush}" TargetName="Border" />
+                        <Trigger Property="IsDefault" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="DefaultRivetL" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="DefaultRivetR" />
+                            <Setter Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" TargetName="HoverFill" />
                         </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ButtonPressedBackgroundBrush}" TargetName="Border" />
-                            <Setter Property="Visibility" Value="Collapsed" TargetName="Light" />
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource FrameHoverBrush}" TargetName="Border" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="BtnHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFill" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverFill" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnScale" Storyboard.TargetProperty="ScaleX" To="1.022" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.3" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="BtnScale" Storyboard.TargetProperty="ScaleY" To="1.022" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.3" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="BtnHoverIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverFill" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.19" />
+                                        <DoubleAnimation Storyboard.TargetName="BtnScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="BtnScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFill" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.19" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsDefault" Value="True" />
                                 <Condition Property="IsMouseOver" Value="True" />
                             </MultiTrigger.Conditions>
-                            <Setter Property="Background" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" TargetName="Border" />
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard Name="DefaultBtnSweep">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BtnSweep" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.46" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BtnSweepTail" Storyboard.TargetProperty="Offset" Duration="0:0:0.44">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.32" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.44" Value="1.05" KeySpline="0.35,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BtnSweepPeak" Storyboard.TargetProperty="Offset" Duration="0:0:0.44">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.16" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.44" Value="1.21" KeySpline="0.35,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BtnSweepHead" Storyboard.TargetProperty="Offset" Duration="0:0:0.44">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.44" Value="1.37" KeySpline="0.35,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="DefaultBtnSweep" />
+                            </MultiTrigger.ExitActions>
                         </MultiTrigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource ButtonPressedBackgroundBrush}" TargetName="Border" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="HoverFill" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="Light" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="BtnPressIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BtnScale" Storyboard.TargetProperty="ScaleX" To="0.965" Duration="0:0:0.075" />
+                                        <DoubleAnimation Storyboard.TargetName="BtnScale" Storyboard.TargetProperty="ScaleY" To="0.965" Duration="0:0:0.075" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="BtnPressIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
                         <MultiTrigger>
                             <MultiTrigger.Conditions>
                                 <Condition Property="IsDefault" Value="True" />
@@ -76,8 +167,7 @@
             <Trigger Property="Height" Value="NaN">
                 <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
             </Trigger>
-            <!-- ThemeModifier icon buttons: the plugin sets Width=41 on them (editor and constants tabs).
-                 Render at 32x32 via uniform 32/41 layout scaling, including glyphs and decoration; auto-width buttons keep ButtonPadding. -->
+            <!-- ThemeModifier icon buttons: Width=41 scaled cleanly to 32x32 -->
             <Trigger Property="Width" Value="41">
                 <Setter Property="Padding" Value="0" />
                 <Setter Property="HorizontalContentAlignment" Value="Center" />
@@ -96,8 +186,10 @@
             </Trigger>
             <Trigger Property="IsDefault" Value="True">
                 <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonBorderBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource FrameBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+                <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+                <Setter Property="FontWeight" Value="Bold" />
             </Trigger>
         </Style.Triggers>
     </Style>

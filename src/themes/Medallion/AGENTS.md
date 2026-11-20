@@ -50,6 +50,7 @@ Follows the shared skeleton. Differences: the page is black (`GameOverviewBackgr
 | Playnite file | Drawn as |
 |---------------|----------|
 | Running game (`RunningIndicatorBrush` = `objective-green`) | The medallion hums, objective green. The far-edge diamond is the source. **Launching** (1.8s loop, 1.3s travel): a hard-edged typewriter wipe (tail and head offsets travel separately, so the block grows out of the diamond leftward, then slides off) crosses the row, plate or, diagonally from the corner diamond, the cover, a foot rule grows leftward from the diamond in step, and the diamond trembles 1px side to side while the wipe runs. **Running:** the rule stays full, the diamond hums slowly (0.6px drift over 3.2s) and frame, tint and diamond breathe 0.72 to 1. Plate: green plate under a faint `RunningBreath` scrim (0.05-0.14), black ink label (4.8:1 worst); Cancel only on RUNNING + hover of the button (`Self`); the hover wash, label swap and hot frame are idle-hover only. |
+| Menus (`ContextMenu`, `Menu`, `ComboBox`, `ComboBoxList`, `FilterSelectionBox`) | 30px rows in a `#070707` journal panel framed by `DoubleFrameTemplate` (notched brown double frame) with a top-center gold diamond; highlight fades in a left-fading amber wash, 3px orange left bar and notched light `DoubleFrameTemplate` (130ms); 10px brown divider split by a gold diamond; square prompt-plate keycaps; Exit (`Alt+Q`) uses logo-red wash/frame/bar with white text; checked rows show an objective-green tick in a brown-framed square. |
 
 ## Deviations
 

@@ -156,9 +156,7 @@ const ATTR_GRID = ' Margin="24,0,24,0"';
 
 function emptyState(viewport) {
   const height = viewport ? 'VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}"' : 'VerticalAlignment="Center"';
-  return `<!-- Empty state (no game selected): the keystone mark, outline only, with the dashboard's SearchingAnimation on it ([CSS]
-     play.css: wash-color white to #7aa8b7 and back, a 2s loop), and "No game selected" in the title face. The loop runs only
-     while this shows (RemoveStoryboard on exit). Centered in the visible area. -->
+  return `<!-- Empty state (no game selected): the keystone scene (EmptyGameTemplate in Common.xaml): glow, rune rings, echo, motes, SearchingAnimation wash. Centered in the visible area; the loops run only while this shows. -->
 <Grid ${height}>
     <Grid.Style>
         <Style TargetType="Grid">
@@ -170,46 +168,7 @@ function emptyState(viewport) {
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
-        <Grid Width="72" Height="72" HorizontalAlignment="Center">
-            <Path Data="M12 2.5 L20.5 7.4 L18.4 18.6 L12 21.4 L5.6 18.6 L3.5 7.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
-                  Stroke="{DynamicResource TextBrushDarker}" Margin="2" />
-            <Path Data="M12 7 L16.2 9.4 L15.1 15.6 L12 17 L8.9 15.6 L7.8 9.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
-                  Stroke="{DynamicResource TextBrushDarker}" Margin="20" />
-            <Grid>
-                <Grid.Style>
-                    <Style TargetType="Grid">
-                        <Setter Property="Opacity" Value="0" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="KeystoneWash">
-                                        <Storyboard RepeatBehavior="Forever">
-                                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
-                                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                                <EasingDoubleKeyFrame KeyTime="0:0:1" Value="1"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
-                                                <EasingDoubleKeyFrame KeyTime="0:0:2" Value="0"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
-                                            </DoubleAnimationUsingKeyFrames>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <RemoveStoryboard BeginStoryboardName="KeystoneWash" />
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Grid.Style>
-                <Path Data="M12 2.5 L20.5 7.4 L18.4 18.6 L12 21.4 L5.6 18.6 L3.5 7.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
-                      Stroke="{DynamicResource SelectedForegroundBrush}" Margin="2" />
-                <Path Data="M12 7 L16.2 9.4 L15.1 15.6 L12 17 L8.9 15.6 L7.8 9.4 Z" Stretch="Uniform" StrokeThickness="1.5" StrokeLineJoin="Round"
-                      Stroke="{DynamicResource SelectedForegroundBrush}" Margin="20" />
-            </Grid>
-        </Grid>
-        <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,22,0,0"
-                   FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLarge}" FontWeight="SemiBold"
-                   Typography.Capitals="AllSmallCaps" Foreground="{DynamicResource TextBrushDarker}" />
-    </StackPanel>
+    <Control Template="{DynamicResource EmptyGameTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,24" Focusable="False" IsTabStop="False" />
 </Grid>`;
 }
 
@@ -416,7 +375,7 @@ ${indent(header, 28)}
                 </Grid>
             </ScrollViewer>
         </DockPanel>
-${indent(sidePanelCloseButton(), 8)}
+${indent(sidePanelCloseButton({ preset: 'plate' }), 8)}
     </Grid>
 </Border>`;
   return wrap('GridViewGameOverview', `    The game panel beside the cover grid, transparent like the Details view so the library art shows through: the

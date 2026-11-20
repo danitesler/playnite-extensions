@@ -2,9 +2,9 @@
     Gilded Rift: ComboBox. The same recessed void well as the text boxes (InputBackgroundBrush, 1px ButtonBorderBrush gold-dim rim,
     ControlCornerRadius) with a 30px arrow cell on the right: a 1px FrameInnerBrush rule on its left and a thin gold chevron
     (GlyphBrush, 1.4px strokes) that turns over while the list is open. Hover brightens the rim (FrameHoverBrush), keyboard focus
-    and the open list light it in GlyphBrush. The drop-down is the void menu panel (PopupBorder with the inner FrameInnerBrush
-    hairline, ComboBoxDropDownPadding). Items are 32px: hover is a MenuItemHoverBrush plate with a 2px GlyphBrush bar, the selected
-    item a ListItemSelectedBrush wash fading to the right with a 2px SelectedBorderBrush bar and SelectedForegroundBrush text.
+    and the open list light it in GlyphBrush. The drop-down is the menus' ability panel (LocalAbilityPanelTemplate,
+    ContextMenu.xaml) and its items are 30px menu rows (Menu.xaml): the roster pick on IsHighlighted, the gold IconCheck tick
+    and SelectedForegroundBrush text on the chosen item.
     Chevron room: ContentSite sits in a Border with right margin 38 = arrow cell 30 + 8 (AGENTS.md ComboBox chevron room);
     PART_EditableTextBox keeps the same 38. Structure: Playnite Default 10.60.
 -->
@@ -91,14 +91,14 @@
                                Focusable="False" AllowsTransparency="True">
                             <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
                                   SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                <Border Style="{DynamicResource PopupBorder}" Margin="0,4,0,0">
-                                    <Border Margin="1" BorderBrush="{DynamicResource FrameInnerBrush}" BorderThickness="1" Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                        </ScrollViewer>
-                                    </Border>
-                                </Border>
+                                <!-- The menus' ability panel (LocalAbilityPanelTemplate, ContextMenu.xaml) -->
+                                <Grid Margin="0,4,0,0">
+                                    <Control Template="{DynamicResource LocalAbilityPanelTemplate}" Focusable="False" IsTabStop="False" />
+                                    <ScrollViewer Margin="0,7" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter Name="ItemsPresenter" Margin="5,0" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </ScrollViewer>
+                                </Grid>
                             </Grid>
                         </Popup>
                     </Grid>
@@ -131,14 +131,20 @@
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
+                <!-- A list row like the menu rows (Menu.xaml): 30px roster pick on IsHighlighted (bronze wash, gold bar and glow,
+                     one shine sweep); the chosen item keeps the gold IconCheck tick. -->
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid Background="Transparent" SnapsToDevicePixels="True">
-                        <Border x:Name="HoverPlate" Opacity="0" IsHitTestVisible="False"
-                                Background="{DynamicResource MenuItemHoverBrush}" />
-                        <Rectangle x:Name="HoverBar" Width="2" HorizontalAlignment="Left" Opacity="0" IsHitTestVisible="False"
-                                   Fill="{DynamicResource GlyphBrush}" />
-                        <Grid x:Name="SelectedPlate" Opacity="0" IsHitTestVisible="False">
-                            <Rectangle Fill="{DynamicResource ListItemSelectedBrush}">
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True" ClipToBounds="True">
+                        <Grid x:Name="ListPick" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Rectangle Fill="{DynamicResource SelectedBrush}">
+                                <Rectangle.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Offset="0" Color="Black" />
+                                        <GradientStop Offset="0.85" Color="Transparent" />
+                                    </LinearGradientBrush>
+                                </Rectangle.OpacityMask>
+                            </Rectangle>
+                            <Rectangle Width="10" HorizontalAlignment="Left" Opacity="0.35" Fill="{DynamicResource GlyphBrush}">
                                 <Rectangle.OpacityMask>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                         <GradientStop Offset="0" Color="Black" />
@@ -146,25 +152,69 @@
                                     </LinearGradientBrush>
                                 </Rectangle.OpacityMask>
                             </Rectangle>
-                            <Rectangle Width="2" HorizontalAlignment="Left" Fill="{DynamicResource SelectedBorderBrush}" />
+                            <Rectangle Width="3" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" />
                         </Grid>
-                        <Border Background="Transparent" Padding="{TemplateBinding Padding}" MinHeight="32">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Border>
+                        <Rectangle x:Name="ListShine" Width="22" HorizontalAlignment="Left" Fill="{DynamicResource BevelLightBrush}" Opacity="0.16"
+                                   Visibility="Collapsed" IsHitTestVisible="False">
+                            <Rectangle.RenderTransform>
+                                <TransformGroup>
+                                    <SkewTransform AngleX="-24" />
+                                    <TranslateTransform x:Name="ListShineShift" X="-40" />
+                                </TransformGroup>
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Grid Margin="12,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ContentControl x:Name="ListCheck" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                            Visibility="Collapsed" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                            Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                            Foreground="{DynamicResource GlyphBrush}" />
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center" TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="HoverPlate" Property="Opacity" Value="1" />
-                            <Setter TargetName="HoverBar" Property="Opacity" Value="1" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="HoverPlate" Property="Opacity" Value="1" />
-                            <Setter TargetName="HoverBar" Property="Opacity" Value="1" />
-                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="SelectedPlate" Property="Opacity" Value="1" />
-                            <Setter TargetName="HoverPlate" Property="Opacity" Value="0" />
-                            <Setter TargetName="HoverBar" Property="Opacity" Value="0" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListCheck" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListPickIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPick" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListShine" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListPick" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListShineShift" Storyboard.TargetProperty="X" To="640" Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListPickOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPick" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListShine" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListPick" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="ListShineShift" Storyboard.TargetProperty="X" To="-40" Duration="0:0:0" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

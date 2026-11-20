@@ -63,7 +63,8 @@ Empty state (no game selected, both overviews, shown when `{Binding Game, Fallba
 | Button, ToggleButton, RepeatButton | Prompt keycap; default button and Play in maroon; checked toggle = duotone wash |
 | GridViewItemTemplate (+ GridTileButton) | Cover hover controls. Play is the painted header bar (64 x 40 maroon slab, torn ends, white glyph); Info a 40px prompt keycap with a 2px grey rule that turns selection white on hover. Shade fades in, controls rise 8px and scale 0.9 to 1 (0.16s, no overshoot), Info 50ms later; Play gets a fresh coat (brighter maroon wiped on from the left through a growing clip, 0.2s), Info lights its rule and keycap |
 | TextBox, PasswordBox, SearchBox, ComboBox | Options value: black box on the 2px rule; the rule lightens on hover and turns white on focus |
-| ListBox, DetailsViewItemStyle, Menu, ComboBoxItem | Options rows: grey text, white + duotone wash when selected / highlighted |
+| ListBox, DetailsViewItemStyle | Options rows: grey text, white + duotone wash when selected / highlighted |
+| ContextMenu, Menu, ComboBox(Item), ComboBoxList, FilterSelectionBox | RDR1 square black weapons/store box (`LocalMenuPanelTemplate`: 5px maroon top bar with torn right cut over a flat 2px grey rule), 30px rows, torn-end duotone wash highlight with sliding Dead Eye red arrow and selection-white label, flat 2px grey rule breaks with a maroon stub, square dark-grey prompt keycaps, Exit on a solid maroon torn-end slab with selection-white ink (8.75:1), checked/chosen rows a square Dead Eye red box with white tick (docs/themes/menus.md) |
 | CheckBox, RadioButton | Grey outline; checked fills (box) or rings (radio) in glyph red with a white tick |
 | Slider | 2px track with a dot |
 | ProgressBar | Weapons stat bar: white on dark, 6px |

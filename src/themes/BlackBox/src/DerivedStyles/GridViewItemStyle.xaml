@@ -16,20 +16,23 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                    <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid">
+                    <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="SelectScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
                         <Grid x:Name="LightWrap" Margin="-14" IsHitTestVisible="False">
                             <Control x:Name="HoverLight" Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource GridViewItemHoverBorderBrush}"
-                                     Opacity="0" Visibility="Hidden" Focusable="False" />
+                                     Opacity="0" Visibility="Collapsed" Focusable="False" />
                         </Grid>
-                        <Border x:Name="SelectionShadow" BorderThickness="3" Margin="1,1,-3,-3" IsHitTestVisible="False" BorderBrush="{DynamicResource BevelShadowBrush}" Visibility="Collapsed" />
+                        <Border x:Name="SelectionShadow" Opacity="0" BorderThickness="3" Margin="1,1,-3,-3" IsHitTestVisible="False" BorderBrush="{DynamicResource BevelShadowBrush}" Visibility="Collapsed" />
                         <ContentPresenter />
-                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-2" IsHitTestVisible="False" />
+                        <Border x:Name="SelectionBorder" Visibility="Collapsed" Opacity="0" BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" BorderThickness="2" Margin="-2" IsHitTestVisible="False" />
                         <Border x:Name="HoverFrame" BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" BorderThickness="2"
-                                Margin="-2" Opacity="0" Visibility="Hidden" IsHitTestVisible="False" />
+                                Margin="-2" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" />
                         <Control x:Name="HoverMarks" Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource FrameHoverBrush}"
-                                 Margin="-5" Opacity="0" Visibility="Hidden" Focusable="False" />
+                                 Margin="-7" Opacity="0" Visibility="Collapsed" Focusable="False" />
                         <Control x:Name="Marks" Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource GridViewItemSelectedBorderBrush}"
-                                 Margin="-5" Visibility="Collapsed" Focusable="False" />
+                                 Margin="-7" Opacity="0" Visibility="Collapsed" Focusable="False" />
 
                         <!-- Running game indicator inset 4px inside cover so selection never hides it -->
                         <Grid x:Name="RunningIndicator" Margin="4" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
@@ -69,47 +72,111 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Canvas.ZIndex" Value="90" />
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="HoverExit" />
+                                <BeginStoryboard Name="HoverEnter">
                                     <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Visibility">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
                                             <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
                                             <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Visibility">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
                                             <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <DoubleAnimation Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.18" />
-                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
-                                        <DoubleAnimation Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <ThicknessAnimation Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Margin" To="-4" Duration="0:0:0.16">
+                                            <ThicknessAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></ThicknessAnimation.EasingFunction>
+                                        </ThicknessAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
-                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                <BeginStoryboard Name="HoverExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <ThicknessAnimation Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Margin" To="-7" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLight" Storyboard.TargetProperty="Visibility" Duration="0:0:0.22">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.22" Value="{x:Static Visibility.Collapsed}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility" Duration="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Hidden}" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverMarks" Storyboard.TargetProperty="Visibility" Duration="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
                                         </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="HoverEnter" />
                             </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />
-                            <Setter Property="Visibility" Value="Visible" TargetName="SelectionShadow" />
-                            <Setter Property="Visibility" Value="Visible" TargetName="Marks" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="SelectExit" />
+                                <BeginStoryboard Name="SelectEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionShadow" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Marks" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionShadow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <ThicknessAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Margin" From="-7" To="-5" Duration="0:0:0.16">
+                                            <ThicknessAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></ThicknessAnimation.EasingFunction>
+                                        </ThicknessAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectScale" Storyboard.TargetProperty="ScaleX">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.16" Value="1">
+                                                <EasingDoubleKeyFrame.EasingFunction><CubicEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction>
+                                            </EasingDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectScale" Storyboard.TargetProperty="ScaleY">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.16" Value="1">
+                                                <EasingDoubleKeyFrame.EasingFunction><CubicEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction>
+                                            </EasingDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="SelectExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectionShadow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionShadow" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Marks" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="SelectEnter" />
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />

@@ -4,10 +4,10 @@
     InputPadding (34 tall), the value in cream and a chevron (IconDropDown) in TextBrushDarker at the end, gold while
     hovered or open. Hover: a brighter brass edge (InputHoverBorderBrush). Open or focus within: a gold edge
     (FrameHoverBrush).
-    Popup: PopupBorder (a wood panel on a brass edge) 2px under the field, ComboBoxDropDownPadding around rows 2px apart.
-    Items (ComboBoxItem): ComboBoxItemPadding, CornerRadiusSmall, transparent at rest with cream type (TextBrush); on
-    hover or keyboard highlight a lit wood plate (MenuItemHoverBrush, wood-light); the chosen item gold
-    (SelectedForegroundBrush) with a gold IconCheck (GlyphBrush) at its end.
+    List: the menus' tavern ledger (docs/themes/menus.md). The oak board of ContextMenu.xaml (LocalMenuBoardTemplate)
+    right under the field; items (ComboBoxItem) are 32px ledger rows like Menu.xaml's: cream at rest, a lit oak plank
+    with a gold bevel line and a sliding gold diamond cursor on hover or keyboard highlight (label gold, pulled 2px
+    right), the chosen item gold with a faceted gold gem in the leading column.
     Structure kept from the Default template: ToggleButton, ContentSite, PART_EditableTextBox, PART_Popup.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -84,15 +84,14 @@
                             </Border.OpacityMask>
                         </Border>
                         <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
-                               Placement="Bottom" VerticalOffset="2" Focusable="False" AllowsTransparency="True">
+                               Placement="Bottom" VerticalOffset="0" Focusable="False" AllowsTransparency="True">
                             <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
-                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                <Border Style="{DynamicResource PopupBorder}" Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                        <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                    </ScrollViewer>
-                                </Border>
+                                  Margin="0,4,0,0" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <Control Template="{DynamicResource LocalMenuBoardTemplate}" Focusable="False" IsTabStop="False" />
+                                <ScrollViewer Margin="0,9,0,5" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <ItemsPresenter Name="ItemsPresenter" Margin="4,0" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </ScrollViewer>
                             </Grid>
                         </Popup>
                     </Grid>
@@ -123,41 +122,88 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
-        <Setter Property="Margin" Value="0,0,0,2" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid>
-                        <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
-                                CornerRadius="{DynamicResource CornerRadiusSmall}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <ContentPresenter VerticalAlignment="Center" />
-                                <ContentPresenter x:Name="CheckIcon" Grid.Column="1" Visibility="Collapsed" Width="14" Height="14"
-                                                  Margin="12,0,0,0" VerticalAlignment="Center"
-                                                  TextElement.Foreground="{DynamicResource GlyphBrush}"
-                                                  Content="{DynamicResource IconCheck}"
-                                                  ContentTemplate="{DynamicResource IconTemplate}" />
-                            </Grid>
-                        </Border>
+                    <Grid x:Name="ListRow" Height="32" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid x:Name="ListHover" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Border Background="{DynamicResource MenuItemHoverBrush}" BorderBrush="{DynamicResource FrameInnerBrush}"
+                                    BorderThickness="0,0,0,1" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                            <Border Height="1" Margin="8,1,8,0" VerticalAlignment="Top" Background="{DynamicResource BevelLightBrush}" Opacity="0.45" />
+                        </Grid>
+                        <Path x:Name="ListCursor" Width="7" Height="7" Margin="3,0,0,0" Stretch="Fill" HorizontalAlignment="Left"
+                              VerticalAlignment="Center" Data="M 3.5,0 L 7,3.5 L 3.5,7 L 0,3.5 Z" Fill="{DynamicResource GlyphBrush}"
+                              Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Path.RenderTransform>
+                                <TranslateTransform x:Name="ListCursorShift" X="-4" />
+                            </Path.RenderTransform>
+                        </Path>
+                        <Grid Margin="14,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Path x:Name="ListGem" Width="10" Height="10" Stretch="Fill" HorizontalAlignment="Left"
+                                  VerticalAlignment="Center" Visibility="Collapsed" Data="M 5,0 L 10,5 L 5,10 L 0,5 Z"
+                                  Fill="{DynamicResource GlyphBrush}" Stroke="{DynamicResource FrameInnerBrush}" StrokeThickness="0.8" />
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}">
+                                <ContentPresenter.RenderTransform>
+                                    <TranslateTransform x:Name="ListLabelShift" X="0" />
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MenuItemHoverBrush}" TargetName="ItemBorder" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MenuItemHoverBrush}" TargetName="ItemBorder" />
-                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="CheckIcon" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListGem" />
                             <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
                         </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListCursor" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ListCursor" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="ListCursorShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListLabelShift" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListCursor" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="ListCursor" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="ListCursorShift" Storyboard.TargetProperty="X" To="-4" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="ListLabelShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5" />
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

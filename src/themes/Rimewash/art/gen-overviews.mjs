@@ -211,31 +211,7 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
     <Control Template="{DynamicResource RootsTemplate}" Width="120" Height="260" HorizontalAlignment="Right" VerticalAlignment="Bottom"
              Margin="0,0,30,30" Foreground="{DynamicResource TextBrush}" Opacity="0.2" />
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,36">
-        <Grid Width="116" Height="116" HorizontalAlignment="Center">
-            <Control Template="{DynamicResource BlobTemplate}" Foreground="{DynamicResource PropertyItemBackgroundBrush}" Opacity="0.9" />
-            <Control Template="{DynamicResource BrandMarkTemplate}" Width="72" Height="72" Foreground="{DynamicResource HighlightGlyphBrush}">
-                <Control.Style>
-                    <Style TargetType="Control">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="MarkBreath">
-                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.45" Duration="0:0:2.4">
-                                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
-                                            </DoubleAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <RemoveStoryboard BeginStoryboardName="MarkBreath" />
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Control.Style>
-            </Control>
-        </Grid>
+        <Control Template="{DynamicResource EmptyGameTemplate}" Width="360" Height="240" HorizontalAlignment="Center" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
         <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,20,0,0"
                    FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLarger}" FontWeight="Normal"
                    Foreground="{DynamicResource TextBrushDarker}" />
@@ -335,7 +311,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '24,18,24,20').replace('<Grid Ver
 ${indent(emptyState, 32)}
                             </Grid>
                         </ScrollViewer>
-${indent(sidePanelCloseButton(), 24)}
+${indent(sidePanelCloseButton({ preset: 'plate' }), 24)}
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

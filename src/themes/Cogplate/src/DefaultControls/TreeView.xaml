@@ -1,0 +1,188 @@
+<!--
+    Cogplate: TreeView. In Settings (WindowSettings Width=250) and Add-ons (WindowExtensions Width=280),
+    hosts the list inside a deep CRT casing with reserved Visible scrollbar lane so expanding nodes never reflows.
+    28px bare rows in the body font (FontFamily); selected row illuminates in CRT green + ivory rim + left 3px mint LED bar +
+    right mint diamond pip; hovered row washes in brushed steel; Separators become non-selectable dividers. Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type TreeView}" BasedOn="{StaticResource BaseStyle}">
+        <Style.Resources>
+            <Style TargetType="Separator" BasedOn="{StaticResource {x:Type Separator}}">
+                <Setter Property="Tag" Value="CogplateNavigationDivider" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+            </Style>
+        </Style.Resources>
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeView}">
+                    <Border x:Name="Case" BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}"
+                            Background="{TemplateBinding Background}">
+                        <Grid>
+                            <Border x:Name="CrtCasing" Visibility="Collapsed" Margin="4"
+                                    Background="{DynamicResource LocalCrtDeepBrush}" BorderBrush="{DynamicResource FrameBrush}"
+                                    BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" IsHitTestVisible="False">
+                                <Rectangle Fill="{DynamicResource GlyphBrush}" Opacity="0.03"
+                                           OpacityMask="{DynamicResource LocalScanlinesMaskBrush}" />
+                            </Border>
+                            <ScrollViewer x:Name="Scroller" Focusable="False" Padding="2,4,2,4"
+                                          HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                          VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Tag" Value="Terminal">
+                            <Setter TargetName="CrtCasing" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Scroller" Property="Padding" Value="8,10,6,10" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=(AutomationProperties.AutomationId), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="WindowSettings">
+                <Setter Property="Width" Value="250" />
+                <Setter Property="Tag" Value="Terminal" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Path=(AutomationProperties.AutomationId), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="WindowExtensions">
+                <Setter Property="Width" Value="280" />
+                <Setter Property="Tag" Value="Terminal" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="Padding" Value="10,4,28,4" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <StackPanel>
+                        <Grid x:Name="Row" MinHeight="28" Background="Transparent" Margin="0,0,0,1" SnapsToDevicePixels="True">
+                            <Border x:Name="HoverPlate" Background="{DynamicResource ListItemHoverBrush}" BorderBrush="{DynamicResource FrameHoverBrush}"
+                                    BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusSmall}" Visibility="Collapsed" IsHitTestVisible="False" />
+                            <Grid x:Name="SelectedPlate" Visibility="Collapsed" IsHitTestVisible="False">
+                                <Control Template="{DynamicResource LocalChevronRowTemplate}" Focusable="False"
+                                         Foreground="{DynamicResource SelectedBrush}" BorderBrush="{DynamicResource SelectedBorderBrush}" />
+                            </Grid>
+                            <Path x:Name="Pip" Data="M0,0 L7,4.5 L0,9 Z" Width="7" Height="9" Stretch="None" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Margin="0,0,10,0" Visibility="Collapsed" IsHitTestVisible="False" Fill="{DynamicResource LocalLedHotBrush}" Opacity="0" />
+                            <Border x:Name="SelectionBorder" Background="Transparent" Padding="{TemplateBinding Padding}">
+                                <DockPanel>
+                                    <ToggleButton x:Name="Expander" ClickMode="Press" DockPanel.Dock="Left" Width="14" Height="14" Margin="0,0,7,0" VerticalAlignment="Center"
+                                                  Foreground="{DynamicResource TextBrushDarker}"
+                                                  IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                                        <ToggleButton.Style>
+                                            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource BaseStyle}">
+                                                <Setter Property="Focusable" Value="False" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                            <Grid Background="Transparent">
+                                                                <Path x:Name="Arrow" Data="M3,2 L9,7 L3,12 Z" Width="14" Height="14" Stretch="None" HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" Fill="{TemplateBinding Foreground}">
+                                                                    <Path.RenderTransform>
+                                                                        <RotateTransform x:Name="ArrowRotation" Angle="0" />
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+                                                            </Grid>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Trigger.EnterActions>
+                                                                        <BeginStoryboard>
+                                                                            <Storyboard>
+                                                                                <DoubleAnimation Storyboard.TargetName="ArrowRotation" Storyboard.TargetProperty="Angle" To="90" Duration="0:0:0.12" />
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </Trigger.EnterActions>
+                                                                    <Trigger.ExitActions>
+                                                                        <BeginStoryboard>
+                                                                            <Storyboard FillBehavior="Stop">
+                                                                                <DoubleAnimation Storyboard.TargetName="ArrowRotation" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.12" FillBehavior="Stop" />
+                                                                            </Storyboard>
+                                                                        </BeginStoryboard>
+                                                                    </Trigger.ExitActions>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                    </ToggleButton>
+                                    <ContentPresenter x:Name="PART_Header" ContentSource="Header" Height="Auto" DockPanel.Dock="Left" VerticalAlignment="Center">
+                                        <ContentPresenter.Resources>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="TextWrapping" Value="Wrap" />
+                                            </Style>
+                                        </ContentPresenter.Resources>
+                                    </ContentPresenter>
+                                </DockPanel>
+                            </Border>
+                        </Grid>
+                        <ItemsPresenter x:Name="ItemsHost" Margin="16,0,0,0" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="ItemsHost" />
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter Property="Visibility" Value="Hidden" TargetName="Expander" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True" SourceName="Row">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Expander" Property="Foreground" Value="{DynamicResource TextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="SelectedPlate" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Pip" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Expander" Property="Foreground" Value="{DynamicResource LocalLedHotBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type TreeView}}}" Value="Terminal" />
+                    <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+            </MultiDataTrigger>
+            <DataTrigger Binding="{Binding Header.Tag, RelativeSource={RelativeSource Self}}" Value="CogplateNavigationDivider">
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="IsTabStop" Value="False" />
+                <Setter Property="IsSelected" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TreeViewItem">
+                            <ContentPresenter ContentSource="Header" Margin="10,4,12,4" IsHitTestVisible="False" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

@@ -1,7 +1,8 @@
 <!--
     Backbeat: ComboBox. The TextBox's ink field with a chunky yellow triangle (IconDropDown, 16px, 8px from the edge).
     Chevron room: ContentSite sits in a Border with right margin 32 = 16 chevron + 8 margin + 8; PART_EditableTextBox
-    keeps the same 32. Dropdown: night panel, 2px white line; the current item is blue with a 4px yellow bar.
+    keeps the same 32. Dropdown: the menus' comic panel (LocalComicPanelTemplate, ContextMenu.xaml) with 30px sticker rows
+    like Menu.xaml's; the chosen item keeps the marker-stroke yellow tick (docs/themes/menus.md).
     Structure: Playnite Default 10.60.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -57,12 +58,11 @@
                                    Focusable="False" AllowsTransparency="True">
                                 <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                    <Border Style="{DynamicResource PopupBorder}" Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                        </ScrollViewer>
-                                    </Border>
+                                    <Control Template="{DynamicResource LocalComicPanelTemplate}" Focusable="False" IsTabStop="False" />
+                                    <ScrollViewer Margin="2,7,7,9" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </ScrollViewer>
                                 </Grid>
                             </Popup>
                         </Grid>
@@ -88,41 +88,94 @@
         </Setter>
     </Style>
 
+    <!-- List rows: the menus' sticker rows (Menu.xaml) at 30px. The blue sticker with the yellow bar slaps in on
+         IsHighlighted (pointer and keyboard), 0.14s in with a BackEase overshoot and 0.18s out; the chosen item keeps the
+         marker-stroke yellow tick while another row is highlighted. -->
     <Style TargetType="{x:Type ComboBoxItem}">
-        <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid Background="{TemplateBinding Background}">
-                        <Rectangle x:Name="Bar" Width="4" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" Visibility="Collapsed" />
-                        <Border Background="Transparent" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Border>
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid x:Name="ListSticker" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="ListSlap" ScaleX="0.88" ScaleY="0.88" />
+                            </Grid.RenderTransform>
+                            <Control Margin="6,2,9,5" Template="{DynamicResource SlantPlateTemplate}"
+                                     Background="{DynamicResource MenuItemHoverBrush}" Foreground="{DynamicResource TextBrushDark}"
+                                     BorderBrush="Transparent" BorderThickness="0" Focusable="False" IsTabStop="False" />
+                            <Rectangle Width="4" Margin="8,2,0,5" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" RenderTransformOrigin="0.5,0.5">
+                                <Rectangle.RenderTransform><SkewTransform AngleX="-9" /></Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Grid>
+                        <Grid Margin="16,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Viewbox x:Name="ListTick" Width="14" Height="13" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed">
+                                <Grid>
+                                    <Path Data="M4,10 L9,15 20,-2" Stroke="{DynamicResource PanelShadowBrush}" StrokeThickness="7" StrokeLineJoin="Miter" />
+                                    <Path Data="M4,10 L9,15 20,-2" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="3.5" StrokeLineJoin="Miter" />
+                                </Grid>
+                            </Viewbox>
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}">
+                                <ContentPresenter.RenderTransform>
+                                    <TranslateTransform x:Name="ListKick" X="0" />
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="Bar" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListTick" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListSlapIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListSticker" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListSticker" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="ListSlap" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListSlap" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListKick" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListSlapOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListSticker" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListSticker" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="ListSlap" Storyboard.TargetProperty="ScaleX" To="0.88" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="ListSlap" Storyboard.TargetProperty="ScaleY" To="0.88" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="ListKick" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Background" Value="{DynamicResource MenuItemHoverBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-            </Trigger>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource MenuItemHoverBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-            </Trigger>
-            <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Background" Value="{DynamicResource SelectedBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 </ResourceDictionary>

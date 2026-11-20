@@ -66,6 +66,9 @@ ${indent(bannerDarkeningFloor(), 4)}
             </LinearGradientBrush>
         </Rectangle.Fill>
     </Rectangle>
+<!-- Tarnish detail: gold diamonds on the banner corners -->
+    <Path HorizontalAlignment="Left" VerticalAlignment="Top" Margin="14,14,0,0" Fill="{DynamicResource HeadingMarkerBrush}" Opacity="0.8" IsHitTestVisible="False" Data="F1M3.5,0L7,3.5L3.5,7L0,3.5Z" />
+    <Path HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,14,14,0" Fill="{DynamicResource HeadingMarkerBrush}" Opacity="0.8" IsHitTestVisible="False" Data="F1M3.5,0L7,3.5L3.5,7L0,3.5Z" />
 </Grid>`;
 
 const title = `<DockPanel>
@@ -272,7 +275,7 @@ ${indent(pane('GridDetailsPaneWidth', '14,12,14,14'), 44)}
 ${indent(empty, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ comment: '<!-- Close: a 28x28 plate that reads at rest (the black button plate, a thin outline and a pale glyph) and turns crimson on hover. -->' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', comment: '<!-- Close: a 28x28 plate that reads at rest (the black button plate, a thin outline and a pale glyph) and turns crimson on hover. -->' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

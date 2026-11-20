@@ -74,6 +74,12 @@ Playnite file to Sims component, per the game element map in `BRIEF.md`. Tree an
 green gloss), `StandardWindowStyle.xaml` (48px band, gem medallion, round close). Headings that are caps in the preview (bands)
 use Playnite's `ToUpperCaseConverter`, not a text copy.
 
+Menus (`ContextMenu.xaml`, `Menu.xaml`, `ComboBox.xaml`, `CustomControls/ComboBoxList.xaml`, `FilterSelectionBox.xaml`): every menu and
+dropdown list is one white options sheet (`LocalMenuSheetTemplate`: 8px corners, a 6px sky facet cap, a mist foot) with 30px rows; icons
+sit in 22px mist sockets, the highlight is the green gloss capsule popping in (BackEase) with the socket turning white, shortcuts are
+pale capsules, group breaks a centred grey-blue mini band, Exit a red capsule with a white label, checked and chosen rows a green gloss
+disc with a deep ink tick (`docs/themes/menus.md`).
+
 ## Previews
 
 `art/preview-details.html` and `art/preview-settings.html` are the real design. Signature motifs drawn: facet field (rail,

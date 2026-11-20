@@ -17,7 +17,19 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
                     <Grid>
+                    <Grid>
                         <Border x:Name="Row" Background="Transparent" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                        <Border x:Name="HoverRow" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource HoverBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                        <Border x:Name="SelectedRow" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource SelectedBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                        <Border x:Name="SelectedBar" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Width="3" Margin="1,4,0,4" HorizontalAlignment="Left" CornerRadius="1.5"
+                                Background="{DynamicResource FocusBrush}" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="SelectedBarScale" ScaleY="0.2" />
+                            </Border.RenderTransform>
+                        </Border>
                         <!-- Running game (Chakra's indeterminate progress, striped): a purple tint and 2px frame in the row's radius. LAUNCHING: a hard-edged slash (RunningScan, ease-in-out) crosses the row while the striped foot bar fills behind it and its stripes march (1.6s loop, 0.5s rest). RUNNING: the bar stays full, its stripes march slowly and the layer breathes 0.72 to 1 (3.2s). -->
                         <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
                             <Border x:Name="RunningWash" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.16" />
@@ -69,18 +81,150 @@
                             </Border>
                         </Grid>
                         <Border Padding="{TemplateBinding Padding}" Background="Transparent">
-                            <ContentPresenter />
+                            <Border x:Name="RowHoverRoom"><ContentPresenter><ContentPresenter.RenderTransform><TranslateTransform x:Name="RowSlide" X="0" /></ContentPresenter.RenderTransform></ContentPresenter></Border>
                         </Border>
                     </Grid>
+                    <!-- RowHoverAction: play (installed) or install (not installed) button on the row's right edge, only while the row is hovered; hidden while launching or running. -->
+                    <Button x:Name="RowHoverPlay" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
+                            Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCPlayGame}"
+                            Command="{MainViewModel StartGameCommand}" CommandParameter="{Binding Game}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding IsInstalled}" Value="True" />
+                                            <Condition Binding="{Binding IsRunning}" Value="False" />
+                                            <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Background="Transparent">
+                                    <Viewbox x:Name="Glyph" Width="14" Height="14" Opacity="0.75" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <ContentControl Focusable="False" Content="{DynamicResource IconPlay}" ContentTemplate="{DynamicResource IconTemplate}" />
+                                    </Viewbox>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Glyph" Property="Opacity" Value="1" /><Setter TargetName="Glyph" Property="Width" Value="17" /><Setter TargetName="Glyph" Property="Height" Value="17" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button x:Name="RowHoverInstall" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
+                            Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCInstallGame}"
+                            Command="{MainViewModel InstallGameCommand}" CommandParameter="{Binding Game}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding IsInstalled}" Value="False" />
+                                            <Condition Binding="{Binding IsRunning}" Value="False" />
+                                            <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Background="Transparent">
+                                    <Viewbox x:Name="Glyph" Width="14" Height="14" Opacity="0.75" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <ContentControl Focusable="False" Content="{DynamicResource IconDownload}" ContentTemplate="{DynamicResource IconTemplate}" />
+                                    </Viewbox>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Glyph" Property="Opacity" Value="1" /><Setter TargetName="Glyph" Property="Width" Value="17" /><Setter TargetName="Glyph" Property="Height" Value="17" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsInstalled}" Value="True">
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                         </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource HoverBrush}" TargetName="Row" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="RowHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="RowSlide" Storyboard.TargetProperty="X" To="2.5" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RowHoverIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="RowSlide" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SelectedBrush}" TargetName="Row" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="RowSelectIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBarScale" Storyboard.TargetProperty="ScaleY" From="0.2" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.25" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RowSelectIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBarScale" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.15" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.15" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Binding IsLaunching}" Value="True">
                             <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
@@ -168,6 +312,20 @@
                                 <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
                                 <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
                             </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <!-- RowHoverAction: keep the row text clear of the hover button (26px + 8px margin + gap). -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0,0,38,0" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0" />
+                            <Setter TargetName="RowHoverPlay" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RowHoverInstall" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0" />
+                            <Setter TargetName="RowHoverPlay" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RowHoverInstall" Property="Visibility" Value="Collapsed" />
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -152,7 +152,7 @@ namespace GameHoverDetails
 
         private static int ClampFieldColumnCount(int v) => Clamp(v, MinFieldColumnCount, MaxFieldColumnCount);
 
-        private static int ClampContentPaddingDip(int v) => Clamp(v, MinContentPaddingDip, MaxContentPaddingDip);
+        internal static int ClampContentPaddingDip(int v) => Clamp(v, MinContentPaddingDip, MaxContentPaddingDip);
 
         private static int ClampChromeOpacity(int v) => Clamp(v, MinChromeOpacity, MaxChromeOpacity);
 

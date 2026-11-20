@@ -2,8 +2,8 @@
     Overlay on Playnite Default/DefaultControls/ComboBox.xaml.
     A choice field: black with a lifted hairline edge (InputBorderBrush), square, 34px (InputPadding), the value in warm
     text and a thin caret (IconDropDown) at the right. Warm grey edge under the pointer, warm white while focused or
-    open. The list drops onto the scene surface with a hairline edge; rows are 32px, the hovered one on the slot grey,
-    the chosen one on the pewter selection plate in warm white.
+    open. The list drops onto the menus' smoky options panel (LocalOptionsListPanelTemplate, ContextMenu.xaml) with 30px
+    rows like Menu.xaml's (docs/themes/menus.md).
     PART_EditableTextBox and PART_Popup are Playnite's parts.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -62,12 +62,11 @@
                                    Placement="Bottom" VerticalOffset="2" Focusable="False" AllowsTransparency="True">
                                 <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                    <Border Style="{DynamicResource PopupBorder}" Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                        </ScrollViewer>
-                                    </Border>
+                                    <Control Template="{DynamicResource LocalOptionsListPanelTemplate}" Focusable="False" IsTabStop="False" />
+                                    <ScrollViewer Margin="1,4,1,9" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </ScrollViewer>
                                 </Grid>
                             </Popup>
                         </Grid>
@@ -93,38 +92,78 @@
         </Setter>
     </Style>
 
+    <!-- List rows: the menus' options rows (Menu.xaml) at 30px with a hairline under each. The pewter plate fades in and
+         the label steps 3px left on IsHighlighted (pointer and keyboard), 0.16s in and 0.22s out; the chosen item keeps
+         the amber "new" dot and its warm white label while another row is highlighted. -->
     <Style TargetType="{x:Type ComboBoxItem}">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid>
-                        <Border x:Name="Hover" IsHitTestVisible="False" Visibility="Collapsed" Background="{DynamicResource ListItemHoverBrush}" />
-                        <Control x:Name="Plate" Template="{DynamicResource SelectionBarTemplate}" Visibility="Collapsed"
-                                 Background="{DynamicResource SelectedBrush}" Foreground="{DynamicResource SelectedSheenBrush}"
-                                 BorderBrush="{DynamicResource SelectedBorderBrush}" Focusable="False" IsTabStop="False" />
-                        <Border Background="Transparent" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Border>
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Control x:Name="ListPlate" Template="{DynamicResource SelectionBarTemplate}" Opacity="0" Visibility="Collapsed"
+                                 Background="{DynamicResource MenuItemHoverBrush}" Foreground="{DynamicResource SelectedSheenBrush}"
+                                 BorderBrush="{DynamicResource SelectedBorderBrush}" IsHitTestVisible="False" Focusable="False" IsTabStop="False" />
+                        <Grid Margin="14,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse x:Name="ListDot" Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                     Fill="{DynamicResource GlyphBrush}" Visibility="Collapsed" />
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}">
+                                <ContentPresenter.RenderTransform>
+                                    <TranslateTransform x:Name="ListLabelStep" X="0" />
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="Hover" />
-                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="Plate" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListDot" />
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListPlateIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListLabelStep" Storyboard.TargetProperty="X" To="-3" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListPlateOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="ListLabelStep" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.22" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsSelected" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 </ResourceDictionary>

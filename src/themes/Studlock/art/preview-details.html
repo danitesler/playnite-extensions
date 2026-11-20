@@ -1,0 +1,1425 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Studlock — Game Details Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--sl-baseplate);
+    color: var(--sl-white);
+    font-family: "Sora", "Segoe UI";
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: flex;
+    width: 1280px;
+    height: 720px;
+    background: var(--sl-baseplate);
+    position: relative;
+  }
+
+  /* === SIDEBAR: 44px matte charcoal ABS rail + no inner divider === */
+  .sidebar {
+    width: 44px;
+    height: 720px;
+    background: var(--sl-baseplate);
+    border-right: 3px solid var(--sl-baseplate);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 6;
+  }
+  /* Subtle vertical circular stud relief along the violet rail spine */
+  .sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 44px 0 0 0;
+    background: var(--sl-violet-lit);
+    opacity: 0.06;
+    -webkit-mask-image: url('../src/Images/fx/stud-wall.png');
+    -webkit-mask-size: 32px 32px;
+    pointer-events: none;
+  }
+  .main-menu-btn {
+    width: 41px;
+    height: 50px;
+    background: var(--sl-violet);
+    border-bottom: 2px solid var(--sl-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .main-menu-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-white);
+    opacity: 0.14;
+    -webkit-mask-image: url('../src/Images/fx/stud-wall.png');
+    -webkit-mask-size: 24px 24px;
+    pointer-events: none;
+  }
+  .main-menu-btn::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--sl-yellow);
+  }
+  .sidebar-items {
+    display: flex;
+    flex-direction: column;
+    width: 41px;
+    padding-top: 8px;
+    gap: 4px;
+    position: relative;
+    z-index: 2;
+  }
+  .sidebar-item {
+    width: 41px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--sl-muted);
+  }
+  .sidebar-item.selected {
+    color: var(--sl-ink);
+  }
+  .sidebar-item.selected .rail-plate {
+    position: absolute;
+    inset: 4px 4px;
+    background: var(--sl-yellow);
+    border: 1.5px solid var(--sl-ink);
+    border-bottom: 3px solid var(--sl-yellow-lip);
+    border-radius: var(--sl-radius-sm);
+    z-index: 0;
+  }
+  .sidebar-item svg { position: relative; z-index: 1; }
+  .sidebar-item.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 9px;
+    bottom: 9px;
+    width: 3px;
+    background: var(--sl-yellow);
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* === MAIN COLUMN === */
+  .main-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 720px;
+  }
+
+  /* === TOP PANEL: 50px matte ABS bar + studded violet center crown + cerulean closing rail === */
+  .top-panel {
+    height: 50px;
+    background: var(--sl-baseplate);
+    border-bottom: 2px solid var(--sl-cerulean);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 12px;
+    gap: 8px;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+  /* Signature studded violet plaque tucked into the top-right corner */
+  .top-crown {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 210px;
+    height: 10px;
+    background: var(--sl-violet);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 6% 100%);
+    border-bottom: 1.5px solid var(--sl-ink);
+    pointer-events: none;
+  }
+  .top-crown::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-white);
+    opacity: 0.22;
+    -webkit-mask-image: url('../src/Images/fx/stud-row.png');
+    -webkit-mask-size: 20px 10px;
+  }
+
+  /* Search box (first at top left, persistent magnifier) */
+  .search-box {
+    width: 238px;
+    height: 32px;
+    background: var(--sl-surface-deep);
+    border: 1.5px solid var(--sl-border);
+    border-radius: var(--sl-radius-md);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    flex-shrink: 0;
+    box-shadow: inset 0 2px 0 var(--sl-ink);
+  }
+  .search-box .search-glyph { color: var(--sl-yellow); flex-shrink: 0; }
+  .search-box .search-text {
+    font-size: 12.5px;
+    color: var(--sl-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Toolbar icon buttons (explicit 32x32 height matching all states) */
+  .tb-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--sl-radius-md);
+    background: var(--sl-surface);
+    border: 1.5px solid var(--sl-ink);
+    border-bottom: 2.5px solid var(--sl-ink);
+    color: var(--sl-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .tb-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 2px; right: 2px; height: 1px;
+    background: var(--sl-bevel-light);
+    pointer-events: none;
+  }
+  .tb-btn.filter-active {
+    background: var(--sl-surface-raised);
+    border-color: var(--sl-cerulean);
+  }
+  /* Wardrobe Aqua circular active-filter dot (no text label) */
+  .filter-pip {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: var(--sl-radius-full);
+    background: var(--sl-aqua);
+    border: 1.5px solid var(--sl-ink);
+  }
+
+  .main-items {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+  }
+  .tb-sep {
+    width: 2px;
+    height: 20px;
+    background: var(--sl-border-subtle);
+    margin: 0 3px;
+    border-radius: 1px;
+  }
+  /* Active view switch: SETTINGS-style Canary Yellow snapped tab tile */
+  .tb-btn.active {
+    background: var(--sl-yellow);
+    color: var(--sl-ink);
+    border: 1.5px solid var(--sl-ink);
+    border-bottom: 2.5px solid var(--sl-yellow-lip);
+  }
+
+  .top-spacer { flex: 1; }
+
+  /* Global progress bar: 12px Minigame segmented vertical-brick yellow timer bar */
+  .global-progress {
+    width: 196px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-right: 4px;
+  }
+  .gp-track {
+    width: 100%;
+    height: 12px;
+    background: var(--sl-surface-deep);
+    border: 1.5px solid var(--sl-ink);
+    border-radius: var(--sl-radius-xs);
+    position: relative;
+    overflow: hidden;
+  }
+  .gp-track::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    background: var(--sl-axle-track);
+    opacity: 0.45;
+    -webkit-mask-image: url('../src/Images/fx/brick-ticks.png');
+    -webkit-mask-size: 10px 10px;
+  }
+  .gp-fill {
+    position: absolute;
+    left: 1px; top: 1px; bottom: 1px;
+    width: 64%;
+    background: var(--sl-yellow);
+    -webkit-mask-image: url('../src/Images/fx/brick-ticks.png');
+    -webkit-mask-size: 10px 10px;
+  }
+  .gp-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: var(--sl-white);
+    text-shadow: 0 1px 0 var(--sl-ink), 1px 0 0 var(--sl-ink), -1px 0 0 var(--sl-ink);
+    padding: 0 12px;
+    white-space: nowrap;
+  }
+
+  .notif-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: var(--sl-radius-full);
+    background: var(--sl-aqua);
+    border: 1.5px solid var(--sl-ink);
+  }
+
+  /* Window caption buttons */
+  .win-btns {
+    display: flex;
+    height: 48px;
+    margin-left: 4px;
+  }
+  .win-btn {
+    width: 42px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sl-muted);
+  }
+  .win-btn.close { color: var(--sl-white); }
+
+  /* === WORKSPACE SPLIT: Game list left + Game page right === */
+  .workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    background: var(--sl-canvas);
+  }
+
+  /* === GAME LIST (264px, calm matte baseplate, Canary Yellow selected brick bar) === */
+  .game-list {
+    width: 266px;
+    background: var(--sl-baseplate);
+    border-right: 1.5px solid var(--sl-border-subtle);
+    padding: 8px 6px 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .list-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 3px 6px;
+    margin-bottom: 2px;
+    background: var(--sl-cerulean-band);
+    border: 1.5px solid var(--sl-ink);
+    border-radius: var(--sl-radius-sm);
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--sl-white);
+    position: relative;
+    overflow: hidden;
+  }
+  .list-group-hdr::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-ink);
+    opacity: 0.18;
+    -webkit-mask-image: url('../src/Images/fx/brick-seams.png');
+    -webkit-mask-size: 72px 8px;
+    pointer-events: none;
+  }
+
+  .game-row {
+    height: 36px;
+    border-radius: var(--sl-radius-md);
+    display: flex;
+    align-items: center;
+    padding: 0 10px 0 8px;
+    gap: 9px;
+    color: var(--sl-white);
+    font-size: 12.5px;
+    font-weight: 500;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .game-ico {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--sl-radius-xs);
+    border: 1.5px solid var(--sl-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-size: 10px;
+    color: var(--sl-white);
+    flex-shrink: 0;
+  }
+  .game-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* SELECTED ROW: Canary Yellow brick-seamed focus bar + floating black-outlined golden triangle cursor */
+  .game-row.selected {
+    background: var(--sl-yellow);
+    color: var(--sl-ink);
+    font-weight: 700;
+    border: 1.5px solid var(--sl-ink);
+    border-bottom: 3px solid var(--sl-yellow-lip);
+    padding-left: 11px;
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-ink);
+    opacity: 0.2;
+    -webkit-mask-image: url('../src/Images/fx/brick-seams.png');
+    -webkit-mask-size: 84px 8px;
+    pointer-events: none;
+  }
+  .row-cursor {
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14px;
+    height: 16px;
+    z-index: 4;
+  }
+
+  /* HOVERED ROW: cool ABS slate plate + Cerulean left stud-notch + RowHoverPlay glyph */
+  .game-row.hovered {
+    background: var(--sl-surface-raised);
+    border: 1px solid var(--sl-cerulean);
+    padding-right: 36px;
+  }
+  .game-row.hovered::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 5px; bottom: 5px;
+    width: 3px;
+    background: var(--sl-cerulean-lit);
+    border-radius: 0 2px 2px 0;
+  }
+  .row-hover-play {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sl-white);
+    opacity: 0.85;
+  }
+
+  /* RUNNING ROW: Equipped Brick Green frame + dark keyline + segmented foot + 3 green studs */
+  .game-row.running {
+    background: var(--sl-surface);
+    border: 2px solid var(--sl-green-run);
+    box-shadow: inset 0 0 0 1px var(--sl-ink);
+    padding-right: 42px;
+    overflow: hidden;
+  }
+  .game-row.running::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-green-run);
+    opacity: 0.18;
+    pointer-events: none;
+  }
+  .run-foot {
+    position: absolute;
+    left: 3px; right: 3px; bottom: 2px;
+    height: 2px;
+    background: var(--sl-green-bright);
+    -webkit-mask-image: url('../src/Images/fx/brick-ticks.png');
+    -webkit-mask-size: 10px 4px;
+  }
+  .run-studs {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .run-stud {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--sl-radius-full);
+    background: var(--sl-green-bright);
+    border: 1px solid var(--sl-ink);
+  }
+
+  .game-row.dim { color: var(--sl-muted); }
+
+  /* Technic vertical scrollbar preview on game list right edge */
+  .mini-axle {
+    position: absolute;
+    top: 44px;
+    bottom: 12px;
+    right: 3px;
+    width: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .mini-axle-rod {
+    position: absolute;
+    top: 0; bottom: 0; width: 2px;
+    background: var(--sl-axle-track);
+    border-radius: 1px;
+  }
+  .mini-axle-thumb {
+    position: relative;
+    margin-top: 12px;
+    width: 6px;
+    height: 82px;
+    background: var(--sl-axle-rod);
+    border-radius: 3px;
+    border: 1px solid var(--sl-ink);
+  }
+
+  /* === GAME PAGE (Details overview) === */
+  .game-page {
+    flex: 1;
+    background: var(--sl-canvas);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HERO BANNER: Chamfered Cerulean Brick upper bezel + clean page-matched gradient fade */
+  .hero-wrap {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 238px;
+    overflow: hidden;
+    z-index: 0;
+  }
+  /* Original stylized brick-party stage hero illustration (pure CSS/SVG, zero game assets) */
+  .hero-art {
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(ellipse 68% 95% at 22% 10%, #6B3DC8 0%, transparent 65%),
+      radial-gradient(ellipse 60% 85% at 78% 15%, #1D8CC4 0%, transparent 62%),
+      linear-gradient(180deg, #2C1F52 0%, #1F345C 52%, var(--sl-canvas) 100%);
+    position: relative;
+  }
+  /* Geometric stylized brick blocks on hero art */
+  .hero-art svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.92;
+  }
+  /* Chamfered Cerulean Brick top/side bezel frame */
+  .hero-bezel {
+    position: absolute;
+    top: 10px;
+    left: 16px;
+    right: 16px;
+    height: 184px;
+    border: 3px solid var(--sl-cerulean);
+    border-bottom: none;
+    clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%, 0 10px);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .hero-bezel::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--sl-white);
+    opacity: 0.28;
+    -webkit-mask-image: url('../src/Images/fx/brick-seams.png');
+    -webkit-mask-size: 96px 8px;
+  }
+  /* Clean gradient fade into GameOverviewBackgroundBrush (no OpacityMask behind animated Play) */
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(39,41,45,0.06) 0%, rgba(39,41,45,0.42) 55%, var(--sl-canvas) 96%);
+    z-index: 3;
+  }
+
+  /* Page foreground content */
+  .page-content {
+    position: relative;
+    z-index: 4;
+    padding: 110px 24px 12px 24px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Header row: Game Icon + Display Name + Actions */
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+  .title-cluster {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .title-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--sl-radius-lg);
+    background: var(--sl-violet);
+    border: 2px solid var(--sl-ink);
+    border-bottom: 3.5px solid var(--sl-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .title-text {
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-style: italic;
+    font-size: 31px;
+    line-height: 1.08;
+    letter-spacing: 0.4px;
+    color: var(--sl-white);
+    text-shadow: 0 2px 0 var(--sl-ink), 2px 0 0 var(--sl-ink), -1px 0 0 var(--sl-ink), 0 -1px 0 var(--sl-ink);
+  }
+  .title-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sl-yellow);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Actions cluster: Hero Moment PlayButton (hovered end state) + 40x40 icon-only More & Edit */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .play-btn {
+    min-width: 146px;
+    height: 42px;
+    padding: 0 22px 0 26px;
+    border-radius: var(--sl-radius-md);
+    background: var(--sl-yellow-lit);
+    border: 2px solid var(--sl-ink);
+    border-bottom: 4px solid var(--sl-yellow-lip);
+    color: var(--sl-ink);
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-style: italic;
+    font-size: 17px;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: visible;
+    box-shadow: 0 0 0 2px var(--sl-yellow-tint);
+  }
+  /* Vertical modular brick seams across Play face */
+  .play-seams {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .play-seams::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-ink);
+    opacity: 0.22;
+    -webkit-mask-image: url('../src/Images/fx/brick-seams.png');
+    -webkit-mask-size: 72px 8px;
+  }
+  /* Diagonal glossy ABS plastic specular sheen (Hero hover end state) */
+  .play-seams::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-white);
+    opacity: 0.56;
+    -webkit-mask-image: url('../src/Images/fx/brick-sheen.png');
+    -webkit-mask-size: 100% 100%;
+  }
+  .play-cursor {
+    position: absolute;
+    left: -9px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 18px;
+    z-index: 3;
+  }
+  .play-label { position: relative; z-index: 2; }
+
+  /* Secondary actions: equal 40x40 square icon-only molded ABS plates */
+  .sec-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--sl-radius-md);
+    background: var(--sl-surface-raised);
+    border: 1.5px solid var(--sl-ink);
+    border-bottom: 3px solid var(--sl-ink);
+    color: var(--sl-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .sec-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 2px; right: 2px; height: 1px;
+    background: var(--sl-bevel-light);
+  }
+
+  /* === TWO-COLUMN BODY: Screenshots + Description LEFT, Chamfered Cerulean Metadata RIGHT === */
+  .body-cols {
+    display: flex;
+    gap: 22px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Left main column */
+  .main-pane {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .sec-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .sec-pill {
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    background: var(--sl-cerulean-lit);
+    border: 1px solid var(--sl-ink);
+  }
+  .sec-pill.violet { background: var(--sl-violet-lit); }
+  .sec-title {
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--sl-white);
+  }
+  .sec-rule {
+    flex: 1;
+    height: 2px;
+    background: var(--sl-border-subtle);
+  }
+
+  /* Screenshots strip */
+  .shots-grid {
+    display: flex;
+    gap: 10px;
+  }
+  .shot-main {
+    width: 246px;
+    height: 138px;
+    border-radius: var(--sl-radius-md);
+    border: 2.5px solid var(--sl-yellow);
+    box-shadow: inset 0 0 0 1px var(--sl-white);
+    background: linear-gradient(135deg, #226DA8 0%, #3E2B7A 65%, #1E2433 100%);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .shot-main-cursor {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 11px;
+    z-index: 3;
+  }
+  .shot-thumbs {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .shot-thumb {
+    height: 65px;
+    border-radius: var(--sl-radius-sm);
+    border: 1.5px solid var(--sl-border);
+    background: var(--sl-surface);
+    position: relative;
+    overflow: hidden;
+  }
+  .shot-thumb.t1 { background: linear-gradient(135deg, #1E75A6, #284C82); }
+  .shot-thumb.t2 { background: linear-gradient(135deg, #5A3B99, #2A2550); }
+  .shot-thumb.t3 { background: linear-gradient(135deg, #1F8A52, #1D4B45); }
+  .shot-thumb.t4 { background: linear-gradient(135deg, #A33138, #4D2234); }
+  .shot-thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-white);
+    opacity: 0.08;
+    -webkit-mask-image: url('../src/Images/fx/stud-wall.png');
+    -webkit-mask-size: 24px 24px;
+  }
+
+  /* Description card */
+  .desc-body {
+    font-size: 12.5px;
+    line-height: 1.58;
+    color: var(--sl-white);
+  }
+  .desc-body p + p {
+    margin-top: 8px;
+    color: var(--sl-muted);
+  }
+  .disclaimer {
+    margin-top: auto;
+    font-size: 10.5px;
+    color: var(--sl-disabled);
+    border-top: 1px solid var(--sl-border-subtle);
+    padding-top: 6px;
+  }
+
+  /* === METADATA PANE (300px usable content inside Chamfered Cerulean Brick Frame) === */
+  .meta-frame {
+    width: 328px; /* 300px usable inner content + 24px horizontal padding + 4px border */
+    background: var(--sl-panel);
+    border: 2px solid var(--sl-cerulean);
+    border-radius: var(--sl-radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+  /* Cerulean segmented brick header strip */
+  .meta-cap {
+    height: 24px;
+    background: var(--sl-cerulean-band);
+    border-bottom: 1.5px solid var(--sl-ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    position: relative;
+  }
+  .meta-cap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-ink);
+    opacity: 0.2;
+    -webkit-mask-image: url('../src/Images/fx/brick-seams.png');
+    -webkit-mask-size: 72px 8px;
+  }
+  .meta-cap-title {
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-size: 11px;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--sl-white);
+    position: relative;
+  }
+  .meta-cap-studs {
+    display: flex;
+    gap: 4px;
+    position: relative;
+  }
+  .cap-stud {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--sl-radius-full);
+    background: var(--sl-cerulean-lit);
+    border: 1px solid var(--sl-ink);
+  }
+
+  .meta-inner {
+    width: 300px;
+    margin: 0 auto;
+    padding: 6px 0 8px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .meta-row {
+    display: grid;
+    grid-template-columns: 108px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 2.5px 0;
+    font-size: 12px;
+  }
+  .meta-lbl {
+    color: var(--sl-muted);
+    font-weight: 500;
+  }
+  .meta-val {
+    color: var(--sl-white);
+    font-weight: 500;
+  }
+  .meta-link {
+    color: var(--sl-cerulean-lit);
+    font-weight: 600;
+  }
+
+  /* Signature 10px horizontal molded circular stud row between the 6 Meta* groups */
+  .stud-divider {
+    height: 10px;
+    margin: 3.5px 0;
+    background: var(--sl-surface-deep);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stud-divider::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--sl-axle-rod);
+    opacity: 0.72;
+    -webkit-mask-image: url('../src/Images/fx/stud-row.png');
+    -webkit-mask-size: 20px 10px;
+  }
+
+  /* Standings 3D beveled plastic score blocks */
+  .score-block {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: var(--sl-radius-sm);
+    font-family: "Nunito", "Segoe UI";
+    font-weight: 900;
+    font-size: 11.5px;
+    border: 1.5px solid var(--sl-ink);
+    border-bottom: 2.5px solid var(--sl-ink);
+    color: var(--sl-white);
+  }
+  .score-pos { background: var(--sl-green-run); }
+  .score-mix { background: var(--sl-amber); color: var(--sl-ink); }
+
+  /* Molded 1x2 brick tile chips (PropertyItemButton Tag=Chip) */
+  .chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px 2px 6px;
+    border-radius: var(--sl-radius-sm);
+    background: var(--sl-surface-raised);
+    border: 1px solid var(--sl-ink);
+    border-bottom: 2px solid var(--sl-ink);
+    color: var(--sl-white);
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .chip-stud {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--sl-radius-full);
+    background: var(--sl-cerulean-lit);
+  }
+  .chip.hover {
+    background: var(--sl-yellow);
+    color: var(--sl-ink);
+    border-bottom-color: var(--sl-yellow-lip);
+  }
+  .chip.hover .chip-stud { background: var(--sl-ink); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LEFT SIDEBAR RAIL (44px compact, studded Stage Violet booklet spine) -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <!-- Original Studlock 2x2 isometric brick brand mark -->
+      <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+        <path fill="currentColor" fill-rule="evenodd" d="M32 9 L58 22 L58 43.5 L32 57 L6 43.5 L6 22 Z M32 13.4 L11.4 23.8 L32 34.2 L52.6 23.8 Z M10 27.4 L10 41.2 L30 51.6 L30 37.2 Z M54 27.4 L34 37.2 L34 51.6 L54 41.2 Z"/>
+        <path fill="currentColor" d="M32 16.0 C34.8 16.0 37.0 17.1 37.0 18.5 C37.0 19.9 34.8 21.0 32 21.0 C29.2 21.0 27.0 19.9 27.0 18.5 C27.0 17.1 29.2 16.0 32 16.0 Z"/>
+        <path fill="currentColor" d="M22.2 21.3 C25.0 21.3 27.2 22.4 27.2 23.8 C27.2 25.2 25.0 26.3 22.2 26.3 C19.4 26.3 17.2 25.2 17.2 23.8 C17.2 22.4 19.4 21.3 22.2 21.3 Z"/>
+        <path fill="currentColor" d="M41.8 21.3 C44.6 21.3 46.8 22.4 46.8 23.8 C46.8 25.2 44.6 26.3 41.8 26.3 C39.0 26.3 36.8 25.2 36.8 23.8 C36.8 22.4 39.0 21.3 41.8 21.3 Z"/>
+        <path fill="currentColor" d="M32 26.6 C34.8 26.6 37.0 27.7 37.0 29.1 C37.0 30.5 34.8 31.6 32 31.6 C29.2 31.6 27.0 30.5 27.0 29.1 C27.0 27.7 29.2 26.6 32 26.6 Z"/>
+      </svg>
+    </div>
+    <div class="sidebar-items">
+      <!-- Active Library item: Canary Yellow brick plate -->
+      <div class="sidebar-item selected">
+        <div class="rail-plate"></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 4h8v7H3V4zm10 0h8v7h-8V4zM3 13h8v7H3v-7zm10 0h8v7h-8v-7z"/>
+        </svg>
+      </div>
+      <!-- Statistics -->
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 13h4v7H4v-7zm6-5h4v12h-4V8zm6-4h4v16h-4V4z"/>
+        </svg>
+      </div>
+      <!-- Installed -->
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zm0 2.6L6.4 8.7 12 11.8l5.6-3.1L12 5.6z"/>
+        </svg>
+      </div>
+      <!-- Favorites -->
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.1 6 20.4l1.3-6.7-5-4.7 6.8-.8L12 2z"/>
+        </svg>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <!-- TOP PANEL: search -> filter -> sorting -> group -> icon view switches -> tools -> progress -> notif -> window -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="top-crown"></div>
+
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <svg class="search-glyph" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+          <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>
+        </svg>
+        <span class="search-text">Search games...</span>
+      </div>
+
+      <div class="tb-btn filter-active" data-part="PART_ToggleFilter" title="Filter">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/>
+        </svg>
+        <span class="filter-pip"></span>
+      </div>
+
+      <div class="main-items" data-part="PART_PanelMainItems">
+        <!-- Sorting first, directly beside filter -->
+        <div class="tb-btn" title="Sorting">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 6h10v2.5H4V6zm0 4.8h7v2.5H4v-2.5zm0 4.7h4v2.5H4v-2.5zm12.5-9.5H19v9h2.5L17.8 19 14 15h2.5V6z"/>
+          </svg>
+        </div>
+        <!-- Grouping -->
+        <div class="tb-btn" title="Grouping">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 5h16v3H4V5zm3 5.5h13v3H7v-3zm3 5.5h10v3H10v-3z"/>
+          </svg>
+        </div>
+        <div class="tb-sep"></div>
+        <!-- Icon-only View Switches (Details active in Canary Yellow) -->
+        <div class="tb-btn active" title="Details View">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 5h6v14H3V5zm8 0h10v6H11V5zm0 8h10v6H11v-6z"/>
+          </svg>
+        </div>
+        <div class="tb-btn" title="Grid View">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/>
+          </svg>
+        </div>
+        <div class="tb-btn" title="List View">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 5h16v3H4V5zm0 5.5h16v3H4v-3zm0 5.5h16v3H4v-3z"/>
+          </svg>
+        </div>
+        <div class="tb-sep"></div>
+        <!-- View settings -->
+        <div class="tb-btn" title="View Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 7h7v2H4V7zm11 0h5v2h-5V7zm-3-2h2v6h-2V5zM4 15h3v2H4v-2zm7 0h9v2h-9v-2zm-3-2h2v6H8v-6z"/>
+          </svg>
+        </div>
+        <!-- Random game -->
+        <div class="tb-btn" title="Random Game">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1zm3.5 3.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm7 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM12 10.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm-3.5 3a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm7 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="top-spacer"></div>
+
+      <!-- Segmented brick global progress bar -->
+      <div class="global-progress">
+        <div class="gp-track"><div class="gp-fill"></div></div>
+        <div class="gp-label">Updating library...</div>
+      </div>
+
+      <div class="tb-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3a6 6 0 00-6 6v4l-2 3h16l-2-3V9a6 6 0 00-6-6zm0 18a2.5 2.5 0 002.4-2H9.6A2.5 2.5 0 0012 21z"/>
+        </svg>
+        <span class="notif-badge"></span>
+      </div>
+
+      <div class="win-btns">
+        <div class="win-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="7" width="12" height="2.4" rx="1"/></svg>
+        </div>
+        <div class="win-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="10" height="10" rx="1.5"/></svg>
+        </div>
+        <div class="win-btn close">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- WORKSPACE -->
+    <div class="workspace">
+      <!-- GAME LIST -->
+      <section class="game-list" data-part="game-list">
+        <div class="list-group-hdr">INSTALLED (12)</div>
+
+        <!-- Selected row: Canary Yellow brick-seamed bar + floating golden cursor -->
+        <div class="game-row selected">
+          <svg class="row-cursor" viewBox="0 0 16 18">
+            <path d="M2 2.2 L14 9 L2 15.8 Z" fill="var(--sl-cursor-gold)" stroke="var(--sl-ink)" stroke-width="2.2" stroke-linejoin="round"/>
+          </svg>
+          <span class="game-ico" style="background: var(--sl-violet);">BB</span>
+          <span class="game-name">Brickyard Blitz</span>
+        </div>
+
+        <!-- Hovered row: Cerulean notch + transparent RowHoverPlay -->
+        <div class="game-row hovered">
+          <span class="game-ico" style="background: var(--sl-cerulean);">MM</span>
+          <span class="game-name">Minifig Mayhem</span>
+          <svg class="row-hover-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+        </div>
+
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-red);">SC</span>
+          <span class="game-name">Stud Circuit Rally</span>
+        </div>
+
+        <!-- Running row: Equipped Brick Green frame + segmented foot + 3 green studs -->
+        <div class="game-row running">
+          <span class="game-ico" style="background: var(--sl-green-run);">TT</span>
+          <span class="game-name">Technic Turbo</span>
+          <div class="run-studs"><span class="run-stud"></span><span class="run-stud"></span><span class="run-stud"></span></div>
+          <div class="run-foot"></div>
+        </div>
+
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-amber); color: var(--sl-ink);">BO</span>
+          <span class="game-name">Blocktower Odyssey</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-violet-deep);">SV</span>
+          <span class="game-name">Starbrick Voyagers</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-cerulean-deep);">IQ</span>
+          <span class="game-name">Island Quest DX</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-red-deep);">PP</span>
+          <span class="game-name">Podium Panic</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-surface-raised);">AW</span>
+          <span class="game-name">Axle Workshop</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--sl-cerulean-band);">CC</span>
+          <span class="game-name">Clockwork Cove</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--sl-surface);">PF</span>
+          <span class="game-name">Plastic Frontier</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--sl-surface);">SR</span>
+          <span class="game-name">Skyplate Runners</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--sl-surface);">MZ</span>
+          <span class="game-name">Modular Zenith</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--sl-surface);">GB</span>
+          <span class="game-name">Goldbrick Grand Prix</span>
+        </div>
+
+        <div class="mini-axle">
+          <div class="mini-axle-rod"></div>
+          <div class="mini-axle-thumb"></div>
+        </div>
+      </section>
+
+      <!-- GAME PAGE -->
+      <main class="game-page" data-part="game-page">
+        <div class="hero-wrap">
+          <div class="hero-art">
+            <!-- Original stylized geometric interlocking-brick party stage vector art -->
+            <svg viewBox="0 0 980 240" preserveAspectRatio="xMidYMid slice">
+              <!-- Spotlight beams -->
+              <polygon points="150,0 260,0 380,240 80,240" fill="#FFE421" opacity="0.09"/>
+              <polygon points="690,0 810,0 920,240 580,240" fill="#12DCE0" opacity="0.11"/>
+              <!-- Geometric floating party brick blocks (purely original vector blocks) -->
+              <g transform="translate(590,26) rotate(8)" opacity="0.88">
+                <rect x="0" y="16" width="118" height="58" rx="6" fill="#FFE421" stroke="#161719" stroke-width="3.5"/>
+                <rect x="14" y="4" width="24" height="14" rx="4" fill="#FFF064" stroke="#161719" stroke-width="3"/>
+                <rect x="47" y="4" width="24" height="14" rx="4" fill="#FFF064" stroke="#161719" stroke-width="3"/>
+                <rect x="80" y="4" width="24" height="14" rx="4" fill="#FFF064" stroke="#161719" stroke-width="3"/>
+                <rect x="0" y="62" width="118" height="12" rx="3" fill="#C9A900"/>
+              </g>
+              <g transform="translate(745,56) rotate(-11)" opacity="0.85">
+                <rect x="0" y="14" width="96" height="48" rx="6" fill="#2B8FC4" stroke="#161719" stroke-width="3.5"/>
+                <rect x="14" y="3" width="24" height="13" rx="4" fill="#4BB4E6" stroke="#161719" stroke-width="3"/>
+                <rect x="56" y="3" width="24" height="13" rx="4" fill="#4BB4E6" stroke="#161719" stroke-width="3"/>
+              </g>
+              <g transform="translate(465,58) rotate(-6)" opacity="0.72">
+                <rect x="0" y="12" width="84" height="44" rx="5" fill="#C9242B" stroke="#161719" stroke-width="3"/>
+                <rect x="12" y="2" width="22" height="12" rx="3" fill="#E63940" stroke="#161719" stroke-width="2.5"/>
+                <rect x="48" y="2" width="22" height="12" rx="3" fill="#E63940" stroke="#161719" stroke-width="2.5"/>
+              </g>
+              <g transform="translate(830,118) rotate(14)" opacity="0.78">
+                <rect x="0" y="10" width="76" height="38" rx="5" fill="#198840" stroke="#161719" stroke-width="3"/>
+                <rect x="12" y="0" width="20" height="11" rx="3" fill="#2CC856" stroke="#161719" stroke-width="2.5"/>
+                <rect x="44" y="0" width="20" height="11" rx="3" fill="#2CC856" stroke="#161719" stroke-width="2.5"/>
+              </g>
+            </svg>
+          </div>
+          <div class="hero-bezel"></div>
+          <div class="hero-scrim"></div>
+        </div>
+
+        <div class="page-content">
+          <!-- HEADER: Icon + Title + Hero Play (hovered end state) + 40x40 More & Edit -->
+          <div class="game-header">
+            <div class="title-cluster">
+              <div class="title-icon">
+                <svg width="26" height="26" viewBox="0 0 64 64" fill="var(--sl-yellow)">
+                  <path fill-rule="evenodd" d="M32 9 L58 22 L58 43.5 L32 57 L6 43.5 L6 22 Z M32 13.4 L11.4 23.8 L32 34.2 L52.6 23.8 Z M10 27.4 L10 41.2 L30 51.6 L30 37.2 Z M54 27.4 L34 37.2 L34 51.6 L54 41.2 Z"/>
+                  <path d="M32 16.0 C34.8 16.0 37.0 17.1 37.0 18.5 C37.0 19.9 34.8 21.0 32 21.0 C29.2 21.0 27.0 19.9 27.0 18.5 C27.0 17.1 29.2 16.0 32 16.0 Z"/>
+                  <path d="M22.2 21.3 C25.0 21.3 27.2 22.4 27.2 23.8 C27.2 25.2 25.0 26.3 22.2 26.3 C19.4 26.3 17.2 25.2 17.2 23.8 C17.2 22.4 19.4 21.3 22.2 21.3 Z"/>
+                  <path d="M41.8 21.3 C44.6 21.3 46.8 22.4 46.8 23.8 C46.8 25.2 44.6 26.3 41.8 26.3 C39.0 26.3 36.8 25.2 36.8 23.8 C36.8 22.4 39.0 21.3 41.8 21.3 Z"/>
+                  <path d="M32 26.6 C34.8 26.6 37.0 27.7 37.0 29.1 C37.0 30.5 34.8 31.6 32 31.6 C29.2 31.6 27.0 30.5 27.0 29.1 C27.0 27.7 29.2 26.6 32 26.6 Z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="title-text">Brickyard Blitz</div>
+                <div class="title-sub">Challenge Zone Edition</div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <!-- Hero Moment: PlayButton in hovered end state -->
+              <div class="play-btn">
+                <div class="play-seams"></div>
+                <svg class="play-cursor" viewBox="0 0 16 18">
+                  <path d="M2 2 L14 9 L2 16 Z" fill="var(--sl-cursor-gold)" stroke="var(--sl-ink)" stroke-width="2.2" stroke-linejoin="round"/>
+                </svg>
+                <svg class="play-label" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+                <span class="play-label">PLAY</span>
+              </div>
+              <!-- Equal 40x40 icon-only More and Edit -->
+              <div class="sec-btn" title="More">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="5" cy="12" r="2.4"/><circle cx="12" cy="12" r="2.4"/><circle cx="19" cy="12" r="2.4"/>
+                </svg>
+              </div>
+              <div class="sec-btn" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 16.5L15.8 4.7l3.5 3.5L7.5 20H4v-3.5zm13.2-13.2l1.8-1.8a1.4 1.4 0 012 0l1.5 1.5a1.4 1.4 0 010 2l-1.8 1.8-3.5-3.5z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- BODY COLUMNS -->
+          <div class="body-cols">
+            <!-- LEFT: Screenshots + Description -->
+            <div class="main-pane">
+              <div>
+                <div class="sec-heading">
+                  <span class="sec-pill"></span>
+                  <span class="sec-title">Screenshots</span>
+                  <span class="sec-rule"></span>
+                </div>
+                <div class="shots-grid">
+                  <div class="shot-main">
+                    <svg class="shot-main-cursor" viewBox="0 0 16 12">
+                      <path d="M2 1.5 L14 1.5 L8 10.5 Z" fill="var(--sl-cursor-gold)" stroke="var(--sl-ink)" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <svg width="246" height="138" viewBox="0 0 246 138">
+                      <rect x="22" y="72" width="84" height="36" rx="4" fill="#FFE421" stroke="#161719" stroke-width="2.5"/>
+                      <rect x="34" y="64" width="18" height="10" rx="2.5" fill="#FFF064" stroke="#161719" stroke-width="2"/>
+                      <rect x="74" y="64" width="18" height="10" rx="2.5" fill="#FFF064" stroke="#161719" stroke-width="2"/>
+                      <rect x="118" y="46" width="96" height="58" rx="4" fill="#2CC856" stroke="#161719" stroke-width="2.5"/>
+                      <rect x="132" y="38" width="22" height="10" rx="2.5" fill="#70E68E" stroke="#161719" stroke-width="2"/>
+                      <rect x="176" y="38" width="22" height="10" rx="2.5" fill="#70E68E" stroke="#161719" stroke-width="2"/>
+                    </svg>
+                  </div>
+                  <div class="shot-thumbs">
+                    <div class="shot-thumb t1"></div>
+                    <div class="shot-thumb t2"></div>
+                    <div class="shot-thumb t3"></div>
+                    <div class="shot-thumb t4"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex:1; display:flex; flex-direction:column;">
+                <div class="sec-heading">
+                  <span class="sec-pill violet"></span>
+                  <span class="sec-title">Description</span>
+                  <span class="sec-rule"></span>
+                </div>
+                <div class="desc-body">
+                  <p>Snap together chaotic four-player showdowns across modular interlocking islands packed with tumbling traps, spinning gear gauntlets, and rapid-fire minigames.</p>
+                  <p>Collect golden 2×2 bricks across twelve escalating rounds, spend silver studs on turn-bending power-up tiles, and outsmart rival builders on local couches or online lobbies.</p>
+                </div>
+                <div class="disclaimer">Studlock — unofficial fan theme inspired by brick-built party games. Contains no official assets or trademarks.</div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Metadata pane (300px usable inner width in Chamfered Cerulean Brick Frame) -->
+            <aside class="meta-frame" data-part="metadata">
+              <div class="meta-cap">
+                <span class="meta-cap-title">Details</span>
+                <span class="meta-cap-studs"><span class="cap-stud"></span><span class="cap-stud"></span><span class="cap-stud"></span></span>
+              </div>
+              <div class="meta-inner">
+                <!-- Group 1: MetaProgress -->
+                <div class="meta-row"><span class="meta-lbl">Completion</span><span class="meta-val">Playing</span></div>
+                <div class="meta-row"><span class="meta-lbl">Time Played</span><span class="meta-val">42h 18m</span></div>
+                <div class="meta-row"><span class="meta-lbl">Last Played</span><span class="meta-val">Today</span></div>
+
+                <div class="stud-divider"></div>
+
+                <!-- Group 2: MetaScores -->
+                <div class="meta-row"><span class="meta-lbl">Critic Score</span><span class="meta-val"><span class="score-block score-pos">88</span></span></div>
+                <div class="meta-row"><span class="meta-lbl">Community</span><span class="meta-val"><span class="score-block score-mix">79</span></span></div>
+
+                <div class="stud-divider"></div>
+
+                <!-- Group 3: MetaAbout -->
+                <div class="meta-row"><span class="meta-lbl">Developer</span><span class="meta-link">Brickworks Interactive</span></div>
+                <div class="meta-row"><span class="meta-lbl">Release Date</span><span class="meta-val">Sep 30, 2025</span></div>
+
+                <div class="stud-divider"></div>
+
+                <!-- Group 4: MetaTags -->
+                <div class="meta-row">
+                  <span class="meta-lbl">Platform</span>
+                  <div class="chip-wrap"><span class="chip"><span class="chip-stud"></span>PC (Windows)</span></div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-lbl">Genres</span>
+                  <div class="chip-wrap">
+                    <span class="chip hover"><span class="chip-stud"></span>Party</span>
+                    <span class="chip"><span class="chip-stud"></span>Family</span>
+                    <span class="chip"><span class="chip-stud"></span>Arcade</span>
+                  </div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-lbl">Features</span>
+                  <div class="chip-wrap">
+                    <span class="chip"><span class="chip-stud"></span>4P Co-op</span>
+                    <span class="chip"><span class="chip-stud"></span>Controller</span>
+                  </div>
+                </div>
+
+                <div class="stud-divider"></div>
+
+                <!-- Group 5: MetaLibrary -->
+                <div class="meta-row"><span class="meta-lbl">Library</span><span class="meta-val">Steam</span></div>
+                <div class="meta-row"><span class="meta-lbl">Install Size</span><span class="meta-val">14.6 GB</span></div>
+
+                <div class="stud-divider"></div>
+
+                <!-- Group 6: MetaLinks -->
+                <div class="meta-row"><span class="meta-lbl">Links</span><span class="meta-link">Store Page · Guide</span></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</body>
+</html>

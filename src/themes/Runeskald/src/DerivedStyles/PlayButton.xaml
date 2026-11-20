@@ -1,0 +1,472 @@
+<!--
+    Runeskald: Play, the runic attack plate. Structure: Playnite Default 10.60 (PlayButton); every Default state is kept.
+    Brushes: HeaderBandBrush (the plate, the button's Background), FrostSlateBrush (its foot shade), KnotworkBrush (the interlace),
+    BevelLightBrush (the lit rim), ShellBackgroundBrush (the socket well), FrostGlowBrush (the socket core, the bloom, the hover wash),
+    FrostHotBrush (the socket's hot core, ticks, rim on hover, the ice shards), SelectedSheenBrush (the brushed-silver sheen),
+    HeadingForegroundBrush (the label at rest), HighlightGlyphBrush (the label on hover), TextBrushDark (the glyph in the lit core),
+    FrostSlateDeepBrush (the press), RunningIndicatorBrush, ScrimBrush.
+    Rest: a frost-slate plate (ControlCornerRadius, 1px lit rim) shading to slate at the foot, the header band's interlace fading out to
+    the right, a 1px frost line along the top; on its left the HUD's runic diamond socket (a void well in a frost rim, its core at 0.35,
+    four ticks at the compass points) holding the play triangle in frost; the label in cream Cinzel Bold 18px (10:1 on the plate).
+    Hover, both ways (CubicEase): the socket's core lights (0.35 to 1) with a hot centre, the ticks light and reach out 2px, a frost
+    bloom opens around the socket and a fainter one around the plate, a frost wash rises over the plate, the rim turns frost, the label
+    turns white and the triangle ink in the lit core; the brushed-silver sheen sweeps across the plate once (0.55s). The hit area never
+    moves.
+    Press, its own layer: ice shards burst from the socket (scale 0.5 to 1.35, fading) while the plate darkens and sinks 3 percent;
+    release recovers in 0.22s. Leaving mid-press cannot strand the hover state.
+    Running and launching: the plate fills with RunningIndicatorBrush (Blades of Chaos ember) with an ink label and rim; the interlace,
+    foot shade and socket core drop out. Launching: a dark band sweeps the plate. Running: a light scrim breathes over it. The RUNNING
+    label shows Cancel only while the button itself is hovered (RelativeSource Self), and the hover layers stay off while it runs.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!--
+        RunningActionIndicator: laid over the Play / context action cell on both game pages. While the game runs Playnite
+        swaps Play for the context action (RUNNING). The overlay carries a faint ember wash, a 1px ember frame with a dark
+        keyline, and the Blades of Chaos chain on a dark band along the top and the bottom edge, the links passing in
+        opposite directions. Launching: the chain runs fast (0.45s per link). Running: slow (2.4s per link) while the frame
+        breathes 0.72 to 1. The bands sit at the edges and never reach the label, which sits in the middle 20px.
+        DataContext is Playnite's GameDetailsViewModel (IsRunning, IsLaunching). One link pitch is 24px (chain.png tile).
+    -->
+    <Style x:Key="RunningActionIndicator" TargetType="{x:Type Control}">
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Control}">
+                    <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                        <Border x:Name="RunningWash" Background="{DynamicResource RunningIndicatorBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0.12" />
+                        <Border x:Name="RunningFrame" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border Margin="1" BorderBrush="{DynamicResource TextBrushDark}" BorderThickness="1" Opacity="0.6" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Grid Height="10" Margin="4,2,4,0" VerticalAlignment="Top" ClipToBounds="True">
+                            <Border Background="{DynamicResource ScrimBrush}" Opacity="0.82" CornerRadius="3,3,0,0" />
+                            <Canvas>
+                                <Control x:Name="MarchTop" Template="{DynamicResource EmberChainTemplate}" Foreground="{DynamicResource RunningIndicatorBrush}"
+                                         Canvas.Left="-24" Canvas.Top="-1" Width="600" Height="12" Focusable="False" IsTabStop="False">
+                                    <Control.RenderTransform>
+                                        <TranslateTransform x:Name="MarchTopShift" X="0" />
+                                    </Control.RenderTransform>
+                                </Control>
+                            </Canvas>
+                        </Grid>
+                        <Grid Height="10" Margin="4,0,4,2" VerticalAlignment="Bottom" ClipToBounds="True">
+                            <Border Background="{DynamicResource ScrimBrush}" Opacity="0.82" CornerRadius="0,0,3,3" />
+                            <Canvas>
+                                <Control x:Name="MarchBottom" Template="{DynamicResource EmberChainTemplate}" Foreground="{DynamicResource RunningIndicatorBrush}"
+                                         Canvas.Left="-24" Canvas.Top="-1" Width="600" Height="12" Focusable="False" IsTabStop="False">
+                                    <Control.RenderTransform>
+                                        <TranslateTransform x:Name="MarchBottomShift" X="0" />
+                                    </Control.RenderTransform>
+                                </Control>
+                            </Canvas>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchTopShift" Storyboard.TargetProperty="X" From="0" To="24" Duration="0:0:0.45" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchBottomShift" Storyboard.TargetProperty="X" From="0" To="-24" Duration="0:0:0.45" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="MarchTopShift" Storyboard.TargetProperty="X" From="0" To="24" Duration="0:0:2.4" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchBottomShift" Storyboard.TargetProperty="X" From="0" To="-24" Duration="0:0:2.4" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource HeaderBandBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource HeadingForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BevelLightBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="52,0,16,1" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="Root" Background="Transparent" SnapsToDevicePixels="True">
+                        <!-- Hover: a faint frost bloom around the plate and a strong one around the socket. -->
+                        <Control x:Name="Bloom" Template="{DynamicResource BloomTemplate}" Foreground="{DynamicResource FrostGlowBrush}" Margin="-24" Opacity="0"
+                                 IsHitTestVisible="False" Focusable="False" IsTabStop="False" />
+                        <Rectangle x:Name="SocketBloom" Width="96" Height="96" Margin="-25,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   Fill="{DynamicResource FrostGlowBrush}" Opacity="0" IsHitTestVisible="False">
+                            <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/bloom.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+                        </Rectangle>
+                        <Grid x:Name="Face" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="HoverScale" ScaleX="1" ScaleY="1" />
+                                    <ScaleTransform x:Name="PressScale" ScaleX="1" ScaleY="1" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <!-- The frost-slate plate, its foot shade, the interlace and the frost line along the top. -->
+                            <Border x:Name="Plate" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}" IsHitTestVisible="False" />
+                            <Rectangle x:Name="EdgeShade" Margin="1" Fill="{DynamicResource FrostSlateBrush}" IsHitTestVisible="False">
+                                <Rectangle.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#00000000" Offset="0.2" />
+                                        <GradientStop Color="#E6000000" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Rectangle.OpacityMask>
+                            </Rectangle>
+                            <Grid x:Name="Knot" Margin="1" ClipToBounds="True" IsHitTestVisible="False">
+                                <Grid.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#00000000" Offset="0.2" />
+                                        <GradientStop Color="#99000000" Offset="0.45" />
+                                        <GradientStop Color="#00000000" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Grid.OpacityMask>
+                                <Rectangle Height="24" VerticalAlignment="Center" Fill="{DynamicResource KnotworkBrush}">
+                                    <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/knot.png'}" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,48,24" Stretch="Fill" /></Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                            <Rectangle x:Name="TopLine" Height="1" Margin="1,1,1,0" VerticalAlignment="Top" Fill="{DynamicResource FrostHotBrush}" Opacity="0.22" IsHitTestVisible="False" />
+                            <Border x:Name="RunningBreath" Margin="1" Background="{DynamicResource ScrimBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="RunningScan" Margin="1" Visibility="Collapsed" Background="{DynamicResource ShellBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0.25" IsHitTestVisible="False">
+                                <Border.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.4" />
+                                        <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                        <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                    </LinearGradientBrush>
+                                </Border.OpacityMask>
+                            </Border>
+                            <Border x:Name="RunningHoverDim" Margin="1" Background="{DynamicResource ScrimBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                            <!-- Hover: the frost wash and the brushed-silver sheen. -->
+                            <Border x:Name="HoverPlate" Margin="1" Background="{DynamicResource FrostGlowBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                            <Grid Margin="1" ClipToBounds="True" IsHitTestVisible="False">
+                                <Rectangle x:Name="Sheen" Width="56" HorizontalAlignment="Left" Fill="{DynamicResource SelectedSheenBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                    <Rectangle.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#00000000" Offset="0" />
+                                            <GradientStop Color="#59000000" Offset="0.45" />
+                                            <GradientStop Color="#80000000" Offset="0.55" />
+                                            <GradientStop Color="#00000000" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.OpacityMask>
+                                    <Rectangle.RenderTransform>
+                                        <TransformGroup>
+                                            <SkewTransform AngleX="-20" />
+                                            <TranslateTransform x:Name="SheenShift" X="-80" />
+                                        </TransformGroup>
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Grid>
+                            <!-- Press: the plate darkens. -->
+                            <Border x:Name="PressedPlate" Margin="1" Background="{DynamicResource FrostSlateDeepBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                            <!-- The rim: lit slate at rest, frost on hover. -->
+                            <Border x:Name="OutlineRest" BorderThickness="1" BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" IsHitTestVisible="False" />
+                            <Border x:Name="OutlineHover" BorderThickness="1" BorderBrush="{DynamicResource FrostHotBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
+                            <!-- The runic diamond socket. -->
+                            <Grid x:Name="Socket" Width="32" Height="32" Margin="7,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <Grid x:Name="Ticks" Opacity="0.45">
+                                    <Rectangle Width="2" Height="4" VerticalAlignment="Top" HorizontalAlignment="Center" Fill="{DynamicResource FrostHotBrush}">
+                                        <Rectangle.RenderTransform><TranslateTransform x:Name="TickN" Y="0" /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Width="2" Height="4" VerticalAlignment="Bottom" HorizontalAlignment="Center" Fill="{DynamicResource FrostHotBrush}">
+                                        <Rectangle.RenderTransform><TranslateTransform x:Name="TickS" Y="0" /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Width="4" Height="2" VerticalAlignment="Center" HorizontalAlignment="Left" Fill="{DynamicResource FrostHotBrush}">
+                                        <Rectangle.RenderTransform><TranslateTransform x:Name="TickW" X="0" /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Width="4" Height="2" VerticalAlignment="Center" HorizontalAlignment="Right" Fill="{DynamicResource FrostHotBrush}">
+                                        <Rectangle.RenderTransform><TranslateTransform x:Name="TickE" X="0" /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Grid>
+                                <Path x:Name="SocketWell" Width="22" Height="22" Stretch="Fill" Fill="{DynamicResource ShellBackgroundBrush}" Stroke="{DynamicResource FrostGlowBrush}" StrokeThickness="1" Data="M5,0 L10,5 L5,10 L0,5 Z" />
+                                <Path x:Name="SocketCore" Width="18" Height="18" Stretch="Fill" Fill="{DynamicResource FrostGlowBrush}" Opacity="0.35" Data="M5,0 L10,5 L5,10 L0,5 Z" />
+                                <Path x:Name="SocketHot" Width="11" Height="11" Stretch="Fill" Fill="{DynamicResource FrostHotBrush}" Opacity="0" Data="M5,0 L10,5 L5,10 L0,5 Z" />
+                                <Path x:Name="PlayGlyph" Data="M0,0 L8,5 L0,10 Z" Width="8" Height="10" Margin="2,0,0,0" Fill="{DynamicResource FrostHotBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Path x:Name="PlayGlyphHover" Data="M0,0 L8,5 L0,10 Z" Width="8" Height="10" Margin="2,0,0,0" Fill="{DynamicResource TextBrushDark}" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0" />
+                                <!-- Press: ice shards burst from the socket. -->
+                                <Rectangle x:Name="Shards" Width="72" Height="72" Margin="-20" Fill="{DynamicResource FrostHotBrush}" Opacity="0" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+                                    <Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/shards.png'}" Stretch="Fill" /></Rectangle.OpacityMask>
+                                    <Rectangle.RenderTransform>
+                                        <ScaleTransform x:Name="ShardsScale" ScaleX="0.5" ScaleY="0.5" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Grid>
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"><StackPanel x:Name="LabelRow" Orientation="Horizontal" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" IsHitTestVisible="False">
+                                <ContentPresenter x:Name="PlayContent" VerticalAlignment="Center" RecognizesAccessKey="True">
+                                    <ContentPresenter.Resources>
+                                        <DataTemplate DataType="{x:Type sys:String}">
+                                            <AccessText Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                                        </DataTemplate>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </StackPanel></Viewbox>
+                            <StackPanel x:Name="LabelRowHover" Orientation="Horizontal" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" Opacity="0" IsHitTestVisible="False">
+                                <ContentPresenter x:Name="PlayContentHover" VerticalAlignment="Center" RecognizesAccessKey="True" TextElement.Foreground="{DynamicResource LocalPlayHoverTextBrush}">
+                                    <ContentPresenter.Resources>
+                                        <DataTemplate DataType="{x:Type sys:String}">
+                                            <AccessText Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                                        </DataTemplate>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </StackPanel>
+                            <ContentPresenter x:Name="CancelLabel" Content="{DynamicResource LOCCancelLabel}" Visibility="Collapsed" IsHitTestVisible="False"
+                                              HorizontalAlignment="Left" VerticalAlignment="Center" Margin="52,0,0,1" TextElement.Foreground="{TemplateBinding Foreground}">
+                                <ContentPresenter.Resources>
+                                    <DataTemplate DataType="{x:Type sys:String}">
+                                        <TextBlock Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                                    </DataTemplate>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Tag" Value="ContextAction">
+                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PlayGlyphHover" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <!-- Hover and press: only while the game is not launching or running. -->
+                        
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SocketCore" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SocketHot" Storyboard.TargetProperty="Opacity" To="0.9" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="Ticks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="TickN" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TickS" Storyboard.TargetProperty="Y" To="2" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TickW" Storyboard.TargetProperty="X" To="-2" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="TickE" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SocketBloom" Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.24">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.35" Duration="0:0:0.24" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0.18" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="OutlineHover" Storyboard.TargetProperty="Opacity" To="0.8" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="OutlineRest" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelRowHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelRow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="PlayGlyphHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="PlayGlyph" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Sheen" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.08" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.45" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.55" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SheenShift" Storyboard.TargetProperty="X" From="-80" To="220" Duration="0:0:0.55">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard Name="PlayHoverOut">
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SocketCore" Storyboard.TargetProperty="Opacity" To="0.35" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SocketHot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Ticks" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TickN" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TickS" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TickW" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TickE" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.28" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SocketBloom" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.3" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OutlineHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OutlineRest" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.25" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LabelRowHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LabelRow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlayGlyphHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlayGlyph" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Sheen" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayPressIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Shards" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Shards" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="0.95" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.35" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ShardsScale" Storyboard.TargetProperty="ScaleX" From="0.5" To="1.35" Duration="0:0:0.35">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ShardsScale" Storyboard.TargetProperty="ScaleY" From="0.5" To="1.35" Duration="0:0:0.35">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleY" To="0.97" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleX" To="0.99" Duration="0:0:0.06" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard Name="PlayPressOut">
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="PlayPressIn" />
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Bloom" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="SocketBloom" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="EdgeShade" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Knot" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TopLine" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="SocketCore" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningBreath" Property="Opacity" Value="0.1" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayFillLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.5">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.4" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.5">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.4" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.4" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.5">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.402" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.402" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayFillLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Bloom" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="SocketBloom" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="EdgeShade" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Knot" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TopLine" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="SocketCore" Property="Visibility" Value="Collapsed" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayFillRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.04" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="0.12" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.04" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayFillRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <!-- Cancel: only while a RUNNING plate is under the pointer. The binding is Self (this button). TemplatedParent is the whole game page. -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsRunning}" Value="True" />
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="CancelLabel" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PlayContent" Property="Visibility" Value="Hidden" />
+                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Hidden" />
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningCancelIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningHoverDim" Storyboard.TargetProperty="Opacity" To="0.14" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="CancelLabel" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningCancelIn" />
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <!-- Launching and running keep Play's plate; it fills with the running colour (Blades of Chaos ember) with ink text. -->
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDark}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextBrushDark}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDark}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextBrushDark}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

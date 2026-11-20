@@ -51,6 +51,7 @@ Follows the shared skeleton. Differences:
 | Playnite file | Uncharted element |
 |---------------|-------------------|
 | Running game (`RunningIndicatorBrush` = `positive` 8a9a5b) | the menu's glint and a brushed pass, in treasure-map gold: a wide feathered band (`RunningScan`, its mask slides by translating a `RelativeTransform`, so the band has no hard edge) sweeps details rows, list rows, covers and the smudge plate (inside the plate's own radial feather); two sparkles (`RunningSparkA/B`) are the mark. **Launching:** the pass takes 1.3s (2s loop, a sine ease), a foot line fills behind it and the sparkles flare as it lands. **Running:** the foot stays full, the frame breathes 0.72 to 1 and the sparkles twinkle in turn (3.4s). The plate holds a 0.88 scrim over the running colour while launching and breathes 0.55 to 0.68 while running under a light label; hover on RUNNING (button only, `Self`) swaps the label for Cancel, and the idle hover fill is off while launching or running. |
+| `ContextMenu`, `Menu`, `ComboBox` | Menus, submenus, ComboBox and multi-select lists wear Uncharted 4's options panel (`LocalOptionsPanelTemplate`: near-black, 1px hairline, 3px inner matte frame, fading top ivory hairline); 30px Constantia rows with feathered warm radial smudge + bottom ivory hairline + 6px indent, 10px compass-cross hairlines, prompt-bar pipe shortcuts, feathered rust-red Exit smudge, ivory save-slot check squares |
 
 ## Deviations
 

@@ -44,7 +44,7 @@ function pane(layout, widthKey, padding) {
 ${indent(header('LOCGameDetails', '0,0,0,6'), 12)}
             <Grid ClipToBounds="True">
                 <StackPanel Margin="0,-32,0,-7">
-${indent(META_GROUPS.map(g => metadataGroup(g, layout)).join('\n'), 20)}
+${indent(META_GROUPS.map(g => metadataGroup(g, layout, { borderThickness: '0,1,0,0', borderBrush: 'WindowPanelSeparatorBrush' })).join('\n'), 20)}
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -132,34 +132,9 @@ ${indent(header('LOCNotesLabel'), 8)}
     </StackPanel>
 </StackPanel>`;
 
-// Idle loops live in each element's own Style so they only run while the empty state shows (RemoveStoryboard on exit).
-const whenEmpty = (type, name, story) => `<${type}.Style>
-    <Style TargetType="${type}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}">
-                <DataTrigger.EnterActions>
-                    <BeginStoryboard x:Name="${name}">
-${indent(story, 24)}
-                    </BeginStoryboard>
-                </DataTrigger.EnterActions>
-                <DataTrigger.ExitActions>
-                    <RemoveStoryboard BeginStoryboardName="${name}" />
-                </DataTrigger.ExitActions>
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
-</${type}.Style>`;
-
-const breathe = `<Storyboard RepeatBehavior="Forever" AutoReverse="True">
-    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.95" To="0.45" Duration="0:0:2">
-        <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
-    </DoubleAnimation>
-</Storyboard>`;
-
-// Empty state: the source's loading screen, a mark frozen in ice on black. Here the theme's own mark (the broken cog-tooth
-// ring) in frost blue over a crystalline cold glow that breathes on a 4s loop (Opacity only: never animate a RenderTransform
-// from a Style trigger here, the template is built with no game yet and Playnite crashes). Under the words, a flare rule.
-// Centered in the visible area.
+// Empty state: the source's loading screen, a mark frozen in ice. The scene (mark, gear ring, glow, scan line, embers, flare rule glint) is
+// EmptyGameTemplate in Common.xaml, animated from its ControlTemplate.Triggers (never a Style trigger: the page is built with no game yet and
+// Playnite crashes on a RenderTransform animation there). Centered in the visible area.
 const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
     <Grid.Style>
         <Style TargetType="Grid">
@@ -171,30 +146,7 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
-        <Grid Width="256" Height="256" HorizontalAlignment="Center" IsHitTestVisible="False">
-            <Rectangle Fill="{DynamicResource TitleSuffixBrush}" Opacity="0.95">
-                <Rectangle.OpacityMask>
-                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/frost.png'}" Stretch="Fill" />
-                </Rectangle.OpacityMask>
-${indent(whenEmpty('Rectangle', 'FrostBreathe', breathe), 16)}
-            </Rectangle>
-            <Viewbox Width="132" Height="132">
-                <Canvas Width="24" Height="24">
-                    <Path Data="{DynamicResource IconMainMenu}" Fill="{DynamicResource TextShadowBrush}" Opacity="0.55">
-                        <Path.RenderTransform>
-                            <TranslateTransform X="0.35" Y="0.45" />
-                        </Path.RenderTransform>
-                    </Path>
-                    <Path Data="{DynamicResource IconMainMenu}" Fill="{DynamicResource TitleSuffixBrush}" />
-                </Canvas>
-            </Viewbox>
-        </Grid>
-        <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" HorizontalAlignment="Center" Margin="0,4,0,0" Style="{DynamicResource HeadingTextBlock}" />
-        <Grid Width="260" Height="16" Margin="0,8,0,0" HorizontalAlignment="Center">
-            <Control Template="{DynamicResource GlowLineTemplate}" Foreground="{DynamicResource TopPanelRuleStartBrush}" BorderBrush="{DynamicResource TopPanelRuleEndBrush}" Focusable="False" />
-        </Grid>
-    </StackPanel>
+    <Control Template="{DynamicResource EmptyGameTemplate}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,24" Focusable="False" IsTabStop="False" />
 </Grid>`;
 
 const hideWhenEmpty = hideWhenNoGame('StackPanel');
@@ -210,7 +162,7 @@ const details = `<!--
     face, uppercase, white slanted tab before it), the actions beside it (Play plate 190x48, More and Edit 44x44 icon
     squares with tooltips, always visible); then screenshots, description and notes on the left under tab headings and
     the details card on the right (GameDetailsPaneWidth, 300 content width).
-    Empty state: the theme's mark in frost blue over a breathing cold glow. Structure: Playnite Default 10.60.
+    Empty state: EmptyGameTemplate (Common.xaml), the mark in frost blue over a breathing glow with a gear ring, scan line, embers and a glinting flare rule. Structure: Playnite Default 10.60.
 -->
 <ResourceDictionary ${ns}>
     <Style TargetType="DetailsViewGameOverview">
@@ -301,7 +253,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '18,16,18,18').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', exitDuration: '0:0:0.2' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

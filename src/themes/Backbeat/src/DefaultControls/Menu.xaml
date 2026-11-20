@@ -1,7 +1,8 @@
 <!--
-    Backbeat: menus. White text on night; the highlighted item goes blue with a 4px yellow bar on its left edge, so
-    Playnite's and add-ons' white menu icons stay legible. Checks and carets are yellow. Separators: 2px lilac.
-    Separator and MenuItem.SeparatorStyleKey are redefined together. Structure: Playnite Default 10.60.
+    Backbeat: menus. Every popup menu (hamburger menu, top bar dropdowns, game and group menus, tray) is the comic panel of
+    ContextMenu.xaml with sticker rows. Roles: TopLevelHeader and TopLevelItem (a horizontal Menu bar, unchanged: blue
+    with a 4px yellow bar), SubmenuHeader and SubmenuItem (every popup menu). Separator and MenuItem.SeparatorStyleKey
+    are redefined together. Structure: Playnite Default 10.60.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -32,7 +33,39 @@
         </Setter>
     </Style>
 
-    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="{x:Type Separator}" BasedOn="{StaticResource {x:Type Separator}}" />
+    <!-- Group break in every menu: the section headers' hard rule ending in four beat ticks (2px lilac rule from the label
+         edge, four slanted ticks at its right end), 10px tall. -->
+    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="{x:Type Separator}">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Separator}">
+                    <Grid Height="10" Margin="16,0,14,0" SnapsToDevicePixels="True" IsHitTestVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Rectangle Height="2" VerticalAlignment="Center" Fill="{DynamicResource NormalBorderBrush}" />
+                        <StackPanel Grid.Column="1" Margin="4,0,0,0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Rectangle Width="2" Height="6" Margin="0,0,3,0" Fill="{DynamicResource NormalBorderBrush}">
+                                <Rectangle.RenderTransform><SkewTransform AngleX="-15" /></Rectangle.RenderTransform>
+                            </Rectangle>
+                            <Rectangle Width="2" Height="6" Margin="0,0,3,0" Fill="{DynamicResource NormalBorderBrush}">
+                                <Rectangle.RenderTransform><SkewTransform AngleX="-15" /></Rectangle.RenderTransform>
+                            </Rectangle>
+                            <Rectangle Width="2" Height="6" Margin="0,0,3,0" Fill="{DynamicResource NormalBorderBrush}">
+                                <Rectangle.RenderTransform><SkewTransform AngleX="-15" /></Rectangle.RenderTransform>
+                            </Rectangle>
+                            <Rectangle Width="2" Height="6" Fill="{DynamicResource GlyphBrush}">
+                                <Rectangle.RenderTransform><SkewTransform AngleX="-15" /></Rectangle.RenderTransform>
+                            </Rectangle>
+                        </StackPanel>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <!-- TopLevelHeader -->
     <ControlTemplate x:Key="{x:Static MenuItem.TopLevelHeaderTemplateKey}" TargetType="{x:Type MenuItem}">
@@ -59,84 +92,220 @@
         </Border>
     </ControlTemplate>
 
-    <!-- SubmenuHeader -->
-    <ControlTemplate x:Key="{x:Static MenuItem.SubmenuHeaderTemplateKey}" TargetType="{x:Type MenuItem}">
-        <Grid Background="{TemplateBinding Background}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" />
-                <ColumnDefinition Width="*" SharedSizeGroup="MenuItemIGTColumnGroup" />
-                <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemShortcutColumnGroup" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Rectangle x:Name="Bar" Grid.Column="0" Width="4" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" Visibility="Collapsed" />
-            <ContentPresenter x:Name="Icon" Grid.Column="0" Margin="10,0,-2,0" MaxHeight="16" MaxWidth="16" VerticalAlignment="Center" ContentSource="Icon" />
-            <ContentControl x:Name="GlyphPanel" Grid.Column="0" Visibility="Collapsed" Margin="10,0,-2,0" VerticalAlignment="Center"
-                            Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconSmallTemplate}" Foreground="{DynamicResource GlyphBrush}" />
-            <TextBlock Grid.Column="1" Padding="{DynamicResource MenuItemPadding}" VerticalAlignment="Center" Style="{DynamicResource BaseTextBlockStyle}" Foreground="{TemplateBinding Foreground}">
-                <ContentPresenter RecognizesAccessKey="True" ContentSource="Header" />
-            </TextBlock>
-            <TextBlock x:Name="GestureText" Grid.Column="2" Foreground="{DynamicResource TextBrushDarker}" Text="{TemplateBinding InputGestureText}"
-                       TextAlignment="Left" HorizontalAlignment="Stretch" Margin="20,5,10,5" VerticalAlignment="Center" Background="Transparent" />
-            <ContentControl Grid.Column="3" Margin="0,0,10,0" VerticalAlignment="Center"
-                            Content="{DynamicResource IconSubmenu}" ContentTemplate="{DynamicResource IconSmallTemplate}" Foreground="{DynamicResource GlyphBrush}" />
-            <Popup IsOpen="{Binding Path=IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" Focusable="False" AllowsTransparency="True">
-                <Border Style="{DynamicResource PopupBorder}" Padding="{DynamicResource MenuPadding}">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Grid.IsSharedSizeScope="True" IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
-                    </ScrollViewer>
-                </Border>
-            </Popup>
+    <!--
+        Rows of every popup menu, compact: 30px on the comic panel of ContextMenu.xaml.
+        - Row: fixed 26px icon column (icon 16), paper label, shortcuts as the game page's chips: slanted ink stickers with
+          a cyan line and cyan text; a checked row shows the CheckBox's marker-stroke yellow tick overshooting its cell.
+        - Highlight (pointer or keyboard): a blue sticker (SlantPlateTemplate, -9 degree slant, hard ink offset) with the
+          4px slanted yellow bar on its left slaps on: it scales in from 0.88 with a BackEase overshoot in 0.14s while
+          the label kicks 3px right; out over 0.18s.
+        - Exit (gesture Alt+Q) is the one marked row: a red sticker with a paper bar and ink label (white on that red
+          would fall under 4.5:1).
+        - Submenu headers: the solid yellow caret at the right edge (paper while highlighted) and a held blue sticker at
+          0.6 while open; their submenus open on the same panel, past its shadow.
+        Recipe: docs/themes/menus.md.
+    -->
+    <ControlTemplate x:Key="{x:Static MenuItem.SubmenuItemTemplateKey}" TargetType="{x:Type MenuItem}">
+        <Grid x:Name="MenuRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+            <Grid x:Name="MenuSticker" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform x:Name="MenuSlap" ScaleX="0.88" ScaleY="0.88" />
+                </Grid.RenderTransform>
+                <Control x:Name="MenuPlate" Margin="6,2,9,5" Template="{DynamicResource SlantPlateTemplate}"
+                         Background="{DynamicResource MenuItemHoverBrush}" Foreground="{DynamicResource TextBrushDark}"
+                         BorderBrush="Transparent" BorderThickness="0" Focusable="False" IsTabStop="False" />
+                <Rectangle x:Name="MenuBar" Width="4" Margin="8,2,0,5" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}"
+                           RenderTransformOrigin="0.5,0.5">
+                    <Rectangle.RenderTransform><SkewTransform AngleX="-9" /></Rectangle.RenderTransform>
+                </Rectangle>
+            </Grid>
+            <Grid Margin="16,0,12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuGestureColumn" />
+                </Grid.ColumnDefinitions>
+                <ContentPresenter x:Name="Icon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" ContentSource="Icon" />
+                <Viewbox x:Name="MarkerTick" Width="16" Height="15" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed">
+                    <Grid>
+                        <Path Data="M4,10 L9,15 20,-2" Stroke="{DynamicResource PanelShadowBrush}" StrokeThickness="7" StrokeLineJoin="Miter" />
+                        <Path Data="M4,10 L9,15 20,-2" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="3.5" StrokeLineJoin="Miter" />
+                    </Grid>
+                </Viewbox>
+                <TextBlock x:Name="MenuLabel" Grid.Column="1" VerticalAlignment="Center" Style="{DynamicResource BaseTextBlockStyle}"
+                           Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis">
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform x:Name="MenuKick" X="0" />
+                    </TextBlock.RenderTransform>
+                    <ContentPresenter RecognizesAccessKey="True" ContentSource="Header" />
+                </TextBlock>
+                <Grid x:Name="MenuChip" Grid.Column="2" Height="18" Margin="16,0,2,0" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Border Background="{DynamicResource TextBrushDark}" BorderBrush="{DynamicResource PropertyItemForegroundBrush}"
+                            BorderThickness="1" RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform><SkewTransform AngleX="-9" /></Border.RenderTransform>
+                    </Border>
+                    <TextBlock x:Name="GestureText" Margin="7,0" VerticalAlignment="Center" Text="{TemplateBinding InputGestureText}"
+                               FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource PropertyItemForegroundBrush}" />
+                </Grid>
+            </Grid>
         </Grid>
         <ControlTemplate.Triggers>
             <Trigger Property="Icon" Value="{x:Null}">
                 <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
             </Trigger>
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Visibility" Value="Visible" TargetName="GlyphPanel" />
+                <Setter Property="Visibility" Value="Visible" TargetName="MarkerTick" />
                 <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
             </Trigger>
-            <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Visibility" Value="Visible" TargetName="Bar" />
-            </Trigger>
             <Trigger Property="InputGestureText" Value="">
-                <Setter Property="Visibility" Value="Collapsed" TargetName="GestureText" />
+                <Setter Property="Visibility" Value="Collapsed" TargetName="MenuChip" />
+            </Trigger>
+            <Trigger Property="InputGestureText" Value="{x:Null}">
+                <Setter Property="Visibility" Value="Collapsed" TargetName="MenuChip" />
+            </Trigger>
+            <Trigger Property="InputGestureText" Value="Alt+Q">
+                <Setter Property="Background" Value="{DynamicResource DangerBrush}" TargetName="MenuPlate" />
+                <Setter Property="Fill" Value="{DynamicResource TextBrush}" TargetName="MenuBar" />
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="TextElement.Foreground" Value="{DynamicResource TextBrush}" TargetName="Icon" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="MenuSlapIn">
+                        <Storyboard>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="MenuKick" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="MenuSlapOut">
+                        <Storyboard FillBehavior="Stop">
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleX" To="0.88" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleY" To="0.88" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="MenuKick" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsHighlighted" Value="True" />
+                    <Condition Property="InputGestureText" Value="Alt+Q" />
+                </MultiTrigger.Conditions>
+                <Setter Property="TextElement.Foreground" Value="{DynamicResource TextBrushDark}" TargetName="Icon" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDark}" TargetName="MenuLabel" />
+            </MultiTrigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45" TargetName="MenuRow" />
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!-- SubmenuItem -->
-    <ControlTemplate x:Key="{x:Static MenuItem.SubmenuItemTemplateKey}" TargetType="{x:Type MenuItem}">
-        <Border x:Name="HoverBorder" Background="{TemplateBinding Background}">
-            <Grid>
+    <ControlTemplate x:Key="{x:Static MenuItem.SubmenuHeaderTemplateKey}" TargetType="{x:Type MenuItem}">
+        <Grid x:Name="MenuRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+            <!-- Held sticker while the submenu is open (a setter, so moving into the submenu never flickers) -->
+            <Control x:Name="MenuHeld" Margin="6,2,9,5" Template="{DynamicResource SlantPlateTemplate}" Opacity="0.6" Visibility="Collapsed"
+                     Background="{DynamicResource MenuItemHoverBrush}" Foreground="{DynamicResource TextBrushDark}"
+                     BorderBrush="Transparent" BorderThickness="0" IsHitTestVisible="False" Focusable="False" IsTabStop="False" />
+            <Grid x:Name="MenuSticker" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform x:Name="MenuSlap" ScaleX="0.88" ScaleY="0.88" />
+                </Grid.RenderTransform>
+                <Control Margin="6,2,9,5" Template="{DynamicResource SlantPlateTemplate}"
+                         Background="{DynamicResource MenuItemHoverBrush}" Foreground="{DynamicResource TextBrushDark}"
+                         BorderBrush="Transparent" BorderThickness="0" Focusable="False" IsTabStop="False" />
+                <Rectangle Width="4" Margin="8,2,0,5" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" RenderTransformOrigin="0.5,0.5">
+                    <Rectangle.RenderTransform><SkewTransform AngleX="-9" /></Rectangle.RenderTransform>
+                </Rectangle>
+            </Grid>
+            <Grid Margin="16,0,10,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" />
-                    <ColumnDefinition Width="*" SharedSizeGroup="MenuItemIGTColumnGroup" />
-                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemShortcutColumnGroup" />
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuGestureColumn" />
+                    <ColumnDefinition Width="16" />
                 </Grid.ColumnDefinitions>
-                <Rectangle x:Name="Bar" Grid.Column="0" Width="4" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" Visibility="Collapsed" />
-                <ContentPresenter x:Name="Icon" Grid.Column="0" Margin="10,0,-2,0" MaxHeight="16" MaxWidth="16" VerticalAlignment="Center" ContentSource="Icon" />
-                <ContentControl x:Name="GlyphPanel" Grid.Column="0" Visibility="Collapsed" Margin="10,0,-2,0" VerticalAlignment="Center"
-                                Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconSmallTemplate}" Foreground="{DynamicResource GlyphBrush}" />
-                <TextBlock VerticalAlignment="Center" Grid.Column="1" Padding="{DynamicResource MenuItemPadding}" Style="{DynamicResource BaseTextBlockStyle}" Foreground="{TemplateBinding Foreground}">
+                <ContentPresenter x:Name="Icon" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" ContentSource="Icon" />
+                <TextBlock x:Name="MenuLabel" Grid.Column="1" VerticalAlignment="Center" Style="{DynamicResource BaseTextBlockStyle}"
+                           Foreground="{DynamicResource TextBrush}" TextTrimming="CharacterEllipsis">
+                    <TextBlock.RenderTransform>
+                        <TranslateTransform x:Name="MenuKick" X="0" />
+                    </TextBlock.RenderTransform>
                     <ContentPresenter RecognizesAccessKey="True" ContentSource="Header" />
                 </TextBlock>
-                <TextBlock x:Name="GestureText" Grid.Column="2" Foreground="{DynamicResource TextBrushDarker}" Text="{TemplateBinding InputGestureText}"
-                           TextAlignment="Left" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="20,5,10,5" />
+                <ContentControl x:Name="MenuCaret" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Center" Focusable="False" IsTabStop="False"
+                                Content="{DynamicResource IconSubmenu}" ContentTemplate="{DynamicResource IconSmallTemplate}" Foreground="{DynamicResource GlyphBrush}" />
             </Grid>
-        </Border>
+            <Popup IsOpen="{Binding Path=IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right"
+                   HorizontalOffset="8" VerticalOffset="-7" Focusable="False" AllowsTransparency="True">
+                <Grid MinWidth="205" SnapsToDevicePixels="True">
+                    <Control Template="{DynamicResource LocalComicPanelTemplate}" Focusable="False" IsTabStop="False" />
+                    <ScrollViewer Margin="2,7,7,9" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Grid.IsSharedSizeScope="True" IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </ScrollViewer>
+                </Grid>
+            </Popup>
+        </Grid>
         <ControlTemplate.Triggers>
             <Trigger Property="Icon" Value="{x:Null}">
                 <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
             </Trigger>
-            <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Visibility" Value="Visible" TargetName="GlyphPanel" />
-                <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter Property="Visibility" Value="Visible" TargetName="MenuHeld" />
             </Trigger>
             <Trigger Property="IsHighlighted" Value="True">
-                <Setter Property="Visibility" Value="Visible" TargetName="Bar" />
+                <Setter Property="TextElement.Foreground" Value="{DynamicResource TextBrush}" TargetName="Icon" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" TargetName="MenuCaret" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="MenuSlapIn">
+                        <Storyboard>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="MenuKick" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="MenuSlapOut">
+                        <Storyboard FillBehavior="Stop">
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="MenuSticker" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleX" To="0.88" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="MenuSlap" Storyboard.TargetProperty="ScaleY" To="0.88" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="MenuKick" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
             </Trigger>
-            <Trigger Property="InputGestureText" Value="">
-                <Setter Property="Visibility" Value="Collapsed" TargetName="GestureText" />
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45" TargetName="MenuRow" />
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>

@@ -158,6 +158,12 @@ namespace Autogrid
         /// caches the first tile's size and only refreshes it when item 0 is realized (scrolled to the
         /// top), then lays out rows and measures every tile with it. After a cover width change the
         /// stale size leaves gaps and clipped or missing covers. Empty makes it measure one tile again.
+        /// That re-measure (at infinite size, the constraint the tile last had) only sees the new size
+        /// if every element down to the cover is dirty: themes bind the cover width deep inside the
+        /// tile, and WPF skips measuring a clean element with an unchanged constraint. Otherwise the
+        /// panel takes the old size back, computes its visible range from the old (larger) tile and
+        /// realizes only the first rows of the smaller tiles until the viewport changes. Realized
+        /// tiles are invalidated down to their leaves for that reason.
         /// Returns the number of panels reset, or -1 when the field no longer exists.
         /// </summary>
         public static int ResetWrapPanelItemSize(DependencyObject gamesList)
@@ -177,6 +183,11 @@ namespace Autogrid
                 }
 
                 field.SetValue(panel, Size.Empty);
+                foreach (UIElement child in panel.Children)
+                {
+                    InvalidateMeasureDeep(child);
+                }
+
                 panel.InvalidateMeasure();
                 count++;
             }
@@ -585,6 +596,20 @@ namespace Autogrid
             }
 
             return best;
+        }
+
+        private static void InvalidateMeasureDeep(UIElement root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            root.InvalidateMeasure();
+            foreach (var node in EnumerateDescendants(root))
+            {
+                (node as UIElement)?.InvalidateMeasure();
+            }
         }
 
         private static IEnumerable<DependencyObject> EnumerateDescendants(

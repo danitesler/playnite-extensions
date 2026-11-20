@@ -11,6 +11,15 @@ namespace Autogrid
         Rows
     }
 
+    /// <summary>The settings page's three cards, stored as <see cref="AutogridSettings.Enabled"/> and
+    /// <see cref="AutogridSettings.KeepGridWhileDetailsOpen"/> so older saved settings keep working.</summary>
+    public enum AutogridMode
+    {
+        Off,
+        ResizeCovers,
+        KeepGridUnderDetails
+    }
+
     public class AutogridSettings : ObservableObject, ISettings
     {
         [DontSerialize]
@@ -20,7 +29,29 @@ namespace Autogrid
         public bool Enabled
         {
             get => enabled;
-            set => SetValue(ref enabled, value);
+            set
+            {
+                SetValue(ref enabled, value);
+                OnPropertyChanged(nameof(Mode));
+            }
+        }
+
+        /// <summary>Off leaves <see cref="KeepGridWhileDetailsOpen"/> alone, so switching back on restores it.</summary>
+        [DontSerialize]
+        public AutogridMode Mode
+        {
+            get => !Enabled
+                ? AutogridMode.Off
+                : KeepGridWhileDetailsOpen ? AutogridMode.KeepGridUnderDetails : AutogridMode.ResizeCovers;
+            set
+            {
+                if (value != AutogridMode.Off)
+                {
+                    KeepGridWhileDetailsOpen = value == AutogridMode.KeepGridUnderDetails;
+                }
+
+                Enabled = value != AutogridMode.Off;
+            }
         }
 
         private GridSizingMode sizingMode = GridSizingMode.Columns;
@@ -55,7 +86,11 @@ namespace Autogrid
         public bool KeepGridWhileDetailsOpen
         {
             get => keepGridWhileDetailsOpen;
-            set => SetValue(ref keepGridWhileDetailsOpen, value);
+            set
+            {
+                SetValue(ref keepGridWhileDetailsOpen, value);
+                OnPropertyChanged(nameof(Mode));
+            }
         }
 
         private bool hasSavedUserLayout;

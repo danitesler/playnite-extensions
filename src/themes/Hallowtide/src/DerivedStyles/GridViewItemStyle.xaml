@@ -20,16 +20,29 @@
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
                         <Control x:Name="SelectedFrame" Template="{DynamicResource InkFrameTemplate}" IsTabStop="False" Focusable="False"
-                                 Margin="-12" Foreground="{DynamicResource GridViewItemSelectedBorderBrush}" Visibility="Collapsed" />
+                                 Margin="-12" Foreground="{DynamicResource GridViewItemSelectedBorderBrush}" Visibility="Collapsed" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                            <Control.RenderTransform>
+                                <ScaleTransform x:Name="SelectedFrameScale" ScaleX="1.04" ScaleY="1.04" />
+                            </Control.RenderTransform>
+                        </Control>
                         <Control x:Name="SelectedRibbon" Template="{DynamicResource BookmarkTemplate}" IsTabStop="False" Focusable="False"
                                  Width="14" Height="34" Margin="0,-6,12,0" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                 Background="{DynamicResource TabItemIndicatorBrush}" Visibility="Collapsed" />
+                                 Background="{DynamicResource TabItemIndicatorBrush}" Visibility="Collapsed" Opacity="0">
+                            <Control.RenderTransform>
+                                <TranslateTransform x:Name="RibbonDrop" Y="-14" />
+                            </Control.RenderTransform>
+                        </Control>
                         <Control x:Name="HoverFrame" Template="{DynamicResource InkFrameTemplate}" IsTabStop="False" Focusable="False"
-                                 Margin="-12" Foreground="{DynamicResource GridViewItemHoverBorderBrush}" Opacity="0"
+                                 Margin="-12" Foreground="{DynamicResource GridViewItemHoverBorderBrush}" Visibility="Collapsed" Opacity="0"
                                  RenderTransformOrigin="0.5,0.5">
                             <Control.RenderTransform><ScaleTransform x:Name="HoverFrameScale" ScaleX="1.05" ScaleY="1.05" /></Control.RenderTransform>
                         </Control>
-                        <ContentPresenter />
+                        <Grid RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="ContentConfirmScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <ContentPresenter />
+                        </Grid>
                         <!-- Running game: a 2px violet frame inside the cover's edge over a 6px band, a dark tape along the foot holding a tapered ink line. LAUNCHING: a dry brush stroke rises from the foot through the cover while the line fills; as it lands three wisps lift off the tape's right end (2s loop). RUNNING: the line stays full, the frame breathes and the wisps drift up (3.6s). The ribbon, pin and ropes outside stay as they are. -->
                         <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
                             <Border x:Name="RunningWash" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="6" Opacity="0.16" />
@@ -72,22 +85,74 @@
                             </Grid>
                         </Grid>
                         <Control x:Name="HoverPin" Template="{DynamicResource PinTemplate}" IsTabStop="False" Focusable="False"
-                                 HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-14,0,0" Opacity="0"
+                                 HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-14,0,0" Visibility="Collapsed" Opacity="0"
                                  Background="{DynamicResource DataChangeNotifBrush}" Foreground="{DynamicResource ParchmentBrush}">
                             <Control.RenderTransform><TranslateTransform x:Name="HoverPinDrop" Y="-18" /></Control.RenderTransform>
                         </Control>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="SelectedFrame" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="SelectedRibbon" Property="Visibility" Value="Visible" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="GridSelectEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedFrame" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRibbon" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedFrameScale" Storyboard.TargetProperty="ScaleX" From="1.04" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedFrameScale" Storyboard.TargetProperty="ScaleY" From="1.04" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedRibbon" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="RibbonDrop" Storyboard.TargetProperty="Y" From="-14" To="0" Duration="0:0:0.28">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentConfirmScale" Storyboard.TargetProperty="ScaleX">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="1" KeySpline="0.2,0.8 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ContentConfirmScale" Storyboard.TargetProperty="ScaleY">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="1" KeySpline="0.2,0.8 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="GridSelectEnter" />
+                                <BeginStoryboard Name="GridSelectExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedFrame" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRibbon" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedFrame" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedRibbon" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Canvas.ZIndex" Value="91" />
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <BeginStoryboard Name="GridHoverEnter">
                                     <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPin" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                         <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
                                         <DoubleAnimation Storyboard.TargetName="HoverFrameScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.24">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
@@ -103,13 +168,22 @@
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" FillBehavior="Stop" />
-                                        <DoubleAnimation Storyboard.TargetName="HoverFrameScale" Storyboard.TargetProperty="ScaleX" To="1.05" Duration="0:0:0.2" FillBehavior="Stop" />
-                                        <DoubleAnimation Storyboard.TargetName="HoverFrameScale" Storyboard.TargetProperty="ScaleY" To="1.05" Duration="0:0:0.2" FillBehavior="Stop" />
-                                        <DoubleAnimation Storyboard.TargetName="HoverPin" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" FillBehavior="Stop" />
-                                        <DoubleAnimation Storyboard.TargetName="HoverPinDrop" Storyboard.TargetProperty="Y" To="-18" Duration="0:0:0.14" FillBehavior="Stop" />
+                                <RemoveStoryboard BeginStoryboardName="GridHoverEnter" />
+                                <BeginStoryboard Name="GridHoverExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPin" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrameScale" Storyboard.TargetProperty="ScaleX" From="1" To="1.05" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrameScale" Storyboard.TargetProperty="ScaleY" From="1" To="1.05" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverPin" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverPinDrop" Storyboard.TargetProperty="Y" From="0" To="-18" Duration="0:0:0.14" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>

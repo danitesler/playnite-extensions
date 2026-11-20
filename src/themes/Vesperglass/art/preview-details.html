@@ -1,0 +1,1280 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Vesperglass — Details View Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--vg-page);
+    color: var(--vg-ink);
+    font-family: "Segoe UI";
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: flex;
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    background: var(--vg-page);
+    border: 1px solid var(--vg-copper-dim);
+  }
+
+  /* ── Sidebar (44px compact left rail) ─────────────────────────── */
+  .sidebar {
+    width: 44px;
+    height: 100%;
+    background: var(--vg-void);
+    border-right: 1px solid var(--vg-copper-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 6px;
+    position: relative;
+    z-index: 4;
+    flex-shrink: 0;
+  }
+  .main-menu-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 10px;
+    background: var(--vg-panel);
+    border: 1px solid var(--vg-copper);
+    color: var(--vg-copper-soft);
+    border-radius: var(--vg-radius);
+  }
+  .main-menu-btn::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid var(--vg-copper-faint);
+    pointer-events: none;
+  }
+  .sidebar-item {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vg-ink-muted);
+    position: relative;
+  }
+  .sidebar-item.selected {
+    color: var(--vg-ink);
+    background: var(--vg-amethyst-deep);
+  }
+  .sidebar-item.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: var(--vg-amethyst-bright);
+  }
+  .sidebar-item.selected .sb-hg {
+    position: absolute;
+    inset: 3px 4px;
+    background: var(--vg-amethyst-bloom);
+    opacity: 0.42;
+    -webkit-mask: url("../src/Images/fx/hourglass-glow.png") center/contain no-repeat;
+    pointer-events: none;
+  }
+  .sidebar-item svg { width: 16px; height: 16px; position: relative; z-index: 2; }
+  .sidebar-spacer { flex: 1; }
+  .sidebar-sep {
+    width: 18px;
+    height: 1px;
+    background: var(--vg-copper-faint);
+    margin: 6px 0;
+  }
+
+  /* ── Main column (Top bar + Library body) ─────────────────────── */
+  .main-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100%;
+    position: relative;
+  }
+
+  /* ── Top Panel (52px) ─────────────────────────────────────────── */
+  .top-panel {
+    height: 52px;
+    background: var(--vg-void);
+    display: flex;
+    align-items: center;
+    padding: 0 132px 0 14px;
+    gap: 6px;
+    position: relative;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--vg-copper-faint);
+  }
+  .top-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--vg-copper);
+    opacity: 0.045;
+    -webkit-mask: url("../src/Images/fx/astrolabe-tile.png") left top / 256px 256px repeat;
+    pointer-events: none;
+  }
+  .top-rule-diamond {
+    position: absolute;
+    left: 50%;
+    bottom: -3px;
+    width: 5px;
+    height: 5px;
+    background: var(--vg-void);
+    border: 1px solid var(--vg-copper);
+    transform: translateX(-50%) rotate(45deg);
+    z-index: 3;
+  }
+
+  /* Search box (first at top left, persistent magnifier) */
+  .search-box {
+    width: 248px;
+    height: 34px;
+    background: var(--vg-well);
+    border: 1px solid var(--vg-amethyst);
+    border-radius: var(--vg-radius);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+  }
+  .search-box::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid var(--vg-copper-faint);
+    pointer-events: none;
+  }
+  .search-box svg { width: 15px; height: 15px; color: var(--vg-amethyst-bright); flex-shrink: 0; }
+  .search-text { font-size: 13px; color: var(--vg-ink); flex: 1; }
+  .search-clear { width: 14px; height: 14px; color: var(--vg-ink-muted); }
+
+  /* Uniform 34x34 toolbar plates */
+  .tb-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--vg-radius);
+    color: var(--vg-ink-muted);
+    position: relative;
+    z-index: 2;
+    border: 1px solid transparent;
+  }
+  .tb-btn svg { width: 16px; height: 16px; position: relative; z-index: 2; }
+  .tb-btn.active {
+    background: var(--vg-amethyst-sel-hi);
+    border-color: var(--vg-amethyst);
+    color: var(--vg-ink);
+  }
+  .tb-btn.active .tb-hg {
+    position: absolute;
+    inset: 1px;
+    background: var(--vg-amethyst-bloom);
+    opacity: 0.48;
+    -webkit-mask: url("../src/Images/fx/hourglass-glow.png") center/contain no-repeat;
+  }
+  .tb-btn.active::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: -1px;
+    height: 2px;
+    background: var(--vg-amethyst-bright);
+  }
+  .tb-btn.filter-on {
+    background: var(--vg-panel);
+    border-color: var(--vg-copper-dim);
+    color: var(--vg-ink);
+  }
+  /* Vitality Emerald 4-point star active filter pip (no word label!) */
+  .filter-star {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 9px;
+    height: 9px;
+    color: var(--vg-emerald);
+    z-index: 3;
+  }
+  .tb-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    z-index: 2;
+  }
+  .tb-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--vg-copper-faint);
+    margin: 0 4px;
+  }
+
+  /* 12px Copper-diamond end-capped Global Progress Bar */
+  .global-progress {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    z-index: 2;
+  }
+  .prog-track-wrap {
+    width: 204px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  .prog-diamond {
+    width: 6px;
+    height: 6px;
+    background: var(--vg-copper);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+    z-index: 2;
+  }
+  .prog-track {
+    flex: 1;
+    height: 12px;
+    background: var(--vg-well);
+    border-top: 1px solid var(--vg-copper-dim);
+    border-bottom: 1px solid var(--vg-copper-dim);
+    margin: 0 -2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .prog-fill {
+    position: absolute;
+    left: 0;
+    top: 1px;
+    bottom: 1px;
+    width: 64%;
+    background: linear-gradient(90deg, var(--vg-amethyst-deep), var(--vg-amethyst), var(--vg-amethyst-bright));
+  }
+  .prog-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--vg-ink);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  /* Main window caption buttons (top right) */
+  .win-captions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 36px;
+    display: flex;
+    z-index: 6;
+  }
+  .win-cap {
+    width: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vg-ink-muted);
+  }
+  .win-cap svg { width: 12px; height: 12px; }
+
+  /* ── Library Body (Game List + Game Page) ─────────────────────── */
+  .workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    position: relative;
+  }
+
+  /* ── Details Game List (Left Column) ──────────────────────────── */
+  .game-list {
+    width: 248px;
+    background: var(--vg-page);
+    border-right: 1px solid var(--vg-copper-faint);
+    padding: 8px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .list-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px 6px;
+    font-family: "Cinzel", "Georgia", "Segoe UI";
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--vg-copper-soft);
+    text-transform: uppercase;
+  }
+  .list-group-hdr::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--vg-copper-dim), transparent);
+  }
+  .game-row {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 10px;
+    border-radius: var(--vg-radius);
+    position: relative;
+    color: var(--vg-ink-muted);
+    border: 1px solid transparent;
+  }
+  .g-ico {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--vg-radius-sm);
+    border: 1px solid var(--vg-copper-faint);
+    background: var(--vg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Cinzel", "Georgia", "Segoe UI";
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--vg-copper-soft);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .g-name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+  }
+
+  /* Selected Row: Load/Save electric amethyst double rim + 4-point star flare */
+  .game-row.selected {
+    background: linear-gradient(90deg, var(--vg-amethyst-deep), var(--vg-panel));
+    border-color: var(--vg-amethyst);
+    color: var(--vg-ink);
+    font-weight: 600;
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid var(--vg-copper-faint);
+    pointer-events: none;
+  }
+  .game-row.selected .sel-bar {
+    position: absolute;
+    left: 0;
+    top: 3px;
+    bottom: 3px;
+    width: 2px;
+    background: var(--vg-amethyst-bright);
+  }
+  .game-row.selected .row-star {
+    position: absolute;
+    left: -5px;
+    top: -8px;
+    width: 22px;
+    height: 22px;
+    background: var(--vg-amethyst-bright);
+    -webkit-mask: url("../src/Images/fx/star-flare.png") center/contain no-repeat;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  /* Hovered Row: copper-plum wash + diamond tick + RowHoverPlay glyph */
+  .game-row.hovered {
+    background: var(--vg-amethyst-hover);
+    border-color: var(--vg-copper-dim);
+    color: var(--vg-ink);
+    padding-right: 34px;
+  }
+  .game-row.hovered .hov-tick {
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    background: var(--vg-copper);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .game-row.hovered .row-play-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--vg-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Running Row: Lyrium Frost Cyan frame + dark keyline + diamond foot + 3 Lyrium Dagger runes */
+  .game-row.running {
+    background: var(--vg-panel);
+    border: 2px solid var(--vg-lyrium);
+    color: var(--vg-ink);
+    padding-right: 40px;
+  }
+  .game-row.running::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--vg-ink-dark);
+    opacity: 0.72;
+    pointer-events: none;
+  }
+  .game-row.running::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--vg-lyrium);
+    opacity: 0.18;
+    pointer-events: none;
+  }
+  .run-foot {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 2px;
+    height: 2px;
+    background: var(--vg-lyrium-lit);
+    z-index: 3;
+  }
+  .run-mark-plate {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 38px;
+    background: linear-gradient(90deg, transparent, var(--vg-lyrium));
+    opacity: 0.42;
+    z-index: 2;
+  }
+  .run-runes {
+    position: absolute;
+    right: 7px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    z-index: 4;
+  }
+  .run-rune {
+    width: 5px;
+    height: 5px;
+    background: var(--vg-lyrium-lit);
+    transform: rotate(45deg);
+  }
+  .run-rune.dim { opacity: 0.65; }
+
+  /* ── Game Page (Right Pane) ───────────────────────────────────── */
+  .game-page {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    background: var(--vg-page);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Hero Banner (original stylized twilight astrolabe vista — no copyrighted art) */
+  .hero-banner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 256px;
+    background:
+      radial-gradient(ellipse 68% 85% at 72% 24%, var(--vg-amethyst-deep) 0%, transparent 66%),
+      radial-gradient(ellipse 46% 60% at 26% 18%, var(--vg-copper-faint) 0%, transparent 60%),
+      linear-gradient(155deg, var(--vg-void) 0%, var(--vg-amethyst-deep) 44%, var(--vg-slate) 100%);
+    overflow: hidden;
+  }
+  .hero-art-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.58;
+  }
+  .hero-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 12%, var(--vg-page) 98%);
+  }
+
+  .page-scroll {
+    position: relative;
+    z-index: 2;
+    padding: 112px 26px 16px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100%;
+  }
+
+  /* Header row: icon + Cinzel title + Hero PLAY + square More/Edit */
+  .game-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .title-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .game-icon-box {
+    width: 48px;
+    height: 48px;
+    background: var(--vg-panel);
+    border: 1px solid var(--vg-copper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .game-icon-box::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid var(--vg-copper-dim);
+  }
+  .game-title {
+    font-family: "Cinzel", "Georgia", "Segoe UI";
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--vg-ink);
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+  .game-sub {
+    margin-top: 3px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vg-copper-soft);
+  }
+
+  /* Actions cluster */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  /* HERO MOMENT: Hovered Burnished Rose-Copper Pointed-Hex PLAY Plaque */
+  .play-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .play-bloom {
+    position: absolute;
+    inset: -24px -26px;
+    background: var(--vg-amethyst-bloom);
+    opacity: 0.72;
+    -webkit-mask-box-image: url("../src/Images/fx/bloom.png") 32 fill;
+    pointer-events: none;
+  }
+  .play-bloom-copper {
+    position: absolute;
+    inset: -14px -16px;
+    background: var(--vg-copper-hi);
+    opacity: 0.45;
+    -webkit-mask-box-image: url("../src/Images/fx/bloom.png") 32 fill;
+    pointer-events: none;
+  }
+  .play-btn {
+    height: 40px;
+    min-width: 156px;
+    padding: 0 28px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: var(--vg-ink-dark);
+    font-family: "Cinzel", "Georgia", "Segoe UI";
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: var(--vg-copper-hi);
+    clip-path: polygon(11px 0%, calc(100% - 11px) 0%, 100% 50%, calc(100% - 11px) 100%, 11px 100%, 0% 50%);
+    z-index: 2;
+  }
+  .play-btn-sheen {
+    position: absolute;
+    inset: 0;
+    background: var(--vg-alabaster);
+    opacity: 0.42;
+    -webkit-mask: url("../src/Images/fx/sheen-band.png") 58% center / 170px 44px no-repeat;
+    pointer-events: none;
+  }
+  .play-outline-svg {
+    position: absolute;
+    inset: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .play-star-tl {
+    position: absolute;
+    left: 2px;
+    top: -11px;
+    width: 24px;
+    height: 24px;
+    background: var(--vg-alabaster);
+    -webkit-mask: url("../src/Images/fx/star-flare.png") center/contain no-repeat;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .play-star-br {
+    position: absolute;
+    right: 2px;
+    bottom: -11px;
+    width: 20px;
+    height: 20px;
+    background: var(--vg-amethyst-bright);
+    -webkit-mask: url("../src/Images/fx/star-flare.png") center/contain no-repeat;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .play-btn svg { width: 13px; height: 13px; position: relative; z-index: 2; }
+  .play-btn span { position: relative; z-index: 2; }
+
+  /* Secondary 40x40 icon-only square buttons (More, Edit) */
+  .sec-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--vg-panel);
+    border: 1px solid var(--vg-copper-dim);
+    border-radius: var(--vg-radius);
+    color: var(--vg-copper-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .sec-btn::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid var(--vg-copper-faint);
+    pointer-events: none;
+  }
+  .sec-btn svg { width: 17px; height: 17px; }
+
+  /* ── Two-Column Body: Main (Screenshots + Description) | Metadata (300px inner) ── */
+  .body-cols {
+    display: flex;
+    gap: 24px;
+    flex: 1;
+    min-height: 0;
+  }
+  .main-pane {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Tapered Copper Diamond Section Heading */
+  .sec-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Cinzel", "Georgia", "Segoe UI";
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--vg-copper-soft);
+    text-transform: uppercase;
+  }
+  .sec-heading .h-dia {
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--vg-copper);
+    background: var(--vg-amethyst);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+  .sec-heading .h-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--vg-copper-dim), transparent);
+  }
+
+  /* Screenshots Gallery Card */
+  .shots-card {
+    background: var(--vg-panel);
+    border: 1px solid var(--vg-copper-dim);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    position: relative;
+  }
+  .shots-card::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid var(--vg-copper-faint);
+    pointer-events: none;
+  }
+  .shot-main {
+    height: 162px;
+    background: linear-gradient(135deg, var(--vg-void) 0%, var(--vg-amethyst-deep) 52%, var(--vg-slate) 100%);
+    border: 1px solid var(--vg-copper-faint);
+    position: relative;
+    overflow: hidden;
+  }
+  .shot-thumbs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .shot-thumb {
+    height: 44px;
+    background: var(--vg-slate);
+    border: 1px solid var(--vg-copper-faint);
+    position: relative;
+    overflow: hidden;
+  }
+  .shot-thumb.active {
+    border-color: var(--vg-amethyst-bright);
+  }
+
+  /* Description prose */
+  .desc-body {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--vg-ink);
+  }
+  .desc-body p + p { margin-top: 8px; color: var(--vg-ink-muted); }
+
+  /* ── Metadata Pane: Codex Dossier (300px usable inner width) ──── */
+  .meta-pane {
+    width: 334px; /* 300px usable inner + 16px*2 padding + 1px*2 border */
+    flex-shrink: 0;
+    background: var(--vg-panel);
+    border: 1px solid var(--vg-copper-dim);
+    padding: 12px 16px 13px;
+    position: relative;
+    align-self: flex-start;
+  }
+  .meta-pane::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid var(--vg-copper-faint);
+    pointer-events: none;
+  }
+  .meta-pane::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--vg-copper);
+    opacity: 0.035;
+    -webkit-mask: url("../src/Images/fx/astrolabe-tile.png") center/256px 256px repeat;
+    pointer-events: none;
+  }
+  /* Centered top hollow-diamond crest on Codex Dossier */
+  .meta-crest {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 11px;
+    height: 11px;
+    background: var(--vg-void);
+    border: 1px solid var(--vg-copper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+  }
+  .meta-crest::after {
+    content: "";
+    width: 4px;
+    height: 4px;
+    background: var(--vg-amethyst-bright);
+  }
+
+  .meta-inner {
+    width: 300px;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .meta-row {
+    display: grid;
+    grid-template-columns: 108px 1fr;
+    gap: 10px;
+    align-items: center;
+    font-size: 12.5px;
+  }
+  .meta-k {
+    color: var(--vg-ink-muted);
+    font-size: 12px;
+  }
+  .meta-v {
+    color: var(--vg-ink);
+  }
+  .meta-link {
+    color: var(--vg-copper-soft);
+  }
+
+  /* Tapered diamond group separator */
+  .meta-sep {
+    height: 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 1px 0;
+  }
+  .meta-sep-l { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--vg-copper-dim)); }
+  .meta-sep-r { flex: 1; height: 1px; background: linear-gradient(90deg, var(--vg-copper-dim), transparent); }
+  .meta-sep-d {
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--vg-copper);
+    transform: rotate(45deg);
+  }
+
+  /* Scores row with copper-rimmed Cinzel seals */
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 22px;
+    padding: 0 7px;
+    background: var(--vg-well);
+    border: 1px solid var(--vg-emerald);
+    border-radius: var(--vg-radius);
+    font-family: "Cinzel", "Georgia", "Segoe UI";
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--vg-emerald);
+  }
+  .score-badge.mixed {
+    border-color: var(--vg-warning);
+    color: var(--vg-warning);
+  }
+
+  /* Metadata Tag Chips (ControlCornerRadius = 2px, never pill) */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chip {
+    padding: 2px 7px;
+    background: var(--vg-slate);
+    border: 1px solid var(--vg-copper-faint);
+    border-radius: var(--vg-radius);
+    font-size: 11.5px;
+    color: var(--vg-ink);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Left compact 44px Sidebar -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main menu">
+      <svg viewBox="0 0 64 64" width="20" height="20">
+        <path fill="currentColor" fill-rule="evenodd" d="M32 3 L56 32 L32 61 L8 32 Z M32 8.2 L51.4 32 L32 55.8 L12.6 32 Z"/>
+        <path fill="currentColor" d="M23.5 17.5 L40.5 17.5 L32 28.2 Z"/>
+        <path fill="currentColor" d="M23.5 46.5 L40.5 46.5 L32 35.8 Z"/>
+        <path fill="currentColor" d="M32 25.5 L34.1 29.9 L38.5 32 L34.1 34.1 L32 38.5 L29.9 34.1 L25.5 32 L29.9 29.9 Z"/>
+      </svg>
+    </div>
+    <div class="sidebar-item selected" title="Library">
+      <div class="sb-hg"></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 13h6v6H4zM14 13h6v6h-6z"/></svg>
+    </div>
+    <div class="sidebar-item" title="Statistics">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V11M12 19V5M19 19V14"/></svg>
+    </div>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-item" title="Favorites">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3l2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6z"/></svg>
+    </div>
+    <div class="sidebar-item" title="Recent">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3.5 2"/></svg>
+    </div>
+    <div class="sidebar-spacer"></div>
+  </aside>
+
+  <div class="main-col">
+    <!-- Top Panel (52px): Search -> Filter -> Sorting FIRST -> View switches -> Group -> Settings -> Notifications -> Progress -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20.5 20.5"/></svg>
+        <span class="search-text">Astrolabe</span>
+        <svg class="search-clear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </div>
+
+      <div class="tb-btn filter-on" data-part="PART_ToggleFilter" title="Filter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg>
+        <svg class="filter-star" viewBox="0 0 16 16"><path fill="currentColor" d="M8 0.5L9.8 6.2L15.5 8L9.8 9.8L8 15.5L6.2 9.8L0.5 8L6.2 6.2Z"/></svg>
+      </div>
+
+      <div class="tb-group" data-part="PART_PanelMainItems">
+        <!-- Sorting FIRST right after filter -->
+        <div class="tb-btn" title="Sorting">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h11M4 12h8M4 17h5M17 6v12m0 0l-3-3m3 3l3-3"/></svg>
+        </div>
+        <div class="tb-divider"></div>
+        <!-- Icon-only view switches -->
+        <div class="tb-btn active" title="Details View">
+          <div class="tb-hg"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="6" height="16" rx="1"/><rect x="11" y="4" width="10" height="7" rx="1"/><path d="M11 15h10M11 19h7"/></svg>
+        </div>
+        <div class="tb-btn" title="Grid View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5"/></svg>
+        </div>
+        <div class="tb-btn" title="List View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </div>
+        <div class="tb-divider"></div>
+        <div class="tb-btn" title="Grouping">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h7v5H4zM13 6h7v5h-7zM4 13h16v5H4z"/></svg>
+        </div>
+        <div class="tb-btn" title="View Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 17h16"/><polygon fill="currentColor" points="9,4 12,7 9,10 6,7"/><polygon fill="currentColor" points="15,14 18,17 15,20 12,17"/></svg>
+        </div>
+      </div>
+
+      <div class="tb-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 16H6l1.5-2.5V10a4.5 4.5 0 019 0v3.5L18 16zM10 19a2 2 0 004 0"/></svg>
+      </div>
+
+      <!-- 12px Copper-Diamond End-Capped Global Progress Bar -->
+      <div class="global-progress">
+        <div class="prog-track-wrap">
+          <div class="prog-diamond"></div>
+          <div class="prog-track">
+            <div class="prog-fill"></div>
+            <div class="prog-label">Updating library metadata…</div>
+          </div>
+          <div class="prog-diamond"></div>
+        </div>
+      </div>
+
+      <div class="top-rule-diamond"></div>
+
+      <!-- Window caption buttons -->
+      <div class="win-captions">
+        <div class="win-cap"><svg viewBox="0 0 12 12"><path stroke="currentColor" stroke-width="1.3" d="M2 6h8"/></svg></div>
+        <div class="win-cap"><svg viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1.3"/></svg></div>
+        <div class="win-cap"><svg viewBox="0 0 12 12"><path stroke="currentColor" stroke-width="1.3" d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <!-- Details Game List -->
+      <nav class="game-list" data-part="game-list">
+        <div class="list-group-hdr">Installed (12)</div>
+
+        <div class="game-row">
+          <div class="g-ico">AS</div>
+          <span class="g-name">Amber Sanctum</span>
+        </div>
+
+        <div class="game-row running">
+          <div class="run-mark-plate"></div>
+          <div class="g-ico">CS</div>
+          <span class="g-name">Chronicles of Sunspire</span>
+          <div class="run-runes">
+            <span class="run-rune"></span>
+            <span class="run-rune"></span>
+            <span class="run-rune dim"></span>
+          </div>
+          <div class="run-foot"></div>
+        </div>
+
+        <div class="game-row hovered">
+          <div class="hov-tick"></div>
+          <div class="g-ico">CO</div>
+          <span class="g-name">Cinderveil: Oaths of Iron</span>
+          <div class="row-play-btn">
+            <svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M4 2.5l9 5.5-9 5.5z"/></svg>
+          </div>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">DW</div>
+          <span class="g-name">Duskwarden</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">EV</div>
+          <span class="g-name">Echoes of Veridia</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">GL</div>
+          <span class="g-name">Glasslight Pilgrimage</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">NB</div>
+          <span class="g-name">Nightbloom Tactics</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">OV</div>
+          <span class="g-name">Opal Crown</span>
+        </div>
+
+        <div class="game-row selected">
+          <div class="sel-bar"></div>
+          <div class="row-star"></div>
+          <div class="g-ico">SA</div>
+          <span class="g-name">Shattered Astrolabe</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">SL</div>
+          <span class="g-name">Starlit Reliquary</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">TB</div>
+          <span class="g-name">Thornbridge Keep</span>
+        </div>
+
+        <div class="game-row">
+          <div class="g-ico">VR</div>
+          <span class="g-name">Vesper Requiem</span>
+        </div>
+
+        <div class="list-group-hdr" style="margin-top:8px;">Not Installed (4)</div>
+
+        <div class="game-row" style="opacity:0.72;">
+          <div class="g-ico">AC</div>
+          <span class="g-name">Aether Citadel</span>
+        </div>
+        <div class="game-row" style="opacity:0.72;">
+          <div class="g-ico">BW</div>
+          <span class="g-name">Bellwether Crossing</span>
+        </div>
+        <div class="game-row" style="opacity:0.72;">
+          <div class="g-ico">KL</div>
+          <span class="g-name">Kestrel's Lantern</span>
+        </div>
+      </nav>
+
+      <!-- Game Details Page -->
+      <main class="game-page" data-part="game-page">
+        <!-- Original twilight astrolabe banner art -->
+        <div class="hero-banner">
+          <svg class="hero-art-svg" viewBox="0 0 1000 260" preserveAspectRatio="xMidYMid slice">
+            <g fill="none" stroke="var(--vg-copper)" stroke-opacity="0.32">
+              <circle cx="720" cy="82" r="148" stroke-width="1"/>
+              <circle cx="720" cy="82" r="112" stroke-width="0.8" stroke-dasharray="6 5"/>
+              <circle cx="720" cy="82" r="68" stroke-width="1"/>
+              <line x1="540" y1="82" x2="900" y2="82" stroke-width="0.7"/>
+              <line x1="720" y1="-20" x2="720" y2="220" stroke-width="0.7"/>
+            </g>
+            <!-- Floating crystalline twilight shards -->
+            <g fill="var(--vg-amethyst-bright)" fill-opacity="0.22">
+              <polygon points="620,38 632,56 618,74 609,54"/>
+              <polygon points="810,28 824,52 806,68 796,46"/>
+              <polygon points="508,64 516,80 506,96 499,78"/>
+              <polygon points="878,96 890,118 876,132 866,112"/>
+            </g>
+            <!-- Distant spire silhouette -->
+            <path fill="var(--vg-void)" fill-opacity="0.72" d="M0,260 L0,185 L120,148 L220,175 L340,118 L420,162 L560,126 L675,78 L720,42 L765,78 L860,136 L1000,115 L1000,260 Z"/>
+            <!-- Starlight nexus at spire apex -->
+            <path fill="var(--vg-amethyst-bright)" fill-opacity="0.85" d="M720,22 L723,39 L740,42 L723,45 L720,62 L717,45 L700,42 L717,39 Z"/>
+          </svg>
+          <div class="hero-fade"></div>
+        </div>
+
+        <div class="page-scroll">
+          <!-- Title + Hero PLAY + Square More/Edit -->
+          <div class="game-header">
+            <div class="title-block">
+              <div class="game-icon-box">
+                <svg viewBox="0 0 64 64" width="28" height="28" style="color:var(--vg-amethyst-bright)">
+                  <path fill="currentColor" d="M32 6L52 32L32 58L12 32Z" opacity="0.28"/>
+                  <path fill="none" stroke="var(--vg-copper)" stroke-width="2.6" d="M32 7L51 32L32 57L13 32Z"/>
+                  <path fill="currentColor" d="M32 18L35 29L46 32L35 35L32 46L29 35L18 32L29 29Z"/>
+                </svg>
+              </div>
+              <div>
+                <h1 class="game-title">Shattered Astrolabe</h1>
+              </div>
+            </div>
+
+            <div class="actions">
+              <!-- Hero Moment: Hovered Burnished Rose-Copper Pointed-Hex PLAY -->
+              <div class="play-wrap">
+                <div class="play-bloom"></div>
+                <div class="play-bloom-copper"></div>
+                <div class="play-star-tl"></div>
+                <div class="play-star-br"></div>
+                <div class="play-btn">
+                  <div class="play-btn-sheen"></div>
+                  <svg viewBox="0 0 16 16"><path fill="currentColor" d="M4 2.5l9.5 5.5-9.5 5.5z"/></svg>
+                  <span>Play</span>
+                </div>
+                <svg class="play-outline-svg" viewBox="0 0 160 44" preserveAspectRatio="none">
+                  <polygon fill="none" stroke="var(--vg-alabaster)" stroke-opacity="0.78" stroke-width="1.2" points="12,1 148,1 159,22 148,43 12,43 1,22"/>
+                  <polygon fill="var(--vg-copper-hi)" points="1,22 5,18 9,22 5,26"/>
+                  <polygon fill="var(--vg-copper-hi)" points="159,22 155,18 151,22 155,26"/>
+                </svg>
+              </div>
+              <!-- Secondary 40x40 Icon-Only Buttons (More, Edit) -->
+              <div class="sec-btn" title="More">
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></svg>
+              </div>
+              <div class="sec-btn" title="Edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15.5 5.5l3 3L8 19H5v-3L15.5 5.5z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two-Column Responsive Body -->
+          <div class="body-cols">
+            <div class="main-pane">
+              <div class="sec-heading"><span class="h-dia"></span><span>Screenshots</span><span class="h-rule"></span></div>
+              <div class="shots-card">
+                <div class="shot-main">
+                  <svg viewBox="0 0 600 180" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+                    <rect width="600" height="180" fill="var(--vg-void)"/>
+                    <radialGradient id="g1" cx="62%" cy="35%" r="58%">
+                      <stop offset="0%" stop-color="var(--vg-amethyst)" stop-opacity="0.72"/>
+                      <stop offset="65%" stop-color="var(--vg-amethyst-deep)" stop-opacity="0.35"/>
+                      <stop offset="100%" stop-color="var(--vg-void)" stop-opacity="0"/>
+                    </radialGradient>
+                    <rect width="600" height="180" fill="url(#g1)"/>
+                    <circle cx="370" cy="68" r="56" fill="none" stroke="var(--vg-copper)" stroke-opacity="0.55" stroke-width="1"/>
+                    <circle cx="370" cy="68" r="38" fill="none" stroke="var(--vg-lyrium-lit)" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="4 4"/>
+                    <path d="M0,180 L0,130 L95,96 L195,126 L305,74 L370,42 L435,76 L545,108 L600,90 L600,180 Z" fill="var(--vg-page)"/>
+                    <path d="M370,28 L372.5,39.5 L384,42 L372.5,44.5 L370,56 L367.5,44.5 L356,42 L367.5,39.5 Z" fill="var(--vg-alabaster)"/>
+                  </svg>
+                </div>
+                <div class="shot-thumbs">
+                  <div class="shot-thumb active" style="background:linear-gradient(135deg, var(--vg-amethyst-deep), var(--vg-copper-faint));"></div>
+                  <div class="shot-thumb" style="background:linear-gradient(135deg, var(--vg-void), var(--vg-amethyst-hover));"></div>
+                  <div class="shot-thumb" style="background:linear-gradient(135deg, var(--vg-slate), var(--vg-lyrium));"></div>
+                  <div class="shot-thumb" style="background:linear-gradient(135deg, var(--vg-panel), var(--vg-copper-dim));"></div>
+                </div>
+              </div>
+
+              <div class="sec-heading"><span class="h-dia"></span><span>Description</span><span class="h-rule"></span></div>
+              <div class="desc-body">
+                <p>Lead an expedition across the fractured sky-bridges of the Observatory Spire, aligning fallen brass astrolabes to mend a torn constellation before eclipse tide seals the realm.</p>
+                <p>Assemble a fellowship of scholars, spellwrights, and wardens; forge crystalline rune inlays and chart branching alliances across seven sunken citadels.</p>
+              </div>
+            </div>
+
+            <!-- Codex Metadata Pane (Right, 300px usable inner width, all 6 Playnite groups) -->
+            <aside class="meta-pane" data-part="metadata">
+              <div class="meta-crest"></div>
+              <div class="meta-inner">
+                <!-- Group 1: MetaProgress -->
+                <div class="meta-row"><span class="meta-k">Completion</span><span class="meta-v">Playing</span></div>
+                <div class="meta-row"><span class="meta-k">Time Played</span><span class="meta-v">42h 18m</span></div>
+                <div class="meta-row"><span class="meta-k">Last Played</span><span class="meta-v">Today</span></div>
+
+                <!-- Group 2: MetaScores -->
+                <div class="meta-sep"><span class="meta-sep-l"></span><span class="meta-sep-d"></span><span class="meta-sep-r"></span></div>
+                <div class="meta-row">
+                  <span class="meta-k">Critic Score</span>
+                  <span class="meta-v"><span class="score-badge">88</span></span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-k">Community</span>
+                  <span class="meta-v"><span class="score-badge mixed">79</span></span>
+                </div>
+
+                <!-- Group 3: MetaAbout -->
+                <div class="meta-sep"><span class="meta-sep-l"></span><span class="meta-sep-d"></span><span class="meta-sep-r"></span></div>
+                <div class="meta-row"><span class="meta-k">Developers</span><span class="meta-link">Solstice Foundry</span></div>
+                <div class="meta-row"><span class="meta-k">Release Date</span><span class="meta-v">Oct 31, 2024</span></div>
+                <div class="meta-row"><span class="meta-k">Series</span><span class="meta-link">Astrolabe Cycle</span></div>
+
+                <!-- Group 4: MetaTags -->
+                <div class="meta-sep"><span class="meta-sep-l"></span><span class="meta-sep-d"></span><span class="meta-sep-r"></span></div>
+                <div class="meta-row">
+                  <span class="meta-k">Genres</span>
+                  <div class="chips"><span class="chip">Action RPG</span><span class="chip">Fantasy</span></div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-k">Features</span>
+                  <div class="chips"><span class="chip">Single-Player</span><span class="chip">Controller</span></div>
+                </div>
+
+                <!-- Group 5: MetaLibrary -->
+                <div class="meta-sep"><span class="meta-sep-l"></span><span class="meta-sep-d"></span><span class="meta-sep-r"></span></div>
+                <div class="meta-row"><span class="meta-k">Library</span><span class="meta-v">PC (Windows)</span></div>
+                <div class="meta-row"><span class="meta-k">Install Size</span><span class="meta-v">84.6 GB</span></div>
+
+                <!-- Group 6: MetaLinks -->
+                <div class="meta-sep"><span class="meta-sep-l"></span><span class="meta-sep-d"></span><span class="meta-sep-r"></span></div>
+                <div class="meta-row"><span class="meta-k">Links</span><span class="meta-link">Store &middot; Codex &middot; Guides</span></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -12,9 +12,11 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     mc:Ignorable="d">
 
-    <!-- GridTileButton: a 48px black plate in a card hairline with a 20px grey glyph, the source's square tray cell.
-         Hover turns it into a key cap: a white plate fades in (0.12s), the glyph goes ink and pops 1.12 to 1
-         (0.2s, PowerEase out). Leaving fades back in 0.2s. The whole plate is the hit area. -->
+    <!-- GridTileButton: a key cap with two cut corners (top-left and bottom-right, the slashed plate of the menus) on a black
+         plate in a FrameBrush hairline, a 20px grey glyph. Play carries the red tooth along its foot and a red glyph; Info is
+         plain. Hover turns it into a white key cap: the white plate fades in (0.12s), the glyph goes ink and pops 1.12 to 1
+         (0.2s, PowerEase out), and Play's tooth runs the whole foot (0.18s). Pressed: the cap sinks 2px and dims. Leaving
+         fades back in 0.2s. The whole plate is the hit area. -->
     <Style x:Key="GridTileButton" TargetType="Button">
         <Setter Property="Width" Value="48" />
         <Setter Property="Height" Value="48" />
@@ -24,40 +26,73 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid UseLayoutRounding="True" Background="Transparent">
-                        <Border Background="{DynamicResource ButtonBackgroundBrush}" BorderBrush="{DynamicResource FrameBrush}" BorderThickness="1" IsHitTestVisible="False" />
-                        <Border x:Name="Lit" Background="{DynamicResource TextBrush}" Opacity="0" IsHitTestVisible="False" />
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="CapSink" Y="0" />
+                        </Grid.RenderTransform>
+                        <Polygon Points="10,0 48,0 48,38 38,48 0,48 0,10" Stretch="Fill" Fill="{DynamicResource ButtonBackgroundBrush}"
+                                 Stroke="{DynamicResource FrameBrush}" StrokeThickness="1" IsHitTestVisible="False" />
+                        <Polygon x:Name="CapPlate" Points="10,0 48,0 48,38 38,48 0,48 0,10" Stretch="Fill" Fill="{DynamicResource TextBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Rectangle x:Name="Tooth" Width="48" Height="3" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,0"
+                                   Fill="{DynamicResource SidebarItemSelectedForegroundBrush}" Visibility="Collapsed" RenderTransformOrigin="0,0.5" IsHitTestVisible="False">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="ToothScale" ScaleX="0.3" ScaleY="1" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                             <Grid.RenderTransform>
-                                <ScaleTransform x:Name="GlyphScale" ScaleX="1" ScaleY="1" />
+                                <ScaleTransform x:Name="GlyphPop" ScaleX="1" ScaleY="1" />
                             </Grid.RenderTransform>
-                            <Viewbox Width="20" Height="20">
-                                <Grid>
-                                    <ContentControl Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}"
-                                                    Foreground="{TemplateBinding Foreground}" Focusable="False" />
-                                    <ContentControl x:Name="GlyphLit" Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}"
-                                                    Foreground="{DynamicResource TextBrushDark}" Opacity="0" Focusable="False" />
-                                </Grid>
-                            </Viewbox>
+                            <ContentControl x:Name="Glyph" Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Width="20" Height="20"
+                                            Foreground="{TemplateBinding Foreground}" />
+                            <ContentControl x:Name="GlyphInk" Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Width="20" Height="20"
+                                            Foreground="{DynamicResource TextBrushDark}" Opacity="0" />
                         </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Name, RelativeSource={RelativeSource TemplatedParent}}" Value="PART_ButtonPlay">
+                            <Setter TargetName="Tooth" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Glyph" Property="Foreground" Value="{DynamicResource SidebarItemSelectedForegroundBrush}" />
+                        </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetName="GlyphLit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleX" From="1.12" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleY" From="1.12" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CapPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="GlyphInk" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ToothScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="GlyphPop" Storyboard.TargetProperty="ScaleX" From="1.12" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><PowerEase EasingMode="EaseOut" Power="3" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="GlyphPop" Storyboard.TargetProperty="ScaleY" From="1.12" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><PowerEase EasingMode="EaseOut" Power="3" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlyphLit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="CapPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlyphInk" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ToothScale" Storyboard.TargetProperty="ScaleX" To="0.3" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="CapSink" Storyboard.TargetProperty="Y" To="2" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="CapPlate" Storyboard.TargetProperty="Opacity" To="0.8" Duration="0:0:0.05" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="CapSink" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.1" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>

@@ -1,0 +1,691 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Cropmark — Settings Window Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--cm-blue-halo);
+    color: var(--cm-ink);
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13.5px;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Blueprint cyanotype drafting grid backdrop (echoing PAUSE MENU wash) */
+  .backdrop-grid {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to right, rgba(38, 41, 31, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(38, 41, 31, 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+  .backdrop-trim {
+    position: absolute;
+    inset: 14px;
+    border: 1px dashed var(--cm-paper-hi);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .backdrop-label {
+    position: absolute;
+    bottom: 6px;
+    right: 20px;
+    font-family: "Consolas", monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--cm-ink);
+    opacity: 0.75;
+    text-transform: uppercase;
+  }
+
+  /* Offset cut charcoal backing behind Settings window */
+  .window-stage {
+    position: relative;
+    width: 944px;
+    height: 656px;
+  }
+  .window-backing {
+    position: absolute;
+    left: -8px;
+    top: 8px;
+    width: 944px;
+    height: 656px;
+    background: var(--cm-charcoal);
+  }
+
+  /* === SETTINGS WINDOW (StandardWindowStyle, 944x656 centered) === */
+  .settings-window {
+    position: relative;
+    z-index: 2;
+    width: 944px;
+    height: 656px;
+    background: var(--cm-paper);
+    border: 2px solid var(--cm-ink);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Title Band (44px, Cropmark mark + Anton uppercase + registration ticks + halftone) */
+  .title-band {
+    height: 44px;
+    background: var(--cm-paper-hi);
+    border-bottom: 2px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .title-band::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: var(--cm-orange);
+  }
+  .title-halftone {
+    position: absolute;
+    right: 138px;
+    top: 0;
+    width: 180px;
+    height: 44px;
+    background: var(--cm-blue-guide);
+    opacity: 0.25;
+    -webkit-mask-image: url("../src/Images/fx/halftone-corner.png");
+    -webkit-mask-size: 180px 180px;
+    pointer-events: none;
+  }
+  .title-mark {
+    width: 24px;
+    height: 24px;
+    background: var(--cm-charcoal);
+    border: 1px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .title-text {
+    font-family: "Anton", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cm-ink);
+  }
+  .title-reg {
+    margin-left: 14px;
+    font-family: "Consolas", monospace;
+    font-size: 9.5px;
+    color: var(--cm-blue-guide);
+    letter-spacing: 1px;
+  }
+  .title-captions {
+    margin-left: auto;
+    display: flex;
+    height: 44px;
+    border-left: 1px solid var(--cm-blue-faint);
+    position: relative;
+    z-index: 2;
+  }
+  .w-btn {
+    width: 46px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cm-ink);
+  }
+  .w-btn.close-btn:hover {
+    background: var(--cm-crimson);
+    color: var(--cm-paper-hi);
+  }
+
+  /* Middle body: TreeView left + Content page right */
+  .settings-body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  /* === SECTION TREE (256px, minimal bare 28px Segoe UI rows, reserved scroll ruler lane) === */
+  .settings-nav {
+    width: 256px;
+    background: var(--cm-paper-well);
+    border-right: 1.5px solid var(--cm-ink);
+    padding: 8px 14px 8px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .tree-scroll-lane {
+    position: absolute;
+    top: 6px;
+    right: 3px;
+    bottom: 6px;
+    width: 6px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--cm-blue-guide) 0px,
+      var(--cm-blue-guide) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+    opacity: 0.6;
+  }
+  .tree-scroll-thumb {
+    position: absolute;
+    top: 10px;
+    left: 1px;
+    width: 4px;
+    height: 110px;
+    background: var(--cm-charcoal);
+  }
+  .tree-row {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 6px;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13px;
+    color: var(--cm-ink-muted);
+    position: relative;
+  }
+  .tree-row.child {
+    padding-left: 28px;
+  }
+  .tree-row.hovered {
+    background: var(--cm-paper-deep);
+    color: var(--cm-ink);
+  }
+  .tree-row.selected {
+    background: var(--cm-blue-tab);
+    color: var(--cm-ink-deep);
+    font-weight: 600;
+  }
+  .tree-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--cm-orange);
+  }
+  .tree-arrow {
+    width: 12px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--cm-orange-deep);
+    flex-shrink: 0;
+  }
+  .tree-arrow.empty {
+    visibility: hidden;
+  }
+  .tree-sep {
+    height: 1px;
+    margin: 4px 8px;
+    border-top: 1px dashed var(--cm-blue-guide);
+  }
+
+  /* === SECTION PAGE (Controls Showcase) === */
+  .settings-content {
+    flex: 1;
+    background: var(--cm-paper);
+    padding: 18px 24px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    overflow: hidden;
+    position: relative;
+  }
+  .page-section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px solid var(--cm-ink);
+  }
+  .page-section-head .tag {
+    padding: 1px 6px;
+    background: var(--cm-charcoal);
+    color: var(--cm-paper-hi);
+    font-family: "Consolas", monospace;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .page-section-head h2 {
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--cm-ink);
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+  }
+  .ctrl-label {
+    width: 186px;
+    font-size: 13px;
+    color: var(--cm-ink);
+    flex-shrink: 0;
+  }
+  .ctrl-sep {
+    height: 0;
+    border-top: 1px dashed var(--cm-blue-guide);
+    margin: 2px 0;
+  }
+
+  /* CheckBox (sharp inked square + Marker Orange check) */
+  .chk-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    color: var(--cm-ink);
+  }
+  .chk-box {
+    width: 17px;
+    height: 17px;
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .chk-box.checked {
+    background: var(--cm-orange);
+    border-color: var(--cm-ink);
+  }
+
+  /* RadioButton pair */
+  .radio-group {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+  }
+  .radio-wrap {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+  }
+  .radio-ring {
+    width: 17px;
+    height: 17px;
+    border-radius: 9999px;
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--cm-orange);
+  }
+
+  /* OPTIONS-inspired Bottom-Edge Charcoal Slider */
+  .slider-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .slider-track {
+    flex: 1;
+    height: 18px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 4px;
+  }
+  .slider-rail {
+    width: 100%;
+    height: 3px;
+    background: var(--cm-hairline);
+    position: relative;
+  }
+  .slider-fill {
+    width: 64%;
+    height: 4px;
+    background: var(--cm-charcoal);
+    position: absolute;
+    left: 0;
+    bottom: 0;
+  }
+  .slider-thumb {
+    position: absolute;
+    left: 64%;
+    bottom: -4px;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 16px;
+    background: var(--cm-orange);
+    border: 1.5px solid var(--cm-ink);
+  }
+  .slider-val {
+    width: 44px;
+    text-align: right;
+    font-family: "Consolas", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--cm-ink);
+  }
+
+  /* TextBox (32px FormControlHeight) */
+  .text-input {
+    flex: 1;
+    height: 32px;
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: var(--cm-ink);
+    box-shadow: inset 0 -2px 0 var(--cm-blue-guide);
+  }
+
+  /* ComboBox (32px, reserved chevron room >= 24px) */
+  .combo-box {
+    width: 240px;
+    height: 32px;
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    padding: 0 28px 0 10px;
+    font-size: 13px;
+    color: var(--cm-ink);
+    position: relative;
+  }
+  .combo-chev {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 26px;
+    border-left: 1px solid var(--cm-blue-guide);
+    background: var(--cm-paper-well);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cm-ink);
+  }
+
+  /* OPTIONS-style Tab preview strip inside controls showcase */
+  .tab-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid var(--cm-ink);
+    background: var(--cm-paper-hi);
+    height: 30px;
+  }
+  .tab-cap {
+    padding: 0 7px;
+    height: 100%;
+    background: var(--cm-charcoal);
+    color: var(--cm-paper-hi);
+    font-family: "Consolas", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+  }
+  .tab-item {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--cm-ink-muted);
+    border-right: 1px solid var(--cm-blue-guide);
+  }
+  .tab-item.active {
+    background: var(--cm-blue-tab);
+    color: var(--cm-ink-deep);
+    box-shadow: inset 0 -3px 0 var(--cm-orange);
+  }
+
+  /* Buttons (32px FormControlHeight) */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn {
+    height: 32px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    border: 1.5px solid var(--cm-ink);
+  }
+  .btn-plain {
+    background: var(--cm-paper-hi);
+    color: var(--cm-ink);
+    box-shadow: 2px 2px 0 var(--cm-hairline);
+  }
+  .btn-primary {
+    background: var(--cm-charcoal);
+    color: var(--cm-paper-hi);
+    border-left: 5px solid var(--cm-orange);
+    box-shadow: 2px 2px 0 var(--cm-orange);
+  }
+
+  /* === BOTTOM BAR (Full width, restart note left, Save then Cancel right) === */
+  .settings-buttons {
+    height: 50px;
+    background: var(--cm-paper-hi);
+    border-top: 1.5px solid var(--cm-ink);
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .restart-note {
+    font-size: 12px;
+    color: var(--cm-ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .restart-note b {
+    color: var(--cm-orange-deep);
+  }
+  .dialog-btns {
+    display: flex;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="backdrop-grid"></div>
+  <div class="backdrop-trim"></div>
+  <div class="backdrop-label">CROPMARK // BRISTOL BOARD UI — UNOFFICIAL FAN THEME</div>
+
+  <div class="window-stage">
+    <div class="window-backing"></div>
+
+    <div class="settings-window" data-part="settings-window">
+      <!-- Title Band (44px) -->
+      <header class="title-band">
+        <div class="title-halftone"></div>
+        <div class="title-mark">
+          <svg viewBox="0 0 64 64" width="16" height="16">
+            <path fill="var(--cm-orange)" d="M6,6 H20 V11 H11 V20 H6 Z M44,6 H58 V20 H53 V11 H44 Z M6,44 H11 V53 H20 V58 H6 Z M53,44 H58 V58 H44 V53 H53 Z"/>
+            <path fill="var(--cm-paper-hi)" d="M32,14 L38,26 L50,32 L38,38 L32,50 L26,38 L14,32 L26,26 Z"/>
+          </svg>
+        </div>
+        <span class="title-text">SETTINGS</span>
+        <span class="title-reg">TRIM // COPY AREA =|+|=</span>
+        <div class="title-captions">
+          <div class="w-btn"><svg viewBox="0 0 12 12" width="11" height="11"><rect x="1" y="6" width="10" height="1.5" fill="currentColor"/></svg></div>
+          <div class="w-btn"><svg viewBox="0 0 12 12" width="11" height="11"><rect x="1.5" y="1.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>
+          <div class="w-btn close-btn"><svg viewBox="0 0 12 12" width="11" height="11"><path d="M2,2 L10,10 M10,2 L2,10" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        </div>
+      </header>
+
+      <!-- Main Body -->
+      <div class="settings-body">
+        <!-- Section Tree (Left, 256px, bare 28px Segoe UI rows) -->
+        <nav class="settings-nav" data-part="settings-nav">
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>General</span></div>
+          <div class="tree-row hovered"><span class="tree-arrow">▾</span><span>Appearance</span></div>
+          <div class="tree-row child"><span class="tree-arrow empty">▸</span><span>General</span></div>
+          <div class="tree-row child"><span class="tree-arrow empty">▸</span><span>Advanced</span></div>
+          <div class="tree-row child selected"><span class="tree-arrow empty">▸</span><span>Details View</span></div>
+          <div class="tree-row child"><span class="tree-arrow empty">▸</span><span>Grid View</span></div>
+          <div class="tree-row child"><span class="tree-arrow empty">▸</span><span>List View</span></div>
+          <div class="tree-row child"><span class="tree-arrow empty">▸</span><span>Layout</span></div>
+          <div class="tree-row child"><span class="tree-arrow empty">▸</span><span>Top panel</span></div>
+          <div class="tree-sep"></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Search</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Updating</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Metadata</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Sorting</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Scripts</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Auto Close Clients</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Import Exclusion List</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>Backup</span></div>
+          <div class="tree-row"><span class="tree-arrow empty">▸</span><span>For developers</span></div>
+          <div class="tree-row"><span class="tree-arrow">▸</span><span>Advanced</span></div>
+
+          <div class="tree-scroll-lane"><div class="tree-scroll-thumb"></div></div>
+        </nav>
+
+        <!-- Section Page (Right) -->
+        <section class="settings-content" data-part="settings-content">
+          <div class="page-section-head">
+            <span class="tag">01</span>
+            <h2>Details View</h2>
+          </div>
+
+          <!-- OPTIONS-inspired Tab Strip -->
+          <div class="tab-strip">
+            <span class="tab-cap">L1</span>
+            <span class="tab-item active">Display</span>
+            <span class="tab-item">Metadata Fields</span>
+            <span class="tab-item">Background Art</span>
+            <span class="tab-cap">R1</span>
+          </div>
+
+          <!-- CheckBoxes (checked + unchecked) -->
+          <div class="chk-wrap">
+            <span class="chk-box checked">
+              <svg viewBox="0 0 14 14" width="12" height="12"><path d="M2.5,7.2 L5.6,10.3 L11.5,3.5" fill="none" stroke="var(--cm-ink-deep)" stroke-width="2.2"/></svg>
+            </span>
+            <span>Show game icon on details view *</span>
+          </div>
+          <div class="chk-wrap">
+            <span class="chk-box"></span>
+            <span>Use game background image as window background</span>
+          </div>
+
+          <div class="ctrl-sep"></div>
+
+          <!-- Radio pair -->
+          <div class="ctrl-row">
+            <span class="ctrl-label">Details pane position</span>
+            <div class="radio-group">
+              <div class="radio-wrap"><span class="radio-ring"><i class="radio-dot"></i></span><span>Right</span></div>
+              <div class="radio-wrap"><span class="radio-ring"></span><span>Left</span></div>
+              <div class="radio-wrap"><span class="radio-ring"></span><span>Center</span></div>
+            </div>
+          </div>
+
+          <!-- Slider (OPTIONS bottom-edge bar) -->
+          <div class="ctrl-row">
+            <span class="ctrl-label">Banner height (0 = off)</span>
+            <div class="slider-wrap">
+              <div class="slider-track">
+                <div class="slider-rail">
+                  <div class="slider-fill"></div>
+                  <div class="slider-thumb"></div>
+                </div>
+              </div>
+              <span class="slider-val">320px</span>
+            </div>
+          </div>
+
+          <div class="ctrl-sep"></div>
+
+          <!-- ComboBox (32px, reserved chevron room) -->
+          <div class="ctrl-row">
+            <span class="ctrl-label">Application theme *</span>
+            <div class="combo-box">
+              <span>Cropmark</span>
+              <span class="combo-chev">
+                <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2.5,4 L6,8 L9.5,4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- TextBox (32px) -->
+          <div class="ctrl-row">
+            <span class="ctrl-label">Library database path *</span>
+            <div class="text-input">C:\Users\Player\AppData\Roaming\Playnite\library</div>
+          </div>
+
+          <div class="ctrl-sep"></div>
+
+          <!-- Buttons (Primary + Plain) -->
+          <div class="ctrl-row">
+            <span class="ctrl-label">Preview actions</span>
+            <div class="btn-row">
+              <span class="btn btn-primary">Apply Preset</span>
+              <span class="btn btn-plain">Reset Defaults</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bottom Bar (Save then Cancel on right) -->
+      <footer class="settings-buttons" data-part="settings-buttons">
+        <span class="restart-note"><b>*</b> Requires restart to apply</span>
+        <div class="dialog-btns">
+          <span class="btn btn-primary" style="min-width: 88px;">Save</span>
+          <span class="btn btn-plain" style="min-width: 88px;">Cancel</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

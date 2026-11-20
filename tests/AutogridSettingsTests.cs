@@ -139,6 +139,138 @@ namespace PlayniteExtensions.Tests
         }
 
         [Fact]
+        public void Mode_DefaultsToKeepGridUnderDetails()
+        {
+            Assert.Equal(AutogridMode.KeepGridUnderDetails, new AutogridSettings().Mode);
+
+            var legacy = Newtonsoft.Json.JsonConvert.DeserializeObject<AutogridSettings>(
+                "{\"Enabled\":true,\"KeepGridWhileDetailsOpen\":false}");
+            Assert.Equal(AutogridMode.ResizeCovers, legacy.Mode);
+        }
+
+        [Theory]
+        [InlineData(AutogridMode.Off, false, true)]
+        [InlineData(AutogridMode.ResizeCovers, true, false)]
+        [InlineData(AutogridMode.KeepGridUnderDetails, true, true)]
+        public void Mode_WritesTheStoredSettings(AutogridMode mode, bool enabled, bool keepGrid)
+        {
+            var settings = new AutogridSettings { Mode = mode };
+
+            Assert.Equal(enabled, settings.Enabled);
+            Assert.Equal(keepGrid, settings.KeepGridWhileDetailsOpen);
+            Assert.Equal(mode, settings.Mode);
+        }
+
+        [Fact]
+        public void Mode_OffAndBackOn_KeepsTheDetailsChoice()
+        {
+            var settings = new AutogridSettings { Mode = AutogridMode.ResizeCovers };
+            settings.Enabled = false;
+            Assert.Equal(AutogridMode.Off, settings.Mode);
+
+            settings.Enabled = true;
+            Assert.Equal(AutogridMode.ResizeCovers, settings.Mode);
+        }
+
+        [Fact]
+        public void Mode_RaisesChangeWhenEitherStoredSettingChanges()
+        {
+            var settings = new AutogridSettings();
+            var raised = 0;
+            settings.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(AutogridSettings.Mode)) raised++; };
+
+            settings.KeepGridWhileDetailsOpen = false;
+            settings.Enabled = false;
+
+            Assert.Equal(2, raised);
+        }
+
+        [Fact]
+        public void Mode_IsNotSaved()
+        {
+            // Playnite's serializer skips [DontSerialize]; Enabled and KeepGridWhileDetailsOpen hold the mode.
+            var prop = typeof(AutogridSettings).GetProperty(nameof(AutogridSettings.Mode));
+            Assert.True(Attribute.IsDefined(prop, typeof(Playnite.SDK.Data.DontSerializeAttribute)));
+        }
+
+        [Theory]
+        [InlineData(0.0, 0, 0)]     // still frame: full window, panel closed
+        [InlineData(0.7, 1, 0)]     // window narrowed
+        [InlineData(1.5, 0, 0)]     // window back, panel not open yet
+        [InlineData(2.4, 0, 1)]     // panel open
+        [InlineData(3.3, 0, 0)]     // panel closed again
+        public void Preview_LoopsResizeThenDetails(double seconds, double narrowed, double detailsOpen)
+        {
+            GridModePreview.Timeline(seconds / GridModePreview.LoopSeconds, out var n, out var d);
+            Assert.Equal(narrowed, n, 3);
+            Assert.Equal(detailsOpen, d, 3);
+
+            // The loop repeats.
+            GridModePreview.Timeline(1 + seconds / GridModePreview.LoopSeconds, out var n2, out var d2);
+            Assert.Equal(n, n2, 3);
+            Assert.Equal(d, d2, 3);
+        }
+
+        [Fact]
+        public void Preview_HoverStartsTheResizeAtOnce()
+        {
+            GridModePreview.Timeline(GridModePreview.RestProgress, out var restNarrowed, out var restOpen);
+            Assert.Equal(0, restNarrowed, 3);
+            Assert.Equal(0, restOpen, 3);
+
+            // 100 ms after hovering the window has visibly moved: no hold, no slow ease-in.
+            GridModePreview.Timeline(GridModePreview.RestProgress + 0.1 / GridModePreview.LoopSeconds, out var justAfter, out _);
+            Assert.True(justAfter > 0.3, $"window {justAfter:0.00} narrowed 100 ms after hover");
+        }
+
+        [Fact]
+        public void Preview_ResizeFinishesBeforeTheDetailsPanelMoves()
+        {
+            Assert.True(GridModePreview.WidenEnd < GridModePreview.OpenStart);
+            Assert.True(GridModePreview.OpenEnd - GridModePreview.OpenStart <= 0.3 + 1e-9);
+            Assert.True(GridModePreview.CloseEnd - GridModePreview.CloseStart <= 0.3 + 1e-9);
+        }
+
+        [Fact]
+        public void Preview_RendersWithThemeBrushesThatCannotBeFrozen()
+        {
+            // Playnite themes define TextBrush etc. as SolidColorBrush with Color="{DynamicResource ...}".
+            // Freezing a pen built on one threw and crashed Playnite when the settings page opened.
+            RunSta(() =>
+            {
+                var theme = (ResourceDictionary)System.Windows.Markup.XamlReader.Parse(
+                    "<ResourceDictionary xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' " +
+                    "xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'>" +
+                    "<Color x:Key='TextColor'>#f2f2f2</Color>" +
+                    "<SolidColorBrush x:Key='TextBrush' Color='{DynamicResource TextColor}' />" +
+                    "</ResourceDictionary>");
+                var root = new System.Windows.Controls.Border { Resources = theme };
+                var themeBrush = (System.Windows.Media.Brush)theme["TextBrush"];
+                Assert.False(themeBrush.CanFreeze);
+
+                foreach (AutogridMode mode in Enum.GetValues(typeof(AutogridMode)))
+                {
+                    foreach (var progress in new[] { 0.0, 0.25, 0.7 })
+                    {
+                        var preview = new GridModePreview
+                        {
+                            Mode = mode,
+                            Progress = progress,
+                            TileBrush = themeBrush,
+                            FrameBrush = themeBrush,
+                            AccentBrush = themeBrush
+                        };
+                        root.Child = preview;
+                        root.Measure(new Size(200, 96));
+                        root.Arrange(new Rect(0, 0, 200, 96));
+                        var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(200, 96, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+                        bitmap.Render(root);
+                    }
+                }
+            });
+        }
+
+        [Fact]
         public void CancelEdit_RestoresKeepGridWhileDetailsOpen()
         {
             var settings = new AutogridSettings { KeepGridWhileDetailsOpen = true };

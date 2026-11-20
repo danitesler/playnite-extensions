@@ -1,0 +1,542 @@
+﻿<!doctype html>
+<!-- Cogplate: HTML replica of Playnite's Settings window (1280x720).
+     Tokens injected from src/tokens.css via render-theme-preview.mjs. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cogplate - Settings Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--cg-void);
+    color: var(--cg-ivory);
+    font-family: "Barlow Semi Condensed", sans-serif;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  svg { fill: currentColor; display: block; }
+
+  .window {
+    width: 920px;
+    height: 690px;
+    background: var(--cg-iron);
+    border: 2px solid var(--cg-steel-rim);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .win-corner {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    background: var(--cg-brass);
+    z-index: 6;
+    pointer-events: none;
+  }
+  .win-corner.tl { top: -1px; left: -1px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+  .win-corner.tr { top: -1px; right: -1px; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+  .win-corner.bl { bottom: -1px; left: -1px; clip-path: polygon(0 0, 0 100%, 100% 100%); }
+  .win-corner.br { bottom: -1px; right: -1px; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+  .win-conduit-l, .win-conduit-r {
+    position: absolute;
+    top: -4px;
+    width: 56px;
+    height: 4px;
+    background: var(--cg-conduit);
+    border: 1px solid var(--cg-void);
+    z-index: 7;
+    pointer-events: none;
+  }
+  .win-conduit-l { left: 20px; }
+  .win-conduit-r { right: 20px; }
+
+  /* 44px Title band: chain trim, cogwheel badge, uppercase Barlow Condensed title, ghost watermark, mint LED rule */
+  .title-bar {
+    height: 44px;
+    flex: none;
+    background: var(--cg-iron-dark);
+    border-bottom: 1px solid var(--cg-steel-rim);
+    display: flex;
+    align-items: center;
+    padding: 4px 0 0 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .title-chain {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 7px;
+    background: var(--cg-void);
+    pointer-events: none;
+  }
+  .title-chain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--cg-steel-hi);
+    -webkit-mask: url("../src/Images/fx/chain-trim.png") 0 0 / 24px 8px repeat-x;
+    opacity: 0.9;
+  }
+  .title-mark {
+    width: 22px;
+    height: 22px;
+    color: var(--cg-brass-lit);
+    margin-right: 10px;
+    flex: none;
+  }
+  .title-text {
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--cg-ivory);
+  }
+  .title-watermark {
+    position: absolute;
+    right: 148px;
+    top: 3px;
+    width: 38px;
+    height: 38px;
+    color: var(--cg-mint);
+    opacity: 0.1;
+    pointer-events: none;
+  }
+  .caption-btns {
+    margin-left: auto;
+    display: flex;
+    height: 40px;
+  }
+  .cap-btn {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cg-sage);
+    border-left: 1px solid var(--cg-steel-plate);
+  }
+  .cap-btn svg { width: 12px; height: 12px; }
+  .title-led {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 22px;
+    height: 3px;
+    margin-left: -11px;
+    background: var(--cg-mint-hot);
+    box-shadow: 0 0 6px var(--cg-mint);
+  }
+
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    position: relative;
+  }
+
+  /* Section tree: minimal 28px bare rows in body font, reserved subtle scroll lane */
+  .tree {
+    width: 252px;
+    flex: none;
+    background: var(--cg-iron);
+    border-right: 1px solid var(--cg-steel-rim);
+    padding: 6px 16px 6px 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .scroll-lane {
+    position: absolute;
+    right: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 6px;
+    background: var(--cg-void);
+    border: 1px solid var(--cg-steel-plate);
+  }
+  .scroll-thumb {
+    width: 4px;
+    height: 170px;
+    background: var(--cg-steel-hi);
+    border-radius: var(--radius);
+  }
+  .node {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 13.5px;
+    color: var(--cg-sage);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    position: relative;
+    margin-bottom: 1px;
+  }
+  .node.child { padding-left: 26px; }
+  .node.open::before { content: "\25BE"; margin-right: 6px; font-size: 10px; color: var(--cg-brass-lit); }
+  .node.hov {
+    background: var(--cg-steel-lit);
+    color: var(--cg-ivory);
+  }
+  .node.sel {
+    background: linear-gradient(90deg, var(--cg-crt-lit) 0%, var(--cg-crt) 100%);
+    border-color: var(--cg-ivory);
+    color: var(--cg-ivory);
+    font-weight: 600;
+  }
+  .node.sel::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    background: var(--cg-mint-hot);
+    box-shadow: 0 0 6px var(--cg-mint);
+  }
+
+  /* Section page */
+  .page {
+    flex: 1;
+    min-width: 0;
+    padding: 18px 26px;
+    overflow: hidden;
+    position: relative;
+    background: var(--cg-iron);
+  }
+  .page-cracks {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    width: 150px;
+    height: 104px;
+    background: var(--cg-mint);
+    -webkit-mask: url("../src/Images/fx/glass-cracks.png") 0 0 / 100% 100% no-repeat;
+    opacity: 0.14;
+    pointer-events: none;
+  }
+  .section-title {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    margin-bottom: 14px;
+    background: var(--cg-crt);
+    border: 1px solid var(--cg-steel-rim);
+    border-left: 3px solid var(--cg-brass);
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--cg-ivory);
+    position: relative;
+    overflow: hidden;
+  }
+  .section-title::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--cg-mint);
+    -webkit-mask: url("../src/Images/fx/scanlines.png") 0 0 / 4px 4px repeat;
+    opacity: 0.05;
+  }
+  .section-title .rivet { width: 5px; height: 5px; background: var(--cg-mint); flex: none; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+    border-bottom: 1px solid var(--cg-steel-plate);
+  }
+  .row > label { width: 196px; flex: none; font-size: 13.5px; color: var(--cg-sage); }
+
+  /* 32px form controls */
+  .input {
+    width: 260px;
+    height: 32px;
+    background: var(--cg-crt-deep);
+    border: 1px solid var(--cg-steel-rim);
+    border-radius: var(--radius);
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-size: 13.5px;
+    color: var(--cg-ivory);
+  }
+  .combo { justify-content: space-between; padding-right: 0; }
+  .combo-val { padding-right: 12px; }
+  .combo-chev {
+    width: 28px;
+    height: 30px;
+    border-left: 1px solid var(--cg-steel-rim);
+    background: var(--cg-steel-plate);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cg-brass-lit);
+    font-size: 10px;
+  }
+
+  /* Acid-lime pill toggle switch matching 06-settings-gameplay Enabled */
+  .toggle-pill {
+    width: 36px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--cg-void);
+    border: 1px solid var(--cg-steel-rim);
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+  }
+  .toggle-pill::after {
+    content: "";
+    width: 14px;
+    height: 12px;
+    border-radius: 6px;
+    background: var(--cg-sage);
+    transform: translateX(0);
+  }
+  .toggle-pill.on {
+    background: var(--cg-lime);
+    border-color: var(--cg-lime-lit);
+  }
+  .toggle-pill.on::after {
+    background: var(--cg-ivory);
+    transform: translateX(16px);
+  }
+
+  .radios { display: flex; gap: 22px; align-items: center; font-size: 13.5px; color: var(--cg-ivory); }
+  .radios span { display: flex; gap: 8px; align-items: center; }
+  .radio {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--cg-steel-rim);
+    background: var(--cg-crt-deep);
+    clip-path: polygon(4px 0, 12px 0, 16px 4px, 16px 12px, 12px 16px, 4px 16px, 0 12px, 0 4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radio.on { border-color: var(--cg-mint); }
+  .radio.on::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    background: var(--cg-mint-hot);
+  }
+
+  /* Flanged steel I-beam slider matching 06-settings-gameplay */
+  .slider {
+    width: 260px;
+    height: 4px;
+    background: var(--cg-void);
+    border: 1px solid var(--cg-steel-rim);
+    position: relative;
+  }
+  .slider i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 62%;
+    background: var(--cg-mint);
+  }
+  .slider b {
+    position: absolute;
+    left: 62%;
+    top: -8px;
+    width: 8px;
+    height: 18px;
+    margin-left: -4px;
+    background: var(--cg-steel-hi);
+    border-top: 2px solid var(--cg-ivory);
+    border-bottom: 2px solid var(--cg-ivory);
+    border-left: 1px solid var(--cg-void);
+    border-right: 1px solid var(--cg-void);
+  }
+
+  /* Tapered HUD gauge progress bar */
+  .progress {
+    width: 260px;
+    height: 8px;
+    background: var(--cg-void);
+    border: 1px solid var(--cg-steel-rim);
+    position: relative;
+  }
+  .progress i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 70%;
+    background: var(--cg-lime-lit);
+  }
+
+  .btn {
+    height: 32px;
+    padding: 0 18px;
+    background: var(--cg-steel-plate);
+    border: 1px solid var(--cg-steel-rim);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    font-size: 13.5px;
+    color: var(--cg-ivory);
+  }
+  .btn.primary {
+    position: relative;
+    padding: 0 24px;
+    background: linear-gradient(180deg, var(--cg-crt-hover) 0%, var(--cg-crt-lit) 100%);
+    border: 1px solid var(--cg-mint);
+    color: var(--cg-ivory);
+    font-family: "Barlow Condensed", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
+  }
+  .btn.primary::before, .btn.primary::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--cg-mint-hot);
+  }
+  .btn.primary::before { left: 4px; }
+  .btn.primary::after { right: 4px; }
+
+  /* Bottom bar */
+  .bottom {
+    height: 52px;
+    flex: none;
+    background: var(--cg-iron-dark);
+    border-top: 1px solid var(--cg-steel-rim);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .note { margin-right: auto; font-size: 12px; color: var(--cg-sage); }
+
+  /* ---- Bronze-bezel pass (matches the XAML) ---- */
+  .title-led { display: none; }
+  .node.sel { background: var(--cg-ivory); border: 0; border-radius: 6px 0 0 6px; z-index: 0;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%); }
+  .node.sel::before { left: 1px; top: 1px; bottom: 1px; right: 1px; width: auto; z-index: -1; box-shadow: none; border-radius: 5px 0 0 5px;
+    background: var(--cg-crt-lit); clip-path: polygon(0 0, calc(100% - 9.6px) 0, 100% 50%, calc(100% - 9.6px) 100%, 0 100%); }
+  .node.hov { color: var(--cg-sage); }
+  .btn { background: var(--cg-steel-plate); border: 3px solid var(--cg-steel-rim); border-radius: 0; color: var(--cg-sage);
+    box-shadow: inset 0 0 0 1px var(--cg-bezel-dark); font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 15px;
+    clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+  .btn.primary { background: var(--cg-crt-lit); border: 3px solid var(--cg-steel-rim); color: var(--cg-ivory); letter-spacing: 0.04em; font-size: 15px; font-weight: 700;
+    clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px); }
+  .btn.primary::before, .btn.primary::after { width: 3px; border-radius: 2px; top: 6px; bottom: 6px; box-shadow: 0 0 6px var(--cg-mint); }
+</style>
+</head>
+<body>
+<div class="window" data-part="settings-window">
+  <div class="win-corner tl"></div>
+  <div class="win-corner tr"></div>
+  <div class="win-corner bl"></div>
+  <div class="win-corner br"></div>
+  <div class="win-conduit-l"></div>
+  <div class="win-conduit-r"></div>
+
+  <div class="title-bar">
+    <div class="title-chain"></div>
+    <svg class="title-mark" viewBox="0 0 72 72">
+      <path fill-rule="evenodd" d="M 60.62,38.07 L 68.59,41.22 L 66.21,50.09 L 57.76,48.86 L 54.09,53.91 L 59.35,60.67 L 52.86,67.16 L 46.79,61.21 L 41.14,64.09 L 42.37,72.54 L 33.50,74.92 L 30.35,66.95 L 24.42,66.08 L 21.14,73.99 L 13.07,70.01 L 16.01,61.96 L 12.16,57.14 L 4.02,60.29 L 0.45,51.99 L 8.21,48.10 L 7.64,42.06 L -0.45,40.07 L -0.45,30.93 L 7.64,28.94 L 8.21,22.90 L 0.45,19.01 L 4.02,10.71 L 12.16,13.86 L 16.01,9.04 L 13.07,0.99 L 21.14,-2.99 L 24.42,4.92 L 30.35,4.05 L 33.50,-3.92 L 42.37,-1.54 L 41.14,6.91 L 46.79,9.79 L 52.86,3.84 L 59.35,10.33 L 54.09,17.09 L 57.76,22.14 L 66.21,20.91 L 68.59,29.78 L 60.62,32.93 Z M 51.89,42.58 L 51.89,29.42 L 42.58,20.11 L 29.42,20.11 L 20.11,29.42 L 20.11,42.58 L 29.42,51.89 L 42.58,51.89 Z" transform="translate(36,36) scale(0.92) translate(-36,-36)"/>
+      <path d="M 22.5,34.2 L 29,34.2 L 29,37.8 L 22.5,37.8 Z M 43,34.2 L 49.5,34.2 L 49.5,37.8 L 43,37.8 Z M 36,29.5 L 42.5,36 L 36,42.5 L 29.5,36 Z"/>
+    </svg>
+    <span class="title-text">SETTINGS</span>
+    <svg class="title-watermark" viewBox="0 0 72 72"><path fill-rule="evenodd" d="M 60.62,38.07 L 68.59,41.22 L 66.21,50.09 L 57.76,48.86 L 54.09,53.91 L 59.35,60.67 L 52.86,67.16 L 46.79,61.21 L 41.14,64.09 L 42.37,72.54 L 33.50,74.92 L 30.35,66.95 L 24.42,66.08 L 21.14,73.99 L 13.07,70.01 L 16.01,61.96 L 12.16,57.14 L 4.02,60.29 L 0.45,51.99 L 8.21,48.10 L 7.64,42.06 L -0.45,40.07 L -0.45,30.93 L 7.64,28.94 L 8.21,22.90 L 0.45,19.01 L 4.02,10.71 L 12.16,13.86 L 16.01,9.04 L 13.07,0.99 L 21.14,-2.99 L 24.42,4.92 L 30.35,4.05 L 33.50,-3.92 L 42.37,-1.54 L 41.14,6.91 L 46.79,9.79 L 52.86,3.84 L 59.35,10.33 L 54.09,17.09 L 57.76,22.14 L 66.21,20.91 L 68.59,29.78 L 60.62,32.93 Z M 51.89,42.58 L 51.89,29.42 L 42.58,20.11 L 29.42,20.11 L 20.11,29.42 L 20.11,42.58 L 29.42,51.89 L 42.58,51.89 Z" transform="translate(36,36) scale(0.92) translate(-36,-36)"/></svg>
+    <div class="caption-btns">
+      <div class="cap-btn"><svg viewBox="0 0 12 12"><path d="M2 6h8v1H2z"/></svg></div>
+      <div class="cap-btn"><svg viewBox="0 0 12 12"><path d="M2 2h8v8H2V2zm1 1v6h6V3H3z"/></svg></div>
+      <div class="cap-btn"><svg viewBox="0 0 12 12"><path d="M2.5 2L6 5.5 9.5 2l.5.5L6.5 6 10 9.5l-.5.5L6 6.5 2.5 10 2 9.5 5.5 6 2 2.5z"/></svg></div>
+    </div>
+    <div class="title-led"></div>
+  </div>
+
+  <div class="body">
+    <div class="tree" data-part="settings-nav">
+      <div class="scroll-lane"><div class="scroll-thumb"></div></div>
+      <div class="node">General</div>
+      <div class="node open">Appearance</div>
+      <div class="node child sel">General</div>
+      <div class="node child">Advanced</div>
+      <div class="node child hov">Details View</div>
+      <div class="node child">Grid View</div>
+      <div class="node child">List View</div>
+      <div class="node child">Layout</div>
+      <div class="node child">Top panel</div>
+      <div class="node">Search</div>
+      <div class="node">Updating</div>
+      <div class="node">Metadata</div>
+      <div class="node">Sorting</div>
+      <div class="node">Scripts</div>
+      <div class="node">Auto Close Clients</div>
+      <div class="node">Import Exclusion List</div>
+      <div class="node">Backup</div>
+      <div class="node">For developers</div>
+      <div class="node">Input</div>
+      <div class="node open">Advanced</div>
+      <div class="node child">Performance</div>
+    </div>
+
+    <div class="page" data-part="settings-content">
+      <div class="page-cracks"></div>
+      <div class="section-title"><span class="rivet"></span>APPEARANCE</div>
+      <div class="row">
+        <label>Desktop theme</label>
+        <div class="input combo"><span class="combo-val">Cogplate</span><span class="combo-chev">&#9662;</span></div>
+      </div>
+      <div class="row">
+        <label>Font size</label>
+        <div class="slider"><i></i><b></b></div>
+      </div>
+      <div class="row">
+        <label>Library folder</label>
+        <div class="input">D:\Games</div>
+      </div>
+      <div class="row">
+        <label>Show notification panel</label>
+        <div class="toggle-pill on"></div>
+      </div>
+      <div class="row">
+        <label>Show names under covers</label>
+        <div class="toggle-pill"></div>
+      </div>
+      <div class="row">
+        <label>Animations</label>
+        <div class="radios"><span><i class="radio on"></i>Standard</span><span><i class="radio"></i>Reduced motion</span></div>
+      </div>
+      <div class="row">
+        <label>Backup</label>
+        <div class="btn">Browse...</div>
+      </div>
+      <div class="row">
+        <label>Cache indexing</label>
+        <div class="progress"><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom" data-part="settings-buttons">
+    <div class="note">* Requires restart to apply</div>
+    <div class="btn primary">SAVE</div>
+    <div class="btn">Cancel</div>
+  </div>
+</div>
+</body>
+</html>

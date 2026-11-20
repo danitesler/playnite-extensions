@@ -37,6 +37,7 @@ Search → filter → sorting at the left. Sorting is explicitly ordered. Indepe
 | Game pages | Heavy cream title over a soft orange glow, lilac-rimmed metadata pane, chips as maroon capsules with an orange rim, round More and Edit plates |
 | Library rows, rail, top bar | Capsule rows (selected cream with ink text, hover maroon plate); 32px circular rail plates; toggled tools cream |
 | Fields | Dark input capsules with the orange rim; check boxes and radios are 20px beads, cream when on |
+| Menus & dropdowns | Dreams' My Preferences violet panel (`LocalMenuPanelTemplate`, 10px corners, lilac rim, top pink/cyan chromatic line and gold-rimmed bead), 30px rows, maroon capsule highlight with orange rim, split-lens fringe and sliding gold bead, dotted lilac breaks with a pink bead, pill shortcut chips, Exit on a danger-pink capsule with ink text, checked/chosen rows a cream bead with tick (docs/themes/menus.md) |
 | Slider | Orange line, cream filled part, bead ends, 22px cream thumb with a glowing ring and a small arrows mark |
 | Scroll bars | Grey 8px thumb in a dark pill track |
 | Empty page | Original orbital seed, 3s opacity breath while empty |

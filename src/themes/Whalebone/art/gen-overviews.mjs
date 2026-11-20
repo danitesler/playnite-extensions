@@ -123,7 +123,7 @@ ${indent(hideWhenNoTitle('TextBlock'), 12)}
 </DockPanel>`;
 
 const actions = (margin) => `<StackPanel Orientation="Horizontal" Margin="${margin}">
-    <Grid Width="176" Height="40" Margin="10,0,0,0">
+    <Grid MinWidth="200" Height="40" Margin="10,0,0,0">
         <Button x:Name="PART_ButtonPlayAction" Style="{DynamicResource PlayButton}" />
         <Button x:Name="PART_ButtonContextAction" Tag="ContextAction" Style="{DynamicResource PlayButton}" />
         <Control Style="{DynamicResource RunningActionIndicator}" />
@@ -341,7 +341,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '18,16,18,18').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2', comment: '' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', exitDuration: '0:0:0.2', comment: '' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

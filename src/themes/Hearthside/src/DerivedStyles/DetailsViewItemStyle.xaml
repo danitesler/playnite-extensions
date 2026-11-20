@@ -1,10 +1,10 @@
 <!--
-    Overlay on Playnite Default/DerivedStyles/DetailsViewItemStyle.xaml: a row of the game list beside the game page,
-    drawn as a tile of the deck list. Rows are 2px apart and inset 4px from the list edge, CornerRadiusSmall,
-    transparent at rest (installed: cream, TextBrush; not installed: muted cream, TextBrushDarker, the way the
-    Collection Manager dims cards you do not own). Hover: a wood plate (ListItemHoverBrush). Selected: a lit plate
-    (ListItemSelectedBrush) with a 1px gold edge (SelectedBorderBrush) and gold type (SelectedForegroundBrush). Keyboard
-    selection is the selection, so there is no separate focus visual.
+    Overlay on Playnite Default/DerivedStyles/DetailsViewItemStyle.xaml: deck-list strips beside the game page.
+    - Calm dark oak at rest (inactive hover/selected plates stay Visibility="Collapsed").
+    - Hover: smooth beveled oak plank fade (130ms in / 190ms out) + gentle 3px deck-pull slide on row content.
+    - Selected: lit gold-rimmed deck plaque fading in (180ms), left 3px gold bar springing vertically (BackEase),
+      and a one-shot golden glint sweep across the selected strip.
+    - Preserves RowHoverAction (Play/Install hover icon + RowHoverRoom 38px clearance) and Mana Crystal RunningIndicator.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -13,62 +13,231 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
         <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
         <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
-        <Setter Property="Padding" Value="4,4,8,4" />
+        <Setter Property="Padding" Value="6,4,8,4" />
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                    <Grid Margin="4,1,4,1">
-                        <Border x:Name="Row" Background="Transparent" BorderBrush="Transparent"
-                                BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusSmall}" />
-                        <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
-                            <Border x:Name="RunningWash" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.16" />
-                            <Border x:Name="RunningMarkPlate" Visibility="Visible" Width="65" HorizontalAlignment="Right" Margin="2" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.34">
-                                <Border.OpacityMask>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#00000000" Offset="0" />
-                                        <GradientStop Color="#FF000000" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Border.OpacityMask>
+                    <Grid>
+                        <Grid Margin="4,1,4,1">
+                            <!-- Hover oak plank (collapsed at rest, smooth opacity transition) -->
+                            <Border x:Name="HoverRow" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                    Background="{DynamicResource ListItemHoverBrush}" BorderBrush="{DynamicResource NormalBorderBrush}"
+                                    BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusSmall}">
+                                <Grid>
+                                    <Border Background="{DynamicResource BevelShadowBrush}" Opacity="0.26" CornerRadius="{DynamicResource CornerRadiusSmall}">
+                                        <Border.OpacityMask>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#00000000" Offset="0.35" />
+                                                <GradientStop Color="#FF000000" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Border.OpacityMask>
+                                    </Border>
+                                    <Border Height="1" Margin="3,0,3,0" VerticalAlignment="Top"
+                                            Background="{DynamicResource BevelLightBrush}" Opacity="0.3" />
+                                </Grid>
                             </Border>
-                        <Border x:Name="RunningScan" Visibility="Collapsed" Background="{DynamicResource RunningIndicatorBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" Opacity="0.45">
-                            <Border.OpacityMask>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.3">
-                                    <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.24" />
-                                    <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="-0.12" />
-                                    <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0" />
-                                </LinearGradientBrush>
-                            </Border.OpacityMask>
-                        </Border>
-                            <!-- 2px running edge with a 1px dark keyline inside: reads on dark rows and on bright selected fills alike. -->
-                            <Border x:Name="RunningFrame" CornerRadius="{DynamicResource CornerRadiusSmall}" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2">
-                                <Border BorderBrush="{DynamicResource TextBrushDark}" BorderThickness="1" Opacity="0.7" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                            <!-- Selected lit gold-rimmed deck plaque (collapsed at rest, smooth fade + glint sweep) -->
+                            <Border x:Name="SelectedRow" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                    Background="{DynamicResource ListItemSelectedBrush}" BorderBrush="{DynamicResource SelectedBorderBrush}"
+                                    BorderThickness="1" CornerRadius="{DynamicResource CornerRadiusSmall}">
+                                <Grid>
+                                    <Border Background="{DynamicResource BevelShadowBrush}" Opacity="0.28" CornerRadius="{DynamicResource CornerRadiusSmall}">
+                                        <Border.OpacityMask>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#00000000" Offset="0.35" />
+                                                <GradientStop Color="#FF000000" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Border.OpacityMask>
+                                    </Border>
+                                    <Border Height="1" Margin="3,0,3,0" VerticalAlignment="Top"
+                                            Background="{DynamicResource BevelLightBrush}" Opacity="0.45" />
+                                    <Border x:Name="SelectedGlint" Visibility="Collapsed" Opacity="0.32"
+                                            Background="{DynamicResource BevelLightBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}">
+                                        <Border.OpacityMask>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.25">
+                                                <GradientStop x:Name="SelGlintTail" Color="#00000000" Offset="-0.3" />
+                                                <GradientStop x:Name="SelGlintPeak" Color="#FF000000" Offset="-0.15" />
+                                                <GradientStop x:Name="SelGlintHead" Color="#00000000" Offset="0" />
+                                            </LinearGradientBrush>
+                                        </Border.OpacityMask>
+                                    </Border>
+                                </Grid>
                             </Border>
-                            <Border HorizontalAlignment="Right" Width="64" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.2">
-                                <Border.OpacityMask>
-                                    <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
-                                        <GradientStop Color="#FF000000" Offset="0" />
-                                        <GradientStop Color="#00000000" Offset="1" />
-                                    </LinearGradientBrush>
-                                </Border.OpacityMask>
+                            <!-- Left 3px burnished gold selection bar (springs vertically from center on select) -->
+                            <Border x:Name="SelectedBar" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                    Width="3" Margin="1,3,0,3" HorizontalAlignment="Left" CornerRadius="1.5"
+                                    Background="{DynamicResource BevelLightBrush}" RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="SelectedBarScale" ScaleY="0.2" />
+                                </Border.RenderTransform>
                             </Border>
-                            <StackPanel Margin="0,0,22,4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal">
-                                <Path x:Name="RunningGem1" Width="5" Height="7" Margin="0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
-                                <Path x:Name="RunningGem2" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
-                                <Path x:Name="RunningGem3" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
-                                <Path x:Name="RunningGem4" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
-                                <Path x:Name="RunningGem5" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
-                            </StackPanel>
-                            <Path Width="8" Height="11" Margin="0,0,6,0" HorizontalAlignment="Right" VerticalAlignment="Center" Stretch="Fill"
-                                  Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Stroke="{DynamicResource NormalBorderBrush}" StrokeThickness="1" />
+                            <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                                <Border x:Name="RunningWash" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.16" />
+                                <Border x:Name="RunningMarkPlate" Visibility="Visible" Width="65" HorizontalAlignment="Right" Margin="2" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.34">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#00000000" Offset="0" />
+                                            <GradientStop Color="#FF000000" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                                <Border x:Name="RunningScan" Visibility="Collapsed" Background="{DynamicResource RunningIndicatorBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" Opacity="0.45">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.3">
+                                            <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.24" />
+                                            <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="-0.12" />
+                                            <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0" />
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                                <!-- 2px running edge with a 1px dark keyline inside: reads on dark rows and bright selected fills alike. -->
+                                <Border x:Name="RunningFrame" CornerRadius="{DynamicResource CornerRadiusSmall}" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2">
+                                    <Border BorderBrush="{DynamicResource TextBrushDark}" BorderThickness="1" Opacity="0.7" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                                </Border>
+                                <Border HorizontalAlignment="Right" Width="64" CornerRadius="{DynamicResource CornerRadiusSmall}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.2">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+                                            <GradientStop Color="#FF000000" Offset="0" />
+                                            <GradientStop Color="#00000000" Offset="1" />
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                                <StackPanel Margin="0,0,22,4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal">
+                                    <Path x:Name="RunningGem1" Width="5" Height="7" Margin="0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
+                                    <Path x:Name="RunningGem2" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
+                                    <Path x:Name="RunningGem3" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
+                                    <Path x:Name="RunningGem4" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
+                                    <Path x:Name="RunningGem5" Width="5" Height="7" Margin="2,0,0,0" Stretch="Fill" Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.25" />
+                                </StackPanel>
+                                <Path Width="8" Height="11" Margin="0,0,6,0" HorizontalAlignment="Right" VerticalAlignment="Center" Stretch="Fill"
+                                      Data="M5,0 L10,6 L5,12 L0,6 Z" Fill="{DynamicResource RunningIndicatorBrush}" Stroke="{DynamicResource NormalBorderBrush}" StrokeThickness="1" />
+                            </Grid>
+                            <Border Padding="{TemplateBinding Padding}" BorderThickness="1">
+                                <Border x:Name="RowRoom">
+                                    <Grid ClipToBounds="True">
+                                        <Border x:Name="RowHoverRoom">
+                                            <ContentPresenter>
+                                                <ContentPresenter.RenderTransform>
+                                                    <TranslateTransform x:Name="RowSlide" X="0" />
+                                                </ContentPresenter.RenderTransform>
+                                            </ContentPresenter>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Border>
                         </Grid>
-                        <Border Padding="{TemplateBinding Padding}" BorderThickness="1">
-                            <Border x:Name="RowRoom">
-                                <Grid ClipToBounds="True"><ContentPresenter /></Grid>
-                            </Border>
-                        </Border>
+                        <!-- RowHoverAction: play (installed) or install (not installed) button on the row's right edge, only while hovered; hidden while launching or running. -->
+                        <Button x:Name="RowHoverPlay" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
+                                Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCPlayGame}"
+                                Command="{MainViewModel StartGameCommand}" CommandParameter="{Binding Game}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                                <Condition Binding="{Binding IsInstalled}" Value="True" />
+                                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Grid Background="Transparent">
+                                        <Viewbox x:Name="Glyph" Width="14" Height="14" Opacity="0.75" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                            <Viewbox.RenderTransform>
+                                                <ScaleTransform x:Name="GlyphPop" ScaleX="1" ScaleY="1" />
+                                            </Viewbox.RenderTransform>
+                                            <ContentControl Focusable="False" Content="{DynamicResource IconPlay}" ContentTemplate="{DynamicResource IconTemplate}" />
+                                        </Viewbox>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Glyph" Property="Opacity" Value="1" />
+                                            <Setter TargetName="Glyph" Property="Width" Value="17" />
+                                            <Setter TargetName="Glyph" Property="Height" Value="17" />
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard Name="PlayGlyphIn">
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="GlyphPop" Storyboard.TargetProperty="ScaleX" From="0.88" To="1.06" Duration="0:0:0.16">
+                                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetName="GlyphPop" Storyboard.TargetProperty="ScaleY" From="0.88" To="1.06" Duration="0:0:0.16">
+                                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <RemoveStoryboard BeginStoryboardName="PlayGlyphIn" />
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button x:Name="RowHoverInstall" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
+                                Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCInstallGame}"
+                                Command="{MainViewModel InstallGameCommand}" CommandParameter="{Binding Game}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                                <Condition Binding="{Binding IsInstalled}" Value="False" />
+                                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Grid Background="Transparent">
+                                        <Viewbox x:Name="Glyph" Width="14" Height="14" Opacity="0.75" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                            <Viewbox.RenderTransform>
+                                                <ScaleTransform x:Name="GlyphPop" ScaleX="1" ScaleY="1" />
+                                            </Viewbox.RenderTransform>
+                                            <ContentControl Focusable="False" Content="{DynamicResource IconDownload}" ContentTemplate="{DynamicResource IconTemplate}" />
+                                        </Viewbox>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Glyph" Property="Opacity" Value="1" />
+                                            <Setter TargetName="Glyph" Property="Width" Value="17" />
+                                            <Setter TargetName="Glyph" Property="Height" Value="17" />
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard Name="InstallGlyphIn">
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="GlyphPop" Storyboard.TargetProperty="ScaleX" From="0.88" To="1.06" Duration="0:0:0.16">
+                                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                        <DoubleAnimation Storyboard.TargetName="GlyphPop" Storyboard.TargetProperty="ScaleY" From="0.88" To="1.06" Duration="0:0:0.16">
+                                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <RemoveStoryboard BeginStoryboardName="InstallGlyphIn" />
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsInstalled}" Value="True">
@@ -78,13 +247,90 @@
                             <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
                         </DataTrigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Row" Property="Background" Value="{DynamicResource ListItemHoverBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="RowHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="RowSlide" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RowHoverIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.19" />
+                                        <DoubleAnimation Storyboard.TargetName="RowSlide" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.19" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Row" Property="Background" Value="{DynamicResource ListItemSelectedBrush}" />
-                            <Setter TargetName="Row" Property="BorderBrush" Value="{DynamicResource SelectedBorderBrush}" />
+                            <Setter TargetName="HoverRow" Property="Visibility" Value="Collapsed" />
                             <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="RowSelectIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedGlint" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.42" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBarScale" Storyboard.TargetProperty="ScaleY" From="0.2" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.4" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelGlintTail" Storyboard.TargetProperty="Offset" Duration="0:0:0.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.3" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="1.05" KeySpline="0.35,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelGlintPeak" Storyboard.TargetProperty="Offset" Duration="0:0:0.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="1.2" KeySpline="0.35,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelGlintHead" Storyboard.TargetProperty="Offset" Duration="0:0:0.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="1.35" KeySpline="0.35,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RowSelectIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Binding IsLaunching}" Value="True">
                             <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
@@ -198,6 +444,20 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
                             <Setter TargetName="RowRoom" Property="Padding" Value="0,0,65,0" />
+                        </DataTrigger>
+                        <!-- RowHoverAction: keep the row text clear of the hover button (26px + 8px margin + gap). -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0,0,38,0" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0" />
+                            <Setter TargetName="RowHoverPlay" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RowHoverInstall" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0" />
+                            <Setter TargetName="RowHoverPlay" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RowHoverInstall" Property="Visibility" Value="Collapsed" />
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

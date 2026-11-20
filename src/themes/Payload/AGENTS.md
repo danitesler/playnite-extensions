@@ -70,7 +70,7 @@ Skeleton and metadata pane follow `../AGENTS.md`: Steam screenshots sit in the l
 | Button, ToggleButton, RepeatButton, GridTileButton | Menu button plate (363c4a); a checked toggle is the cyan tab fill; a default button is orange |
 | TextBox, PasswordBox, SearchBox, ComboBox | Dark well with a 1px light-blue edge that turns cyan on focus |
 | ListBox, DetailsViewItemStyle | Career profile list: cyan wash with a 3px cyan edge |
-| Menu, ComboBoxItem | Dropdown panel: profile band highlight, cyan check |
+| ContextMenu, Menu, ComboBox(Item), ComboBoxList, FilterSelectionBox | Every menu and dropdown list is one career profile panel (`LocalMenuPanelTemplate`: medium blue, hairline, a top band led by a 40px slanted orange tab), 30px rows with a fixed 30px icon column; highlight is the solid cyan 15-degree plate led by an orange sliver, sliding in 10px (label black); shortcuts in slanted outline chips; group break a hairline led by a slanted orange sliver; Exit on an enemy-red plate with a white label; checked and chosen rows a slanted cyan chip with a black tick (docs/themes/menus.md) |
 | CheckBox, RadioButton | Square with 2px corners or a ring; checked is cyan with a black tick |
 | Slider | 4px rail with an orange fill; the thumb is an 8 x 18 light slanted plate |
 | ProgressBar | Battle Pass bar: orange on a navy rail, 6px |

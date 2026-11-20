@@ -57,7 +57,8 @@
         <ContentPresenter Width="{DynamicResource IconSize}" Height="{DynamicResource IconSize}" Content="{DynamicResource IconSearch}" ContentTemplate="{DynamicResource IconTemplate}" />
     </DataTemplate>
 
-    <!-- Looked up from code for the top bar dropdowns: the wood menu of DefaultControls/ContextMenu.xaml. -->
+    <!-- Looked up from code for the top bar dropdowns and the main menu: the tavern ledger menu of
+         DefaultControls/ContextMenu.xaml and Menu.xaml, the same as every other menu (docs/themes/menus.md). -->
     <Style x:Key="TopPanelMenu" TargetType="{x:Type ContextMenu}" BasedOn="{StaticResource {x:Type ContextMenu}}" />
 
     <!-- Filter toggle: a 36px wood plate like TopPanelItem (muted cream glyph, wood plate under the pointer, lit plate with
@@ -77,9 +78,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8,0,8,0">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="HoverPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource TopPanelItemHoverBackgroundBrush}" BorderBrush="{DynamicResource NormalBorderBrush}"
+                                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="CheckedPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource TopPanelItemCheckedBackgroundBrush}" BorderBrush="{DynamicResource SelectedBorderBrush}"
+                                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8,0,8,0" RenderTransformOrigin="0.5,0.5">
+                            <StackPanel.RenderTransform>
+                                <ScaleTransform x:Name="FilterScale" ScaleX="1" ScaleY="1" />
+                            </StackPanel.RenderTransform>
                             <ContentPresenter Width="{DynamicResource IconSize}" Height="{DynamicResource IconSize}"
                                               VerticalAlignment="Center"
                                               TextElement.Foreground="{TemplateBinding Foreground}"
@@ -87,13 +96,67 @@
                                               ContentTemplate="{DynamicResource IconTemplate}" />
                             <Path x:Name="TextFilter" Visibility="Collapsed" IsHitTestVisible="False" Margin="-4,-18,-4,0" VerticalAlignment="Center" Width="10" Height="10" Stretch="Fill" Data="M5,0 L10,5 5,10 0,5 Z" Fill="{DynamicResource DataChangeNotifBrush}" />
                         </StackPanel>
-                    </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Tag" Value="{StaticResource True}">
                             <Setter Property="Visibility" Value="Visible" TargetName="TextFilter" />
                         </Trigger>
                         <Trigger Property="Tag" Value="{StaticResource False}">
                             <Setter Property="Visibility" Value="Collapsed" TargetName="TextFilter" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="FilterHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="FilterScale" Storyboard.TargetProperty="ScaleX" To="1.08" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.35" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="FilterScale" Storyboard.TargetProperty="ScaleY" To="1.08" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.35" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="FilterHoverIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="FilterScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="FilterScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="FilterCheckedIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="FilterCheckedIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -130,25 +193,87 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Grid SnapsToDevicePixels="True">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="HoverPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource TopPanelItemHoverBackgroundBrush}" BorderBrush="{DynamicResource NormalBorderBrush}"
                                 BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" />
-                        <ContentPresenter Width="{DynamicResource IconSize}" Height="{DynamicResource IconSize}"
+                        <Border x:Name="CheckedPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource TopPanelItemCheckedBackgroundBrush}" BorderBrush="{DynamicResource SelectedBorderBrush}"
+                                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <ContentPresenter Width="{DynamicResource IconSize}" Height="{DynamicResource IconSize}" RenderTransformOrigin="0.5,0.5"
                                           HorizontalAlignment="Center" VerticalAlignment="Center"
                                           TextElement.Foreground="{TemplateBinding Foreground}"
                                           Content="{DynamicResource IconNotifications}"
-                                          ContentTemplate="{DynamicResource IconTemplate}" />
-                        <Border MinWidth="16" Height="16" Margin="0,-2,-4,0" Padding="4,0,4,0" CornerRadius="8"
+                                          ContentTemplate="{DynamicResource IconTemplate}">
+                            <ContentPresenter.RenderTransform>
+                                <ScaleTransform x:Name="NotifScale" ScaleX="1" ScaleY="1" />
+                            </ContentPresenter.RenderTransform>
+                        </ContentPresenter>
+                        <Border MinWidth="17" Height="17" Margin="0,-1,-3,0" Padding="4,0,4,0" CornerRadius="8.5"
                                 Background="{DynamicResource DangerBrush}"
-                                BorderBrush="{DynamicResource FrameInnerBrush}" BorderThickness="1"
+                                BorderBrush="{DynamicResource SelectedBorderBrush}" BorderThickness="1"
                                 HorizontalAlignment="Right" VerticalAlignment="Top">
-                            <TextBlock Text="{Api Notifications.Count}" FontSize="11"
+                            <TextBlock Text="{Api Notifications.Count}" FontSize="10" FontWeight="Bold"
                                        FontFamily="{DynamicResource HeadingFontFamily}"
                                        Foreground="{DynamicResource DangerForegroundBrush}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="NotifHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="NotifScale" Storyboard.TargetProperty="ScaleX" To="1.08" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.35" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="NotifScale" Storyboard.TargetProperty="ScaleY" To="1.08" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.35" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="NotifHoverIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="NotifScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="NotifScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="NotifCheckedIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="NotifCheckedIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckedPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
@@ -196,29 +321,47 @@
                                 </Style.Triggers>
                             </Style>
                         </Grid.Style>
-                        <Border Height="3" VerticalAlignment="Bottom" Background="{DynamicResource FrameInnerBrush}"
-                                BorderBrush="{DynamicResource TopPanelSeparatorBrush}" BorderThickness="0,1,0,0">
-                            <Border.Style>
-                                <Style TargetType="Border">
+                        <!-- Carved oak plank grain across the top beam (hidden when window art is on) -->
+                        <Control Template="{DynamicResource LocalWoodGrainTemplate}" IsHitTestVisible="False">
+                            <Control.Style>
+                                <Style TargetType="Control">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Control.Style>
+                        </Control>
+                        <!-- 3-layer carved brass molding + centered diamond clasp -->
+                        <Grid Height="4" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Settings ShowPanelSeparators}" Value="False">
                                             <Setter Property="Visibility" Value="Collapsed" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Border.Style>
-                        </Border>
+                            </Grid.Style>
+                            <Border Height="4" VerticalAlignment="Bottom" Background="{DynamicResource FrameInnerBrush}" />
+                            <Border Height="2" VerticalAlignment="Bottom" Background="{DynamicResource TopPanelSeparatorBrush}" />
+                            <Border Height="1" VerticalAlignment="Bottom" Background="{DynamicResource FrameBrush}" Opacity="0.85" />
+                            <Path Width="9" Height="9" Margin="0,0,0,-4" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                  Stretch="Fill" Data="M 4.5,0 L 9,4.5 L 4.5,9 L 0,4.5 Z"
+                                  Fill="{DynamicResource SelectedBorderBrush}" Stroke="{DynamicResource FrameInnerBrush}" StrokeThickness="1" />
+                        </Grid>
                         <DockPanel Margin="20,0,160,3">
                             <Border x:Name="PART_ElemMainMenu" Style="{DynamicResource MainMenuButton}"
                                     DockPanel.Dock="Left" Margin="0,0,12,0" VerticalAlignment="Center">
-                                <Border Width="30" Height="30" CornerRadius="{DynamicResource CornerRadiusFull}"
+                                <Border Width="32" Height="32" CornerRadius="{DynamicResource CornerRadiusFull}"
                                         HorizontalAlignment="Center" VerticalAlignment="Center"
                                         Background="{DynamicResource MainMenuButtonBackgroundBrush}"
                                         BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=Border}}"
                                         BorderThickness="2">
-                                    <ContentPresenter Width="14" Height="14"
+                                    <ContentPresenter Width="15" Height="15"
                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      Content="{DynamicResource IconMainMenu}"
+                                                      Content="{DynamicResource LocalIconHearthMark}"
                                                       ContentTemplate="{DynamicResource IconTemplate}" />
                                 </Border>
                             </Border>
@@ -315,12 +458,12 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                    <TextBlock Name="PART_TextProgressText" Margin="0,0,0,6"
+                                    <TextBlock Name="PART_TextProgressText" Margin="12,0,12,4"
                                                TextTrimming="CharacterEllipsis"
                                                FontSize="{DynamicResource FontSizeSmall}"
                                                Foreground="{DynamicResource TextBrushDarker}"
                                                Style="{DynamicResource BaseTextBlockStyle}" />
-                                    <ProgressBar Name="PART_ProgressGlobal" Height="6" />
+                                    <ProgressBar Name="PART_ProgressGlobal" Height="12" />
                                 </StackPanel>
                                 <Button Name="PART_ButtonProgressCancel" Grid.Column="1"
                                         Content="{DynamicResource LOCCancelLabel}"

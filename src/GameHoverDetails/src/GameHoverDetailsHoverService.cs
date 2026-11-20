@@ -23,18 +23,8 @@ namespace GameHoverDetails
     {
         private static readonly ILogger Logger = LogManager.GetLogger();
 
-        private double ContentPaddingDip()
-        {
-            var s = settings.HoverContentPaddingDip;
-            if (s < GameHoverDetailsSettings.MinContentPaddingDip)
-            {
-                return GameHoverDetailsSettings.MinContentPaddingDip;
-            }
-
-            return s > GameHoverDetailsSettings.MaxContentPaddingDip
-                ? GameHoverDetailsSettings.MaxContentPaddingDip
-                : s;
-        }
+        private double ContentPaddingDip() =>
+            GameHoverDetailsSettings.ClampContentPaddingDip(settings.HoverContentPaddingDip);
 
         /// <summary>Horizontal inner inset: twice the content-stack margin (left + right).</summary>
         private double ChromePadding() => ContentPaddingDip() * 2;

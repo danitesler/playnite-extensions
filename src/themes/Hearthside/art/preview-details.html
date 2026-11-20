@@ -1,113 +1,398 @@
 <!doctype html>
-<!-- Hearthside: HTML replica of Playnite's details view (game list + game page) for the release screenshot.
-     Rendered by scripts/take-screenshots.ps1. Colors are the tokens in src/tokens.css; the art is drawn with gradients
-     (no game files). -->
+<!-- Hearthside: HTML replica of Playnite's Details view (1280x720) for the release screenshot.
+     Uses tokens from src/tokens.css and the same white-mask sprites in src/Images/fx/ that XAML uses. -->
 <html>
 <head>
 <meta charset="utf-8">
 <title>Hearthside - Details Preview</title>
 <style>
   :root {
-    --night: var(--hs-wood-night); --deep: var(--hs-wood-deep); --wood: var(--hs-wood); --panel: var(--hs-wood-panel); --mid: var(--hs-wood-mid); --light: var(--hs-wood-light);
-    --pressed: var(--hs-wood-pressed); --grain: var(--hs-wood-grain);
-    --gold-light: var(--hs-gold-light); --gold: var(--hs-gold); --brass: var(--hs-brass); --brass-dark: var(--hs-brass-dark); --brass-deep: var(--hs-brass-deep);
-    --cream: var(--hs-cream); --muted: var(--hs-cream-muted); --dim: var(--hs-cream-dim);
-    --mana: var(--hs-mana); --mana-dark: var(--hs-mana-dark); --playable: var(--hs-playable);
-    --endturn: var(--hs-endturn); --endturn-ink: var(--hs-endturn-ink); --health: var(--hs-health);
     --title: "Belwe Bd BT", "Bookman Old Style", Georgia, "DejaVu Serif", serif;
     --body: "Franklin Gothic Medium", "Franklin Gothic Book", "Segoe UI", "DejaVu Sans", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { width: 1280px; height: 720px; overflow: hidden; background: var(--wood); color: var(--cream);
-         font-family: var(--body); font-size: 14px; display: flex; }
+  body {
+    width: 1280px; height: 720px; overflow: hidden;
+    background: var(--hs-wood); color: var(--hs-cream);
+    font-family: var(--body); font-size: 14px; display: flex;
+  }
   svg { display: block; }
 
-  .rail { width: 44px; background: var(--deep); box-shadow: inset -1px 0 0 var(--brass-dark), inset -2px 0 0 var(--grain);
-          display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
-  .medal { height: 56px; display: flex; align-items: center; justify-content: center; }
-  .medal span { width: 30px; height: 30px; border-radius: 50%; background: var(--mana-dark); border: 2px solid var(--brass);
-                display: flex; align-items: center; justify-content: center; }
-  .rail-item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--muted); position: relative; }
-  .rail-item.on::before { content: ""; position: absolute; width: 38px; height: 38px; border-radius: 10px; border: 2px solid var(--gold); opacity: .35; }
-  .rail-item.on span { background: var(--light); border: 1px solid var(--gold); color: var(--gold-light); }
-  .rail-item span { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  /* Reusable white-mask texture layers (same PNGs XAML uses via ImageBrush OpacityMask) */
+  .wood-tex {
+    position: absolute; inset: 0; pointer-events: none;
+    background: var(--hs-wood-grain); opacity: .28;
+    -webkit-mask-image: url('../src/Images/fx/wood-grain.png');
+    -webkit-mask-size: 128px 128px; -webkit-mask-repeat: repeat;
+  }
+  .wood-sheen {
+    position: absolute; inset: 0; pointer-events: none;
+    background: var(--hs-gold-light); opacity: .05;
+    -webkit-mask-image: url('../src/Images/fx/wood-grain.png');
+    -webkit-mask-size: 128px 128px; -webkit-mask-repeat: repeat;
+  }
+  .clasp {
+    position: absolute; width: 20px; height: 20px; pointer-events: none;
+    background: var(--hs-brass);
+    -webkit-mask-image: url('../src/Images/fx/corner-clasp.png');
+    -webkit-mask-size: 100% 100%; -webkit-mask-repeat: no-repeat;
+  }
+  .clasp.tl { top: -2px; left: -2px; }
+  .clasp.tr { top: -2px; right: -2px; transform: scaleX(-1); }
+  .clasp.bl { bottom: -2px; left: -2px; transform: scaleY(-1); }
+  .clasp.br { bottom: -2px; right: -2px; transform: scale(-1); }
 
+  /* Left Sidebar Rail: 44px carved oak beam + 3-layer brass molding */
+  .rail {
+    width: 44px; background: var(--hs-wood-deep); position: relative;
+    display: flex; flex-direction: column; align-items: center; flex-shrink: 0;
+    box-shadow: inset -1px 0 0 var(--hs-brass), inset -2px 0 0 var(--hs-brass-dark), inset -4px 0 0 var(--hs-wood-grain);
+  }
+  .medal { height: 56px; width: 44px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; }
+  .medal-halo {
+    position: absolute; width: 44px; height: 44px; background: var(--hs-mana-glow); opacity: .42;
+    -webkit-mask-image: url('../src/Images/fx/hearth-halo.png'); -webkit-mask-size: 100% 100%;
+  }
+  .medal-orb {
+    position: relative; width: 32px; height: 32px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, var(--hs-mana-light) 0%, var(--hs-mana) 36%, var(--hs-mana-dark) 88%);
+    border: 2px solid var(--hs-gold);
+    box-shadow: inset 0 0 0 1px var(--hs-wood-grain), 0 1px 0 var(--hs-wood-grain);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .medal-orb::before, .medal-orb::after {
+    content: ""; position: absolute; width: 5px; height: 5px; background: var(--hs-gold-light);
+    transform: rotate(45deg); border: 1px solid var(--hs-wood-grain);
+  }
+  .medal-orb::before { top: -4px; left: 11px; }
+  .medal-orb::after { bottom: -4px; left: 11px; }
+
+  .rail-item {
+    width: 44px; height: 40px; display: flex; align-items: center; justify-content: center;
+    color: var(--hs-cream-muted); position: relative; z-index: 2;
+  }
+  .rail-item.on .item-glow {
+    position: absolute; inset: -6px -4px; background: var(--hs-gold); opacity: .52;
+    -webkit-mask-box-image: url('../src/Images/fx/glow-frame.png') 88 fill / 20px;
+  }
+  .rail-item.on::after {
+    content: ""; position: absolute; left: 1px; top: 16px; width: 6px; height: 8px;
+    background: var(--hs-gold-light); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .rail-item span {
+    position: relative; width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rail-item.on span {
+    background: linear-gradient(to bottom, var(--hs-wood-light), var(--hs-wood-mid));
+    border: 1px solid var(--hs-gold); color: var(--hs-gold-light);
+    box-shadow: inset 0 1px 0 var(--hs-gold-light);
+  }
+
+  /* Main area */
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .top { height: 56px; background: var(--deep); display: flex; align-items: center; padding: 0 16px 0 20px; gap: 4px;
-         box-shadow: inset 0 -3px 0 var(--grain), inset 0 -2px 0 var(--grain); border-bottom: 1px solid var(--brass-dark); position: relative; }
-  .search { width: 260px; height: 34px; background: var(--pressed); border: 1px solid var(--brass-dark); border-radius: 6px;
-            box-shadow: inset 0 3px 3px -1px rgba(0,0,0,.6); display: flex; align-items: center; gap: 8px; padding: 0 10px;
-            color: var(--muted); margin-right: 14px; }
-  .items { display: flex; gap: 4px; margin-right: 4px; }
-  .gem { position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--hs-health); color: var(--hs-cream); font-size: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--hs-health-light); }
-  .tp { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--muted); border: 1px solid transparent; }
-  .tp.on { background: var(--light); border-color: var(--gold); color: var(--gold-light); }
-  .win { margin-left: auto; display: flex; color: var(--muted); }
+
+  /* Top Panel: 56px carved oak beam + brass lower molding + centered diamond clasp */
+  .top {
+    height: 56px; background: var(--hs-wood-deep); position: relative;
+    display: flex; align-items: center; padding: 0 16px 0 20px; gap: 4px;
+    box-shadow: inset 0 -1px 0 var(--hs-brass), inset 0 -2px 0 var(--hs-brass-dark), inset 0 -4px 0 var(--hs-wood-grain);
+  }
+  .top-clasp {
+    position: absolute; left: 50%; bottom: -4px; width: 10px; height: 10px; margin-left: -5px; z-index: 5;
+    background: var(--hs-gold); border: 1px solid var(--hs-wood-grain); transform: rotate(45deg);
+  }
+  .search {
+    width: 260px; height: 34px; background: var(--hs-wood-pressed);
+    border: 1px solid var(--hs-brass-dark); border-radius: 6px;
+    box-shadow: inset 0 2px 4px var(--hs-wood-grain), 0 1px 0 var(--hs-wood-panel);
+    display: flex; align-items: center; gap: 8px; padding: 0 10px;
+    color: var(--hs-cream-muted); margin-right: 14px; position: relative; z-index: 2;
+  }
+  .items { display: flex; gap: 4px; margin-right: 4px; position: relative; z-index: 2; }
+  .tp {
+    width: 36px; height: 36px; border-radius: 6px; position: relative; z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--hs-cream-muted); border: 1px solid transparent;
+  }
+  .tp.on {
+    background: linear-gradient(to bottom, var(--hs-wood-light), var(--hs-wood-mid));
+    border-color: var(--hs-gold); color: var(--hs-gold-light);
+    box-shadow: inset 0 1px 0 var(--hs-gold-light), 0 1px 0 var(--hs-wood-grain);
+  }
+  .filter-gem {
+    position: absolute; top: 3px; right: 3px; width: 9px; height: 9px;
+    background: var(--hs-legendary); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .gem {
+    position: absolute; top: -1px; right: -2px; min-width: 17px; height: 17px; border-radius: 9px;
+    background: radial-gradient(circle at 35% 30%, var(--hs-health-light), var(--hs-health) 70%);
+    color: var(--hs-cream); font-family: var(--title); font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--hs-gold); box-shadow: 0 1px 2px var(--hs-wood-grain);
+  }
+  .win { margin-left: auto; display: flex; color: var(--hs-cream-muted); position: relative; z-index: 2; }
   .win div { width: 44px; height: 32px; display: flex; align-items: center; justify-content: center; }
 
-  .body { flex: 1; display: flex; min-height: 0; }
-  .list { width: 300px; padding: 10px 4px; border-right: 1px solid var(--brass-deep); flex-shrink: 0; }
-  .row { padding: 6px 8px; margin: 2px 0; border-radius: 3px; display: flex; align-items: center; gap: 10px; border: 1px solid transparent; }
-  .row i { width: 20px; height: 20px; border-radius: 3px; flex-shrink: 0; }
-  .row.dim { color: var(--muted); }
-  .row.sel { background: var(--light); border-color: var(--gold); color: var(--gold-light); }
-  .row.hov { background: var(--mid); }
+  /* Body */
+  .body { flex: 1; display: flex; min-height: 0; position: relative; }
 
-  .page { flex: 1; position: relative; overflow: hidden; }
-  .banner { position: absolute; left: 0; right: 0; top: 0; height: 340px;
+  /* Game List: calm woodgrain rail + deck-strip hover/selected/running rows */
+  .list {
+    width: 300px; padding: 10px 6px; position: relative; flex-shrink: 0;
+    background: var(--hs-wood);
+    box-shadow: inset -1px 0 0 var(--hs-brass-dark), inset -3px 0 0 var(--hs-wood-grain);
+  }
+  .row {
+    position: relative; z-index: 2; padding: 6px 10px; margin: 2px 0; border-radius: 4px;
+    display: flex; align-items: center; gap: 10px; border: 1px solid transparent;
+    color: var(--hs-cream);
+  }
+  .row i {
+    width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0;
+    border: 1px solid var(--hs-wood-grain);
+  }
+  .row.dim { color: var(--hs-cream-muted); opacity: .82; }
+  .row.hov {
+    background: linear-gradient(to bottom, var(--hs-wood-mid), var(--hs-wood-panel));
+    border-color: var(--hs-brass-dark);
+    box-shadow: inset 0 1px 0 var(--hs-brass);
+  }
+  .row.sel {
+    background: linear-gradient(to bottom, var(--hs-wood-light), var(--hs-wood-mid));
+    border-color: var(--hs-gold); color: var(--hs-gold-light);
+    box-shadow: inset 0 1px 0 var(--hs-gold-light), 0 1px 2px var(--hs-wood-grain);
+    padding-left: 14px;
+  }
+  .row.sel::before {
+    content: ""; position: absolute; left: 0; top: 3px; bottom: 3px; width: 3px;
+    border-radius: 2px; background: var(--hs-gold-light);
+  }
+  .row.run {
+    background: linear-gradient(to right, rgba(74,163,240,.16), rgba(74,163,240,.28));
+    border: 2px solid var(--hs-mana); color: var(--hs-cream);
+    box-shadow: inset 0 0 0 1px var(--hs-wood-grain);
+  }
+  .run-gems { margin-left: auto; display: flex; align-items: center; gap: 3px; }
+  .run-gems b {
+    width: 5px; height: 8px; background: var(--hs-mana-light);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+  .run-gems .big { width: 8px; height: 11px; background: var(--hs-mana); margin-left: 3px; }
+
+  /* Game Page */
+  .page { flex: 1; position: relative; overflow: hidden; background: var(--hs-wood); }
+  .banner {
+    position: absolute; left: 0; right: 0; top: 0; height: 340px; z-index: 1;
     background:
-      radial-gradient(ellipse 30% 45% at 70% 38%, rgba(255,190,90,.75), transparent 70%),
-      radial-gradient(ellipse 22% 30% at 22% 30%, rgba(120,170,255,.45), transparent 70%),
-      linear-gradient(160deg, #3d5876 0%, #6b4a2c 45%, var(--hs-wood) 100%);
-    -webkit-mask-image: linear-gradient(to bottom, var(--hs-outline) 25%, transparent 100%); }
-  .banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(46,29,16,0) 10%, rgba(46,29,16,.75) 100%), rgba(46,29,16,.35); }
-  .content { position: relative; padding: 0 32px; }
-  .head { padding-top: 46px; display: flex; align-items: flex-end; gap: 24px; margin-bottom: 16px; }
+      radial-gradient(ellipse 32% 50% at 72% 36%, rgba(255,196,88,.82), transparent 68%),
+      radial-gradient(ellipse 26% 36% at 22% 28%, rgba(74,163,240,.52), transparent 70%),
+      linear-gradient(155deg, #274870 0%, #784824 46%, var(--hs-wood) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, var(--hs-outline) 26%, transparent 100%);
+  }
+  .banner::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(49,29,17,0) 8%, rgba(49,29,17,.78) 100%), rgba(49,29,17,.26);
+  }
+  .content { position: relative; z-index: 3; padding: 0 32px; height: 100%; display: flex; flex-direction: column; }
+
+  /* Hero Header */
+  .head { padding-top: 38px; display: flex; align-items: flex-end; gap: 24px; margin-bottom: 18px; }
   .headtext { flex: 1; }
-  h1 { font-family: var(--title); font-size: 35px; font-weight: 700; color: var(--cream); text-shadow: 2px 2px 0 rgba(0,0,0,.8); }
-  .actions { display: flex; gap: 8px; margin-top: 20px; }
-  .btn { height: 40px; padding: 0 18px; border-radius: 6px; display: flex; align-items: center; gap: 8px;
-         background: linear-gradient(to bottom, var(--mid) 35%, #44301e); border: 1px solid var(--brass-dark);
-         box-shadow: inset 0 1px 0 rgba(252,210,55,.25); color: var(--cream); }
-  .btn.sq { width: 40px; padding: 0; justify-content: center; }
-  .btn.play { min-width: 140px; justify-content: center; font-family: var(--title); font-size: 17px; font-weight: 700;
-              background: linear-gradient(to bottom, var(--hs-endturn-hover) 0%, var(--endturn) 40%, #c99a12 100%); color: var(--endturn-ink);
-              box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 0 0 3px var(--wood), 0 0 0 5px var(--playable), 0 0 0 6px rgba(41,221,79,.35); }
-  .cover { width: 112px; height: 150px; border-radius: 6px;
-           background: radial-gradient(circle at 50% 35%, #ffd27a 0 18%, transparent 19%), linear-gradient(170deg, #4a6f9a, #24324d 60%, #1b1210); }
+  h1 {
+    font-family: var(--title); font-size: 35px; font-weight: 700; color: var(--hs-cream);
+    text-shadow: 0 2px 0 var(--hs-outline), 2px 2px 0 var(--hs-outline), -1px -1px 0 var(--hs-outline);
+    letter-spacing: .3px;
+  }
 
-  .cols { display: flex; gap: 24px; }
-  .left { flex: 1; min-width: 0; }
-  h2 { font-family: var(--title); font-size: 22px; font-weight: 700; color: var(--gold-light); }
-  .div { position: relative; height: 7px; margin: 4px 0 10px; }
-  .div::before { content: ""; position: absolute; left: 4px; right: 0; top: 3px; height: 1px; background: var(--brass); }
-  .div::after { content: ""; position: absolute; left: 0; top: 0; width: 7px; height: 7px; background: var(--brass); transform: rotate(45deg) scale(.72); }
-  .shot { height: 126px; border-radius: 6px; background: linear-gradient(135deg, #5c7fa8, #b07a3c 55%, var(--hs-wood-panel)); }
+  /* Action Bar: Hero End Turn Play Button (hovered Hearthstone arcane cyan-blue aura) + sculpted More / Edit plates */
+  .actions { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+  .play-wrap { position: relative; }
+  .play-glow {
+    position: absolute; inset: -15px; pointer-events: none;
+    background: var(--hs-mana-glow); opacity: .86;
+    -webkit-mask-box-image: url('../src/Images/fx/glow-frame.png') 88 fill / 32px;
+  }
+  .btn {
+    position: relative; height: 42px; padding: 0 18px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(to bottom, var(--hs-wood-mid) 0%, var(--hs-wood-panel) 100%);
+    border: 1.5px solid var(--hs-brass);
+    box-shadow: inset 0 1px 0 var(--hs-gold-light), inset 0 -2px 0 var(--hs-wood-grain), 0 2px 0 var(--hs-wood-grain);
+    color: var(--hs-cream);
+  }
+  .btn.sq { width: 42px; padding: 0; }
+  .btn.sq::before, .btn.sq::after {
+    content: ""; position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: var(--hs-gold); opacity: .7;
+  }
+  .btn.sq::before { top: 4px; left: 4px; }
+  .btn.sq::after { bottom: 4px; right: 4px; }
+
+  .btn.play {
+    min-width: 156px; font-family: var(--title); font-size: 18px; font-weight: 700;
+    background: linear-gradient(to bottom, var(--hs-endturn-hover) 0%, var(--hs-endturn) 48%, var(--hs-endturn-pressed) 100%);
+    border: 2px solid var(--hs-gold-light);
+    color: var(--hs-endturn-ink);
+    box-shadow: inset 0 0 0 1px rgba(246,234,208,.55), inset 0 2px 0 var(--hs-parchment-light), inset 0 -2px 0 var(--hs-brass-deep), 0 2px 0 var(--hs-wood-grain);
+    letter-spacing: .4px;
+  }
+  .btn.play .rivet {
+    position: absolute; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--hs-gold-light), var(--hs-brass-dark));
+    border: 1px solid var(--hs-endturn-ink);
+  }
+  .btn.play .rivet.l { left: 10px; }
+  .btn.play .rivet.r { right: 10px; }
+
+  /* Collectible Card Cover Frame */
+  .cover-wrap {
+    position: relative; padding: 4px; border-radius: 8px;
+    background: linear-gradient(to bottom, var(--hs-gold-light), var(--hs-brass) 45%, var(--hs-brass-dark));
+    box-shadow: 0 4px 0 var(--hs-wood-grain), inset 0 0 0 1px var(--hs-wood-grain);
+  }
+  .cover {
+    width: 104px; height: 142px; border-radius: 5px; border: 1px solid var(--hs-wood-grain);
+    background:
+      radial-gradient(circle at 50% 34%, rgba(255,214,110,.95) 0 17%, rgba(255,154,48,.35) 26%, transparent 48%),
+      radial-gradient(circle at 50% 72%, rgba(74,163,240,.42), transparent 55%),
+      linear-gradient(170deg, #2d5584, #1f2e4a 58%, #1a110e);
+  }
+
+  /* Two-Column Body */
+  .cols { display: flex; gap: 24px; flex: 1; min-height: 0; }
+  .left { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  h2 {
+    font-family: var(--title); font-size: 20px; font-weight: 700; color: var(--hs-gold-light);
+    text-shadow: 0 2px 0 var(--hs-wood-grain);
+  }
+
+  /* Hearthstone Flourished Brass Divider */
+  .div { position: relative; height: 9px; margin: 4px 0 10px; display: flex; align-items: center; }
+  .div::before {
+    content: ""; position: absolute; left: 12px; right: 0; top: 4px; height: 1px;
+    background: linear-gradient(to right, var(--hs-gold-light), var(--hs-brass) 45%, var(--hs-brass-deep));
+  }
+  .div .d-gem {
+    position: relative; width: 9px; height: 9px; background: var(--hs-gold-light);
+    border: 1px solid var(--hs-wood-grain); transform: rotate(45deg); margin-left: 1px;
+  }
+  .div .d-pip {
+    position: relative; width: 4px; height: 4px; background: var(--hs-brass);
+    transform: rotate(45deg); margin-left: 6px;
+  }
+
+  /* Screenshots */
+  .shot {
+    height: 128px; border-radius: 6px; border: 2px solid var(--hs-brass-dark);
+    box-shadow: inset 0 0 0 1px var(--hs-wood-grain), 0 2px 0 var(--hs-wood-grain);
+    background:
+      radial-gradient(ellipse 35% 60% at 72% 42%, rgba(255,186,86,.78), transparent 65%),
+      linear-gradient(135deg, #3f6894, #9c6a33 56%, var(--hs-wood-panel));
+  }
   .thumbs { display: flex; gap: 8px; margin: 8px 0 14px; }
-  .thumbs div { flex: 1; height: 38px; border-radius: 4px; background: linear-gradient(135deg, #476a8c, #8a5a2a); opacity: .85; }
-  .thumbs div:first-child { outline: 2px solid var(--gold-light); outline-offset: 2px; }
-  p { line-height: 1.45; color: var(--cream); margin-bottom: 8px; }
-  p a { color: var(--gold); text-decoration: none; }
+  .thumbs div {
+    flex: 1; height: 38px; border-radius: 4px; border: 1px solid var(--hs-brass-dark);
+    background: linear-gradient(135deg, #3c6082, #7a4f25); opacity: .88;
+  }
+  .thumbs div:first-child { border: 2px solid var(--hs-gold-light); opacity: 1; }
+  p { line-height: 1.46; color: var(--hs-cream); margin-bottom: 8px; }
+  p a { color: var(--hs-gold-light); text-decoration: none; border-bottom: 1px solid var(--hs-brass); }
+  .fan-note { margin-top: auto; padding-bottom: 12px; font-size: 11px; color: var(--hs-cream-dim); }
 
-  .meta { width: 336px; background: var(--panel); border: 2px solid var(--brass); border-radius: 10px; padding: 10px 16px; flex-shrink: 0; }
-  .grp { border-top: 1px solid var(--brass-deep); padding: 4px 0; }
-  .div + .grp { border-top: none; }
-  .f { display: flex; padding: 3px 0; }
-  .f b { width: 112px; font-weight: normal; font-size: 12px; color: var(--muted); padding-top: 2px; flex-shrink: 0; }
-  .score { font-family: var(--title); font-weight: 700; }
+  /* SHOWSTOPPER: Right-Side Open Tome Parchment Metadata Folio + Riveted Wrought-Iron Nameplate */
+  .meta-shell {
+    width: 336px; flex-shrink: 0; position: relative; align-self: flex-start;
+    padding-top: 12px;
+  }
+  /* Crimson wax-ribbon bookmark tab tucked cleanly at top-right beside the nameplate */
+  .bookmark {
+    position: absolute; top: 2px; right: 14px; width: 20px; height: 32px; z-index: 5;
+    background: linear-gradient(to bottom, var(--hs-health-light), var(--hs-health) 75%);
+    border: 1px solid var(--hs-gold); border-bottom: none;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+    display: flex; justify-content: center; padding-top: 5px;
+  }
+  .bookmark::after {
+    content: ""; width: 5px; height: 5px; background: var(--hs-gold-light); transform: rotate(45deg);
+  }
+  /* Deckled parchment card body */
+  .meta {
+    position: relative; padding: 0 16px 14px;
+    background: var(--hs-parchment);
+    border: 2px solid var(--hs-brass);
+    border-radius: 8px;
+    box-shadow: inset 0 0 24px rgba(185,155,107,.55), 0 4px 0 var(--hs-wood-grain);
+    color: var(--hs-ink);
+  }
+  .parch-tex {
+    position: absolute; inset: 0; border-radius: 6px; pointer-events: none;
+    background: var(--hs-parchment-edge); opacity: .26;
+    -webkit-mask-image: url('../src/Images/fx/parchment-grain.png');
+    -webkit-mask-size: 128px 128px; -webkit-mask-repeat: repeat;
+  }
+  /* Riveted Wrought-Iron & Gold Nameplate Header (from Hearthstone Card Crafting / Options) */
+  .iron-plate {
+    position: relative; z-index: 4; margin: -12px 26px 10px 4px; height: 34px;
+    background: linear-gradient(to bottom, var(--hs-iron-edge) 0%, var(--hs-iron) 26%, var(--hs-iron-dark) 100%);
+    border: 1.5px solid var(--hs-brass);
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px var(--hs-wood-grain), 0 3px 0 rgba(43,26,14,.42);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .iron-plate .title {
+    font-family: var(--title); font-size: 16px; font-weight: 700; color: var(--hs-gold-light);
+    text-shadow: 0 1px 0 var(--hs-outline); letter-spacing: .3px;
+  }
+  .iron-rivet {
+    position: absolute; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--hs-gold-light), var(--hs-brass-dark));
+    border: 1px solid var(--hs-wood-grain);
+  }
+  .iron-rivet.l { left: 9px; }
+  .iron-rivet.r { right: 9px; }
+
+  .grp { position: relative; z-index: 2; border-top: 1px solid var(--hs-parchment-edge); padding: 6px 0; }
+  .iron-plate + .grp { border-top: none; padding-top: 2px; }
+  .f { display: flex; align-items: flex-start; padding: 3px 0; }
+  .f b {
+    width: 108px; font-weight: 600; font-size: 12px; color: var(--hs-ink-label);
+    padding-top: 2px; flex-shrink: 0;
+  }
+  .f span { color: var(--hs-ink); }
+  .f .link { color: var(--hs-ink-title); font-weight: 600; border-bottom: 1px solid var(--hs-parchment-edge); }
+
+  /* Stat-medallion score badges on parchment */
+  .score {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; height: 22px; padding: 0 7px; border-radius: 4px;
+    background: var(--hs-iron-dark); border: 1px solid var(--hs-brass);
+    font-family: var(--title); font-size: 13px; font-weight: 700;
+    box-shadow: inset 0 1px 0 var(--hs-iron-edge);
+  }
+  /* Dark carved-wood tag tokens on parchment */
   .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-  .chip { font-size: 12px; padding: 3px 8px; border-radius: 3px; background: var(--mid); border: 1px solid var(--brass-dark); }
+  .f .chip {
+    font-size: 11.5px; padding: 2px 8px; border-radius: 4px;
+    background: linear-gradient(to bottom, var(--hs-wood-mid), var(--hs-wood-panel));
+    border: 1px solid var(--hs-brass-dark); color: var(--hs-cream);
+    box-shadow: inset 0 1px 0 rgba(255,226,112,.18);
+  }
 
-/* Toolbar order matches the left-docked XAML; button heights stay constant in every state. */
-.toolbar-order { position:absolute; inset:0 150px 0 8px; display:flex; align-items:center; gap:4px; }
-.toolbar-order > [data-part] { position:relative !important; inset:auto !important; flex:0 0 auto; margin-top:0 !important; margin-bottom:0 !important; }
-.toolbar-order > [data-part="PART_TextMainSearch"] { margin-left:0 !important; margin-right:4px !important; }
-.toolbar-order > [data-part="PART_PanelMainItems"] { display:flex; align-items:center; width:max-content !important; padding:0; border:0; background:transparent; }
-.toolbar-order > [data-part="PART_PanelMainItems"] > *, .toolbar-order > [data-part="PART_ToggleFilter"], .toolbar-order > [data-part="PART_ToggleNotifications"] { height:36px !important; min-height:36px !important; margin-top:0 !important; margin-bottom:0 !important; position:relative !important; inset:auto !important; display:flex; align-items:center; justify-content:center; }
+  /* Toolbar order matches left-docked XAML; heights stay constant */
+  .toolbar-order { position: absolute; inset: 0 150px 0 8px; display: flex; align-items: center; gap: 4px; }
+  .toolbar-order > [data-part] { position: relative !important; inset: auto !important; flex: 0 0 auto; margin-top: 0 !important; margin-bottom: 0 !important; }
+  .toolbar-order > [data-part="PART_TextMainSearch"] { margin-left: 0 !important; margin-right: 4px !important; }
+  .toolbar-order > [data-part="PART_PanelMainItems"] { display: flex; align-items: center; width: max-content !important; padding: 0; border: 0; background: transparent; }
+  .toolbar-order > [data-part="PART_PanelMainItems"] > *, .toolbar-order > [data-part="PART_ToggleFilter"], .toolbar-order > [data-part="PART_ToggleNotifications"] {
+    height: 36px !important; min-height: 36px !important; margin-top: 0 !important; margin-bottom: 0 !important;
+    position: relative !important; inset: auto !important; display: flex; align-items: center; justify-content: center;
+  }
 </style>
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute">
+    <symbol id="hearth-mark" viewBox="0 0 100 100"><path fill="currentColor" fill-rule="evenodd" d="M50 18c8 12 18 23 18 39 0 13-8 23-18 23s-18-10-18-23c0-8 4-15 8-22 2 5 5 9 8 12 0-9-1-19 2-29Zm0 31c4 6 8 11 8 17 0 5-3 9-8 9s-8-4-8-9c0-6 4-11 8-17Z"/></symbol>
     <symbol id="cards" viewBox="0 0 256 256"><path fill="currentColor" d="M184 72H40a16 16 0 0 0-16 16v112a16 16 0 0 0 16 16h144a16 16 0 0 0 16-16V88a16 16 0 0 0-16-16Zm48-24v120a8 8 0 0 1-16 0V48H72a8 8 0 0 1 0-16h144a16 16 0 0 1 16 16Z"/></symbol>
     <symbol id="chart" viewBox="0 0 256 256"><path fill="currentColor" d="M232 208a8 8 0 0 1-8 8H32a8 8 0 0 1 0-16h8v-64a8 8 0 0 1 8-8h24a8 8 0 0 1 8 8v64h16V88a8 8 0 0 1 8-8h32a8 8 0 0 1 8 8v112h16V40a8 8 0 0 1 8-8h40a8 8 0 0 1 8 8v160h8a8 8 0 0 1 8 8Z"/></symbol>
     <symbol id="list" viewBox="0 0 256 256"><path fill="currentColor" d="M228 128a12 12 0 0 1-12 12H40a12 12 0 0 1 0-24h176a12 12 0 0 1 12 12ZM40 76h176a12 12 0 0 0 0-24H40a12 12 0 0 0 0 24Zm176 104H40a12 12 0 0 0 0 24h176a12 12 0 0 0 0-24Z"/></symbol>
@@ -120,106 +405,127 @@
     <symbol id="bell" viewBox="0 0 256 256"><path fill="currentColor" d="M128 240a24 24 0 0 0 24-24h-48a24 24 0 0 0 24 24ZM208 184H48a8 8 0 0 1-6-13.3c9.3-10.4 14-26.2 14-50.7a72 72 0 0 1 144 0c0 24.5 4.7 40.3 14 50.7a8 8 0 0 1-6 13.3Z"/></symbol>
     <symbol id="opts" viewBox="0 0 256 256"><path fill="currentColor" d="M224 80H32A16 16 0 0 0 16 96v64a16 16 0 0 0 16 16H224a16 16 0 0 0 16-16V96A16 16 0 0 0 224 80ZM60 140a12 12 0 1 1 12-12A12 12 0 0 1 60 140Zm68 0a12 12 0 1 1 12-12A12 12 0 0 1 128 140Zm68 0a12 12 0 1 1 12-12A12 12 0 0 1 196 140Z"/></symbol>
     <symbol id="edit" viewBox="0 0 256 256"><path fill="currentColor" d="M227.31 73.37 182.63 28.68a16 16 0 0 0-22.63 0L36.69 152A15.86 15.86 0 0 0 32 163.31V208a16 16 0 0 0 16 16H92.69A15.86 15.86 0 0 0 104 219.31L227.31 96a16 16 0 0 0 0-22.63ZM192 108.68 147.31 64l24-24L216 84.68Z"/></symbol>
-    <symbol id="dice" viewBox="0 0 256 256"><path fill="currentColor" d="M192 32H64a32 32 0 0 0-32 32v128a32 32 0 0 0 32 32h128a32 32 0 0 0 32-32V64a32 32 0 0 0-32-32ZM92 176a12 12 0 1 1 12-12 12 12 0 0 1-12 12Zm0-72a12 12 0 1 1 12-12 12 12 0 0 1-12 12Zm36 36a12 12 0 1 1 12-12 12 12 0 0 1-12 12Zm36 36a12 12 0 1 1 12-12 12 12 0 0 1-12 12Zm0-72a12 12 0 1 1 12-12 12 12 0 0 1-12 12Z"/></symbol>
   </svg>
 
   <div class="rail" data-part="sidebar">
-    <div class="medal" data-part="PART_ElemMainMenu"><span><svg width="14" height="14" style="color:var(--cream)"><use href="#list"/></svg></span></div>
-    <div class="rail-item on"><span><svg width="16" height="16"><use href="#cards"/></svg></span></div>
+    <div class="wood-tex"></div>
+    <div class="medal" data-part="PART_ElemMainMenu">
+      <div class="medal-halo"></div>
+      <div class="medal-orb"><svg width="16" height="16" style="color:var(--hs-cream)"><use href="#hearth-mark"/></svg></div>
+    </div>
+    <div class="rail-item on"><div class="item-glow"></div><span><svg width="16" height="16"><use href="#cards"/></svg></span></div>
     <div class="rail-item"><span><svg width="16" height="16"><use href="#chart"/></svg></span></div>
   </div>
 
   <div class="main">
     <div class="top" data-part="top-panel">
-<div class="toolbar-order">
-<div class="search" data-part="PART_TextMainSearch"><svg width="16" height="16"><use href="#search"/></svg>Search</div>
-<div class="tp" data-part="PART_ToggleFilter"><svg width="18" height="18"><use href="#funnel"/></svg></div>
-<div class="items" data-part="PART_PanelMainItems"><div class="tp" title="Sort"><svg width="18" height="18"><use href="#sort"></use></svg></div>
-        <div class="tp on"><svg width="18" height="18"><use href="#list"></use></svg></div>
-        <div class="tp"><svg width="18" height="18"><use href="#grid"></use></svg></div>
-        <div class="tp"><svg width="18" height="18"><use href="#rows"></use></svg></div>
-        <div class="tp"><svg width="18" height="18"><use href="#group"></use></svg></div>
-
+      <div class="wood-tex"></div>
+      <div class="top-clasp"></div>
+      <div class="toolbar-order">
+        <div class="search" data-part="PART_TextMainSearch"><svg width="16" height="16"><use href="#search"/></svg>Search</div>
+        <div class="tp" data-part="PART_ToggleFilter" style="color:var(--hs-gold-light)"><svg width="18" height="18"><use href="#funnel"/></svg><span class="filter-gem"></span></div>
+        <div class="items" data-part="PART_PanelMainItems">
+          <div class="tp" title="Sort"><svg width="18" height="18"><use href="#sort"/></svg></div>
+          <div class="tp on"><svg width="18" height="18"><use href="#list"/></svg></div>
+          <div class="tp"><svg width="18" height="18"><use href="#grid"/></svg></div>
+          <div class="tp"><svg width="18" height="18"><use href="#rows"/></svg></div>
+          <div class="tp"><svg width="18" height="18"><use href="#group"/></svg></div>
+        </div>
+        <div class="tp" data-part="PART_ToggleNotifications" style="position:relative"><svg width="18" height="18"><use href="#bell"/></svg><span class="gem">2</span></div>
       </div>
-<div class="tp" data-part="PART_ToggleNotifications" style="position:relative"><svg width="18" height="18"><use href="#bell"/></svg><span class="gem">2</span></div>
-</div>
-
-
-
-
-
       <div class="win"><div>&#8212;</div><div>&#9633;</div><div>&#10005;</div></div>
     </div>
 
     <div class="body">
       <div class="list" data-part="game-list">
+        <div class="wood-tex"></div>
         <div class="row"><i style="background:#5f8fbf"></i>Arcane Depths</div>
         <div class="row dim"><i style="background:#8a6a3a"></i>Barrow Kings</div>
         <div class="row hov"><i style="background:#4a7a4a"></i>Copperwood Tales</div>
         <div class="row sel"><i style="background:#c89a3d"></i>Emberfall Tavern</div>
-        <div class="row"><i style="background:#7a4a8a"></i>Frostpeak Legends</div>
-        <div class="row dim"><i style="background:#5a5a6a"></i>Gloomhollow</div>
-        <div class="row"><i style="background:#3a6a8a"></i>Harbor of Gears</div>
+        <div class="row run"><i style="background:#7a4a8a"></i>Frostpeak Legends<span class="run-gems"><b></b><b></b><b></b><b></b><b></b><b class="big"></b></span></div>
+        <div class="row dim"><i style="background:#5c5f6a"></i>Gloomhollow</div>
+        <div class="row"><i style="background:#4a768c"></i>Harbor of Gears</div>
         <div class="row"><i style="background:#8a3a3a"></i>Ironclad Duel</div>
-        <div class="row dim"><i style="background:#6a8a3a"></i>Jade Grove</div>
-        <div class="row"><i style="background:#9a6a2a"></i>Kettle &amp; Crown</div>
-        <div class="row"><i style="background:#4a4a8a"></i>Lantern Road</div>
-        <div class="row dim"><i style="background:#8a5a6a"></i>Mirefen Saga</div>
-        <div class="row"><i style="background:#3a8a7a"></i>Northwind Inn</div>
-        <div class="row"><i style="background:#aa7a3a"></i>Oakshield Arena</div>
-        <div class="row dim"><i style="background:#5a3a2a"></i>Pyre of Ash</div>
-        <div class="row"><i style="background:#6a7aaa"></i>Quillmark Chronicle</div>
-        <div class="row"><i style="background:#8a8a4a"></i>Runestone Rally</div>
-        <div class="row"><i style="background:#4a6a5a"></i>Silverbranch</div>
-        <div class="row dim"><i style="background:#9a4a4a"></i>Thornwall Siege</div>
-        <div class="row"><i style="background:#5a8aaa"></i>Umberlight</div>
+        <div class="row"><i style="background:#6a8a3a"></i>Jade Grove</div>
+        <div class="row dim"><i style="background:#9a763a"></i>Kettle &amp; Crown</div>
+        <div class="row"><i style="background:#4a589a"></i>Lantern Road</div>
+        <div class="row"><i style="background:#8a4a6a"></i>Mirefen Saga</div>
+        <div class="row"><i style="background:#3a7a6a"></i>Northwind Inn</div>
+        <div class="row"><i style="background:#9a7840"></i>Oakshield Arena</div>
+        <div class="row dim"><i style="background:#6a4838"></i>Pyre of Ash</div>
+        <div class="row"><i style="background:#5a6a9a"></i>Quillmark Chronicle</div>
+        <div class="row"><i style="background:#7a783a"></i>Runestone Rally</div>
       </div>
 
       <div class="page" data-part="game-page">
+        <div class="wood-tex"></div>
+        <div class="wood-sheen"></div>
         <div class="banner"></div>
         <div class="content">
           <div class="head">
             <div class="headtext">
               <h1>Emberfall Tavern</h1>
               <div class="actions">
-                <div class="btn play">Play</div>
-                <div class="btn sq" title="More"><svg width="18" height="18"><use href="#opts"/></svg></div>
-                <div class="btn sq" title="Edit"><svg width="18" height="18"><use href="#edit"/></svg></div>
+                <div class="play-wrap">
+                  <div class="play-glow"></div>
+                  <div class="btn play"><i class="rivet l"></i>Play<i class="rivet r"></i></div>
+                </div>
+                <div class="btn sq"><svg width="18" height="18"><use href="#opts"/></svg></div>
+                <div class="btn sq"><svg width="18" height="18"><use href="#edit"/></svg></div>
               </div>
             </div>
-            <div class="cover"></div>
+            <div class="cover-wrap">
+              <div class="clasp tl"></div><div class="clasp tr"></div>
+              <div class="clasp bl"></div><div class="clasp br"></div>
+              <div class="cover"></div>
+            </div>
           </div>
+
           <div class="cols">
             <div class="left">
-              <h2>Screenshots</h2><div class="div"></div>
+              <h2>Screenshots</h2>
+              <div class="div"><i class="d-gem"></i><i class="d-pip"></i></div>
               <div class="shot"></div>
               <div class="thumbs"><div></div><div></div><div></div><div></div><div></div></div>
-              <h2>Description</h2><div class="div"></div>
+              <h2>Description</h2>
+              <div class="div"><i class="d-gem"></i><i class="d-pip"></i></div>
               <p>Pull up a chair by the fire. Emberfall Tavern is a cozy card battler where every duel is played on a hand-carved board, every deck is a story, and the innkeeper always has one more trick up his sleeve.</p>
               <p>Collect over 400 cards across nine classes, build decks in the <a href="#">Collection Manager</a>, and climb the ladder from Copper to Legend.</p>
+              <div class="fan-note">Unofficial fan theme inspired by Hearthstone UI. No game assets or commercial fonts included.</div>
             </div>
-            <div class="meta" data-part="metadata">
-              <h2>Game Details</h2><div class="div"></div>
-              <div class="grp">
-                <div class="f"><b>Completion</b>Playing</div>
-                <div class="f"><b>Time played</b>142h 18m</div>
-                <div class="f"><b>Last played</b>Yesterday</div>
-              </div>
-              <div class="grp">
-                <div class="f"><b>Critic score</b><span class="score" style="color:var(--playable)">88</span></div>
-                <div class="f"><b>User score</b><span class="score" style="color:var(--endturn)">71</span></div>
-              </div>
-              <div class="grp">
-                <div class="f"><b>Developers</b>Hearthwright Studio</div>
-                <div class="f"><b>Release date</b>11 March 2014</div>
-              </div>
-              <div class="grp">
-                <div class="f"><b>Genres</b><div class="chips"><span class="chip">Card game</span><span class="chip">Strategy</span><span class="chip">Fantasy</span></div></div>
-                <div class="f"><b>Features</b><div class="chips"><span class="chip">Online PvP</span><span class="chip">Single player</span></div></div>
-              </div>
-              <div class="grp">
-                <div class="f"><b>Library</b>Battle.net</div>
-                <div class="f"><b>Install size</b>4.2 GB</div>
+
+            <div class="meta-shell" data-part="metadata">
+              <div class="bookmark"></div>
+              <div class="meta">
+                <div class="parch-tex"></div>
+                <div class="clasp bl"></div><div class="clasp br"></div>
+                <div class="iron-plate">
+                  <i class="iron-rivet l"></i>
+                  <span class="title">Game Details</span>
+                  <i class="iron-rivet r"></i>
+                </div>
+                <div class="grp">
+                  <div class="f"><b>Completion</b><span class="link">Playing</span></div>
+                  <div class="f"><b>Time played</b><span>142h 18m</span></div>
+                  <div class="f"><b>Last played</b><span>Yesterday</span></div>
+                </div>
+                <div class="grp">
+                  <div class="f"><b>Critic score</b><span class="score" style="color:var(--hs-playable)">88</span></div>
+                  <div class="f"><b>User score</b><span class="score" style="color:var(--hs-endturn)">71</span></div>
+                </div>
+                <div class="grp">
+                  <div class="f"><b>Developers</b><span class="link">Hearthwright Studio</span></div>
+                  <div class="f"><b>Release date</b><span>11 March 2014</span></div>
+                </div>
+                <div class="grp">
+                  <div class="f"><b>Genres</b><div class="chips"><span class="chip">Card game</span><span class="chip">Strategy</span><span class="chip">Fantasy</span></div></div>
+                  <div class="f"><b>Features</b><div class="chips"><span class="chip">Online PvP</span><span class="chip">Single player</span></div></div>
+                </div>
+                <div class="grp">
+                  <div class="f"><b>Library</b><span class="link">Battle.net</span></div>
+                  <div class="f"><b>Install size</b><span>4.2 GB</span></div>
+                </div>
               </div>
             </div>
           </div>

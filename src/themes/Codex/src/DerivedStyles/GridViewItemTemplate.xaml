@@ -15,11 +15,11 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     mc:Ignorable="d">
 
-    <!-- GridTileButton: a 52px square plate, opaque so it reads on any cover. At rest it is the slate with a gold hairline and
-         a gold glyph (Info); Play (its own style) is a solid gold plate with an ink glyph. Hover: the plate fades to the hover
-         brush (BorderBrush carries it, set per button: Play the bright gold, Info the gold wash) and the bright gold hairline
-         (RimGold) fades in. The glyph is drawn here (2.25 stroke, heavier than the 1.5 menu icons so it reads over cover art);
-         Tag="Solid" (Play) also fills it. Pressed is its own plate. Square corners, as the rest of the theme. -->
+    <!-- GridTileButton: an Animus-style seal. A 36px square turned 45 degrees (a 52px diamond) with a gold hairline and a second
+         diamond outline 4px inside it at half strength, the 20px glyph upright in the middle. Background = seal, BorderBrush = gold
+         line and hover fill, Foreground = glyph, Tag = Solid on Play (its seal is the gold fill with an ink glyph; Info is the slate
+         seal with a gold glyph). Hover: the gold fill floods the diamond (0.14s), the glyph goes ink, and the seal turns a quarter
+         turn (0.35s, cubic out). Pressed: it shrinks to 92% and the plate darkens. Leaving fades back (FillBehavior Stop). -->
     <Style x:Key="GridTileButton" TargetType="Button">
         <Setter Property="Width" Value="52" />
         <Setter Property="Height" Value="52" />
@@ -31,38 +31,44 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid Background="Transparent">
-                        <Border x:Name="Chrome" SnapsToDevicePixels="True" Background="{TemplateBinding Background}" />
-                        <Border x:Name="HoverPlate" SnapsToDevicePixels="True" Background="{TemplateBinding BorderBrush}" Opacity="0" IsHitTestVisible="False" />
-                        <Border x:Name="PressPlate" SnapsToDevicePixels="True" Background="{DynamicResource ButtonPressedBackgroundBrush}" Opacity="0" IsHitTestVisible="False" />
-                        <Border x:Name="Rim" BorderThickness="{DynamicResource ControlBorderThickness}" BorderBrush="{DynamicResource GlyphBrush}" SnapsToDevicePixels="True" IsHitTestVisible="False" />
-                        <Border x:Name="RimGold" BorderThickness="2" BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" SnapsToDevicePixels="True" Opacity="0" IsHitTestVisible="False" />
-                        <Viewbox Width="26" Height="26" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform" IsHitTestVisible="False">
-                            <Canvas Width="24" Height="24">
-                                <Path x:Name="Glyph" Data="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}" StrokeThickness="2.25"
-                                      StrokeLineJoin="Miter" StrokeMiterLimit="4" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat"
-                                      Stroke="{TemplateBinding Foreground}" Fill="Transparent" />
-                            </Canvas>
-                        </Viewbox>
+                    <Grid Background="Transparent" SnapsToDevicePixels="False">
+                        <Grid Width="36" Height="36" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform x:Name="SealTurn" Angle="45" />
+                                    <ScaleTransform x:Name="SealScale" ScaleX="1" ScaleY="1" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{DynamicResource ControlBorderThickness}" />
+                            <Border x:Name="HoverFill" Background="{TemplateBinding BorderBrush}" Opacity="0" />
+                            <Border x:Name="PressPlate" Background="{DynamicResource ButtonPressedBackgroundBrush}" Opacity="0" />
+                            <Border Margin="4" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Opacity="0.45" />
+                        </Grid>
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                            <ContentControl Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Width="20" Height="20"
+                                            Foreground="{TemplateBinding Foreground}" />
+                            <ContentControl x:Name="GlyphInk" Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Width="20" Height="20"
+                                            Foreground="{DynamicResource PrimaryButtonForegroundBrush}" Opacity="0" />
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="Tag" Value="Solid">
-                            <Setter TargetName="Glyph" Property="Fill" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
-                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetName="RimGold" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverFill" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="GlyphInk" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="SealTurn" Storyboard.TargetProperty="Angle" From="45" To="135" Duration="0:0:0.35">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RimGold" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverFill" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlyphInk" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -71,14 +77,18 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="SealScale" Storyboard.TargetProperty="ScaleX" To="0.92" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="SealScale" Storyboard.TargetProperty="ScaleY" To="0.92" Duration="0:0:0.05" />
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0.5" Duration="0:0:0.05" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SealScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SealScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>

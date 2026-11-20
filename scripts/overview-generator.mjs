@@ -251,17 +251,25 @@ ${indent(valueMarkup, 8)}
 </Border>`;
 }
 
-/** Standard metadata group Border with collapse-when-all-fields-collapsed trigger. */
-export function metadataGroup([gname, fields], layout, {
-  margin = '0,12,0,0',
-  padding = '0,12,0,0',
-  borderThickness = '0,1,0,0',
-  borderBrush = 'WindowPanelSeparatorBrush',
-  basedOn = '',
-  extraBorderContent = '',
-  beforeFields = '',
-  fieldOptions = {},
-} = {}) {
+/** Standard metadata group Border with collapse-when-all-fields-collapsed trigger.
+ *  Callers must pass an explicit options object choosing the theme's group break or field presentation. */
+export function metadataGroup([gname, fields], layout, options) {
+  if (!options || typeof options !== 'object') {
+    throw new Error(
+      'metadataGroup requires an explicit options object (borderThickness, borderBrush, beforeFields, extraBorderContent, or fieldOptions) ' +
+      'so each theme chooses its own metadata group break (docs/themes/creative-direction.md).'
+    );
+  }
+  const {
+    margin = '0,12,0,0',
+    padding = '0,12,0,0',
+    borderThickness = '0,1,0,0',
+    borderBrush = 'WindowPanelSeparatorBrush',
+    basedOn = '',
+    extraBorderContent = '',
+    beforeFields = '',
+    fieldOptions = {},
+  } = options;
   const elemNames = fields.map(f => `PART_Elem${f[0]}`);
   const thicknessAttr = borderThickness ? ` BorderThickness="${borderThickness}"` : '';
   const brushAttr = borderBrush ? ` BorderBrush="{DynamicResource ${borderBrush}}"` : '';
@@ -567,15 +575,23 @@ export function inlineCloseButton() {
 </Button>`;
 }
 
-/** Corner SidePanelCloseButton overlay shared by GridViewGameOverview across themes. */
-export function sidePanelCloseButton({
-  backgroundBrush = 'ButtonBackgroundBrush',
-  borderBrush = 'NormalBorderBrush',
-  glyphBrush = 'TextBrush',
-  exitDuration = '0:0:0.15',
-  comment = '<!-- Close: a 28x28 plate that reads at rest (the theme\'s button plate, a rim and a bright glyph) and turns the danger color on hover. -->',
-  template,
-} = {}) {
+/** Corner SidePanelCloseButton overlay shared by GridViewGameOverview across themes.
+ *  Callers must pass either a theme-specific `template` or explicit plate options (`backgroundBrush` / `preset: 'plate'`). */
+export function sidePanelCloseButton(options) {
+  if (!options || typeof options !== 'object' || (!options.template && !options.backgroundBrush && options.preset !== 'plate')) {
+    throw new Error(
+      'sidePanelCloseButton requires a theme-specific `template` (or explicit plate options with `backgroundBrush` / `preset: "plate"`); ' +
+      'see docs/themes/creative-direction.md -> Shell & Game Page Levers.'
+    );
+  }
+  const {
+    backgroundBrush = 'ButtonBackgroundBrush',
+    borderBrush = 'NormalBorderBrush',
+    glyphBrush = 'TextBrush',
+    exitDuration = '0:0:0.15',
+    comment = '<!-- Close: a 28x28 plate that reads at rest (the theme\'s button plate, a rim and a bright glyph) and turns the danger color on hover. -->',
+    template,
+  } = options;
   const controlTemplate = template || `<ControlTemplate TargetType="{x:Type Button}">
     <Grid Background="Transparent">
         <Border CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource ${backgroundBrush}}"

@@ -15,10 +15,36 @@
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
+                          RenderTransformOrigin="0.5,0.5"
                           x:Name="ItemGrid">
-                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-2"
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="HoverScale" ScaleX="1" ScaleY="1" />
+                                <TranslateTransform x:Name="HoverLift" Y="0" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="HoverBorder" BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" BorderThickness="2" Margin="-2" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False"
                                 CornerRadius="{DynamicResource CornerRadiusSmall}" />
-                        <ContentPresenter />
+                        <Border x:Name="SelectionBorder" BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" BorderThickness="2" Margin="-2" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False"
+                                CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                        <Grid x:Name="SelectPulseHost" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="SelectPulseScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <ContentPresenter />
+                        </Grid>
+                        <Rectangle x:Name="SelectedGlint" Fill="{DynamicResource SelectedSheenBrush}" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <LinearGradientBrush.RelativeTransform>
+                                        <TranslateTransform x:Name="SelectedGlintShift" X="-0.9" Y="-0.9" />
+                                    </LinearGradientBrush.RelativeTransform>
+                                    <GradientStop Color="#00000000" Offset="0.3" />
+                                    <GradientStop Color="#FF000000" Offset="0.5" />
+                                    <GradientStop Color="#00000000" Offset="0.7" />
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
                         <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
                             <Border x:Name="RunningWash" CornerRadius="{DynamicResource CornerRadiusSmall}" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="6" Opacity="0.18" />
                             <Border x:Name="RunningScan" Visibility="Collapsed" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.3" CornerRadius="{DynamicResource CornerRadiusSmall}">
@@ -54,12 +80,95 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemHoverBorderBrush}" TargetName="SelectionBorder"/>
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="HoverEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleX" To="1.02" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleY" To="1.02" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverLift" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="HoverEnter" />
+                                <BeginStoryboard Name="HoverExit">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Visibility" FillBehavior="Stop">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.18" FillBehavior="Stop" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleX" From="1.02" To="1" Duration="0:0:0.18" FillBehavior="Stop" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleY" From="1.02" To="1" Duration="0:0:0.18" FillBehavior="Stop" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverLift" Storyboard.TargetProperty="Y" From="-2" To="0" Duration="0:0:0.18" FillBehavior="Stop" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder"/>
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="SelectedEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectPulseScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:0.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.06" Value="0.985" KeySpline="0.2,0 0.4,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="1" KeySpline="0.2,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectPulseScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:0.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.06" Value="0.985" KeySpline="0.2,0 0.4,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="1" KeySpline="0.2,0 0.2,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedGlint" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.36" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectedGlint" Storyboard.TargetProperty="Opacity" Duration="0:0:0.36">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.11" Value="0.22" KeySpline="0.2,0 0.2,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.36" Value="0" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedGlintShift" Storyboard.TargetProperty="X" From="-0.9" To="0.9" Duration="0:0:0.36">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedGlintShift" Storyboard.TargetProperty="Y" From="-0.9" To="0.9" Duration="0:0:0.36">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="SelectedEnter" />
+                                <BeginStoryboard Name="SelectedExit">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" FillBehavior="Stop">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.18" FillBehavior="Stop" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />

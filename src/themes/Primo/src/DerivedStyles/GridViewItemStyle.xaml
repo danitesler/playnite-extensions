@@ -19,12 +19,20 @@
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
-                          x:Name="ItemGrid">
-                        <Border x:Name="HoverRing" BorderThickness="2" Margin="-4" IsHitTestVisible="False" Opacity="0"
+                          x:Name="ItemGrid" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
+                        <Border x:Name="HoverRing" BorderThickness="2" Margin="-4" IsHitTestVisible="False" Visibility="Collapsed" Opacity="0"
                                 BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}"
                                 CornerRadius="{DynamicResource CornerRadiusSmall}" />
-                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-4" IsHitTestVisible="False"
-                                CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-4" IsHitTestVisible="False" Visibility="Collapsed" Opacity="0"
+                                BorderBrush="{DynamicResource FocusBrush}"
+                                CornerRadius="{DynamicResource CornerRadiusSmall}" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="SelectRingScale" ScaleX="0.97" ScaleY="0.97" />
+                            </Border.RenderTransform>
+                        </Border>
                         <ContentPresenter />
                         <!-- Running game: the avatar status badge, a success-green dot in a page-coloured ring on the cover's
                              bottom-right corner, inside the cover; the hover ring and selection outline sit outside it. -->
@@ -64,23 +72,70 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Canvas.ZIndex" Value="90" />
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <BeginStoryboard Name="CardHoverIn">
                                     <Storyboard>
-                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity"><SplineDoubleKeyFrame KeyTime="0:0:0.080" Value="1" KeySpline="0.65,0,0.35,1" /></DoubleAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity"><SplineDoubleKeyFrame KeyTime="0:0:0.110" Value="1" KeySpline="0.65,0,0.35,1" /></DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX" To="1.016" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleY" To="1.016" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="CardHoverIn" />
                                 <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity"><SplineDoubleKeyFrame KeyTime="0:0:0.080" Value="0" KeySpline="0.65,0,0.35,1" /></DoubleAnimationUsingKeyFrames>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity"><SplineDoubleKeyFrame KeyTime="0:0:0.110" Value="0" KeySpline="0.65,0,0.35,1" /></DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CardScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.13">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.110" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="CardSelectIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectRingScale" Storyboard.TargetProperty="ScaleX" From="0.97" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectRingScale" Storyboard.TargetProperty="ScaleY" From="0.97" To="1" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="CardSelectIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.12" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />

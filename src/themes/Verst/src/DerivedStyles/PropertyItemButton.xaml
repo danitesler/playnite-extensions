@@ -1,0 +1,87 @@
+<!--
+    Verst: metadata values on the oscilloscope screen. Structure: Playnite Default 10.60 (PropertyItemButton).
+    Brushes: PropertyItemForegroundBrush (phosphor text), PhosphorDimBrush (underline strip, chip outline), PropertyItemBackgroundBrush
+    (the glass behind a chip), PropertyItemHoverBackgroundBrush (the lit phosphor plate), CrtCaseBrush (text on the lit plate),
+    TextBrushDarker (disabled).
+    By default a text link: phosphor text with a 1px underline, and a faint dim-phosphor strip behind it on hover (fades in, 0.12s).
+    In a list tagged Tag="Chip" (RelativeSource AncestorType=ItemsControl) the value is a phosphor chip: a 1px dim outline on the
+    glass with phosphor text. Hover lights the chip like the CRT's selection: the cream plate flickers on (two frames) and the text
+    turns dark. Leaving fades back in 0.2s with FillBehavior Stop. No setters on animated parts. The whole value is the hit area.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="PropertyItemButton" TargetType="Button">
+        <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
+        <Setter Property="Margin" Value="0,1,10,1" />
+        <Setter Property="Foreground" Value="{DynamicResource PropertyItemForegroundBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <!-- Text link: the strip, then the phosphor text with its underline. -->
+                        <Grid x:Name="LinkLayer">
+                            <Border x:Name="LinkStrip" Background="{DynamicResource PhosphorDimBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" Margin="-3,0" Opacity="0" IsHitTestVisible="False" />
+                            <TextBlock x:Name="LinkText" Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}"
+                                       FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}" Foreground="{TemplateBinding Foreground}"
+                                       TextWrapping="Wrap" TextDecorations="Underline" IsHitTestVisible="False" />
+                        </Grid>
+                        <!-- Chip: the dim outline on the glass, the lit plate, and the text in both states. -->
+                        <Grid x:Name="ChipLayer" Visibility="Collapsed" MinHeight="24" IsHitTestVisible="False">
+                            <Border Background="{DynamicResource PropertyItemBackgroundBrush}" BorderBrush="{DynamicResource PhosphorDimBrush}" BorderThickness="1"
+                                    CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                            <Border x:Name="ChipLit" Background="{DynamicResource PropertyItemHoverBackgroundBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" Opacity="0" />
+                            <TextBlock x:Name="ChipText" Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}"
+                                       FontFamily="{TemplateBinding FontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource PropertyItemForegroundBrush}"
+                                       TextWrapping="Wrap" VerticalAlignment="Center" Margin="8,0,8,1" />
+                            <TextBlock x:Name="ChipTextLit" Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}" Opacity="0"
+                                       FontFamily="{TemplateBinding FontFamily}" FontSize="{DynamicResource FontSizeSmall}" Foreground="{DynamicResource CrtCaseBrush}"
+                                       TextWrapping="Wrap" VerticalAlignment="Center" Margin="8,0,8,1" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="Chip">
+                            <Setter TargetName="ChipLayer" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="LinkLayer" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="LinkStrip" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.12" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ChipLit" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.7" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.04" Value="0.35" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.08" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ChipTextLit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="ChipText" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.08" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LinkStrip" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipLit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipTextLit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipText" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="LinkText" Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="Chip">
+                <Setter Property="Margin" Value="0,2,5,2" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

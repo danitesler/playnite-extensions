@@ -1,13 +1,9 @@
 <!--
     Overlay on Playnite Default/DefaultControls/ComboBox.xaml.
-    The game's option buttons cycle through values (CycleButton); a dropdown here is that stone widget/button
-    (BevelTemplate: ButtonBackgroundBrush, 2px black outline) with the label in the pixel font and a pixel chevron at
-    the right; highlighted (hover, open, keyboard focus) the outline turns white and the fill lifts
-    (FrameBrush, ButtonHoverBackgroundBrush), as button_highlighted.png. The list is a selection list
-    ([src] AbstractSelectionList): rows on the dark popup (PopupBackgroundBrush), the row under the pointer drawn as the
-    game's selection, a 1px white outline around a black fill (FocusBrush, SelectedBrush); the chosen row keeps the
-    unfocused grey outline (#808080: FocusHaloBrush).
-    Part names (PART_EditableTextBox, PART_Popup) are Playnite's.
+    Field: preserved stone widget/button (BevelTemplate, pixel font, pixel chevron).
+    Dropdown: wears LocalOverworldMenuPanelTemplate (dark GUI panel with 2px black border, pixel bevel and violet
+    inner hairline) and 30px rows matching Menu.xaml (black fill + 2px white outline + splash-yellow pixel cursor on
+    IsHighlighted; dark slot with splash-yellow pixel checkmark on IsSelected).
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -72,18 +68,16 @@
                                          IsReadOnly="{TemplateBinding IsReadOnly}" />
                             </Border>
                             <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   Placement="Bottom" VerticalOffset="0" Focusable="False" AllowsTransparency="True">
+                                   Placement="Bottom" VerticalOffset="2" Focusable="False" AllowsTransparency="True">
                                 <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
-                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                    <Border BorderBrush="{DynamicResource PopupBorderBrush}"
-                                            BorderThickness="{DynamicResource PopupBorderThickness}"
-                                            Background="{DynamicResource PopupBackgroundBrush}"
-                                            Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                        </ScrollViewer>
-                                    </Border>
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" UseLayoutRounding="True">
+                                    <Control Template="{DynamicResource LocalOverworldMenuPanelTemplate}"
+                                             Focusable="False" IsTabStop="False" />
+                                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                                                  Margin="6,6,6,6">
+                                        <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                    </ScrollViewer>
                                 </Grid>
                             </Popup>
                         </Grid>
@@ -119,31 +113,91 @@
     <Style TargetType="{x:Type ComboBoxItem}">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"
-                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
-                        <ContentPresenter VerticalAlignment="Center" />
-                    </Border>
+                    <Grid x:Name="ComboRow" Height="30" Background="Transparent" SnapsToDevicePixels="True" UseLayoutRounding="True">
+                        <Border x:Name="SelectedPlate" Visibility="Collapsed" IsHitTestVisible="False"
+                                Background="{DynamicResource SelectedBrush}"
+                                BorderBrush="{DynamicResource FocusHaloBrush}" BorderThickness="1" />
+                        <Border x:Name="HoverPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                Background="{DynamicResource SelectedBrush}"
+                                BorderBrush="{DynamicResource FocusBrush}" BorderThickness="2" />
+                        <Rectangle x:Name="HoverCursor" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False"
+                                   Width="4" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0"
+                                   Fill="{DynamicResource GlyphBrush}" />
+                        <Grid Margin="10,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="SelectedCheck" Grid.Column="0" Width="14" Height="14"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed"
+                                    Background="{DynamicResource CheckBoxCheckMarkBkBrush}"
+                                    BorderBrush="{DynamicResource FocusHaloBrush}" BorderThickness="1">
+                                <Path Width="10" Height="8" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Data="M 0,4 L 2,4 L 2,6 L 4,6 L 4,4 L 6,4 L 6,2 L 8,2 L 8,0 L 10,0 L 10,2 L 8,2 L 8,4 L 6,4 L 6,6 L 4,6 L 4,8 L 2,8 L 2,6 L 0,6 Z"
+                                      Fill="{DynamicResource GlyphBrush}" />
+                            </Border>
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource FocusHaloBrush}" TargetName="ItemBorder" />
-                            <Setter Property="Background" Value="{DynamicResource SelectedBrush}" TargetName="ItemBorder" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SelectedBrush}" TargetName="ItemBorder" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="ItemBorder" />
+                            <Setter TargetName="SelectedPlate" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="SelectedCheck" Property="Visibility" Value="Visible" />
                             <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SelectedBrush}" TargetName="ItemBorder" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="ItemBorder" />
                             <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ComboHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.0" Value="0.55" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.05" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverCursor" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverCursor" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.0" Value="0.5" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.05" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ComboHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.08" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.04" Value="0.4" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.08" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverCursor" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.08" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverCursor" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.04" Value="0.3" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.08" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="ComboRow" Property="Opacity" Value="0.45" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

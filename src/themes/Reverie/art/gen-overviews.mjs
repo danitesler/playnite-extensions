@@ -122,7 +122,7 @@ const fade = (times, dur = 3) => `<DoubleAnimationUsingKeyFrames Storyboard.Targ
 ${times.map(([t, v]) => `    <LinearDoubleKeyFrame KeyTime="0:0:${t}" Value="${v}" />`).join('\n')}
 </DoubleAnimationUsingKeyFrames>`;
 
-const empty = `<Grid Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}" VerticalAlignment="Top"><Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Grid.Style><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24"><Rectangle Width="180" Height="180" Fill="{DynamicResource HighlightGlyphBrush}"><Rectangle.OpacityMask><ImageBrush ImageSource="{ThemeFile 'Images/fx/orbit.png'}"/></Rectangle.OpacityMask>${indent(idle('Rectangle', 'OrbitBreath', fade([['0', 0.55], ['1.5', 1], ['3', 0.55]])), 4)}</Rectangle><TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" Margin="0,16,0,0" TextAlignment="Center" TextWrapping="Wrap" FontSize="{DynamicResource FontSizeLarger}" Foreground="{DynamicResource TextBrush}"/></StackPanel></Grid>`;
+const empty = `<Grid Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}" VerticalAlignment="Top"><Grid.Style><Style TargetType="Grid"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Game, FallbackValue={x:Null}}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></Grid.Style><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24"><Control Template="{DynamicResource EmptyGameTemplate}" Width="360" Height="230" HorizontalAlignment="Center" Focusable="False" IsTabStop="False" IsHitTestVisible="False" /><TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" Margin="0,16,0,0" TextAlignment="Center" TextWrapping="Wrap" FontSize="{DynamicResource FontSizeLarger}" Foreground="{DynamicResource TextBrush}"/></StackPanel></Grid>`;
 
 const ns = `xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"`;
@@ -215,7 +215,7 @@ ${indent(pane('GridDetailsPaneWidth', '14,12,14,14'), 44)}
 ${indent(empty, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ comment: '<!-- Close: a 28x28 plate that reads at rest (the amber button plate, a rim and a sand glyph) and turns Renegade red on hover. -->' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', comment: '<!-- Close: a 28x28 plate that reads at rest (the amber button plate, a rim and a sand glyph) and turns Renegade red on hover. -->' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

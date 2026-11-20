@@ -3,10 +3,11 @@
     MUI Select, variant="filled" (size small, hiddenLabel), like DefaultControls/TextBox.xaml: white 9% fill (13% on
     hover), rounded top, a 1px white 70% underline (text.primary on hover) and a 2px primary underline that grows from
     the center while the select has focus or is open. The ArrowDropDown icon (24px, action.active) sits 7px from the
-    end and turns over while open. The list is a Menu: Paper at elevation 8, shape.borderRadius, MenuList padding
-    8px 0; full-width square MenuItems (6px 16px), action.hover on hover, the selected item in
-    alpha(primary.main, selectedOpacity) (no check mark, as in MUI). Part names (PART_EditableTextBox, PART_Popup)
-    are Playnite's.
+    end and turns over while open.
+    The list wears the menus' MUI elevation-8 Paper (LocalMaterialMenuTemplate, ContextMenu.xaml); items (ComboBoxItem)
+    are 32px full-bleed rows matching Menu.xaml: primary-16% state layer + ripple wave + 3px primary left bar on
+    IsHighlighted, and the primary-tinted circular check avatar visible in the leading column on IsSelected.
+    Part names (PART_EditableTextBox, PART_Popup) are Playnite's. Recipe: docs/themes/menus.md.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -82,16 +83,11 @@
                                        Placement="Bottom" VerticalOffset="4" Focusable="False" AllowsTransparency="True">
                                     <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                        <Border BorderBrush="{DynamicResource PopupBorderBrush}"
-                                                BorderThickness="{DynamicResource PopupBorderThickness}"
-                                                Background="{DynamicResource PopupBackgroundBrush}"
-                                                CornerRadius="{DynamicResource ControlCornerRadius}"
-                                                Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                                <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                            </ScrollViewer>
-                                        </Border>
+                                        <Control Template="{DynamicResource LocalMaterialMenuTemplate}" Focusable="False" IsTabStop="False" />
+                                        <ScrollViewer Margin="1,6,1,6" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                            <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                        </ScrollViewer>
                                     </Grid>
                                 </Popup>
                             </Grid>
@@ -149,30 +145,100 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid>
-                        <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Border>
-                        <Border x:Name="StateLayer" Background="Transparent" IsHitTestVisible="False" />
+                    <Grid x:Name="ListRow" Height="32" Background="Transparent" ClipToBounds="True" SnapsToDevicePixels="True">
+                        <Border x:Name="ListStateLayer" Background="{DynamicResource SelectedBrush}" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" />
+                        <Ellipse x:Name="ListRipple" Width="180" Height="180" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Fill="{DynamicResource GlyphBrush}" Opacity="0" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5"
+                                 IsHitTestVisible="False">
+                            <Ellipse.RenderTransform>
+                                <ScaleTransform x:Name="ListRippleScale" ScaleX="0.2" ScaleY="0.2" />
+                            </Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Rectangle x:Name="ListBar" Width="3" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}"
+                                   RenderTransformOrigin="0.5,0.5" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Rectangle.RenderTransform>
+                                <ScaleTransform x:Name="ListBarScale" ScaleY="0.2" />
+                            </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <Grid Margin="16,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ListCheckAvatar" Grid.Column="0" Width="18" Height="18" Margin="-1,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Visibility="Collapsed" CornerRadius="9" Background="{DynamicResource SelectedBrush}">
+                                <ContentPresenter Width="13" Height="13" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  TextElement.Foreground="{DynamicResource GlyphBrush}"
+                                                  Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconTemplate}" />
+                            </Border>
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource SelectedBrush}" TargetName="ItemBorder" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListCheckAvatar" />
+                            <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource HoverBrush}" TargetName="StateLayer" />
+                            <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListStateLayer" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListRipple" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.24" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListStateLayer" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ListBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ListBarScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListRippleScale" Storyboard.TargetProperty="ScaleX" From="0.2" To="1.6" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListRippleScale" Storyboard.TargetProperty="ScaleY" From="0.2" To="1.6" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListRipple" Storyboard.TargetProperty="Opacity">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.22" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.22" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListStateLayer" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListStateLayer" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="ListBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="ListBarScale" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="IsSelected" Value="True" />
-                                <Condition Property="IsHighlighted" Value="True" />
-                            </MultiTrigger.Conditions>
-                            <Setter Property="Background" Value="{DynamicResource SelectedHoverBrush}" TargetName="ItemBorder" />
-                            <Setter Property="Background" Value="Transparent" TargetName="StateLayer" />
-                        </MultiTrigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

@@ -85,8 +85,9 @@ Radii: 2 / 3 / 5. `FrameThickness` is 1 (the frame is three 1px lines: black, me
 | `ScrollViewer.xaml` | Slim bar: 12px quiet lane, bare gray arrows, warm gray knob |
 | `TabControl.xaml` | Frame tabs: dark plates with gold labels; the current one is the lit plate with a gold line and a white label |
 | `GroupBox.xaml`, `Expander.xaml` | Category header: white title on a black band; content-sized card |
-| `TreeView.xaml`, `DetailsViewItemStyle.xaml`, `ListBox.xaml`, `Menu.xaml` | Category list rows: gold entries, gold glow selection |
-| `ToolTip.xaml`, `ContextMenu.xaml`, `Common.xaml` `PopupBorder` | Tooltip frame |
+| `TreeView.xaml`, `DetailsViewItemStyle.xaml`, `ListBox.xaml` | Category list rows: gold entries, gold glow selection |
+| `ContextMenu.xaml`, `Menu.xaml`, `ComboBox.xaml`, `CustomControls/ComboBoxList.xaml`, `FilterSelectionBox.xaml` | Client dropdown menus: every menu and dropdown list sits in the three-line frame (`LocalMenuFrameTemplate`: black, metal, black around the tooltip backdrop, a title-strip sheen under the top); 28px rows with icons in 20px item slots, gold labels that switch to white under the gold mouse highlight (glow between two gold hairlines drawing in from the left); shortcuts on small charcoal plates; group break an engraved black-over-metal rule; Exit on the red panel-button face; checked and chosen rows a checked slot with the gold tick (`docs/themes/menus.md`) |
+| `ToolTip.xaml`, `Common.xaml` `PopupBorder` | Tooltip frame |
 | `PlayButton.xaml` | The Login / Accept button |
 | `GridViewItemStyle.xaml`, `GridViewItemTemplate.xaml` | Item slot highlight; 48px red Play and charcoal Info cover buttons |
 | `ProgressBar.xaml` | Casting bar |

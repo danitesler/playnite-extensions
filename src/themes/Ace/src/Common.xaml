@@ -90,4 +90,92 @@
     <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
     <HorizontalAlignment x:Key="GameDetailsPanePosition">Right</HorizontalAlignment> <!-- Details view metadata pane: Left, Center (centred above screenshots and description) or Right. Narrow pages stack it first for Left and Center, last for Right. ThemeModifier edits it. -->
     <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+    <!-- Empty game page: a CS 1.6 radar in a sunken VGUI box. A sweep arm with a fading wedge turns once every 6s (linear, as the game's UI does not ease),
+         three blips light as it passes and die back, a ping ring spreads from the centre, the crosshair breathes, and the console prompt below
+         keeps its blinking block cursor. All motion is on named transforms and opacities, started from ControlTemplate.Triggers (never a Style trigger). -->
+    <ControlTemplate x:Key="EmptyGameTemplate" TargetType="Control">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+            <Grid Width="340" Height="236" HorizontalAlignment="Center">
+                <Control Template="{DynamicResource BevelInsetTemplate}" Background="{DynamicResource InputBackgroundBrush}" Focusable="False" IsTabStop="False" />
+                <Grid Width="200" Height="200" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Ellipse Stroke="{DynamicResource TextBrushDarker}" StrokeThickness="1" Opacity="0.5" />
+                    <Ellipse Width="134" Height="134" Stroke="{DynamicResource TextBrushDarker}" StrokeThickness="1" Opacity="0.4" />
+                    <Ellipse Width="68" Height="68" Stroke="{DynamicResource TextBrushDarker}" StrokeThickness="1" Opacity="0.3" />
+                    <Grid x:Name="EmptyAceCross">
+                        <Rectangle Width="1" Height="200" Fill="{DynamicResource TextBrushDarker}" Opacity="0.45" />
+                        <Rectangle Width="200" Height="1" Fill="{DynamicResource TextBrushDarker}" Opacity="0.45" />
+                    </Grid>
+                    <Ellipse Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1" Opacity="0" RenderTransformOrigin="0.5,0.5" x:Name="EmptyAcePing">
+                        <Ellipse.RenderTransform><ScaleTransform x:Name="EmptyAcePingScale" ScaleX="0.1" ScaleY="0.1" /></Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Canvas Width="200" Height="200" RenderTransformOrigin="0.5,0.5">
+                        <Canvas.RenderTransform><RotateTransform x:Name="EmptyAceSweep" Angle="0" /></Canvas.RenderTransform>
+                        <Path Data="M100,100 L100,0 A100,100 0 0 0 50,13.4 Z" Fill="{DynamicResource GlyphBrush}" Opacity="0.16" />
+                        <Path Data="M100,100 L100,0 A100,100 0 0 0 75,6.7 Z" Fill="{DynamicResource GlyphBrush}" Opacity="0.2" />
+                        <Rectangle Canvas.Left="99.25" Canvas.Top="0" Width="1.5" Height="100" Fill="{DynamicResource GlyphBrush}" />
+                    </Canvas>
+                    <Rectangle x:Name="EmptyAceBlipA" Width="6" Height="6" Margin="140,52,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{DynamicResource GlyphBrush}" Opacity="0.2" />
+                    <Rectangle x:Name="EmptyAceBlipB" Width="6" Height="6" Margin="62,128,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{DynamicResource GlyphBrush}" Opacity="0.2" />
+                    <Rectangle x:Name="EmptyAceBlipC" Width="6" Height="6" Margin="118,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{DynamicResource DangerBrush}" Opacity="0.2" />
+                    <Rectangle Width="6" Height="6" Fill="{DynamicResource TextBrush}" />
+                </Grid>
+                <!-- bracket ticks in the box corners -->
+                <Rectangle Width="10" Height="1" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="1" Height="10" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="10" Height="1" Margin="0,10,10,0" HorizontalAlignment="Right" VerticalAlignment="Top" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="1" Height="10" Margin="0,10,10,0" HorizontalAlignment="Right" VerticalAlignment="Top" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="10" Height="1" Margin="10,0,0,10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="1" Height="10" Margin="10,0,0,10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="10" Height="1" Margin="0,0,10,10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Fill="{DynamicResource TextBrushDarker}" />
+                <Rectangle Width="1" Height="10" Margin="0,0,10,10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Fill="{DynamicResource TextBrushDarker}" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                <TextBlock Text="]" Margin="0,0,8,0" FontFamily="Lucida Console, Courier New" FontSize="{DynamicResource FontSizeLarge}"
+                           Foreground="{DynamicResource TextBrushDarker}" VerticalAlignment="Center" />
+                <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" FontFamily="Lucida Console, Courier New" FontSize="{DynamicResource FontSizeLarge}"
+                           Foreground="{DynamicResource TextBrush}" VerticalAlignment="Center" />
+                <Rectangle x:Name="EmptyAceCursor" Width="9" Height="16" Margin="6,0,0,0" Fill="{DynamicResource TextBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+        </StackPanel>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="EmptyAceIdle">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="EmptyAceSweep" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:6" RepeatBehavior="Forever" />
+                            <DoubleAnimation Storyboard.TargetName="EmptyAcePingScale" Storyboard.TargetProperty="ScaleX" From="0.1" To="1" Duration="0:0:3" RepeatBehavior="Forever">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="EmptyAcePingScale" Storyboard.TargetProperty="ScaleY" From="0.1" To="1" Duration="0:0:3" RepeatBehavior="Forever">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="EmptyAcePing" Storyboard.TargetProperty="Opacity" From="0.6" To="0" Duration="0:0:3" RepeatBehavior="Forever" />
+                            <DoubleAnimation Storyboard.TargetName="EmptyAceCross" Storyboard.TargetProperty="Opacity" From="1" To="0.45" Duration="0:0:4" AutoReverse="True" RepeatBehavior="Forever">
+                                <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EmptyAceBlipA" Storyboard.TargetProperty="Opacity" Duration="0:0:6" RepeatBehavior="Forever">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.2" /><LinearDoubleKeyFrame KeyTime="0:0:0.65" Value="0.2" /><LinearDoubleKeyFrame KeyTime="0:0:0.75" Value="1" /><LinearDoubleKeyFrame KeyTime="0:0:6" Value="0.2" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EmptyAceBlipC" Storyboard.TargetProperty="Opacity" Duration="0:0:6" RepeatBehavior="Forever">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.2" /><LinearDoubleKeyFrame KeyTime="0:0:2.55" Value="0.2" /><LinearDoubleKeyFrame KeyTime="0:0:2.65" Value="1" /><LinearDoubleKeyFrame KeyTime="0:0:6" Value="0.2" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EmptyAceBlipB" Storyboard.TargetProperty="Opacity" Duration="0:0:6" RepeatBehavior="Forever">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0.2" /><LinearDoubleKeyFrame KeyTime="0:0:3.7" Value="0.2" /><LinearDoubleKeyFrame KeyTime="0:0:3.8" Value="1" /><LinearDoubleKeyFrame KeyTime="0:0:6" Value="0.2" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EmptyAceCursor" Storyboard.TargetProperty="Opacity" Duration="0:0:1.4" RepeatBehavior="Forever">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.8" Value="0.1" KeySpline="0.4,0 0.6,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.0" Value="0.1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="1" KeySpline="0.4,0 0.6,1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="EmptyAceIdle" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

@@ -452,7 +452,7 @@ ${indent(body, 20)}
             </Grid>
         </Grid>
     </ScrollViewer>
-${indent(sidePanelCloseButton({ comment: '<!-- Close: a 28x28 plate that reads at rest (the theme\'s red button plate, a rim and a bright glyph) and turns the danger color on hover. -->' }), 4)}
+${indent(sidePanelCloseButton({ preset: 'plate', comment: '<!-- Close: a 28x28 plate that reads at rest (the theme\'s red button plate, a rim and a bright glyph) and turns the danger color on hover. -->' }), 4)}
 </Grid>`;
   return `<!--
     Overlay on Playnite Default/Views/GridViewGameOverview.xaml: the side panel of the grid view, set like the

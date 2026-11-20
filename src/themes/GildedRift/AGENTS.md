@@ -85,7 +85,8 @@ Both game overview files include a designed empty state using `LOCErrorNoGameSel
 | `DefaultControls/CheckBox, RadioButton` | Corner-cut gold-rimmed box with a drawn tick; ring with a glowing diamond |
 | `DefaultControls/Slider, ProgressBar` | Gold range on a slate rail with a diamond thumb; teal fill in a gold-rimmed track |
 | `DefaultControls/ScrollViewer, Thumb` | Dim gold 6px thumb on a void track |
-| `DefaultControls/ContextMenu, Menu, ToolTip` | Ability-tooltip panels: void, gold border and inner hairline, diamond rules between groups |
+| `DefaultControls/ToolTip` | Ability-tooltip panel: void, gold border and inner hairline |
+| `DefaultControls/ContextMenu, Menu, ComboBox`, `CustomControls/ComboBoxList, FilterSelectionBox` | Menus (every popup menu, `TopPanelMenu`, ComboBox and multi-select lists): one ability panel (`LocalAbilityPanelTemplate`: void slab, top-left and bottom-right corners cut 8px, bevel lit top-left and shadowed bottom-right, a gold diamond on the top-left cut); 30px roster rows: on highlight a bronze wash, the 3px gold bar with its glow and one shine sweep; shortcuts led by a small diamond, lighting gold with the row; diamond-headed rules as group breaks; Exit in blood; gold tick on checked rows. Recipe `docs/themes/menus.md` |
 | `DefaultControls/TabControl` | Item-shop tabs with a gold indicator |
 | `DefaultControls/GroupBox, Expander` | Social-group headers: diamond, heading font, fading rule |
 | `DefaultControls/ListBox, TreeView` | Roster rows; the Settings section list: 28px rows, hover slate, selected = gold bar + bronze wash + diamond |

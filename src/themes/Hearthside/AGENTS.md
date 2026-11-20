@@ -2,122 +2,77 @@
 
 ## What this is
 
-Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the interface of **Hearthstone** (Blizzard Entertainment, 2014 onward): the main menu box, the Collection Manager, the deck picker and the game board. There is one dark variant. Hearthside follows the game's rules: dark tavern wood framed in brass, gold for whatever is current or picked, cream Belwe lettering with a black drop, parchment for tooltips, and the game's few signal colors. Play is the yellow End Turn button and glows green, the playable color, when hovered. Progress bars and the slider are mana blue, and the slider thumb is a mana crystal. Danger uses the health gem red.
+Playnite **Desktop** theme (`ThemeApiVersion` 2.9.0) inspired by the interface of **Hearthstone** (Blizzard Entertainment, 2014 onward) and refined against the 66-screen Game UI Database gallery (`id=628`): the hinged tavern oak box, the Collection Manager open parchment tome, the Card Crafting riveted wrought-iron panels, the Options modal, and the game board. Hearthside pairs three contrasting materials — dark carved oak timber with subtle woodgrain texture, riveted wrought-iron nameplates, and aged warm cream parchment with espresso ink — framed in burnished gold/brass with Hearthstone's signal colors (End Turn gold, Playable emerald aura, Mana crystal blue, Health crimson wax seals, and Legendary amber).
 
-**Unofficial fan theme.** It contains no Blizzard assets. The tile mark, the ornamented divider, the medallion and every gem shape are original; the icons are Phosphor. Belwe (Bitstream, commercial) is not shipped. The theme names it first and falls back to Bookman Old Style, which ships with Office, then to Georgia. The body face is Franklin Gothic Medium, which ships with Windows. Hearthstone and Blizzard are trademarks of Blizzard Entertainment.
+**Unofficial fan theme.** It contains no Blizzard assets. The hearth-flame compass mark, brass corner clasps, woodgrain, vellum parchment grain, 9-slice glow aura, riveted iron nameplates, and faceted gem shapes are original; the icons are Phosphor. Belwe (Bitstream, commercial) is not shipped: `HeadingFontFamily` names it first and falls back to Bookman Old Style / Georgia (bundled preview stand-in: Gelasio). Body text uses Franklin Gothic Medium / Segoe UI (bundled preview stand-in: Libre Franklin). Hearthstone and Blizzard are trademarks of Blizzard Entertainment.
 
 Shared anatomy (file map, shell rules, game page skeleton, metadata pane, build and first-run checks): **`../AGENTS.md`**. Loading rules and build checks: **`docs/themes/reference.md`**.
 
-## Sources
+## Sources & Brief
 
-Reference notes, measurements, and asset sources are documented in [`RESEARCH.md`](RESEARCH.md).
+- Visual research and material measurements: [`RESEARCH.md`](RESEARCH.md)
+- Creative direction, element map, and motion language: [`BRIEF.md`](BRIEF.md)
+- Procedural white-mask sprite generator (`Pillow` + `NumPy`, fixed seed): `art/sprites.py` → `src/Images/fx/*.png` (`wood-grain.png`, `parchment-grain.png`, `parchment-sheet.png`, `glow-frame.png`, `corner-clasp.png`, `hearth-halo.png`, `metal-sheen.png`). Every FX sprite is pure white (`255,255,255`) with alpha so ThemeModifier recolors every texture and glow automatically via `DynamicResource` brushes.
 
 ## Tokens (`src/tokens.css`)
 
 | Token | Key | Used for |
 |-------|-----|----------|
-| `hs-wood-night` 160e08 | `WindowBackgourndBrush` | Window behind everything |
-| `hs-wood-deep` 22150c | `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `BackgroundToneColor`, `ScrollBarTrackBrush` | The box rim: rail, top bar, scroll groove |
-| `hs-wood` 2e1d10 | `ContentBackgroundBrush`, `ArtTintBrush` | Page planks; the warm wash over library and banner art |
-| `hs-wood-panel` 3a2516 | `MainColorDark`, `PopupBackgroundColor`, `ExpanderBackgroundBrush` | Raised panels, menus, metadata pane, group boxes |
-| `hs-wood-mid` 5d422a | `MainColor`, `HoverColor`, `ButtonBackgroundBrush`, `ListItemHoverBrush`, `TopPanelItemHoverBackgroundBrush`, `PropertyItemBackgroundBrush` | Resting buttons and chips; hover plates |
-| `hs-wood-light` 765535 | `SelectedBrush`, `ListItemSelectedBrush`, `MenuItemHoverBrush`, `ButtonHoverBackgroundBrush`, `ToggleButtonCheckedBackgroundBrush`, `TopPanelItemCheckedBackgroundBrush` | The lit plate under the current item |
-| `hs-wood-pressed` 1b110a | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `ButtonPressedBackgroundBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush`, `TopPanelSearchBoxBackgroundBrush` | Sunken wells and grooves |
-| `hs-wood-grain` 110a05 | `ScrimBrush`, `FrameInnerBrush`, `BevelShadowBrush` | Vignettes, the carved edge, plate shading |
-| `hs-gold` eecd4f | `GlyphColor`, `SelectedBorderBrush`, `FrameHoverBrush`, `CheckBoxHoverBorderBrush`, `TabItemIndicatorBrush`, `SidebarItemSelectedGlowBrush` | Accent: checks, links, edges of current items |
-| `hs-gold-light` fcd237 | `SelectedForegroundBrush`, `SidebarItemSelectedForegroundBrush`, `HeadingForegroundBrush`, `GridViewItemSelectedBorderBrush`, `BevelLightBrush` | Gold lettering and the selected cover frame |
-| `hs-brass` c8973d | `FrameBrush`, `InputHoverBorderBrush`, `ScrollBarThumbHoverBrush`, `GridViewItemHoverBorderBrush` | Trim rings, dividers, hover edges |
-| `hs-brass-dark` 8a6327 | `NormalBorderBrush`, `PopupBorderColor`, `ButtonBorderBrush`, `InputBorderBrush`, `CheckBoxBorderBrush`, `TopPanelSeparatorBrush`, `ScrollBarThumbBrush`, `ThumbBrush` | Resting edges |
-| `hs-brass-deep` 73471c | `WindowPanelSeparatorColor`, `PanelSeparatorColor`, `MenuSeparatorBrush` | Rules between groups and panels |
-| `hs-cream` f5e7c8 / `hs-cream-muted` c8b18a | `TextColor`, `ButtonForegroundBrush`, `PropertyItemForegroundBrush` / `TextColorDarker`, `SidebarItemForegroundBrush` | Lettering on wood |
-| `hs-parchment` e8d3a8, `hs-parchment-edge` af9472, `hs-ink` 2c2319 | `TooltipBackgroundBrush`, `ParchmentBrush` / `TooltipBorderBrush`, `ParchmentEdgeBrush` / `TooltipForegroundBrush`, `ParchmentTextBrush` | Parchment cards |
-| `hs-endturn` f5c518 (+ hover, pressed, ink 3a2208) | `PrimaryButton*`, `TextColorDark`, `MixedRatingBrush` | Play and default buttons |
-| `hs-playable` 29dd4f | `FocusBrush`, `PrimaryButtonGlowBrush`, `PositiveRatingBrush` | Focus ring, Play glow, good scores |
-| `hs-mana` 669ee1 / `hs-mana-dark` 2e4f89 / `hs-mana-light` a8daf6 | `ProgressBarForegroundBrush`, `SliderThumbBackgroundBrush` / `MainMenuButtonBackgroundBrush` / `SliderHoverForegroundBrush`, `SliderThumbHoverBorderBrush` | Mana bar, crystal thumb, the medallion |
-| `hs-health` c62c27 | `DangerBrush`, `NegativeRatingBrush` | Close hover, notification badge, low scores |
-| `hs-legendary` ff8000 | `WarningBrush`, `DataChangeNotifColor` | Warnings, the update icon |
-| `hs-outline` 000000 | `TextOutlineBrush` | The drop under the game title |
+| `hs-wood-night` `170e09` | `WindowBackgourndBrush` | Window / dialog outer backdrop |
+| `hs-wood-deep` `24150c` | `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `BackgroundToneColor`, `ScrollBarTrackBrush` | Outer tavern box rim: rail, top bar, Settings tree, scroll groove |
+| `hs-wood` `311d11` | `ContentBackgroundBrush`, `ArtTintBrush`, `GameBannerTintBrush` | Library board planks; warm banner tint |
+| `hs-wood-panel` `412817` | `MainColorDark`, `PopupBackgroundColor`, `ExpanderBackgroundBrush` | Raised timber panels, menus, group boxes |
+| `hs-wood-mid` `5b3b23` | `MainColor`, `HoverColor`, `ButtonBackgroundBrush`, `ListItemHoverBrush`, `TopPanelItemHoverBackgroundBrush`, `PropertyItemBackgroundBrush` | Resting oak buttons, hovered deck strips, dark wood tag chips |
+| `hs-wood-light` `7c5432` | `SelectedBrush`, `ListItemSelectedBrush`, `MenuItemHoverBrush`, `ButtonHoverBackgroundBrush`, `ToggleButtonCheckedBackgroundBrush`, `TopPanelItemCheckedBackgroundBrush`, `PropertyItemHoverBackgroundBrush` | Lit selected oak planks and hover fills |
+| `hs-wood-pressed` `1b1009` | `InputBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `ButtonPressedBackgroundBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush`, `TopPanelSearchBoxBackgroundBrush` | Deeply recessed wells and mana grooves |
+| `hs-wood-grain` `100905` | `ScrimBrush`, `FrameInnerBrush`, `BevelShadowBrush` | Woodgrain shadows, carved moldings, plate bevels |
+| `hs-iron` `35373f` / `hs-iron-dark` `222329` / `hs-iron-edge` `5e616e` | `LocalIronBrush`, `LocalIronDarkBrush`, `LocalIronEdgeBrush` | Riveted wrought-iron nameplates (`Game Details`, dialog titles), Info cover medallion, score stat sockets |
+| `hs-gold` `efc342` / `hs-gold-light` `ffe270` | `GlyphColor`, `SelectedBorderBrush`, `FrameHoverBrush`, `CheckBoxHoverBorderBrush`, `TabItemIndicatorBrush`, `SidebarItemSelectedGlowBrush` / `SelectedForegroundBrush`, `SidebarItemSelectedForegroundBrush`, `HeadingForegroundBrush`, `GridViewItemSelectedBorderBrush`, `BevelLightBrush` | Gold selection rims, headings, lantern highlights, rivets |
+| `hs-brass` `c9963b` / `hs-brass-dark` `8c6226` / `hs-brass-deep` `6b4319` | `FrameBrush`, `PopupBorderColor`, `InputHoverBorderBrush`, `ScrollBarThumbHoverBrush`, `GridViewItemHoverBorderBrush` / `NormalBorderBrush`, `ButtonBorderBrush`, `InputBorderBrush`, `CheckBoxBorderBrush`, `TopPanelSeparatorBrush`, `ScrollBarThumbBrush`, `ThumbBrush` / `WindowPanelSeparatorColor`, `PanelSeparatorColor`, `MenuSeparatorBrush` | Carved brass trim, corner clasps, borders, dividers |
+| `hs-cream` `f8ecd2` / `hs-cream-muted` `cab38d` | `TextColor`, `ButtonForegroundBrush` / `TextColorDarker`, `SidebarItemForegroundBrush` | Warm ivory lettering on dark oak |
+| `hs-parchment` `ebd9b4`, `hs-parchment-light` `f6ead0`, `hs-parchment-edge` `b99b6b`, `hs-ink` `2b1a0e`, `hs-ink-title` `4e260c`, `hs-ink-label` `6d4a26` | `ParchmentBrush`, `TooltipBackgroundBrush`, `LocalParchmentLightBrush`, `ParchmentEdgeBrush`, `TooltipBorderBrush`, `ParchmentTextBrush`, `TooltipForegroundBrush`, `ParchmentTitleBrush`, `PropertyItemForegroundBrush`, `ParchmentLabelBrush` | Open-tome Game Details Metadata Folio and aged parchment tooltips |
+| `hs-endturn` `f6c41c` (+ hover `ffe566`, pressed `b8840a`, ink `331c06`) | `PrimaryButton*`, `TextColorDark`, `MixedRatingBrush` | Play button, default dialog buttons (`Save`, `OK`), mixed scores |
+| `hs-playable` `2ee655` | `FocusBrush`, `PositiveRatingBrush` | Focus ring, positive scores |
+| `hs-mana` `4aa3f0` / `hs-mana-dark` `1d4e8f` / `hs-mana-light` `9ce2ff` / `hs-mana-glow` `00b8ff` | `RunningIndicatorBrush`, `ProgressBarForegroundBrush`, `SliderThumbBackgroundBrush` / `MainMenuButtonBackgroundBrush` / `SliderHoverForegroundBrush`, `SliderThumbHoverBorderBrush` / `PrimaryButtonGlowBrush`, `LocalManaGlowBrush` | Running mana crystals, mana tray slider & progress bar, Main Menu compass orb & halo, tight Hearthstone arcane cyan-blue Play & card hover aura |
+| `hs-health` `c82a25` / `hs-health-light` `ff5447` | `DangerBrush` / `NegativeRatingBrush`, `LocalHealthLightBrush` | Close hover, crimson wax-seal notification pip, folio bookmark ribbon, low scores |
+| `hs-legendary` `ff8c14` | `WarningBrush`, `DataChangeNotifColor` | Filter-active diamond gem, update icon, warnings |
+| `hs-outline` `000000` | `TextOutlineBrush` | Drop shadow behind game titles |
 
-Radii: `CornerRadiusSmall` 3, `ControlCornerRadius` 6, `CornerRadiusLarge` 10, `CornerRadiusXLarge` 14, `CornerRadiusFull` 9999. `CornerRadiusFull` is used only on 1:1 elements: the 30px menu medallion and the 40px round cover-tile buttons. Thin tracks use half their thickness (6px groove and thumb radius 3, 4px slider fill radius 2, 3px tab bar radius 1.5). `FrameThickness` is 2, the brass ring.
+Radii: `CornerRadiusSmall` 3, `ControlCornerRadius` 6, `CornerRadiusLarge` 10, `CornerRadiusXLarge` 14, `CornerRadiusFull` 9999 (used strictly on 1:1 square medallions/tokens). Thin tracks use half-thickness radii (`3` on 6px groove, `2` on 4px fill, `1.5` on 3px bars).
 
-## Component spacing (`src/Common.xaml`)
-
-| Key | Value | Why |
-|-----|-------|-----|
-| `ButtonPadding` | 18,8 | Wood plates about 36 tall |
-| `InputPadding` | 10,7 | Wells 34 tall |
-| `MenuPadding` / `MenuItemPadding` | 6 / 10,7,18,7 | Rows 32 tall in a wood panel |
-| `ComboBoxDropDownPadding` / `ComboBoxItemPadding` | 6 / 10,7,18,7 | Same as menus |
-| `ListBoxItemPadding` | 10,7 | Deck list tiles |
-| `GroupBoxPadding` / `GroupBoxHeaderMargin` / `GroupBoxHeaderFontSize` | 14,12 / 2,0,0,8 / 18 | Panel body under a gold Belwe title |
-| `TooltipPadding` | 12,8 | Parchment card |
-| `IconSize` | 18 | |
-| `GameBannerHeight` | 340 | |
-| `GameDetailsPaneWidth` / `GridDetailsPaneWidth` | 300 / 300 | |
-
-## Shell
+## Shell & Dialog Chrome
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px dark wood rail closed by a carved edge (1px brass over 2px grain) on the content side. The main menu is a 30px mana-blue medallion in a 2px brass ring, in a 44 x 56 cell on the left; the ring and glyph turn gold on hover. Items are 44 x 40 with 32px plates and 16px glyphs: muted cream at rest, a wood plate on hover. The current item gets a lit plate, a gold edge, a gold glyph and a soft gold glow. |
-| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px wood bar closed by the same carved edge. The search box is a sunken well. Items are 36px wood plates; the current one is lit with a gold edge. The notification count sits on a health-red gem. |
-| `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | Window buttons appear as wood plates on hover; close hovers health red |
-| `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
-| `Views/FilterPanelView.xaml`, `Views/ExplorerPanel.xaml` | Raised wood boards with a brass-deep edge; filter labels are small gold Belwe |
-
-**Settings chrome.** `DefaultControls/TreeView.xaml`: Collection Manager planks, 30px rows with 6px corners in the body face; hover is a mid-wood plank with the mana crystal half-lit, selected is the lit plank in a 1px gold frame with the gold label and the full crystal (a `Path` diamond); children under a brass-deep guide; Settings width 250. `DerivedStyles/StandardWindowStyle.xaml`: 44px wood band, a mana crystal at the left, the title on a mid-wood ribbon with brass edges and swallowtail ends (sized by its title), closed by the carved edge (grain line over brass); `WindowBarButton` is 38x30 with 6px corners.
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px carved oak rail with `LocalWoodGrainTemplate` and a 3-layer brass molding edge. The main menu is a 32px mana-blue compass medallion with cardinal gold notches, `LocalIconHearthMark`, and a soft `LocalHearthHaloMaskBrush` bloom on hover. Items are 44×40 with 32px beveled oak plates; selected gets a lit gold-rimmed plate, 9-slice `GlowFrameTemplate` golden aura, and left-edge gold diamond cursor. |
+| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px woodgrain oak beam closed by the 3-layer brass molding with a centered brass diamond clasp. Recessed search well (`260×34`), 36px beveled oak toolbar plates, legendary-amber diamond filter-active mark, crimson wax-seal notification badge with gold rim, and 12px mana-tray global progress bar with 12px text margins. |
+| `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | Caption buttons appear as wood plates on hover; close hovers crimson. |
+| `Views/Library.xaml` | Textured dark oak library layer (`LocalWoodGrainTemplate`) when window art is off; turns transparent with window art at full strength when Playnite's "Use game background image as window background" is on. |
+| `DerivedStyles/StandardWindowStyle.xaml`, `DefaultControls/TreeView.xaml` | Options-modal dialog chrome: 44px carved oak title band with woodgrain, Hearthside brand compass orb, riveted wrought-iron & gold title nameplate (`PART_TextTitle`), 3-layer brass molding, and 4-corner brass clasps. `TreeView` uses minimal bare 29px body-font rows (no idle boxes), opacity-animated oak hover wash, held selected wash + 2px gold edge bar + glowing mana diamond cursor, and reserved `Visible` vertical scroll lane in Settings (250px) and Add-ons (280px). |
 
 ## Game page
 
-The skeleton and metadata pane follow `../AGENTS.md`. Steam screenshots sit in the left column above the description. The banner spacer scales with `HeroArt` through `MathConverter`: 110/340 in the details view, 76/340 in the grid panel.
-
-Differences from the skeleton:
-- The banner gets a wood wash (`ArtTintBrush` at 35%) before the fade.
-- The title is cream Belwe over a 2px black copy of itself (`TextOutlineBrush` at 80%), which stands in for the game's outlined lettering. The copy binds to `PART_TextDisplayName.Text`.
-- Section headings are gold Belwe over `DividerTemplate`, a brass line that ends in a diamond gem.
-- The metadata pane is a raised wood panel in the 2px brass ring.
-- Play is the End Turn button.
-
-`HeadingTextBlock` and `DividerTemplate` are defined in `DetailsViewGameOverview.xaml` and used by both overviews.
+`DetailsViewGameOverview.xaml` and `GridViewGameOverview.xaml` follow the shared responsive skeleton (`GameDetailsPanePosition`: Right, Left, Center, Stretch) with Hearthstone's signature surfaces:
+- **Hero & Card Cover**: Warm tavern wood banner fade; bold cream Belwe title with black drop; collectible-card `CoverFrame` in burnished gold with 4 brass corner clasps (`LocalCornerClaspsTemplate`).
+- **Hero Moment (`PlayButton`)**: 42px beveled End Turn gold plate with twin flank rivets and lantern sheen; idle hover lights the gold bevel + inner specular rim, sweeps a slanted golden card glint across the plate, lifts smoothly (`1.028`), and hugs the border with a tight 9-slice Hearthstone arcane cyan-blue `LocalBloomFrameTemplate` aura; flanked by matching 42×42 beveled `More` and `Edit` plates.
+- **Section Headings**: Gold Belwe headings over `DividerTemplate` (faceted gold diamond + brass pip + tapered brass rule).
+- **Open-Tome Parchment Metadata Folio**: Warm aged parchment (`ParchmentBrush` + `LocalParchmentGrainTemplate` + inner aged vignette + `LocalBottomCornerClaspsTemplate`) crowned by a riveted wrought-iron & gold `Game Details` nameplate and a crimson wax-ribbon bookmark tab. Crisp espresso/umber ink values and captions, sepia group dividers, dark wrought-iron stat medallions for scores, and dark carved-oak tag chips (`PropertyItemButton`).
+- **Empty State (`EmptyGameTemplate`)**: Centered Tavern Hearth compass medallion with gentle 3.6s `hearth-halo.png` breathing pulse, flourished brass divider, and Belwe `LOCErrorNoGameSelected` prompt.
 
 ## Components
 
 | Playnite file | Hearthstone element |
 |---------------|---------------------|
-| Button, ToggleButton, RepeatButton | Wood menu plates with a brass edge and bevel. Hover lights the plate and edges it gold; a checked toggle is a lit plate with a gold edge and gold text. The default button is End Turn yellow. |
-| PlayButton | End Turn: yellow plate with dark Belwe text and a bevel; on hover a green playable glow |
-| GridTileButton (`GridViewItemTemplate.xaml`) | Round brass-ringed tokens (hero power / coin): Play yellow, Info wood |
-| TextBox, PasswordBox, SearchBox, ComboBox | Sunken wells: dark fill, brass edge and inner top shade, gold edge while typing or open |
-| ListBox, DetailsViewItemStyle, Menu, ComboBoxItem | Deck list tiles: wood plate on hover; selected is lit with a gold edge and gold text |
-| CheckBox, RadioButton | Brass-rimmed wells. The check box shows a gold tick; the radio holds a gold diamond gem. |
-| Slider | Mana bar: wood groove, blue fill, mana crystal thumb |
-| ProgressBar | Mana bar, 6px |
-| ScrollViewer | Wood groove with a brass thumb |
-| TabControl | Collection Manager bookmark tabs: rounded-top plates, the current one lit with gold edges and a gold base bar |
-| GroupBox | Gold Belwe title above a wood panel in a brass ring |
-| ToolTip | Parchment card |
-| GridViewItemStyle | Gold frame with a soft halo around the selected cover; brass on hover |
-| Running game (`RunningIndicatorBrush` = `hs-mana` 669ee1) | Mana crystal blue `hs-mana`: the mana tray refilling. **Launching** (1.8s loop, 1.25s travel): a narrow slanted glint (symmetric soft mask, like a card's legendary shine) crosses the row, cover or End Turn plate while five mana diamonds light one after another (rows: right of the far crystal, covers and the plate: centred at the foot) and stay lit until the loop ends. **Running:** the diamonds stay lit and breathe in a stagger over 3.2s with the frame and tint (0.72 to 1); the far crystal and the cover's cost-corner crystal keep their place. Plate: mana-blue under a faint `RunningBreath` scrim (0 to 0.1), dark wood label (`WindowBackgourndBrush`, 4.6:1 worst); Cancel only on RUNNING + hover of the button (`Self`), halo and glow only when idle. The Chrome border now wraps its layers in a Grid (a Border takes one child). |
-| PropertyItemButton | Text links in cream that turn gold; chips are small wood tokens with a brass edge |
-
-## Deviations
-
-- No textures. Wood grain, carved brass and parchment fibers are flat fills with a light bevel, because WPF can't tile textures cheaply and the theme ships no images besides the menu icons.
-- The glows (selection, Play, focus) are thin rings at partial opacity. `DropShadowEffect` and blur are avoided on tiles and popups.
-- The game's white-with-black-stroke lettering becomes cream text over an offset black copy (title only). WPF `TextBlock` has no stroke.
-- Belwe falls back to Bookman Old Style or Georgia unless installed. The game's Franklin Gothic is Medium Condensed; Windows ships Medium (not condensed), which is used.
-- The menu chrome colors are estimates (see Sources). Only card art and gems were measured.
+| `Button`, `ToggleButton`, `RepeatButton` | Beveled carved oak plates with smooth hover fill fade, subtle `BackEase` micro-lift (1.022) and press thud (0.965); `IsDefault` (`Save`, `OK`) is End Turn gold with twin flank rivets, Belwe text, and a golden hover sheen sweep |
+| `PlayButton` | End Turn gold plate with twin rivets, springy micro-lift, diagonal golden sheen sweep, and a smooth 9-slice Playable emerald hover aura that fades in and gently breathes while hovered; running/launching swaps solidly to Mana Crystal Blue with legendary glint sweep, 5 mana diamonds, and Cancel on hover (`Self`) |
+| `GridViewItemStyle`, `GridViewItemTemplate` | Collectible card cover lifts on hover (`Scale 1.032`, `Y -3px`, `BackEase`) with an arcane-mana 9-slice glow, brass corner clasps, and a diagonal foil card glint sweep; selected cards hold a gently breathing golden aura; hover reveals staggered coin-bounce 48×48 circular Hero Power / Coin `GridTileButton` medallions with springy pop (`1.10`) and radial halos |
+| `DetailsViewItemStyle` | Calm dark oak list at rest; beveled oak deck strip fades in smoothly on hover with a 3px deck-pull content slide; selected strip fades in a lit gold-rimmed plaque, springs the 3px left gold bar vertically (`BackEase`), and plays a one-shot golden glint sweep; preserves `RowHoverAction` (with springy glyph pop) and mana-crystal running indicator |
+| `Sidebar`, `SidebarItem`, `TopPanelItem` | Main Menu mana compass medallion blooms its arcane halo, pops (`1.09`), and rotates its gold compass notches +45° on hover; sidebar/top-bar plates fade smoothly with icon micro-pops and a sliding left gold diamond cursor on active sidebar items |
+| `CheckBox`, `RadioButton`, `TabControl`, `PropertyItemButton` | CheckBox pops the gold check (`BackEase`); RadioButton pops & spins the faceted gold diamond; TabControl smoothly expands the 3px gold base bar from center; dark wood tag chips fade and lift (`1.045`) on hover |
+| `Slider`, `ProgressBar` | Recessed mana trough, glowing mana-blue fill, and faceted gold-rimmed mana crystal diamond thumb that pops (`1.18`) and blooms a mana halo on hover/drag |
+| `GroupBox` | Gold Belwe title over beveled oak panel with compact 4-corner brass clasps (zero fixed widths >= 200 for Statistics wrapping) |
+| `ToolTip` | Aged parchment card with vellum paper grain and brass-edge border |
 
 ## Previews
 
-`art/preview-details.html` and `art/preview-settings.html` are HTML replicas that use the same tokens, sizes and shell. `.\scripts\take-screenshots.ps1 -Extension hearthside` renders them to `art/screenshot-details.png` and `art/screenshot-settings.png`. The art is drawn with CSS gradients, and the game names in the list are made up. They are not Playnite captures.
-
-On Linux, the screenshot script needs `CHROMIUM` set to a Chromium executable.
-
-## Not verified yet
-
-- Everything in a real Playnite. Build and validation pass, but the theme was built on Linux and has not run in the app.
-- The title's shadow copy wrapping identically to `PART_TextDisplayName` for long names.
-- The medallion's ring binding (`RelativeSource AncestorType=Border`) following hover in the top bar copy.
-- The sidebar at Right, Top and Bottom.
-- Font fallback when Belwe is missing (comma-separated families).
+`art/preview-details.html` and `art/preview-settings.html` are 1280×720 HTML replicas using `src/tokens.css` variables, bundled open font stand-ins (Gelasio for Belwe, Libre Franklin for Franklin Gothic), and the exact `src/Images/fx/*.png` white-mask sprites. Re-render with `.\scripts\take-screenshots.ps1 -Extension hearthside`. Motifs shown: carved oak grain + 3-layer brass moldings with centered diamond clasp, glowing mana compass medallion, beveled deck strips + mana-crystal running row, hovered End Turn emerald aura hero moment, gold-clasped collectible card cover, Open-Tome Parchment Metadata Folio with riveted wrought-iron nameplate & crimson bookmark, and Options-modal dialog chrome with minimal section tree & faceted mana slider.

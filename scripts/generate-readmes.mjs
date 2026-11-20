@@ -156,25 +156,46 @@ function linksLine(a) {
   return `${rel ? `[Download ${rel.version}](${rel.url})` : '_not released yet_'} · [More](${a.dir}/README.md)`;
 }
 
+function themeCell(a, cell) {
+  const [preview, heading, ...body] = cell.split('<br>');
+  const imgTag = /<img\b[^>]*>/.exec(preview)?.[0];
+  const img = imgTag ? `<a href="${a.dir}/README.md">${imgTag}</a>` : preview;
+  const title = heading || `[**${a.name}**](${a.dir}/README.md)`;
+  if (body.at(-1)?.includes(`[More](${a.dir}/README.md)`)) body.pop();
+  return [img, title, ...body, linksLine(a)].join('<br>');
+}
+
 function updateRootReadme(text) {
   const lines = text.split('\n');
   const used = new Set();
   const out = lines.map((line) => {
     if (!line.startsWith('| ')) return line;
-    const a = addons.find((x) => line.includes(`${x.dir}/info/icon.png`) || line.includes(`${x.dir}/art/screenshot-details.png`));
-    if (!a) return line;
-    used.add(a.key);
-    // first cell = icon or preview, second = name, text and links
     const cells = line.replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').split(/ \| /);
-    const firstCell = cells.shift();
-    // The preview (themes) or icon (plugins) opens the add-on's Details page, not the image file.
-    const img = /<img\b[^>]*\/>/.exec(firstCell);
-    const first = img ? `<a href="${a.dir}/README.md">${img[0]}</a>` : firstCell;
-    const cell = cells.join(' | ');
-    const parts = cell.split('<br>');
-    const name = `**${a.name}**`;
-    const desc = parts.length > 1 ? parts[1] : '';
-    return `| ${first} | ${name}<br>${desc}<br>${linksLine(a)} |`;
+    // Check if this is a plugin row (single addon with icon.png)
+    const plugin = addons.find((x) => x.kind === 'plugin' && line.includes(`${x.dir}/info/icon.png`));
+    if (plugin) {
+      used.add(plugin.key);
+      const firstCell = cells.shift();
+      const img = /<img\b[^>]*\/>/.exec(firstCell);
+      const first = img ? `<a href="${plugin.dir}/README.md">${img[0]}</a>` : firstCell;
+      const cell = cells.join(' | ');
+      const parts = cell.split('<br>');
+      const name = `**${plugin.name}**`;
+      const desc = parts.length > 1 ? parts[1] : '';
+      return `| ${first} | ${name}<br>${desc}<br>${linksLine(plugin)} |`;
+    }
+    // Otherwise, check if this is a 2-column theme grid row
+    const rowThemes = cells.map((c) => addons.find((x) => x.kind === 'theme' && c.includes(`${x.dir}/art/screenshot-details.png`)));
+    if (rowThemes.some(Boolean)) {
+      const updatedCells = cells.map((c, idx) => {
+        const t = rowThemes[idx];
+        if (!t) return c;
+        used.add(t.key);
+        return themeCell(t, c);
+      });
+      return `| ${updatedCells.join(' | ')} |`;
+    }
+    return line;
   });
   const missing = addons.filter((a) => !used.has(a.key)).map((a) => a.key);
   return { text: out.join('\n'), missing };

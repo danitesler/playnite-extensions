@@ -24,26 +24,23 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                    <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid">
+                    <Grid Background="{DynamicResource GridItemBackgroundBrush}" Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="SelectConfirmScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
                         <ContentPresenter x:Name="CoverPresenter" RenderTransformOrigin="0.5,0.5">
                             <ContentPresenter.RenderTransform>
                                 <ScaleTransform x:Name="CoverLift" ScaleX="1" ScaleY="1" />
                             </ContentPresenter.RenderTransform>
                         </ContentPresenter>
                         <!-- Hover, animated: the soft ring around the cover. -->
-                        <Control x:Name="HoverRing" Template="{DynamicResource RingGlowTemplate}" Foreground="{DynamicResource GridViewItemHoverBorderBrush}"
+                        <Control x:Name="HoverRing" Visibility="Collapsed" Template="{DynamicResource RingGlowTemplate}" Foreground="{DynamicResource GridViewItemHoverBorderBrush}"
                                  Opacity="0" IsHitTestVisible="False" Focusable="False" IsTabStop="False" />
-                        <!-- Selected, static: the outline and the held tape. -->
-                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-2" CornerRadius="10" IsHitTestVisible="False" />
-                        <Grid x:Name="SelectedTape" Visibility="Collapsed" Height="28" Margin="8,0,8,20" VerticalAlignment="Bottom" IsHitTestVisible="False">
-                            <Control Template="{DynamicResource TornPlateTemplate}" Background="{DynamicResource SelectedBrush}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
-                            <TextBlock Text="{Binding DisplayName}" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}"
-                                       Foreground="{DynamicResource TextBrushDark}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0,18,2" />
-                        </Grid>
-                        <!-- Hover, animated: the tape name strip that rides up from below. -->
-                        <Grid x:Name="HoverTape" Opacity="0" Height="28" Margin="8,0,8,20" VerticalAlignment="Bottom" IsHitTestVisible="False">
+                        <!-- Selected, animated: the outline and the held tape. -->
+                        <Border x:Name="SelectionBorder" Visibility="Collapsed" Opacity="0" BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" BorderThickness="2" Margin="-2" CornerRadius="10" IsHitTestVisible="False" />
+                        <Grid x:Name="SelectedTape" Visibility="Collapsed" Opacity="0" Height="28" Margin="8,0,8,20" VerticalAlignment="Bottom" IsHitTestVisible="False">
                             <Grid.RenderTransform>
-                                <TranslateTransform x:Name="TapeRise" Y="30" />
+                                <TranslateTransform x:Name="TapeSlide" Y="8" />
                             </Grid.RenderTransform>
                             <Control Template="{DynamicResource TornPlateTemplate}" Background="{DynamicResource SelectedBrush}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                             <TextBlock Text="{Binding DisplayName}" FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSize}"
@@ -80,14 +77,14 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Canvas.ZIndex" Value="90" />
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="HoverExit" />
+                                <BeginStoryboard Name="HoverEnter">
                                     <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                         <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="HoverTape" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
-                                        <DoubleAnimation Storyboard.TargetName="TapeRise" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.2">
-                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
                                         <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleX" To="1.03" Duration="0:0:0.2">
                                             <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
@@ -99,28 +96,71 @@
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverTape" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TapeRise" Storyboard.TargetProperty="Y" To="30" Duration="0:0:0.15">
+                                <BeginStoryboard Name="HoverExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15">
                                             <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.15">
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15">
                                             <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.15">
-                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRing" Storyboard.TargetProperty="Visibility" Duration="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="HoverEnter" />
                             </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder" />
                             <Setter Property="Visibility" Value="Visible" TargetName="SelectedTape" />
-                            <Setter Property="Visibility" Value="Collapsed" TargetName="HoverTape" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="SelectExit" />
+                                <BeginStoryboard Name="SelectEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedTape" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="TapeSlide" Storyboard.TargetProperty="Y" From="8" To="0" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectConfirmScale" Storyboard.TargetProperty="ScaleX">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.18" Value="1">
+                                                <EasingDoubleKeyFrame.EasingFunction><CubicEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction>
+                                            </EasingDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectConfirmScale" Storyboard.TargetProperty="ScaleY">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.18" Value="1">
+                                                <EasingDoubleKeyFrame.EasingFunction><CubicEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction>
+                                            </EasingDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="SelectExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedTape" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="SelectEnter" />
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />
@@ -128,7 +168,6 @@
                         <!-- Names shown under covers already name the game: the tape strips step aside. -->
                         <DataTrigger Binding="{Settings ShowNamesUnderCovers}" Value="True">
                             <Setter Property="Visibility" Value="Collapsed" TargetName="SelectedTape" />
-                            <Setter Property="Visibility" Value="Collapsed" TargetName="HoverTape" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsLaunching}" Value="True">
                             <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />

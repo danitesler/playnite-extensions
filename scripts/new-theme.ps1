@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$Name,
@@ -356,8 +356,10 @@ Both overview views honour ``GameDetailsPanePosition`` (ThemeModifier dropdown: 
 
 Mode: **$Ambition**. Short working notes (``docs/themes/creative-direction.md``); the reviewed previews are the real spec.
 
+- Candidate lenses (3 -> pick 1: Diegetic/Artifact, HUD/Telemetry, Title/Pause Menu; contrast with last 5 themes in ``src/themes/AGENTS.md``): TODO
 - Source DNA (5 traits -> where each lands): TODO
 - Game element map (8+ source UI parts -> Playnite surfaces): TODO
+- Signature levers (hero transition, Play button, metadata container/group break, chip & score silhouette, row/cover selection mark, 28x28 close plate): TODO
 - Hero moment: TODO
 - Secondary moments (5+): TODO
 - Motion (durations, easing, entrance, stagger): TODO

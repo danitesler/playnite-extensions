@@ -1,28 +1,73 @@
 <!--
-    Gilded Rift: ContextMenu. A void panel (PopupBackgroundBrush) with a 1px PopupBorderBrush edge (gold-dim) and an inner
-    FrameInnerBrush hairline inset 2px (a child Border with Margin 1), ControlCornerRadius corners, MenuPadding around the rows. The root is a shared-size scope
-    so GameMenu, GameGroupMenu and TrayContextMenu (which take this style through BasedOn) line up their icon and shortcut
-    columns. Rows (32px) and the DividerTemplate separator are in Menu.xaml. Structure: Playnite Default 10.60.
+    Gilded Rift: ContextMenu. Every menu and dropdown list (the hamburger menu, the top bar dropdowns through
+    TopPanelMenu, GameMenu, GameGroupMenu, TrayContextMenu, text box menus, ComboBox lists and Playnite's multi-select
+    boxes) is the client's ability tooltip panel:
+    - Panel (LocalAbilityPanelTemplate, shared by Menu.xaml's submenus, ComboBox.xaml, CustomControls/ComboBoxList.xaml
+      and CustomControls/FilterSelectionBox.xaml): a void slab with the top-left and bottom-right corners cut 8px (fixed
+      cuts drawn in a 3x3 grid, so they never stretch), closed by the gold bevel lit at the top-left (FrameBrush) and
+      shadowed at the bottom-right (FrameInnerBrush); a gold diamond sits on the top-left cut and a 2px lit gold run
+      leaves it along the top edge.
+    The root is a shared-size scope so the shortcut column lines up across rows. Rows, the roster highlight and the
+    diamond rules: Menu.xaml. Recipe: docs/themes/menus.md. Structure: Playnite Default 10.60.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTemplate x:Key="LocalAbilityPanelTemplate" TargetType="{x:Type Control}">
+        <Grid SnapsToDevicePixels="True" IsHitTestVisible="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="8" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="8" />
+            </Grid.RowDefinitions>
+            <!-- Void body with two cut corners -->
+            <Path Data="M 8,0 L 8,8 L 0,8 Z" Fill="{DynamicResource PopupBackgroundBrush}" />
+            <Rectangle Grid.Column="1" Grid.ColumnSpan="2" Fill="{DynamicResource PopupBackgroundBrush}" />
+            <Rectangle Grid.Row="1" Grid.ColumnSpan="3" Fill="{DynamicResource PopupBackgroundBrush}" />
+            <Rectangle Grid.Row="2" Grid.ColumnSpan="2" Fill="{DynamicResource PopupBackgroundBrush}" />
+            <Path Grid.Row="2" Grid.Column="2" Data="M 0,0 L 8,0 L 0,8 Z" Fill="{DynamicResource PopupBackgroundBrush}" />
+            <!-- Bevel: lit top and left, shadowed bottom and right -->
+            <Path Data="M 0,8.5 L 8.5,0" Stroke="{DynamicResource FrameBrush}" StrokeThickness="1" />
+            <Rectangle Grid.Column="1" Grid.ColumnSpan="2" Height="1" VerticalAlignment="Top" Fill="{DynamicResource FrameBrush}" />
+            <Rectangle Grid.Row="1" Grid.RowSpan="2" Width="1" HorizontalAlignment="Left" Fill="{DynamicResource FrameBrush}" />
+            <Rectangle Grid.RowSpan="2" Grid.Column="2" Width="1" HorizontalAlignment="Right" Fill="{DynamicResource FrameInnerBrush}" />
+            <Rectangle Grid.Row="2" Grid.ColumnSpan="2" Height="1" VerticalAlignment="Bottom" Fill="{DynamicResource FrameInnerBrush}" />
+            <Path Grid.Row="2" Grid.Column="2" Data="M 7.5,0 L 0,7.5" Stroke="{DynamicResource FrameInnerBrush}" StrokeThickness="1" />
+            <!-- Lit run along the top from the cut, and the diamond on the cut -->
+            <Rectangle Grid.Column="1" Width="28" Height="2" HorizontalAlignment="Left" VerticalAlignment="Top"
+                       Fill="{DynamicResource GlyphBrush}">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Offset="0" Color="Black" />
+                        <GradientStop Offset="1" Color="Transparent" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Path Width="6" Height="6" Margin="1,1,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Stretch="Fill"
+                  Data="M 3,0 L 6,3 L 3,6 L 0,3 Z" Fill="{DynamicResource GlyphBrush}" />
+        </Grid>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type ContextMenu}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
         <Setter Property="BorderThickness" Value="{DynamicResource PopupBorderThickness}" />
+        <Setter Property="HasDropShadow" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ContextMenu}">
-                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                            Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
-                            Grid.IsSharedSizeScope="True">
-                        <Border Margin="1" BorderBrush="{DynamicResource FrameInnerBrush}" BorderThickness="1" Padding="{DynamicResource MenuPadding}">
-                            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
-                            </ScrollViewer>
-                        </Border>
-                    </Border>
+                    <Grid x:Name="MenuPanel" MinWidth="220" SnapsToDevicePixels="True" Grid.IsSharedSizeScope="True">
+                        <Control Template="{DynamicResource LocalAbilityPanelTemplate}" Focusable="False" IsTabStop="False" />
+                        <ScrollViewer Margin="0,7" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter Margin="5,0" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                        </ScrollViewer>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

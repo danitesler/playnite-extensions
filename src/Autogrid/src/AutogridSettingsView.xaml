@@ -9,82 +9,154 @@
     <UserControl.Resources>
         <local:GridSizingModeToBoolConverter x:Key="ColumnsModeConverter" TargetMode="Columns" />
         <local:GridSizingModeToBoolConverter x:Key="RowsModeConverter" TargetMode="Rows" />
+        <local:AutogridModeToBoolConverter x:Key="OffModeConverter" TargetMode="Off" />
+        <local:AutogridModeToBoolConverter x:Key="ResizeModeConverter" TargetMode="ResizeCovers" />
+        <local:AutogridModeToBoolConverter x:Key="KeepModeConverter" TargetMode="KeepGridUnderDetails" />
+
+        <!-- Mode card: a stock RadioButton whose content is a preview and two lines of text.
+             The preview loops while the pointer is over the card. -->
+        <Style x:Key="ModeCardFrame" TargetType="Border">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="6" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ModePreview" TargetType="local:GridModePreview">
+            <Setter Property="Height" Value="96" />
+            <Setter Property="TileBrush" Value="{DynamicResource TextBrush}" />
+            <Setter Property="FrameBrush" Value="{DynamicResource PopupBorderBrush}" />
+            <Setter Property="AccentBrush" Value="{DynamicResource GlyphBrush}" />
+            <Setter Property="IsPlaying" Value="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+        </Style>
+        <Style x:Key="ModeCard" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+            <Setter Property="GroupName" Value="AutogridMode" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
     </UserControl.Resources>
     <StackPanel Margin="16">
-        <CheckBox Content="{DynamicResource LOCAutogrid_Settings_Enable}"
-                  IsChecked="{Binding Enabled, Mode=TwoWay}" />
+        <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_Mode}" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <RadioButton Grid.Column="0" Margin="0,0,12,0" Style="{StaticResource ModeCard}"
+                         AutomationProperties.Name="{DynamicResource LOCAutogrid_Settings_ModeOff}"
+                         IsChecked="{Binding Mode, Converter={StaticResource OffModeConverter}, Mode=TwoWay}">
+                <StackPanel>
+                    <Border Style="{StaticResource ModeCardFrame}">
+                        <local:GridModePreview Mode="Off" Style="{StaticResource ModePreview}" />
+                    </Border>
+                    <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}"
+                               Text="{DynamicResource LOCAutogrid_Settings_ModeOff}" />
+                    <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Opacity="0.7" Foreground="{DynamicResource TextBrush}"
+                               Text="{DynamicResource LOCAutogrid_Settings_ModeOffHint}" />
+                </StackPanel>
+            </RadioButton>
+            <RadioButton Grid.Column="1" Margin="0,0,12,0" Style="{StaticResource ModeCard}"
+                         AutomationProperties.Name="{DynamicResource LOCAutogrid_Settings_ModeResize}"
+                         IsChecked="{Binding Mode, Converter={StaticResource ResizeModeConverter}, Mode=TwoWay}">
+                <StackPanel>
+                    <Border Style="{StaticResource ModeCardFrame}">
+                        <local:GridModePreview Mode="ResizeCovers" Style="{StaticResource ModePreview}" />
+                    </Border>
+                    <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}"
+                               Text="{DynamicResource LOCAutogrid_Settings_ModeResize}" />
+                    <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Opacity="0.7" Foreground="{DynamicResource TextBrush}"
+                               Text="{DynamicResource LOCAutogrid_Settings_ModeResizeHint}" />
+                </StackPanel>
+            </RadioButton>
+            <RadioButton Grid.Column="2" Style="{StaticResource ModeCard}"
+                         AutomationProperties.Name="{DynamicResource LOCAutogrid_Settings_ModeKeep}"
+                         IsChecked="{Binding Mode, Converter={StaticResource KeepModeConverter}, Mode=TwoWay}">
+                <StackPanel>
+                    <Border Style="{StaticResource ModeCardFrame}">
+                        <local:GridModePreview Mode="KeepGridUnderDetails" Style="{StaticResource ModePreview}" />
+                    </Border>
+                    <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}"
+                               Text="{DynamicResource LOCAutogrid_Settings_ModeKeep}" />
+                    <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Opacity="0.7" Foreground="{DynamicResource TextBrush}"
+                               Text="{DynamicResource LOCAutogrid_Settings_ModeKeepHint}" />
+                </StackPanel>
+            </RadioButton>
+        </Grid>
         <Separator Margin="0,16,0,16" />
 
-        <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_SizingMode}" />
-        <StackPanel Orientation="Horizontal">
-            <RadioButton Content="{DynamicResource LOCAutogrid_Settings_Columns}"
-                         Margin="0,0,16,0"
-                         IsChecked="{Binding SizingMode, Converter={StaticResource ColumnsModeConverter}, Mode=TwoWay}" />
-            <RadioButton Content="{DynamicResource LOCAutogrid_Settings_Rows}"
-                         IsChecked="{Binding SizingMode, Converter={StaticResource RowsModeConverter}, Mode=TwoWay}" />
-        </StackPanel>
-        <Separator Margin="0,16,0,16" />
+        <!-- Everything below only applies while Autogrid resizes covers. -->
+        <StackPanel IsEnabled="{Binding Enabled}">
+            <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_SizingMode}" />
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Content="{DynamicResource LOCAutogrid_Settings_Columns}"
+                             Margin="0,0,16,0"
+                             IsChecked="{Binding SizingMode, Converter={StaticResource ColumnsModeConverter}, Mode=TwoWay}" />
+                <RadioButton Content="{DynamicResource LOCAutogrid_Settings_Rows}"
+                             IsChecked="{Binding SizingMode, Converter={StaticResource RowsModeConverter}, Mode=TwoWay}" />
+            </StackPanel>
+            <Separator Margin="0,16,0,16" />
 
-        <StackPanel>
-            <StackPanel.Style>
-                <Style TargetType="StackPanel">
-                    <Setter Property="Visibility" Value="Visible" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding SizingMode}" Value="Rows">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </StackPanel.Style>
-            <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_TargetColumns}" />
-            <Slider Minimum="1"
-                    Maximum="20"
-                    Value="{Binding TargetColumns, Mode=TwoWay}"
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SizingMode}" Value="Rows">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_TargetColumns}" />
+                <Slider Minimum="1"
+                        Maximum="20"
+                        Value="{Binding TargetColumns, Mode=TwoWay}"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True" />
+                <TextBlock Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextBrush}"
+                           Text="{Binding TargetColumns, StringFormat={}{0}}" />
+            </StackPanel>
+
+            <StackPanel Margin="0,12,0,0">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SizingMode}" Value="Rows">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_TargetRows}" />
+                <Slider Minimum="1"
+                        Maximum="10"
+                        Value="{Binding TargetRows, Mode=TwoWay}"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="True" />
+                <TextBlock Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextBrush}"
+                           Text="{Binding TargetRows, StringFormat={}{0}}" />
+            </StackPanel>
+
+            <Label Margin="0,16,0,4" Content="{DynamicResource LOCAutogrid_Settings_ViewportAdjust}" />
+            <Slider Minimum="-200"
+                    Maximum="200"
+                    Value="{Binding ViewportAdjustPx, Mode=TwoWay}"
                     TickFrequency="1"
                     IsSnapToTickEnabled="True" />
             <TextBlock Margin="0,4,0,0"
                        Foreground="{DynamicResource TextBrush}"
-                       Text="{Binding TargetColumns, StringFormat={}{0}}" />
-        </StackPanel>
-
-        <StackPanel Margin="0,12,0,0">
-            <StackPanel.Style>
-                <Style TargetType="StackPanel">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding SizingMode}" Value="Rows">
-                            <Setter Property="Visibility" Value="Visible" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </StackPanel.Style>
-            <Label Margin="0,0,0,4" Content="{DynamicResource LOCAutogrid_Settings_TargetRows}" />
-            <Slider Minimum="1"
-                    Maximum="10"
-                    Value="{Binding TargetRows, Mode=TwoWay}"
-                    TickFrequency="1"
-                    IsSnapToTickEnabled="True" />
-            <TextBlock Margin="0,4,0,0"
+                       Text="{Binding ViewportAdjustPx, StringFormat={}{0} px}" />
+            <TextBlock Margin="0,16,0,0"
+                       TextWrapping="Wrap"
                        Foreground="{DynamicResource TextBrush}"
-                       Text="{Binding TargetRows, StringFormat={}{0}}" />
+                       Text="{DynamicResource LOCAutogrid_Settings_ViewportAdjustHint}" />
         </StackPanel>
-
-        <CheckBox Margin="0,16,0,0"
-                  Content="{DynamicResource LOCAutogrid_Settings_KeepGridWhileDetailsOpen}"
-                  IsChecked="{Binding KeepGridWhileDetailsOpen, Mode=TwoWay}" />
-
-        <Label Margin="0,16,0,4" Content="{DynamicResource LOCAutogrid_Settings_ViewportAdjust}" />
-        <Slider Minimum="-200"
-                Maximum="200"
-                Value="{Binding ViewportAdjustPx, Mode=TwoWay}"
-                TickFrequency="1"
-                IsSnapToTickEnabled="True" />
-        <TextBlock Margin="0,4,0,0"
-                   Foreground="{DynamicResource TextBrush}"
-                   Text="{Binding ViewportAdjustPx, StringFormat={}{0} px}" />
-        <TextBlock Margin="0,16,0,0"
-                   TextWrapping="Wrap"
-                   Foreground="{DynamicResource TextBrush}"
-                   Text="{DynamicResource LOCAutogrid_Settings_ViewportAdjustHint}" />
     </StackPanel>
 </UserControl>

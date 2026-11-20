@@ -322,6 +322,18 @@ ${indent(columns, 12)}
                 <Style.Triggers>
                     <Trigger Property="DataContext" Value="{x:Null}">
                         <Setter Property="Visibility" Value="Visible" />
+                    <Trigger.EnterActions>
+                        <BeginStoryboard x:Name="EmptyPulse">
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.55" Duration="0:0:2.8">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <RemoveStoryboard BeginStoryboardName="EmptyPulse" />
+                    </Trigger.ExitActions>
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -408,6 +420,18 @@ ${columns}`;
                         <Style.Triggers>
                             <Trigger Property="DataContext" Value="{x:Null}">
                                 <Setter Property="Visibility" Value="Visible" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="EmptyPulse">
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.55" Duration="0:0:2.8">
+                                            <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="EmptyPulse" />
+                            </Trigger.ExitActions>
                             </Trigger>
                         </Style.Triggers>
                     </Style>
@@ -435,7 +459,7 @@ ${indent(header, 28)}
                 </Grid>
             </ScrollViewer>
         </DockPanel>
-${indent(sidePanelCloseButton(), 8)}
+${indent(sidePanelCloseButton({ preset: 'plate' }), 8)}
     </Grid>
 </Border>`;
   return wrap('GridViewGameOverview', `    The game panel beside the cover grid, a list panel of the game's menus (NormalBrush) with a 1px black outline on

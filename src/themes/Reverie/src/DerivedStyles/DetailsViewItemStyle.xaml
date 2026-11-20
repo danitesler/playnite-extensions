@@ -7,11 +7,16 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Grid>
           <Grid>
-            <Border x:Name="SelectedRectangle" IsHitTestVisible="False" Visibility="Collapsed" Background="{DynamicResource PrimaryButtonBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1.5" BorderBrush="{DynamicResource NormalBorderBrush}" />
-            <Border x:Name="HoverRectangle" IsHitTestVisible="False" Visibility="Collapsed" Background="{DynamicResource ButtonBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1.5" BorderBrush="{DynamicResource NormalBorderBrush}" />
-            <Border x:Name="FringeC" Margin="0,0,0,0" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource DataChangeNotifBrush}" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
-<Border x:Name="FringeP" Margin="0,0,0,0" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource HighlightGlyphBrush}" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
+            <Border x:Name="HoverRectangle" IsHitTestVisible="False" Visibility="Collapsed" Opacity="0" Background="{DynamicResource ButtonBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1.5" BorderBrush="{DynamicResource NormalBorderBrush}" />
+            <Border x:Name="SelectedRectangle" IsHitTestVisible="False" Visibility="Collapsed" Opacity="0" Background="{DynamicResource PrimaryButtonBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1.5" BorderBrush="{DynamicResource NormalBorderBrush}" RenderTransformOrigin="0.5,0.5">
+              <Border.RenderTransform>
+                <ScaleTransform x:Name="SelectedPillScale" ScaleX="0.96" ScaleY="0.96" />
+              </Border.RenderTransform>
+            </Border>
+            <Border x:Name="FringeC" Margin="0,0,0,0" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource DataChangeNotifBrush}" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
+            <Border x:Name="FringeP" Margin="0,0,0,0" CornerRadius="{DynamicResource ControlCornerRadius}" BorderThickness="1" BorderBrush="{DynamicResource HighlightGlyphBrush}" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform /></Border.RenderTransform></Border>
             <!-- Running game: a dream spark, a mint mote circling a small orbit at the capsule's far end, above the cream
                  selection and the maroon hover plate, never touched by them. One slow turn every 3.6s; a quick flickering turn while launching. -->
             <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
@@ -52,10 +57,88 @@
             </Grid>
             <Border Padding="{TemplateBinding Padding}" Background="Transparent">
               <Border x:Name="RowRoom">
-                  <Grid ClipToBounds="True"><ContentPresenter /></Grid>
+                  <Grid ClipToBounds="True">
+                    <Border x:Name="RowHoverRoom">
+                      <ContentPresenter>
+                        <ContentPresenter.RenderTransform>
+                          <TranslateTransform x:Name="RowShift" X="0" />
+                        </ContentPresenter.RenderTransform>
+                      </ContentPresenter>
+                    </Border>
+                  </Grid>
               </Border>
             </Border>
           </Grid>
+                    <!-- RowHoverAction: play (installed) or install (not installed) button on the row's right edge, only while the row is hovered; hidden while launching or running. -->
+                    <Button x:Name="RowHoverPlay" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
+                            Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCPlayGame}"
+                            Command="{MainViewModel StartGameCommand}" CommandParameter="{Binding Game}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding IsInstalled}" Value="True" />
+                                            <Condition Binding="{Binding IsRunning}" Value="False" />
+                                            <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Background="Transparent">
+                                    <Viewbox x:Name="Glyph" Width="14" Height="14" Opacity="0.75" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <ContentControl Focusable="False" Content="{DynamicResource IconPlay}" ContentTemplate="{DynamicResource IconTemplate}" />
+                                    </Viewbox>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Glyph" Property="Opacity" Value="1" /><Setter TargetName="Glyph" Property="Width" Value="17" /><Setter TargetName="Glyph" Property="Height" Value="17" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button x:Name="RowHoverInstall" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"
+                            Focusable="False" Cursor="Hand" ToolTip="{DynamicResource LOCInstallGame}"
+                            Command="{MainViewModel InstallGameCommand}" CommandParameter="{Binding Game}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}" Value="True" />
+                                            <Condition Binding="{Binding IsInstalled}" Value="False" />
+                                            <Condition Binding="{Binding IsRunning}" Value="False" />
+                                            <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Background="Transparent">
+                                    <Viewbox x:Name="Glyph" Width="14" Height="14" Opacity="0.75" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                                        <ContentControl Focusable="False" Content="{DynamicResource IconDownload}" ContentTemplate="{DynamicResource IconTemplate}" />
+                                    </Viewbox>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Glyph" Property="Opacity" Value="1" /><Setter TargetName="Glyph" Property="Width" Value="17" /><Setter TargetName="Glyph" Property="Height" Value="17" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
           <ControlTemplate.Triggers>
             <DataTrigger Binding="{Binding IsInstalled}" Value="True">
               <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -64,18 +147,99 @@
               <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
             </DataTrigger>
             <Trigger Property="IsMouseOver" Value="True">
-              <Setter Property="Visibility" Value="Visible" TargetName="HoverRectangle" />
               <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
-              <Setter TargetName="FringeC" Property="Opacity" Value="0.8" /><Setter TargetName="FringeP" Property="Opacity" Value="0.8" /><Setter TargetName="FringeC" Property="Effect"><Setter.Value><BlurEffect Radius="1.2" /></Setter.Value></Setter><Setter TargetName="FringeP" Property="Effect"><Setter.Value><BlurEffect Radius="1.2" /></Setter.Value></Setter><Trigger.ExitActions><BeginStoryboard><Storyboard><DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" /><DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" /><ThicknessAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" To="0,0,0,0" Duration="0:0:0.25" /><ThicknessAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" To="0,0,0,0" Duration="0:0:0.25" /></Storyboard></BeginStoryboard></Trigger.ExitActions>
+              <Setter TargetName="FringeC" Property="Effect"><Setter.Value><BlurEffect Radius="1.2" /></Setter.Value></Setter>
+              <Setter TargetName="FringeP" Property="Effect"><Setter.Value><BlurEffect Radius="1.2" /></Setter.Value></Setter>
+              <Trigger.EnterActions>
+                <BeginStoryboard Name="RowHoverEnter">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Opacity" To="0.8" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Opacity" To="0.8" Duration="0:0:0.2" />
+                    <DoubleAnimation Storyboard.TargetName="RowShift" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.18">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <RemoveStoryboard BeginStoryboardName="RowHoverEnter" />
+                <BeginStoryboard Name="RowHoverExit">
+                  <Storyboard FillBehavior="Stop">
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.22" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="HoverRectangle" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.22" />
+                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Opacity" From="0.8" To="0" Duration="0:0:0.22" />
+                    <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Opacity" From="0.8" To="0" Duration="0:0:0.22" />
+                    <DoubleAnimation Storyboard.TargetName="RowShift" Storyboard.TargetProperty="X" From="3" To="0" Duration="0:0:0.22">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" />
+                    <DoubleAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.25" />
+                    <ThicknessAnimation Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" To="0,0,0,0" Duration="0:0:0.25" />
+                    <ThicknessAnimation Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" To="0,0,0,0" Duration="0:0:0.25" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.ExitActions>
             </Trigger>
             <MultiDataTrigger>
-<MultiDataTrigger.Conditions><Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" /><Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True" /></MultiDataTrigger.Conditions>
-<MultiDataTrigger.EnterActions><BeginStoryboard><Storyboard><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.9" Value="-0.7" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="0.5" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="-0.8" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.0" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="-0.4" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.5" Value="-1.8199999999999998,0.78,1.3,0.78" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.1" Value="-0.26,-1.3,0.78,-0.26" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.7" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.6" Value="1.56,-0.52,-1.8199999999999998,0.52" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.2" Value="-0.26,1.56,0.52,-1.3" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.9" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames></Storyboard></BeginStoryboard></MultiDataTrigger.EnterActions>
-</MultiDataTrigger>
+              <MultiDataTrigger.Conditions><Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" /><Condition Binding="{Binding Source={x:Static SystemParameters.ClientAreaAnimation}}" Value="True" /></MultiDataTrigger.Conditions>
+              <MultiDataTrigger.EnterActions><BeginStoryboard Name="FringeWobble"><Storyboard><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.4" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.9" Value="-0.7" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.3" Value="0.5" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><DoubleAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:0.5" Value="-0.8" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.0" Value="0.9" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="-0.4" KeySpline="0.4,0,0.6,1" /><SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0" KeySpline="0.4,0,0.6,1" /></DoubleAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeC" Storyboard.TargetProperty="Margin" Duration="0:0:1.7" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.5" Value="-1.8199999999999998,0.78,1.3,0.78" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.1" Value="-0.26,-1.3,0.78,-0.26" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.7" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames><ThicknessAnimationUsingKeyFrames Storyboard.TargetName="FringeP" Storyboard.TargetProperty="Margin" Duration="0:0:1.9" RepeatBehavior="Forever"><SplineThicknessKeyFrame KeyTime="0:0:0" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:0.6" Value="1.56,-0.52,-1.8199999999999998,0.52" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.2" Value="-0.26,1.56,0.52,-1.3" KeySpline="0.4,0,0.6,1" /><SplineThicknessKeyFrame KeyTime="0:0:1.9" Value="0,0,0,0" KeySpline="0.4,0,0.6,1" /></ThicknessAnimationUsingKeyFrames></Storyboard></BeginStoryboard></MultiDataTrigger.EnterActions>
+              <MultiDataTrigger.ExitActions><RemoveStoryboard BeginStoryboardName="FringeWobble" /></MultiDataTrigger.ExitActions>
+            </MultiDataTrigger>
             <Trigger Property="IsSelected" Value="True">
-              <Setter Property="Visibility" Value="Visible" TargetName="SelectedRectangle" />
-              <Setter Property="Visibility" Value="Collapsed" TargetName="HoverRectangle" />
               <Setter Property="Foreground" Value="{DynamicResource TextBrushDark}" />
+              <Trigger.EnterActions>
+                <BeginStoryboard Name="RowSelectEnter">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRectangle" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="SelectedRectangle" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2">
+                      <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="SelectedPillScale" Storyboard.TargetProperty="ScaleX" From="0.96" To="1" Duration="0:0:0.26">
+                      <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                    <DoubleAnimation Storyboard.TargetName="SelectedPillScale" Storyboard.TargetProperty="ScaleY" From="0.96" To="1" Duration="0:0:0.26">
+                      <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.EnterActions>
+              <Trigger.ExitActions>
+                <RemoveStoryboard BeginStoryboardName="RowSelectEnter" />
+                <BeginStoryboard Name="RowSelectExit">
+                  <Storyboard FillBehavior="Stop">
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedRectangle" Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <DoubleAnimation Storyboard.TargetName="SelectedRectangle" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.2" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </Trigger.ExitActions>
             </Trigger>
             <DataTrigger Binding="{Binding IsLaunching}" Value="True">
                 <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
@@ -144,6 +308,20 @@
               <DataTrigger Binding="{Binding IsRunning}" Value="True">
                   <Setter TargetName="RowRoom" Property="Padding" Value="0,0,42,0" />
               </DataTrigger>
+                        <!-- RowHoverAction: keep the row text clear of the hover button (26px + 8px margin + gap). -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0,0,38,0" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0" />
+                            <Setter TargetName="RowHoverPlay" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RowHoverInstall" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RowHoverRoom" Property="Padding" Value="0" />
+                            <Setter TargetName="RowHoverPlay" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RowHoverInstall" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>

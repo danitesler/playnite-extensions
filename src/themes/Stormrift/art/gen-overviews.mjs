@@ -310,7 +310,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '18,16,18,18').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2', comment: '' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', exitDuration: '0:0:0.2', comment: '' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

@@ -216,8 +216,8 @@ const flicker = `<Storyboard RepeatBehavior="Forever">
 
 // Empty state: the Roadhouse stage. A proscenium frame (two rounded rims) around a void stage, pleated curtains drawn to each side under a
 // valance, marquee bulbs along the top, a spotlight cone with the Gumshoe mark in it and the "no game" line on a swallowtail ribbon at the foot.
-// The spotlight's boil is an Opacity loop in its own Style (Opacity only: never animate a RenderTransform from a Style trigger here, the template is
-// built with no game yet and Playnite crashes). Centered in the visible area.
+// The stage itself is EmptyGameTemplate in src/Common.xaml (curtains breathe, spotlight sways and boils, marquee bulbs chase, mark floats and tilts, ribbon
+// sways); its loops start from ControlTemplate.Triggers on named transforms, never a Style trigger (the page is built with no game bound). Centered in the visible area.
 const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeight, ElementName=PART_ScrollViewHost}">
     <Grid.Style>
         <Style TargetType="Grid">
@@ -229,27 +229,9 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <Grid Width="340" Height="300" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,30" IsHitTestVisible="False">
-        <Border Background="{DynamicResource ShellBackgroundBrush}" BorderBrush="{DynamicResource FrameBrush}" BorderThickness="3" CornerRadius="26,26,6,6" />
-        <Border Margin="9" BorderBrush="{DynamicResource FrameInnerBrush}" BorderThickness="2" CornerRadius="18,18,3,3" />
-        <Grid Margin="12,12,12,12">
-            <Border Width="86" HorizontalAlignment="Left" Background="{DynamicResource PopupBackgroundBrush}" />
-            <Control Template="{DynamicResource CurtainTemplate}" Foreground="{DynamicResource TextBrush}" Opacity="0.3" Width="86" HorizontalAlignment="Left" Focusable="False" />
-            <Border Width="86" HorizontalAlignment="Right" Background="{DynamicResource PopupBackgroundBrush}" />
-            <Control Template="{DynamicResource CurtainTemplate}" Tag="R" Foreground="{DynamicResource TextBrush}" Opacity="0.3" Width="86" HorizontalAlignment="Right" Focusable="False" />
-            <Control Template="{DynamicResource SpotlightTemplate}" Foreground="{DynamicResource TextBrush}" Opacity="0.2" Width="180" Height="230" HorizontalAlignment="Center" VerticalAlignment="Top" Focusable="False">
-${indent(whenEmpty('Control', 'SpotBoil', flicker), 16)}
-            </Control>
-            <Control Template="{DynamicResource SwagTemplate}" Foreground="{DynamicResource FrameBrush}" VerticalAlignment="Top" Margin="0,0,0,0" Focusable="False" />
-            <Control Template="{DynamicResource BulbRowTemplate}" Foreground="{DynamicResource StripeBrush}" Opacity="0.8" VerticalAlignment="Top" Margin="6,16,6,0" Focusable="False" />
-            <Control Template="{DynamicResource BrandMarkTemplate}" Foreground="{DynamicResource SelectedBrush}" Width="84" Height="84" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,22,0,0" Focusable="False" />
-        </Grid>
-        <Grid Width="272" Height="36" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,-14">
-            <Control Template="{DynamicResource RibbonTemplate}" Foreground="{DynamicResource HeaderBandBrush}" Focusable="False" />
-            <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" Margin="32,0,32,2" HorizontalAlignment="Center" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                       FontFamily="{DynamicResource PosterFontFamily}" FontSize="{DynamicResource FontSize}" Foreground="{DynamicResource HeaderBandForegroundBrush}" />
-        </Grid>
-    </Grid>
+    <Viewbox StretchDirection="DownOnly" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0,12,30" IsHitTestVisible="False">
+        <Control Template="{DynamicResource EmptyGameTemplate}" Width="380" Height="330" IsHitTestVisible="False" Focusable="False" />
+    </Viewbox>
 </Grid>`;
 
 const hideWhenEmpty = hideWhenNoGame('StackPanel');
@@ -356,7 +338,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '18,24,18,14').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', exitDuration: '0:0:0.2' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

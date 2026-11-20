@@ -14,13 +14,15 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     mc:Ignorable="d">
 
-    <!-- GridTileButton: a worn steel plate (BevelTemplate) with a light glyph. Hover: a brighter plate (its own layer) fades in over
-         0.1s and the glyph turns dark at once (the game swaps label colors instantly; Tag carries the hover plate brush, Play sets
-         the lit one). Pressed: a darker plate and the whole button shifts 1px right and down, the engine's push offset. Leaving
-         fades the plate back in 0.15s (FillBehavior Stop). -->
+    <!-- GridTileButton: a riveted steel plate with one chamfered corner, the kind bolted to a Zone bunker door. A 48px polygon
+         (bottom-left corner cut), four rivets and the PDA lamp strip along the foot. Background = plate, Tag = hover plate,
+         BorderBrush = plate edge, Foreground = glyph and lamp; Play overrides Foreground, Background and Tag with the lit amber.
+         Hover: a brighter plate (its own layer) fades in over 0.1s, the glyph turns to the hover ink at once (the game swaps label
+         colors instantly) and the lamp lights from the middle outward (0.14s). Pressed: a darker plate and the whole plate
+         pushes 1px down and right. Leaving fades back (FillBehavior Stop). -->
     <Style x:Key="GridTileButton" TargetType="Button">
-        <Setter Property="Width" Value="40" />
-        <Setter Property="Height" Value="40" />
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
@@ -34,38 +36,32 @@
                         <Grid.RenderTransform>
                             <TranslateTransform x:Name="PushShift" X="0" Y="0" />
                         </Grid.RenderTransform>
-                        <Control Template="{DynamicResource BevelTemplate}" Focusable="False" IsTabStop="False"
-                                 Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" />
-                        <Control x:Name="HoverPlate" Template="{DynamicResource BevelTemplate}" Focusable="False" IsTabStop="False" Opacity="0"
-                                 Background="{TemplateBinding Tag}" BorderBrush="{TemplateBinding BorderBrush}" />
-                        <Control x:Name="PressPlate" Template="{DynamicResource BevelTemplate}" Focusable="False" IsTabStop="False" Opacity="0"
-                                 Background="{DynamicResource ButtonPressedBackgroundBrush}" BorderBrush="{TemplateBinding BorderBrush}" />
-                        <!-- The lamp: a 2px strip along the bottom edge that lights from the middle outward on hover, like a PDA indicator. -->
-                        <Rectangle x:Name="Lamp" Height="2" VerticalAlignment="Bottom" Margin="4,0,4,3" IsHitTestVisible="False"
+                        <Polygon Points="0,0 48,0 48,48 11,48 0,37" Stretch="Fill" Fill="{TemplateBinding Background}"
+                                 Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" IsHitTestVisible="False" />
+                        <Polygon x:Name="HoverPlate" Points="0,0 48,0 48,48 11,48 0,37" Stretch="Fill" Fill="{TemplateBinding Tag}" Opacity="0" IsHitTestVisible="False" />
+                        <Polygon x:Name="PressPlate" Points="0,0 48,0 48,48 11,48 0,37" Stretch="Fill" Fill="{DynamicResource ButtonPressedBackgroundBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Ellipse Width="4" Height="4" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0" Fill="{TemplateBinding BorderBrush}" IsHitTestVisible="False" />
+                        <Ellipse Width="4" Height="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,4,4,0" Fill="{TemplateBinding BorderBrush}" IsHitTestVisible="False" />
+                        <Ellipse Width="4" Height="4" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,4,4" Fill="{TemplateBinding BorderBrush}" IsHitTestVisible="False" />
+                        <Ellipse Width="4" Height="4" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12,0,0,3" Fill="{TemplateBinding BorderBrush}" IsHitTestVisible="False" />
+                        <Rectangle x:Name="Lamp" Height="2" VerticalAlignment="Bottom" Margin="18,0,8,7" IsHitTestVisible="False"
                                    Fill="{TemplateBinding Foreground}" RenderTransformOrigin="0.5,0.5">
                             <Rectangle.RenderTransform>
                                 <ScaleTransform x:Name="LampScale" ScaleX="0" ScaleY="1" />
                             </Rectangle.RenderTransform>
                         </Rectangle>
-                        <ContentPresenter Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Content="{TemplateBinding Content}"
-                                          ContentTemplate="{DynamicResource IconTemplate}" />
+                        <ContentControl x:Name="Glyph" Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,2"
+                                        Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                        ContentTemplate="{DynamicResource IconTemplate}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource ButtonHoverForegroundBrush}" />
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <!-- The plate catches like a PDA screen: on, dip, on (0.14s), then holds. -->
-                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity">
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.04" Value="1" />
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.07" Value="0.65" />
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.11" Value="1" />
-                                        </DoubleAnimationUsingKeyFrames>
-                                        <DoubleAnimation Storyboard.TargetName="LampScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.12">
-                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="LampScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.14" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
@@ -82,18 +78,18 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.03" />
-                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="1" Duration="0:0:0.03" />
-                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="1" Duration="0:0:0.03" />
+                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.04" />
+                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="1" Duration="0:0:0.04" />
+                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="1" Duration="0:0:0.04" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.06" />
-                                        <DoubleAnimation Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.06" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PushShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.06" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PushShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.06" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -102,11 +98,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource ButtonHoverForegroundBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <Style x:Key="GridViewItemTemplate" TargetType="{x:Type GameListItem}">

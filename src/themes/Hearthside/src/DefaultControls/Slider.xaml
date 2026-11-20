@@ -45,18 +45,26 @@
     <Style x:Key="SliderThumb" TargetType="{x:Type Thumb}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="OverridesDefaultStyle" Value="True" />
-        <Setter Property="Width" Value="18" />
-        <Setter Property="Height" Value="22" />
+        <Setter Property="Width" Value="22" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Thumb}">
-                    <Grid Background="Transparent">
-                        <Path x:Name="Gem" Width="16" Height="16" Stretch="Fill"
+                    <Grid Background="Transparent" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="CrystalScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
+                        <!-- Arcane mana bloom behind the crystal on hover/drag -->
+                        <Rectangle x:Name="CrystalHalo" Width="30" Height="30" Margin="-4" Visibility="Collapsed" Opacity="0"
+                                   IsHitTestVisible="False" Fill="{DynamicResource LocalManaGlowBrush}"
+                                   OpacityMask="{DynamicResource LocalHearthHaloMaskBrush}" />
+                        <Path x:Name="Gem" Width="17" Height="17" Stretch="Fill"
                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                              Data="M 8,0 L 16,8 L 8,16 L 0,8 Z"
+                              Data="M 8.5,0 L 17,8.5 L 8.5,17 L 0,8.5 Z"
                               Fill="{DynamicResource SliderThumbBackgroundBrush}"
-                              Stroke="{DynamicResource FrameInnerBrush}" StrokeThickness="1.5" />
-                        <Path Width="10" Height="5" Margin="0,0,0,5" Stretch="Fill" Opacity="0.55" IsHitTestVisible="False"
+                              Stroke="{DynamicResource SelectedBorderBrush}" StrokeThickness="1.8" />
+                        <Path Width="10" Height="5" Margin="0,0,0,5" Stretch="Fill" Opacity="0.72" IsHitTestVisible="False"
                               HorizontalAlignment="Center" VerticalAlignment="Center"
                               Data="M 5,0 L 10,5 L 0,5 Z"
                               Fill="{DynamicResource SliderHoverForegroundBrush}" />
@@ -64,9 +72,40 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Stroke" Value="{DynamicResource SliderThumbHoverBorderBrush}" TargetName="Gem" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="CrystalHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CrystalHalo" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="CrystalHalo" Storyboard.TargetProperty="Opacity" To="0.82" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="CrystalScale" Storyboard.TargetProperty="ScaleX" To="1.18" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CrystalScale" Storyboard.TargetProperty="ScaleY" To="1.18" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.45" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="CrystalHoverIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="CrystalHalo" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="CrystalScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="CrystalScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CrystalHalo" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
                             <Setter Property="Stroke" Value="{DynamicResource SliderThumbHoverBorderBrush}" TargetName="Gem" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="CrystalHalo" />
+                            <Setter Property="Opacity" Value="0.92" TargetName="CrystalHalo" />
                         </Trigger>
                         <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource AncestorType={x:Type Slider}}}" Value="True">
                             <Setter Property="Stroke" Value="{DynamicResource FocusBrush}" TargetName="Gem" />

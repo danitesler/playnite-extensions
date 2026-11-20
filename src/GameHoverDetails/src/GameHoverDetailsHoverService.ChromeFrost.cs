@@ -143,21 +143,7 @@ namespace GameHoverDetails
 
         private void UpdateCoverClip()
         {
-            if (chromeBody == null)
-            {
-                return;
-            }
-
-            var w = chromeBody.ActualWidth;
-            var h = chromeBody.ActualHeight;
-            if (w <= 0 || h <= 0)
-            {
-                chromeBody.Clip = null;
-                return;
-            }
-
-            var innerRadius = Math.Max(0, ChromeCornerRadiusDip - 1);
-            chromeBody.Clip = new RectangleGeometry(new Rect(0, 0, w, h), innerRadius, innerRadius);
+            HoverChromePalette.ApplyRoundedClip(chromeBody, ChromeCornerRadiusDip - 1);
         }
 
         private void UpdateFrostClip()
@@ -366,9 +352,7 @@ namespace GameHoverDetails
 
             if (!settings.IsGameCoverBackgroundStyle || game == null)
             {
-                coverHost.Background = null;
-                coverHost.Visibility = Visibility.Collapsed;
-                coverTint.Visibility = Visibility.Collapsed;
+                HoverChromePalette.ApplyCoverBackdrop(coverHost, coverTint, null, settings.HoverChromeBackgroundOpacity);
                 lastCoverGameId = null;
                 return false;
             }
@@ -377,52 +361,20 @@ namespace GameHoverDetails
             {
                 coverHost.Visibility = Visibility.Visible;
                 coverTint.Visibility = Visibility.Visible;
+                HoverChromePalette.ApplyCoverTintOpacity(coverTint, settings.HoverChromeBackgroundOpacity);
                 return true;
             }
 
             var bmp = HoverBitmapLoader.TryLoadGameArt("BackgroundImage", game, playniteApi, FanartBackgroundDecodePx);
-            if (bmp == null)
+            if (!HoverChromePalette.ApplyCoverBackdrop(coverHost, coverTint, bmp, settings.HoverChromeBackgroundOpacity))
             {
-                coverHost.Background = null;
-                coverHost.Visibility = Visibility.Collapsed;
-                coverTint.Visibility = Visibility.Collapsed;
                 lastCoverGameId = null;
                 return false;
             }
 
-            coverHost.Background = new ImageBrush(bmp)
-            {
-                Stretch = Stretch.UniformToFill,
-                AlignmentX = AlignmentX.Center,
-                AlignmentY = AlignmentY.Center,
-                TileMode = TileMode.None
-            };
-            coverHost.Visibility = Visibility.Visible;
-            coverTint.Visibility = Visibility.Visible;
             lastCoverGameId = game.Id;
-            ApplyFanartTintOpacity();
             UpdateCoverClip();
             return true;
-        }
-
-        private void ApplyFanartTintOpacity()
-        {
-            if (coverTint == null)
-            {
-                return;
-            }
-
-            var o = settings.HoverChromeBackgroundOpacity / 100.0;
-            if (o < 0)
-            {
-                o = 0;
-            }
-            else if (o > 1)
-            {
-                o = 1;
-            }
-
-            coverTint.Opacity = o;
         }
 
         private void ApplyChrome(Game coverGame = null)
@@ -432,7 +384,7 @@ namespace GameHoverDetails
             HoverChromePalette.ApplyToChromeBorder(chromeBorder, settings, coverActive);
             if (coverActive)
             {
-                ApplyFanartTintOpacity();
+                HoverChromePalette.ApplyCoverTintOpacity(coverTint, settings.HoverChromeBackgroundOpacity);
             }
 
             var appFont = HoverChromePalette.ResolvePlayniteFontFamily(mainWindow);

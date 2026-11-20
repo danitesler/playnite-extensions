@@ -100,6 +100,78 @@ namespace GameHoverDetails
                 : new Thickness(1);
         }
 
+        public static bool ApplyCoverBackdrop(Border coverHost, Border coverTint, ImageSource cover, int opacityPercent)
+        {
+            var coverActive = cover != null;
+            if (coverHost != null)
+            {
+                if (coverActive)
+                {
+                    coverHost.Background = new ImageBrush(cover)
+                    {
+                        Stretch = Stretch.UniformToFill,
+                        AlignmentX = AlignmentX.Center,
+                        AlignmentY = AlignmentY.Center,
+                        TileMode = TileMode.None
+                    };
+                    coverHost.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    coverHost.Background = null;
+                    coverHost.Visibility = Visibility.Collapsed;
+                }
+            }
+
+            if (coverTint != null)
+            {
+                coverTint.Background = CoverTintBrush;
+                ApplyCoverTintOpacity(coverTint, opacityPercent);
+                coverTint.Visibility = coverActive ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            return coverActive;
+        }
+
+        public static void ApplyCoverTintOpacity(Border coverTint, int opacityPercent)
+        {
+            if (coverTint == null)
+            {
+                return;
+            }
+
+            var opacity = opacityPercent / 100.0;
+            if (opacity < 0)
+            {
+                opacity = 0;
+            }
+            else if (opacity > 1)
+            {
+                opacity = 1;
+            }
+
+            coverTint.Opacity = opacity;
+        }
+
+        public static void ApplyRoundedClip(FrameworkElement element, double radiusDip)
+        {
+            if (element == null)
+            {
+                return;
+            }
+
+            var w = element.ActualWidth;
+            var h = element.ActualHeight;
+            if (w <= 0 || h <= 0)
+            {
+                element.Clip = null;
+                return;
+            }
+
+            var r = Math.Max(0, radiusDip);
+            element.Clip = new RectangleGeometry(new Rect(0, 0, w, h), r, r);
+        }
+
         public static string ContentFingerprint(GameHoverDetailsSettings settings)
         {
             if (settings == null)

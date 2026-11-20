@@ -1,0 +1,58 @@
+<!--
+    Verst: ProgressBar. The odometer's counter run: 12x8 square segments with 2px gaps. Empty segments are ProgressBarTrackBrush
+    (the control's Background), filled segments ProgressBarForegroundBrush (prompt orange, the control's Foreground), both stroked
+    Paths with flat dash caps in size-less Canvases so the bar reports no width. PART_Track and PART_Indicator are kept: Playnite
+    sizes the indicator, the Canvas inside clips the lit segments to it. Indeterminate hides the indicator and slides a lit run
+    of six segments along the track (StrokeDashOffset, one period per loop, stopped when the state ends).
+    Structure: Playnite Default 10.60.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type ProgressBar}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource ProgressBarForegroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ProgressBarTrackBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ProgressBar}">
+                    <Grid x:Name="Root" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Background="Transparent">
+                        <Canvas Height="8" VerticalAlignment="Center" ClipToBounds="True" IsHitTestVisible="False">
+                            <Path Data="M0,4 L3000,4" StrokeThickness="8" StrokeDashCap="Flat" StrokeDashArray="1.5 0.25"
+                                  Stroke="{TemplateBinding Background}" />
+                        </Canvas>
+                        <Rectangle Name="PART_Track" Margin="0" />
+                        <Decorator x:Name="PART_Indicator" HorizontalAlignment="Left" VerticalAlignment="Stretch">
+                            <Canvas Height="8" VerticalAlignment="Center" ClipToBounds="True" IsHitTestVisible="False">
+                                <Path Data="M0,4 L3000,4" StrokeThickness="8" StrokeDashCap="Flat" StrokeDashArray="1.5 0.25"
+                                      Stroke="{TemplateBinding Foreground}" />
+                            </Canvas>
+                        </Decorator>
+                        <Canvas x:Name="Sweep" Height="8" VerticalAlignment="Center" ClipToBounds="True" IsHitTestVisible="False" Visibility="Collapsed">
+                            <Path x:Name="SweepPips" Data="M-96,4 L3004,4" StrokeThickness="8" StrokeDashCap="Flat"
+                                  StrokeDashArray="1.5 0.25 1.5 0.25 1.5 0.25 1.5 0.25 1.5 0.25 1.5 54.75"
+                                  Stroke="{TemplateBinding Foreground}" />
+                        </Canvas>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsIndeterminate" Value="True">
+                            <Setter TargetName="Sweep" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PART_Indicator" Property="Visibility" Value="Hidden" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="PipSweepStoryboard">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="SweepPips" Storyboard.TargetProperty="StrokeDashOffset"
+                                                         From="0" To="-65" Duration="0:0:1.8" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PipSweepStoryboard" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

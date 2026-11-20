@@ -287,7 +287,7 @@ ${indent(pane('GridDetailsPaneWidth', '14,12,14,14'), 44)}
 ${indent(empty, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton(), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

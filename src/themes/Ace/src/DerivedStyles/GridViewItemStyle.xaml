@@ -16,13 +16,22 @@
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">
                     <Grid Background="{DynamicResource GridItemBackgroundBrush}"
                           Margin="{Settings ItemSpacingMargin}"
+                          RenderTransformOrigin="0.5,0.5"
                           x:Name="ItemGrid">
-                        <Border x:Name="SelectionBorder" BorderThickness="2" Margin="-2" />
-                        <Border x:Name="HoverInner" BorderThickness="1" Margin="-1" Opacity="0" IsHitTestVisible="False"
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="HoverScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
+                        <Border x:Name="SelectionBorder" BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" BorderThickness="2" Margin="-2" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" />
+                        <Border x:Name="HoverInner" BorderThickness="1" Margin="-1" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False"
                                 BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
-                        <Border x:Name="HoverOuter" BorderThickness="1" Margin="-2" Opacity="0" IsHitTestVisible="False"
+                        <Border x:Name="HoverOuter" BorderThickness="1" Margin="-2" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False"
                                 BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
-                        <ContentPresenter />
+                        <Grid x:Name="SelectPulseHost" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="SelectPulseScale" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <ContentPresenter />
+                        </Grid>
                         <!-- Running game: 2px CT-blue frame on the square cover edge over a 6px band inside it (the white selection frame sits outside), a bevelled radar blip top-right. -->
                         <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.8" IsHitTestVisible="False" SnapsToDevicePixels="True">
                             <Border x:Name="RunningWash" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="6" Opacity="0.18" />
@@ -53,12 +62,76 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Canvas.ZIndex" Value="90" />
-                            <Setter TargetName="HoverInner" Property="Opacity" Value="1" />
-                            <Setter TargetName="HoverOuter" Property="Opacity" Value="1" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="HoverEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverInner" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverOuter" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.04" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverInner" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverOuter" Storyboard.TargetProperty="Opacity" BeginTime="0:0:0.04" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleX" To="1.018" Duration="0:0:0.11" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleY" To="1.018" Duration="0:0:0.11" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="HoverEnter" />
+                                <BeginStoryboard Name="HoverExit">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverOuter" Storyboard.TargetProperty="Visibility" FillBehavior="Stop">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.08" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverInner" Storyboard.TargetProperty="Visibility" FillBehavior="Stop">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.12" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverOuter" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.08" FillBehavior="Stop" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverInner" Storyboard.TargetProperty="Opacity" BeginTime="0:0:0.04" From="1" To="0" Duration="0:0:0.08" FillBehavior="Stop" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleX" From="1.018" To="1" Duration="0:0:0.11" FillBehavior="Stop" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverScale" Storyboard.TargetProperty="ScaleY" From="1.018" To="1" Duration="0:0:0.11" FillBehavior="Stop" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GridViewItemSelectedBorderBrush}" TargetName="SelectionBorder"/>
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="SelectedEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectPulseScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:0.15">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="0.985" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectPulseScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:0.15">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.05" Value="0.985" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="SelectedEnter" />
+                                <BeginStoryboard Name="SelectedExit">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" FillBehavior="Stop">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.11" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" From="1" To="0" Duration="0:0:0.11" FillBehavior="Stop" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />

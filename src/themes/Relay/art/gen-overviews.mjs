@@ -64,6 +64,9 @@ ${indent(bannerDarkeningFloor(), 4)}
             </LinearGradientBrush>
         </Rectangle.Fill>
     </Rectangle>
+<!-- Relay detail: HUD brackets on the banner corners -->
+    <Path HorizontalAlignment="Left" VerticalAlignment="Top" Margin="14,14,0,0" Fill="{DynamicResource HeadingMarkerBrush}" Opacity="0.75" IsHitTestVisible="False" Data="F1M0,0H10V1.5H1.5V10H0Z" />
+    <Path HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,14,14,0" Fill="{DynamicResource HeadingMarkerBrush}" Opacity="0.75" IsHitTestVisible="False" Data="F1M0,0H10V10H8.5V1.5H0Z" />
 </Grid>`;
 
 const title = `<DockPanel>
@@ -291,7 +294,7 @@ ${indent(pane('GridDetailsPaneWidth', '14,12,14,14'), 44)}
 ${indent(empty, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ comment: '<!-- Close: a 28x28 plate that reads at rest (the amber button plate, a rim and a sand glyph) and turns Renegade red on hover. -->' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', comment: '<!-- Close: a 28x28 plate that reads at rest (the amber button plate, a rim and a sand glyph) and turns Renegade red on hover. -->' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

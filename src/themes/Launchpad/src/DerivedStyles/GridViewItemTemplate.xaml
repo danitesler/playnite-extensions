@@ -13,12 +13,12 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     mc:Ignorable="d">
 
-    <!-- GridTileButton: a 44px rounded square (ControlCornerRadius). Background is the plate, Tag the hover plate, Foreground the glyph;
-         Play overrides all three with the launcher blue. Hover: the lighter plate fades in over 0.15s and the glyph grows 1 to 1.08;
-         pressed: a page-coloured veil fades in over 0.06s. Leaving fades back (FillBehavior Stop). -->
+    <!-- GridTileButton (Info): the launcher's tab card. A flat card plate with a 1px rim; hover lights the lighter plate and grows the app's
+         selected-tab underline (3px, launcher blue) out from the centre of its foot. Background is the plate, Tag the hover plate, Foreground the glyph.
+         GridTilePlayButton below is the launch disc with its orbit ring. -->
     <Style x:Key="GridTileButton" TargetType="Button">
-        <Setter Property="Width" Value="44" />
-        <Setter Property="Height" Value="44" />
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
@@ -28,52 +28,85 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid UseLayoutRounding="True" Background="Transparent">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" />
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" />
                         <Border x:Name="HoverPlate" Background="{TemplateBinding Tag}" CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" Opacity="0" />
                         <Border x:Name="PressPlate" Background="{DynamicResource WindowBackgourndBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" SnapsToDevicePixels="True" Opacity="0" />
+                        <Border Height="3" VerticalAlignment="Bottom" Margin="4,0,4,0" CornerRadius="1.5" IsHitTestVisible="False"
+                                Background="{DynamicResource PrimaryButtonBackgroundBrush}" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="Underline" ScaleX="0" ScaleY="1" />
+                            </Border.RenderTransform>
+                        </Border>
                         <ContentControl Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Width="20" Height="20"
-                                        Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
-                            <ContentControl.RenderTransform>
-                                <ScaleTransform x:Name="GlyphScale" ScaleX="1" ScaleY="1" />
-                            </ContentControl.RenderTransform>
-                        </ContentControl>
+                                        Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-2,0,0" IsHitTestVisible="False" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <BeginStoryboard x:Name="InfoIn">
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
-                                        <DoubleAnimation Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleX" To="1.08" Duration="0:0:0.15" />
-                                        <DoubleAnimation Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleY" To="1.08" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="Underline" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2" />
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="GlyphScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2" />
-                                    </Storyboard>
-                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="InfoIn" />
                             </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="PressPlate" Property="Opacity" Value="0.3" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- GridTilePlayButton: the launch disc. A launcher-blue circle inside an orbit ring with one satellite; hover lights the disc and the
+         ring makes one lap (0.7s) the way the client's orbit mark does. Background is the disc, Tag the hover disc, Foreground the glyph. -->
+    <Style x:Key="GridTilePlayButton" TargetType="Button" BasedOn="{StaticResource GridTileButton}">
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Tag" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid UseLayoutRounding="False" Background="Transparent">
+                        <Grid RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <RotateTransform x:Name="Orbit" Angle="0" />
+                            </Grid.RenderTransform>
+                            <Ellipse Margin="1" StrokeThickness="1.5" Stroke="{TemplateBinding Background}" Opacity="0.55" />
+                            <Ellipse Width="7" Height="7" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-2.5,0,0" Fill="{TemplateBinding Background}" />
+                        </Grid>
+                        <Ellipse Margin="7" Fill="{TemplateBinding Background}" />
+                        <Ellipse x:Name="HoverDisc" Margin="7" Fill="{TemplateBinding Tag}" Opacity="0" />
+                        <Ellipse x:Name="PressDisc" Margin="7" Fill="{DynamicResource WindowBackgourndBrush}" Opacity="0" />
+                        <ContentControl Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Width="18" Height="18"
+                                        Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
                             <Trigger.EnterActions>
-                                <BeginStoryboard>
+                                <BeginStoryboard x:Name="PlayIn">
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverDisc" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="Orbit" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:0.7">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PressPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
-                                    </Storyboard>
-                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="PlayIn" />
                             </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="PressDisc" Property="Opacity" Value="0.3" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -106,7 +139,7 @@
                                 <Viewbox VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="150"
                                          Name="GameControls" Visibility="Hidden">
                                     <StackPanel Orientation="Horizontal" Margin="12">
-                                        <Button Name="PART_ButtonPlay" Style="{StaticResource GridTileButton}" Background="{DynamicResource PrimaryButtonBackgroundBrush}" Tag="{DynamicResource PrimaryButtonHoverBackgroundBrush}" Foreground="{DynamicResource PrimaryButtonForegroundBrush}" Margin="0,0,6,0"
+                                        <Button Name="PART_ButtonPlay" Style="{StaticResource GridTilePlayButton}" Background="{DynamicResource PrimaryButtonBackgroundBrush}" Tag="{DynamicResource PrimaryButtonHoverBackgroundBrush}" Foreground="{DynamicResource PrimaryButtonForegroundBrush}" Margin="0,0,6,0"
                                                 Content="{DynamicResource IconPlay}" Opacity="0" RenderTransformOrigin="0.5,0.5">
 
                                             <Button.RenderTransform>

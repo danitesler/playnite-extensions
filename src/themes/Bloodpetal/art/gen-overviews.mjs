@@ -38,7 +38,7 @@ function pane(layout, widthKey, padding) {
 ${indent(header('LOCGameDetails', '0,0,0,6'), 12)}
             <Grid ClipToBounds="True">
                 <StackPanel Margin="0,-32,0,-7">
-${indent(META_GROUPS.map(g => metadataGroup(g, layout)).join('\n'), 20)}
+${indent(META_GROUPS.map(g => metadataGroup(g, layout, { borderThickness: '0,1,0,0', borderBrush: 'WindowPanelSeparatorBrush' })).join('\n'), 20)}
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -321,7 +321,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '18,16,18,18').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton(), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

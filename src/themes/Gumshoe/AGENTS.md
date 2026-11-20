@@ -83,7 +83,7 @@ Both game overview files include a designed empty state using `LOCErrorNoGameSel
 | `DefaultControls/CheckBox, RadioButton` | Button-prompt discs: grey, lit paper when checked, ink check or dot |
 | `DefaultControls/Slider, ProgressBar` | Pip dashes; the slider thumb is a paper tab that tilts on hover |
 | `DefaultControls/ScrollViewer, Thumb` | The pencil: a 2px line and a ridged capsule |
-| `DefaultControls/ContextMenu, Menu, ToolTip` | Chalkboard modal; separators are the flourish rule (`DividerTemplate`); tooltips are void boxes |
+| `DefaultControls/ContextMenu, Menu, ToolTip` | Chalkboard modal (`LocalChalkboardMenuTemplate`: film grain, inset hairline, top masking-tape tab) across all menus, submenus, ComboBox and multi-select lists; 30px rows with feathered paper smudge + ink pip on highlight, 10px flourish breaks, void prompt-pill shortcuts, stamp-red Exit smudge, prompt-disc checks; tooltips are void boxes |
 | `DefaultControls/TabControl` | Folder tabs: the selected one is paper and rises 4px |
 | `DefaultControls/GroupBox, Expander` | GroupBox: a paper ribbon over a card. Expander (library groups): a dark chalk ribbon, because Playnite's group headers draw their own TextBlock in `TextBrush` |
 | `DefaultControls/ListBox, TreeView` | Smudge rows; the Settings section list: 28px plates, hover chalk, selected = smudge + ink pip |

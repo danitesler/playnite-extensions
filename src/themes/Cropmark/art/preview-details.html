@@ -1,0 +1,1337 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Cropmark — Game Details Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--cm-paper);
+    color: var(--cm-ink);
+    font-family: "Segoe UI", sans-serif;
+    font-size: 13.5px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Root desktop shell: 44px left rail + main column */
+  .app {
+    display: flex;
+    width: 1280px;
+    height: 720px;
+    background: var(--cm-paper);
+    position: relative;
+  }
+
+  /* === SIDEBAR (44px Bristol rail with ink seam + dashed blue bleed spine) === */
+  .sidebar {
+    width: 44px;
+    height: 720px;
+    background: var(--cm-paper-well);
+    border-right: 1.5px solid var(--cm-ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    top: 48px;
+    bottom: 8px;
+    right: -4px;
+    width: 0;
+    border-right: 1px dashed var(--cm-blue-guide);
+    pointer-events: none;
+  }
+  .main-menu-btn {
+    width: 44px;
+    height: 48px;
+    background: var(--cm-charcoal);
+    border-bottom: 2px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .main-menu-btn::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--cm-orange);
+  }
+  .sidebar-items {
+    display: flex;
+    flex-direction: column;
+    width: 44px;
+    padding-top: 6px;
+    gap: 2px;
+  }
+  .sidebar-item {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--cm-ink-muted);
+  }
+  .sidebar-item.selected {
+    background: var(--cm-blue-tab);
+    color: var(--cm-ink-deep);
+    border-top: 1px solid var(--cm-ink);
+    border-bottom: 1px solid var(--cm-ink);
+  }
+  .sidebar-item.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--cm-orange);
+  }
+  .sidebar-item svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+  .sidebar-crop-foot {
+    margin-top: auto;
+    padding-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--cm-blue-guide);
+    font-family: "Consolas", monospace;
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  /* === MAIN COLUMN === */
+  .main-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 720px;
+    position: relative;
+  }
+
+  /* === TOP PANEL (48px OPTIONS-inspired bar: Search -> Filter -> Sort/Views -> Notif -> Caption) === */
+  .top-panel {
+    height: 48px;
+    background: var(--cm-paper-hi);
+    border-bottom: 2px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 12px;
+    gap: 6px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  /* Subtle Bristol grain + non-photo blue registration ruler along top edge */
+  .top-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--cm-ink);
+    opacity: 0.03;
+    -webkit-mask-image: url("../src/Images/fx/paper-grain.png");
+    -webkit-mask-repeat: repeat;
+    pointer-events: none;
+  }
+  .top-panel::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -5px;
+    height: 3px;
+    border-top: 1px solid var(--cm-blue-guide);
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* Search box (32px height, persistent magnifier) */
+  .search-box {
+    width: 248px;
+    height: 32px;
+    background: var(--cm-paper);
+    border: 1.5px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 7px;
+    position: relative;
+    z-index: 2;
+  }
+  .search-box::after {
+    content: "";
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 100%;
+    height: 100%;
+    border-right: 2px solid var(--cm-blue-guide);
+    border-bottom: 2px solid var(--cm-blue-guide);
+    pointer-events: none;
+  }
+  .search-box svg {
+    width: 14px;
+    height: 14px;
+    color: var(--cm-ink-muted);
+    flex-shrink: 0;
+  }
+  .search-placeholder {
+    font-size: 13px;
+    color: var(--cm-ink-muted);
+    white-space: nowrap;
+  }
+
+  /* Toolbar icon buttons (32x32 uniform height) */
+  .tb-btn {
+    width: 34px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cm-ink);
+    position: relative;
+    z-index: 2;
+  }
+  .tb-btn svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+  .tb-btn.active-tab {
+    background: var(--cm-blue-tab);
+    border: 1.5px solid var(--cm-ink);
+    color: var(--cm-ink-deep);
+  }
+  .tb-btn.active-tab::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--cm-orange);
+  }
+  /* Active filter bookmark pip (no "Filter Active" text) */
+  .filter-mark {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 8px;
+    height: 9px;
+    background: var(--cm-orange);
+    border: 1px solid var(--cm-ink);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+  }
+
+  .panel-main-items {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-left: 4px;
+    border-left: 1px solid var(--cm-blue-guide);
+    margin-left: 2px;
+  }
+  .tb-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--cm-blue-guide);
+    margin: 0 4px;
+  }
+
+  /* Registration ticks in open top bar space */
+  .top-reg {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+    color: var(--cm-blue-guide);
+    font-family: "Consolas", monospace;
+    font-size: 9.5px;
+    letter-spacing: 1px;
+    user-select: none;
+  }
+  .reg-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .reg-bar {
+    width: 16px;
+    height: 4px;
+    background: var(--cm-blue-guide);
+    opacity: 0.7;
+  }
+
+  /* Window caption buttons */
+  .caption-group {
+    display: flex;
+    height: 46px;
+    margin-left: 6px;
+    border-left: 1px solid var(--cm-blue-faint);
+  }
+  .cap-btn {
+    width: 44px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cm-ink);
+  }
+  .cap-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* === WORKSPACE (Game List + Game Page) === */
+  .workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    background: var(--cm-paper);
+  }
+
+  /* === GAME LIST (248px calm Bristol column) === */
+  .game-list {
+    width: 248px;
+    background: var(--cm-paper);
+    border-right: 1.5px solid var(--cm-ink);
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0 8px 0;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .list-header-strip {
+    height: 22px;
+    margin: 0 8px 6px 8px;
+    padding: 0 8px;
+    background: var(--cm-paper-well);
+    border: 1px solid var(--cm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--cm-ink-muted);
+  }
+  .list-header-strip span:last-child {
+    color: var(--cm-blue-link);
+    font-family: "Consolas", monospace;
+    font-size: 10px;
+  }
+  .game-row {
+    height: 36px;
+    margin: 0 8px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border-bottom: 1px solid var(--cm-hairline);
+    position: relative;
+    color: var(--cm-ink);
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .game-row.hovered {
+    background: var(--cm-blue-wash);
+  }
+  .game-row.hovered::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    background: var(--cm-blue-guide);
+  }
+  /* Selected row: textured Marker Orange fill + 3px ink bar + Bold Italic deep ink */
+  .game-row.selected {
+    background: var(--cm-orange);
+    border-top: 1.5px solid var(--cm-ink);
+    border-bottom: 1.5px solid var(--cm-ink);
+    color: var(--cm-ink-deep);
+    font-weight: 700;
+    font-style: italic;
+    padding-left: 13px;
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--cm-orange-hi);
+    opacity: 0.55;
+    -webkit-mask-image: url("../src/Images/fx/marker-stroke.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .game-row.selected::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--cm-ink-deep);
+  }
+
+  /* Running game row: Punish! Teal frame + keyline + wash + foot bar + 3 spark bars */
+  .game-row.running {
+    background: rgba(0, 117, 107, 0.14);
+    border: 2px solid var(--cm-punish);
+    outline: 1px solid var(--cm-ink);
+    outline-offset: -3px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding-right: 34px;
+  }
+  .running-foot {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    bottom: 1px;
+    height: 2px;
+    background: var(--cm-punish);
+  }
+  .running-bars {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+  }
+  .running-bars i {
+    display: block;
+    width: 3px;
+    background: var(--cm-punish);
+    transform: skewX(-12deg);
+  }
+  .running-bars i:nth-child(1) { height: 7px; }
+  .running-bars i:nth-child(2) { height: 12px; background: var(--cm-punish-hi); }
+  .running-bars i:nth-child(3) { height: 9px; }
+
+  .g-ico {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--cm-ink);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Anton", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 10px;
+    color: var(--cm-paper-hi);
+    position: relative;
+    z-index: 1;
+  }
+  .g-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 1;
+  }
+  .row-hover-play {
+    margin-left: auto;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cm-ink);
+  }
+
+  /* Drafting ruler scrollbar lane on game list right edge */
+  .ruler-scroll {
+    position: absolute;
+    top: 34px;
+    right: 1px;
+    bottom: 8px;
+    width: 6px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--cm-blue-faint) 0px,
+      var(--cm-blue-faint) 1px,
+      transparent 1px,
+      transparent 8px
+    );
+  }
+  .ruler-thumb {
+    position: absolute;
+    top: 12px;
+    left: 1px;
+    width: 4px;
+    height: 92px;
+    background: var(--cm-charcoal);
+  }
+
+  /* === GAME PAGE === */
+  .game-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--cm-paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle non-photo blue vertical crop margin guides on page edges */
+  .page-guide-left {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 14px;
+    width: 1px;
+    border-left: 1px dashed var(--cm-blue-faint);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .page-guide-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 14px;
+    width: 1px;
+    border-right: 1px dashed var(--cm-blue-faint);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Hero Banner: Hard engraved comic panel frame + non-photo blue crop ticks + original abstract comic art */
+  .hero-wrap {
+    margin: 16px 26px 0 26px;
+    height: 204px;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+  /* Non-photo blue corner cropmarks extending outside the comic panel */
+  .crop-tl, .crop-tr, .crop-bl, .crop-br {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+  }
+  .crop-tl { top: -6px; left: -6px; border-top: 1.5px solid var(--cm-blue-guide); border-left: 1.5px solid var(--cm-blue-guide); }
+  .crop-tr { top: -6px; right: -6px; border-top: 1.5px solid var(--cm-blue-guide); border-right: 1.5px solid var(--cm-blue-guide); }
+  .crop-bl { bottom: -6px; left: -6px; border-bottom: 1.5px solid var(--cm-blue-guide); border-left: 1.5px solid var(--cm-blue-guide); }
+  .crop-br { bottom: -6px; right: -6px; border-bottom: 1.5px solid var(--cm-blue-guide); border-right: 1.5px solid var(--cm-blue-guide); }
+
+  .hero-frame {
+    width: 100%;
+    height: 100%;
+    border-top: 2px solid var(--cm-ink);
+    border-left: 2px solid var(--cm-ink);
+    border-right: 2px solid var(--cm-ink);
+    border-bottom: 1px dashed var(--cm-blue-guide);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(125deg, #1E3D58 0%, #0F6AA8 44%, #1A2432 76%, var(--cm-charcoal) 100%);
+  }
+  /* Original 4-panel stylized comic-strip art placeholder (zero copyrighted IP) */
+  .hero-panels {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    gap: 5px;
+    padding: 0;
+    transform: skewX(-6deg) scale(1.06);
+  }
+  .hp-col {
+    flex: 1;
+    border-right: 3px solid var(--cm-paper);
+    position: relative;
+    overflow: hidden;
+  }
+  .hp-col:nth-child(1) { background: linear-gradient(155deg, #0095E8 0%, #0E4B80 65%, #1A2530 100%); flex: 1.4; }
+  .hp-col:nth-child(2) { background: linear-gradient(155deg, var(--cm-orange) 0%, #A9310E 65%, #241914 100%); }
+  .hp-col:nth-child(3) { background: linear-gradient(155deg, var(--cm-charcoal) 0%, #4E5847 55%, #1A1D16 100%); }
+  .hp-col:nth-child(4) { background: linear-gradient(155deg, var(--cm-punish-hi) 0%, #0C5F66 65%, #152528 100%); border-right: none; }
+  .hero-speedlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -28deg,
+      rgba(245, 239, 229, 0.08) 0px,
+      rgba(245, 239, 229, 0.08) 2px,
+      transparent 2px,
+      transparent 16px
+    );
+  }
+  .hero-halftone {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 240px;
+    height: 200px;
+    background: var(--cm-paper-hi);
+    opacity: 0.16;
+    -webkit-mask-image: url("../src/Images/fx/halftone-corner.png");
+    -webkit-mask-size: 100% 100%;
+  }
+  /* Paper-tinted bottom scrim so header sits cleanly over bright solid Bristol paper */
+  .hero-scrim {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 118px;
+    background: linear-gradient(to bottom, rgba(236, 227, 214, 0) 0%, var(--cm-paper) 72%, var(--cm-paper) 100%);
+  }
+  .hero-trim-label {
+    position: absolute;
+    top: -13px;
+    left: 14px;
+    font-family: "Consolas", monospace;
+    font-size: 8.5px;
+    letter-spacing: 1px;
+    color: var(--cm-blue-guide);
+  }
+  .hero-reg-center {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .hero-reg-center span {
+    display: block;
+    background: var(--cm-blue-guide);
+  }
+  .hero-reg-center .b { width: 16px; height: 3px; }
+  .hero-reg-center .c { width: 7px; height: 7px; clip-path: polygon(40% 0, 60% 0, 60% 40%, 100% 40%, 100% 60%, 60% 60%, 60% 100%, 40% 100%, 40% 60%, 0 60%, 0 40%, 40% 40%); }
+
+  /* === HEADER (sitting cleanly on solid Bristol paper below the hero fade) === */
+  .game-header {
+    margin: -34px 38px 14px 38px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--cm-ink);
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    position: relative;
+    z-index: 4;
+    flex-shrink: 0;
+  }
+  .game-icon-box {
+    width: 56px;
+    height: 56px;
+    background: var(--cm-charcoal);
+    border: 2px solid var(--cm-ink);
+    box-shadow: 3px 3px 0 var(--cm-orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .game-title-wrap {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 2px;
+  }
+  .game-issue-kicker {
+    font-family: "Consolas", monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: var(--cm-blue-link);
+    text-transform: uppercase;
+    margin-bottom: 1px;
+  }
+  .game-title {
+    font-family: "Anton", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 31px;
+    line-height: 1.04;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--cm-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Actions cluster */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-bottom: 2px;
+  }
+
+  /* HERO MOMENT (Staged Hovered End State): EPISODE-inspired Charcoal Ink Slab + Oversized Orange Drop-Bar + Marker Sheen + Expanding Blue Crop Ticks */
+  .play-btn {
+    height: 42px;
+    min-width: 144px;
+    padding: 0 22px 0 24px;
+    background: var(--cm-charcoal-hi);
+    border: 2px solid var(--cm-ink-deep);
+    box-shadow: 4px 4px 0 var(--cm-orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    color: var(--cm-paper-hi);
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    position: relative;
+  }
+  /* Oversized orange left drop-block */
+  .play-btn::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background: var(--cm-orange);
+    border-right: 1.5px solid var(--cm-ink-deep);
+  }
+  /* Hover marker sheen sweep layer */
+  .play-sheen {
+    position: absolute;
+    inset: 0 0 0 10px;
+    background: var(--cm-orange);
+    opacity: 0.22;
+    -webkit-mask-image: url("../src/Images/fx/marker-stroke.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  /* Expanded blue corner crop ticks on hover */
+  .play-tick-tl, .play-tick-br {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+  }
+  .play-tick-tl { top: -5px; left: -5px; border-top: 2px solid var(--cm-blue-vivid); border-left: 2px solid var(--cm-blue-vivid); }
+  .play-tick-br { bottom: -8px; right: -8px; border-bottom: 2px solid var(--cm-blue-vivid); border-right: 2px solid var(--cm-blue-vivid); }
+
+  /* Secondary More & Edit buttons: equal fixed 40x40 squares, icon-only */
+  .sec-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    box-shadow: 2px 2px 0 var(--cm-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--cm-ink);
+  }
+  .sec-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* === BODY: Left Screenshots + Description | Right Inked Comic Ledger Metadata === */
+  .page-body {
+    flex: 1;
+    display: flex;
+    gap: 24px;
+    padding: 0 26px 14px 26px;
+    min-height: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Section label with non-photo blue dashed tail */
+  .sec-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cm-ink);
+    margin-bottom: 7px;
+  }
+  .sec-label .pip {
+    width: 6px;
+    height: 12px;
+    background: var(--cm-orange);
+    border: 1px solid var(--cm-ink);
+  }
+  .sec-label .rule {
+    flex: 1;
+    height: 0;
+    border-top: 1px dashed var(--cm-blue-guide);
+  }
+
+  /* Screenshots strip (inked comic panels) */
+  .shots-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .shot {
+    height: 98px;
+    border: 1.5px solid var(--cm-ink);
+    box-shadow: 2px 2px 0 var(--cm-charcoal);
+    position: relative;
+    overflow: hidden;
+  }
+  .shot-1 { background: linear-gradient(135deg, #214B72 0%, #0095E8 55%, #1A232D 100%); }
+  .shot-2 { background: linear-gradient(135deg, var(--cm-crimson) 0%, var(--cm-orange) 55%, var(--cm-charcoal) 100%); }
+  .shot-3 { background: linear-gradient(135deg, var(--cm-punish) 0%, var(--cm-blue-tab) 55%, var(--cm-ink) 100%); }
+  .shot::after {
+    content: attr(data-idx);
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 1px 5px;
+    background: var(--cm-charcoal);
+    color: var(--cm-paper-hi);
+    font-family: "Consolas", monospace;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  /* Description */
+  .desc-card {
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    padding: 14px 16px;
+    flex: 1;
+    position: relative;
+  }
+  .desc-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--cm-blue-tab);
+  }
+  .desc-card p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--cm-ink);
+    margin-bottom: 9px;
+  }
+  .desc-card p:last-child {
+    margin-bottom: 0;
+    color: var(--cm-ink-muted);
+  }
+  .desc-link {
+    color: var(--cm-blue-link);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  /* === METADATA PANE (300px usable inner width, Inked Comic Ledger over Cut Charcoal Backing) === */
+  .metadata-outer {
+    width: 326px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    position: relative;
+    padding: 0 0 6px 6px;
+  }
+  /* Asymmetric dark charcoal construction-paper backing peeking bottom-left */
+  .metadata-backing {
+    position: absolute;
+    left: 0;
+    top: 6px;
+    right: 6px;
+    bottom: 0;
+    background: var(--cm-charcoal);
+  }
+  .metadata {
+    position: relative;
+    z-index: 1;
+    width: 321px;
+    background: var(--cm-paper-hi);
+    border: 1.5px solid var(--cm-ink);
+    padding: 10px 10px 10px 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  .meta-head-strip {
+    height: 18px;
+    background: var(--cm-paper-well);
+    border: 1px solid var(--cm-ink);
+    padding: 0 7px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Consolas", monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    color: var(--cm-ink-muted);
+  }
+  .meta-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px 0;
+  }
+  .meta-group + .meta-group {
+    border-top: 1px dashed var(--cm-blue-guide);
+    margin-top: 3px;
+    padding-top: 7px;
+    position: relative;
+  }
+  .meta-group + .meta-group::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: -3px;
+    width: 6px;
+    height: 5px;
+    border-left: 1.5px solid var(--cm-blue-guide);
+    border-right: 1.5px solid var(--cm-blue-guide);
+  }
+  .meta-row {
+    display: grid;
+    grid-template-columns: 108px 1fr;
+    gap: 8px;
+    align-items: baseline;
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+  .meta-key {
+    color: var(--cm-ink-muted);
+    font-weight: 600;
+  }
+  .meta-val {
+    color: var(--cm-ink);
+    font-weight: 600;
+  }
+  .meta-val.link {
+    color: var(--cm-blue-link);
+  }
+
+  /* RESULTS-style Score Plaques */
+  .scores-inline {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .score-plaque {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 1px 7px;
+    background: var(--cm-paper);
+    border-top: 2px solid var(--cm-ink);
+    border-bottom: 2px solid var(--cm-ink);
+    border-left: 1px solid var(--cm-hairline);
+    border-right: 1px solid var(--cm-hairline);
+    font-family: "Barlow Condensed", "Bahnschrift", "Segoe UI", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cm-ink);
+  }
+  .score-pip {
+    width: 6px;
+    height: 6px;
+    background: var(--cm-green);
+  }
+  .score-pip.gold { background: var(--cm-gold); }
+
+  /* Stamped Inked Production Chips (PropertyItemButton Tag="Chip") */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px 1px 6px;
+    background: var(--cm-paper);
+    border: 1px solid var(--cm-ink);
+    border-left: 3px solid var(--cm-blue-guide);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--cm-ink);
+  }
+  .chip.hot {
+    background: var(--cm-orange-wash);
+    border-left-color: var(--cm-orange);
+  }
+
+  .board-footer-note {
+    position: absolute;
+    right: 26px;
+    bottom: 4px;
+    font-family: "Consolas", monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.9px;
+    color: var(--cm-blue-guide);
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT SIDEBAR RAIL (44px) -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <!-- Cropmark Brand Mark -->
+      <svg viewBox="0 0 64 64" width="22" height="22">
+        <path fill="var(--cm-orange)" d="M6,6 H20 V11 H11 V20 H6 Z M44,6 H58 V20 H53 V11 H44 Z M6,44 H11 V53 H20 V58 H6 Z M53,44 H58 V58 H44 V53 H53 Z"/>
+        <path fill="var(--cm-blue-tab)" d="M29.5,4 H34.5 V15 H29.5 Z M29.5,49 H34.5 V60 H29.5 Z M4,29.5 H15 V34.5 H4 Z M49,29.5 H60 V34.5 H49 Z"/>
+        <path fill="var(--cm-paper-hi)" fill-rule="evenodd" d="M32,14 L38,26 L50,32 L38,38 L32,50 L26,38 L14,32 L26,26 Z M32,25 L35.5,32 L32,39 L28.5,32 Z"/>
+      </svg>
+    </div>
+
+    <div class="sidebar-items">
+      <!-- Library (selected) -->
+      <div class="sidebar-item selected" title="Library">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,3 H10 V10 H3 Z M14,3 H21 V10 H14 Z M3,14 H10 V21 H3 Z M14,14 H21 V21 H14 Z"/></svg>
+      </div>
+      <!-- Statistics -->
+      <div class="sidebar-item" title="Statistics">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,19 H21 V21 H3 Z M5,12 H9 V18 H5 Z M10.5,7 H14.5 V18 H10.5 Z M16,3 H20 V18 H16 Z"/></svg>
+      </div>
+      <!-- Installed -->
+      <div class="sidebar-item" title="Installed">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11,3 H13 V14 L17.2,9.8 L18.6,11.2 L12,17.8 L5.4,11.2 L6.8,9.8 L11,14 Z M4,19 H20 V21 H4 Z"/></svg>
+      </div>
+      <!-- Favorites -->
+      <div class="sidebar-item" title="Favorites">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,2.5 L14.9,8.7 L21.6,9.5 L16.6,14.1 L17.9,20.8 L12,17.5 L6.1,20.8 L7.4,14.1 L2.4,9.5 L9.1,8.7 Z"/></svg>
+      </div>
+      <!-- Recent -->
+      <div class="sidebar-item" title="Recent">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,3 A9,9 0 1,0 21,12 A9,9 0 0,0 12,3 Z M12,5 A7,7 0 1,1 5,12 A7,7 0 0,1 12,5 Z M11,7 H13 V12.2 L16.5,14.2 L15.5,15.9 L11,13.3 Z"/></svg>
+      </div>
+    </div>
+
+    <div class="sidebar-crop-foot">
+      <span>TRIM</span>
+      <span>+</span>
+    </div>
+  </aside>
+
+  <!-- MAIN COLUMN -->
+  <div class="main-col">
+    <!-- TOP PANEL: Search -> Filter -> Sort + Views (icons only) + Group + Settings -> Notifications -> Caption -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="10.5" cy="10.5" r="6.5" />
+          <path d="M15.5,15.5 L21,21" />
+        </svg>
+        <span class="search-placeholder">Search library...</span>
+      </div>
+
+      <!-- Filter Toggle (with active orange bookmark pip, no text label) -->
+      <div class="tb-btn" data-part="PART_ToggleFilter" title="Filter">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,4 H21 L14,12.5 V19.5 L10,17.5 V12.5 Z"/></svg>
+        <span class="filter-mark"></span>
+      </div>
+
+      <!-- PART_PanelMainItems: Sorting first, then Details/Grid/List icons-only, Group, View Settings -->
+      <div class="panel-main-items" data-part="PART_PanelMainItems">
+        <!-- Sort (first) -->
+        <div class="tb-btn" title="Sort">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,6 H15 V8.2 H3 Z M3,11 H11 V13.2 H3 Z M3,16 H8 V18.2 H3 Z M17,6 H19.2 V16.2 L21.6,13.8 L23,15.2 L18.1,20.1 L13.2,15.2 L14.6,13.8 L17,16.2 Z"/></svg>
+        </div>
+        <span class="tb-divider"></span>
+        <!-- Details View (active sky-blue tab) -->
+        <div class="tb-btn active-tab" title="Details View">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,4 H9 V20 H3 Z M11,4 H21 V9 H11 Z M11,11 H21 V14 H11 Z M11,16 H18 V20 H11 Z"/></svg>
+        </div>
+        <!-- Grid View -->
+        <div class="tb-btn" title="Grid View">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,3 H10.5 V10.5 H3 Z M13.5,3 H21 V10.5 H13.5 Z M3,13.5 H10.5 V21 H3 Z M13.5,13.5 H21 V21 H13.5 Z"/></svg>
+        </div>
+        <!-- List View -->
+        <div class="tb-btn" title="List View">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,5 H21 V7.5 H3 Z M3,10.75 H21 V13.25 H3 Z M3,16.5 H21 V19 H3 Z"/></svg>
+        </div>
+        <span class="tb-divider"></span>
+        <!-- Group -->
+        <div class="tb-btn" title="Group">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3,4 H10 V10 H3 Z M12,5.5 H21 V8.5 H12 Z M3,14 H10 V20 H3 Z M12,15.5 H21 V18.5 H12 Z"/></svg>
+        </div>
+        <!-- View Settings -->
+        <div class="tb-btn" title="View Settings">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4,6 H20 V8 H4 Z M7,4 H10 V10 H7 Z M4,11 H20 V13 H4 Z M14,9 H17 V15 H14 Z M4,16 H20 V18 H4 Z M9,14 H12 V20 H9 Z"/></svg>
+        </div>
+      </div>
+
+      <!-- Drafting Registration Bar -->
+      <div class="top-reg">
+        <span>COPY AREA // TRIM</span>
+        <span class="reg-mark"><i class="reg-bar"></i>+<i class="reg-bar"></i></span>
+      </div>
+
+      <!-- Notifications Toggle -->
+      <div class="tb-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12,3 A6,6 0 0,0 6,9 V15 L4,17 V18.5 H20 V17 L18,15 V9 A6,6 0 0,0 12,3 Z M9.8,19.5 A2.2,2.2 0 0,0 14.2,19.5 Z"/></svg>
+      </div>
+
+      <!-- Window Caption Controls -->
+      <div class="caption-group">
+        <div class="cap-btn"><svg viewBox="0 0 12 12"><rect x="1" y="6" width="10" height="1.5" fill="currentColor"/></svg></div>
+        <div class="cap-btn"><svg viewBox="0 0 12 12"><rect x="1.5" y="1.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></div>
+        <div class="cap-btn"><svg viewBox="0 0 12 12"><path d="M2,2 L10,10 M10,2 L2,10" stroke="currentColor" stroke-width="1.6"/></svg></div>
+      </div>
+    </header>
+
+    <!-- WORKSPACE -->
+    <div class="workspace">
+      <!-- GAME LIST (Left of Game Page) -->
+      <section class="game-list" data-part="game-list">
+        <div class="list-header-strip">
+          <span>ITEM // LIBRARY</span>
+          <span>14 TITLES</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-charcoal);">A1</span>
+          <span class="g-name">Apex Breaker EX</span>
+        </div>
+        <div class="game-row running">
+          <span class="g-ico" style="background: var(--cm-punish);">CB</span>
+          <span class="g-name">Cobalt Striker Turbo</span>
+          <span class="running-bars"><i></i><i></i><i></i></span>
+          <span class="running-foot"></span>
+        </div>
+        <div class="game-row selected">
+          <span class="g-ico" style="background: var(--cm-crimson);">IC</span>
+          <span class="g-name">Ironclad Chronicle #04</span>
+        </div>
+        <div class="game-row hovered">
+          <span class="g-ico" style="background: var(--cm-blue-link);">KT</span>
+          <span class="g-name">Kurogane Tag Arena</span>
+          <span class="row-hover-play">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M4,2.5 L13.5,8 L4,13.5 Z"/></svg>
+          </span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-charcoal-hi);">MM</span>
+          <span class="g-name">Metro Ink Brawlers</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-green);">NS</span>
+          <span class="g-name">Neon Spire Vanguard</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-gold);">OV</span>
+          <span class="g-name">Overdrive Quartet</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-charcoal);">PR</span>
+          <span class="g-name">Paperback Ronin</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-blue-link);">RF</span>
+          <span class="g-name">Redline Fighter II</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-crimson);">SB</span>
+          <span class="g-name">Skyline Blitz 2099</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-charcoal-hi);">TR</span>
+          <span class="g-name">Toneframe Rumble</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-green);">VR</span>
+          <span class="g-name">Vector Rush Championship</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico" style="background: var(--cm-charcoal);">ZG</span>
+          <span class="g-name">Zero Frame Gauntlet</span>
+        </div>
+
+        <div class="ruler-scroll"><div class="ruler-thumb"></div></div>
+      </section>
+
+      <!-- GAME PAGE -->
+      <main class="game-page" data-part="game-page">
+        <div class="page-guide-left"></div>
+        <div class="page-guide-right"></div>
+
+        <!-- Hero Banner (Comic-Panel Framed with Non-Photo Blue Crop Marks) -->
+        <div class="hero-wrap">
+          <span class="hero-trim-label">PANEL 01 // BLEED MUST EXTEND TO SOLID LINE</span>
+          <div class="hero-reg-center"><span class="b"></span><span class="c"></span><span class="b"></span></div>
+          <span class="crop-tl"></span><span class="crop-tr"></span><span class="crop-bl"></span><span class="crop-br"></span>
+          <div class="hero-frame">
+            <div class="hero-panels">
+              <div class="hp-col"></div>
+              <div class="hp-col"></div>
+              <div class="hp-col"></div>
+              <div class="hp-col"></div>
+            </div>
+            <div class="hero-speedlines"></div>
+            <div class="hero-halftone"></div>
+            <div class="hero-scrim"></div>
+          </div>
+        </div>
+
+        <!-- Game Header + Actions (Hero Moment Staged Hovered) -->
+        <div class="game-header">
+          <div class="game-icon-box">
+            <svg viewBox="0 0 36 36" width="28" height="28">
+              <path fill="var(--cm-orange)" d="M4,4 H14 V8 H8 V14 H4 Z M22,4 H32 V14 H28 V8 H22 Z M4,22 H8 V28 H14 V32 H4 Z M28,22 H32 V32 H22 V28 H28 Z"/>
+              <path fill="var(--cm-paper-hi)" d="M18,7 L22.5,15 L30,18 L22.5,21 L18,29 L13.5,21 L6,18 L13.5,15 Z"/>
+            </svg>
+          </div>
+          <div class="game-title-wrap">
+            <div class="game-issue-kicker">ISSUE #04 // ARCADE TAG EDITION</div>
+            <h1 class="game-title">IRONCLAD CHRONICLE #04</h1>
+          </div>
+          <div class="actions">
+            <div class="play-btn">
+              <span class="play-tick-tl"></span>
+              <span class="play-tick-br"></span>
+              <span class="play-sheen"></span>
+              <svg viewBox="0 0 16 16" width="14" height="14" fill="var(--cm-orange)" style="position:relative;z-index:1;"><path d="M3,2 L14,8 L3,14 Z"/></svg>
+              <span style="position:relative;z-index:1;">PLAY</span>
+            </div>
+            <div class="sec-btn" title="More">
+              <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="10" width="4" height="4"/><rect x="10" y="10" width="4" height="4"/><rect x="16" y="10" width="4" height="4"/></svg>
+            </div>
+            <div class="sec-btn" title="Edit">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4,17.2 L14.8,6.4 L17.6,9.2 L6.8,20 H4 Z M16.2,5 L18,3.2 L20.8,6 L19,7.8 Z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Responsive Two-Column Body: Screenshots + Description Left, Inked Ledger Metadata Right -->
+        <div class="page-body">
+          <div class="main-content">
+            <div>
+              <div class="sec-label"><span class="pip"></span><span>SCREENSHOTS</span><span class="rule"></span></div>
+              <div class="shots-row">
+                <div class="shot shot-1" data-idx="FIG.01"></div>
+                <div class="shot shot-2" data-idx="FIG.02"></div>
+                <div class="shot shot-3" data-idx="FIG.03"></div>
+              </div>
+            </div>
+
+            <div style="flex:1; display:flex; flex-direction:column;">
+              <div class="sec-label"><span class="pip"></span><span>DESCRIPTION</span><span class="rule"></span></div>
+              <div class="desc-card">
+                <p>Assemble a four-fighter strike squad across hand-inked comic stages. Swap leaders mid-combo, chain directional assist links, and trigger full-page panel breaks to turn momentum on a dime.</p>
+                <p>Includes full rollback netcode, frame-data training boards, and 12 illustrated episode arcs. Read the <span class="desc-link">Frame Data Handbook</span> or browse community replay sheets.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata Pane (6 groups in Playnite order) -->
+          <div class="metadata-outer">
+            <div class="metadata-backing"></div>
+            <aside class="metadata" data-part="metadata">
+              <div class="meta-head-strip">
+                <span>PRODUCTION SHEET</span>
+                <span>P1 // VER 1.4</span>
+              </div>
+
+              <!-- 1. MetaProgress -->
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-key">Completion</span><span class="meta-val">Playing</span></div>
+                <div class="meta-row"><span class="meta-key">Time Played</span><span class="meta-val">48h 25m</span></div>
+                <div class="meta-row"><span class="meta-key">Last Played</span><span class="meta-val">Today</span></div>
+              </div>
+
+              <!-- 2. MetaScores -->
+              <div class="meta-group">
+                <div class="meta-row">
+                  <span class="meta-key">Scores</span>
+                  <div class="scores-inline">
+                    <span class="score-plaque"><i class="score-pip"></i>91</span>
+                    <span class="score-plaque"><i class="score-pip gold"></i>86</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. MetaAbout -->
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-key">Developers</span><span class="meta-val link">Studio Draftworks</span></div>
+                <div class="meta-row"><span class="meta-key">Release Date</span><span class="meta-val">Aug 06, 2026</span></div>
+              </div>
+
+              <!-- 4. MetaTags -->
+              <div class="meta-group">
+                <div class="meta-row">
+                  <span class="meta-key">Genres</span>
+                  <div class="chips">
+                    <span class="chip hot">Fighting</span>
+                    <span class="chip">Arcade</span>
+                  </div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-key">Features</span>
+                  <div class="chips">
+                    <span class="chip">Rollback</span>
+                    <span class="chip">4v4 Tag</span>
+                    <span class="chip">Controller</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. MetaLibrary -->
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-key">Source</span><span class="meta-val">Steam</span></div>
+                <div class="meta-row"><span class="meta-key">Install Size</span><span class="meta-val">24.6 GB</span></div>
+              </div>
+
+              <!-- 6. MetaLinks -->
+              <div class="meta-group">
+                <div class="meta-row"><span class="meta-key">Links</span><span class="meta-val link">Store Page, Frame Wiki</span></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <div class="board-footer-note">CROPMARK // UNOFFICIAL FAN THEME — NO OFFICIAL ASSETS</div>
+      </main>
+    </div>
+  </div>
+</div>
+</body>
+</html>

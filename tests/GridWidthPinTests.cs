@@ -195,6 +195,33 @@ namespace PlayniteExtensions.Tests
         }
 
         [Fact]
+        public void ResetWrapPanelItemSize_DirtiesTilesSoTheyReportTheNewCoverSize()
+        {
+            RunSta(() =>
+            {
+                // Themes bind the cover width inside the tile container, like {Settings GridItemWidth}.
+                var cover = new Grid { Width = 210, Height = 315 };
+                var tile = new ListBoxItem { Content = cover, Padding = new Thickness(0), BorderThickness = new Thickness(0) };
+                var panel = new VirtualizingWrapPanel();
+                panel.Children.Add(tile);
+                var infinite = new Size(double.PositiveInfinity, double.PositiveInfinity);
+                tile.Measure(infinite);
+                Assert.Equal(210, tile.DesiredSize.Width);
+
+                // Autogrid shrinks the covers beside the details panel. The panel measures its first
+                // tile at infinity to learn the new size; a clean container skips that measure.
+                cover.Width = 140;
+                tile.Measure(infinite);
+                Assert.Equal(210, tile.DesiredSize.Width);
+
+                Assert.Equal(1, GridLayoutService.ResetWrapPanelItemSize(new Border { Child = panel }));
+                Assert.False(tile.IsMeasureValid);
+                tile.Measure(infinite);
+                Assert.Equal(140, tile.DesiredSize.Width);
+            });
+        }
+
+        [Fact]
         public void ResetWrapPanelItemSize_MissingField_ReportsBroken()
         {
             RunSta(() =>

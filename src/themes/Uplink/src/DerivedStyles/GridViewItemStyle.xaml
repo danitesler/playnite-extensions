@@ -28,8 +28,8 @@
                           Margin="{Settings ItemSpacingMargin}"
                           x:Name="ItemGrid">
                         <ContentPresenter />
-                        <!-- Selected: static -->
-                        <Rectangle x:Name="SelectGlow" Fill="{DynamicResource FrameInnerBrush}" Opacity="0.7" IsHitTestVisible="False" Visibility="Collapsed">
+                        <!-- Selected: animated -->
+                        <Rectangle x:Name="SelectGlow" Fill="{DynamicResource FrameInnerBrush}" Opacity="0" IsHitTestVisible="False" Visibility="Collapsed">
                             <Rectangle.OpacityMask>
                                 <RadialGradientBrush Center="0.5,0.45" GradientOrigin="0.5,0.3" RadiusX="0.75" RadiusY="0.75">
                                     <GradientStop Color="Transparent" Offset="0.55" />
@@ -52,9 +52,13 @@
                                 BorderBrush="{DynamicResource SlotBorderBrush}" />
                         <Border x:Name="HoverBorder" BorderThickness="1" Margin="-1" IsHitTestVisible="False" Opacity="0"
                                 BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
-                        <Control x:Name="Marks" Margin="-4" Focusable="False" IsHitTestVisible="False" Visibility="Collapsed"
-                                 Template="{DynamicResource CornerMarksTemplate}"
-                                 Foreground="{DynamicResource FocusBrush}" />
+                        <Control x:Name="Marks" Margin="-4" Focusable="False" IsHitTestVisible="False" Visibility="Collapsed" Opacity="0"
+                                 Template="{DynamicResource CornerMarksTemplate}" RenderTransformOrigin="0.5,0.5"
+                                 Foreground="{DynamicResource FocusBrush}">
+                            <Control.RenderTransform>
+                                <ScaleTransform x:Name="MarksScale" ScaleX="1.06" ScaleY="1.06" />
+                            </Control.RenderTransform>
+                        </Control>
                         <Control x:Name="HoverMarks" Margin="-4" Focusable="False" IsHitTestVisible="False" Opacity="0" Visibility="Hidden"
                                  Template="{DynamicResource CornerMarksTemplate}" RenderTransformOrigin="0.5,0.5"
                                  Foreground="{DynamicResource GridViewItemHoverBorderBrush}">
@@ -165,9 +169,44 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource FrameBrush}" TargetName="SelectionBorder" />
                             <Setter Property="BorderThickness" Value="2" TargetName="SelectionBorder" />
                             <Setter Property="Margin" Value="-2" TargetName="SelectionBorder" />
-                            <Setter Property="Visibility" Value="Visible" TargetName="SelectGlow" />
-                            <Setter Property="Visibility" Value="Visible" TargetName="Marks" />
                             <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="CardSelectIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Marks" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectGlow" Storyboard.TargetProperty="Opacity" To="0.7" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="MarksScale" Storyboard.TargetProperty="ScaleX" From="1.06" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="MarksScale" Storyboard.TargetProperty="ScaleY" From="1.06" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="CardSelectIn" />
+                                <BeginStoryboard>
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectGlow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="Marks" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Marks" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
                             <Setter Property="Background" Value="Transparent" TargetName="ItemGrid" />

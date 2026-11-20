@@ -77,7 +77,7 @@ Empty state (no game selected): both overviews hide the page and show an empty s
 | CheckBox, RadioButton | Square boxes; checked is the amber plate with an ink tick; the radio is a square with an amber square (nothing in the game is round) |
 | Slider | Video options: 4px rail, amber fill, an off-white 6 x 18 bar as thumb |
 | ProgressBar, ScrollViewer | Amber fill on the brown rail; 6px amber scroll thumb on a 2px rail line |
-| Menu, ContextMenu, ComboBox items, ListBox, DetailsViewItemStyle | SMS inbox / list panel: amber labels in menus, the selected row darker with bright text and a 3px amber bar |
+| Menu, ContextMenu, ComboBox items, ComboBoxList, FilterSelectionBox | Amber GPS/SMS box (`LocalBlacklistPanelTemplate`: square dark box, 7px hazard-striped header band over 1px amber rule, four amber L corner brackets), 30px rows inverting to solid amber plates with a 6px left hazard stripe tab and dark-ink text, 4px hazard-stripe group breaks, prompt-bar black key boxes, redline crimson Exit plate with white text, square amber checked box. |
 | TabControl | Panel header switch: bold olive titles, the current one amber over a 3px amber bar |
 | GroupBox | Dialog: hazard-striped title bar with the title on a dark plate, amber-brown body |
 | GridViewItemStyle | Selected: static 1px amber outline and L brackets. Hover: dim outline fades in and dimmer brackets (0.7) snap in from 14% outside in 0.12s, breathing while hovered; fades out in 0.15s |

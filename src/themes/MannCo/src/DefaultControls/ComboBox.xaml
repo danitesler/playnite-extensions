@@ -1,7 +1,9 @@
 <!--
     Mann Co ComboBox: TF2 combo box. Black-washed entry (InputBackgroundBrush) with a tan-dark edge that goes tan on
-    hover or focus, a solid dropdown triangle (IconDropDown), and a dark popup with a 1px tan-dark edge (S1
-    DarkComboBoxBorder). Rows: rust on hover (ListItemHoverBrush), tan paper with ink text when selected.
+    hover or focus, a solid dropdown triangle (IconDropDown).
+    The popup wears the menus' TF2 supply-crate panel (LocalMannCoMenuTemplate, ContextMenu.xaml); items (ComboBoxItem)
+    are 30px rows matching Menu.xaml: tan paper plate + sliding 4px RED-over-BLU team tab + bold dark-ink text on
+    IsHighlighted, and the S1 yellow-rimmed CheckButton box visible in the leading column on IsSelected. Recipe: docs/themes/menus.md.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -55,23 +57,19 @@
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                               ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
                             <TextBox MinHeight="0" x:Name="PART_EditableTextBox" Visibility="Hidden" VerticalAlignment="Center"
-                                     HorizontalAlignment="Stretch" Margin="0,0,28,0" Focusable="True"
+                                     HorizontalAlignment="Stretch" Margin="8,0,28,0" Focusable="True"
                                      BorderThickness="0" Background="Transparent"
                                      IsReadOnly="{TemplateBinding IsReadOnly}" Foreground="{DynamicResource TextBrush}">
                             </TextBox>
                             <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   Placement="Bottom" Focusable="False" AllowsTransparency="True">
+                                   Placement="Bottom" VerticalOffset="2" Focusable="False" AllowsTransparency="True">
                                 <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                    <Border BorderBrush="{DynamicResource PopupBorderBrush}"
-                                            BorderThickness="{DynamicResource PopupBorderThickness}"
-                                            Background="{DynamicResource PopupBackgroundBrush}"
-                                            Padding="{DynamicResource ComboBoxDropDownPadding}">
-                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                                            <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
-                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                        </ScrollViewer>
-                                    </Border>
+                                    <Control Template="{DynamicResource LocalMannCoMenuTemplate}" Focusable="False" IsTabStop="False" />
+                                    <ScrollViewer Margin="0,7,0,5" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter Name="ItemsPresenter" Margin="4,0" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    </ScrollViewer>
                                 </Grid>
                             </Popup>
                         </Grid>
@@ -100,37 +98,104 @@
 
     <Style TargetType="{x:Type ComboBoxItem}">
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-        <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Padding" Value="{DynamicResource ComboBoxItemPadding}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid>
-                        <Rectangle x:Name="HoverRectangle" IsHitTestVisible="False" Visibility="Collapsed" Fill="{DynamicResource ListItemHoverBrush}" />
-                        <Rectangle x:Name="SelectedRectangle" IsHitTestVisible="False" Visibility="Collapsed" Fill="{DynamicResource ListItemSelectedBrush}" />
-                        <Border Background="Transparent" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
-                        </Border>
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Border x:Name="ListPaper" Margin="0,1" Background="{DynamicResource MenuItemHoverBrush}"
+                                BorderBrush="{DynamicResource ButtonBorderBrush}" BorderThickness="0,0,0,1"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" />
+                        <Grid x:Name="ListTeamTab" Width="4" Margin="0,4" HorizontalAlignment="Left"
+                              Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="ListTeamShift" X="-4" />
+                            </Grid.RenderTransform>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Rectangle Grid.Row="0" Fill="{DynamicResource TopPanelRuleStartBrush}" />
+                            <Rectangle Grid.Row="1" Fill="{DynamicResource TopPanelRuleEndBrush}" />
+                        </Grid>
+                        <Grid Margin="10,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="22" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ListCheckBox" Grid.Column="0" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Visibility="Collapsed" Background="{DynamicResource CheckBoxCheckMarkBkBrush}"
+                                    BorderBrush="{DynamicResource CheckBoxBorderBrush}" BorderThickness="1.5"
+                                    CornerRadius="{DynamicResource CornerRadiusSmall}">
+                                <Path Width="8" Height="7" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Data="M 1,3.5 L 3.8,6.5 L 9,1" Stroke="{DynamicResource CheckBoxBorderBrush}"
+                                      StrokeThickness="1.8" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" />
+                            </Border>
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}">
+                                <ContentPresenter.RenderTransform>
+                                    <TranslateTransform x:Name="ListLabelShift" X="0" />
+                                </ContentPresenter.RenderTransform>
+                            </ContentPresenter>
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="HoverRectangle" />
-                        </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="HoverRectangle" />
-                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Visibility" Value="Visible" TargetName="SelectedRectangle" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListCheckBox" />
+                            <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPaper" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListTeamTab" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListPaper" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="ListTeamTab" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ListTeamShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListLabelShift" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListPaper" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListTeamTab" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListPaper" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="ListTeamTab" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="ListTeamShift" Storyboard.TargetProperty="X" To="-4" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="ListLabelShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="Selector.IsSelected" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 </ResourceDictionary>

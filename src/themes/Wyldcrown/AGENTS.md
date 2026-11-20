@@ -90,6 +90,7 @@ Both `DetailsViewGameOverview.xaml` and `GridViewGameOverview.xaml` preserve Pla
 | `DerivedStyles/PropertyItemButton.xaml` | Cobalt ink links on parchment (`ParchmentLinkBrush`); dark iron gold-bordered heraldic bookmark plaques for `Tag="Chip"` |
 | `DerivedStyles/TextBlockGameScore.xaml` | Compact dark-iron score medallions so emerald, amber & crimson scores stay legible over cream parchment |
 | `DefaultControls/*.xaml` | Faceted brass-rimmed buttons (`PrimaryButton`, `SecondaryButton`, `DangerButton`, `GhostButton`), diamond-thumb sliders, carved tabs, jewel checkboxes/radios, obsidian toolbars & scrollbars |
+| `ContextMenu`, `Menu`, `ComboBox`, `ComboBoxList`, `FilterSelectionBox` | Shared `LocalMenuPanelTemplate` (obsidian-damask drawer with bronze/gold double rim, `CornerMarksTemplate` filigree corners and top gold crown pip), 30px rows, `SelectionBarTemplate` twilight-indigo ribbon with bright gold lance + pointer, `DividerTemplate` diamond-ended bronze group breaks, Cinzel shortcut plaques illuminating into cream parchment with sepia ink, crimson wax-seal Exit banner with cream-bright ink, royal sapphire & gold diamond check mark |
 
 ## Previews
 

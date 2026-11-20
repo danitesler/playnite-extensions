@@ -9,6 +9,11 @@ $script:ThemeApiDataPath = Join-Path $PSScriptRoot "../data/playnite-theme-api.j
 $script:ThemeKeysPath = Join-Path $PSScriptRoot "../data/theme-keys.json"
 $script:XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml"
 $script:Invariant = [System.Globalization.CultureInfo]::InvariantCulture
+$script:ThemeApiCache = @{}
+$script:ThemeCatalogCache = $null
+$script:ThemeCatalogTicks = -1L
+$script:XamlEntryCache = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$script:PinnedThemeDirectories = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::OrdinalIgnoreCase)
 
 function Get-RelativePathCompat {
     # [IO.Path]::GetRelativePath is .NET Core only; these scripts also run under Windows PowerShell 5.1.
@@ -23,11 +28,101 @@ function Get-RelativePathCompat {
     return $full.Substring($rootFull.Length)
 }
 
+function Get-CachedXamlEntry {
+    param([Parameter(Mandatory = $true)] [string]$Path)
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return $null }
+    $full = [System.IO.Path]::GetFullPath($Path)
+    foreach ($pinnedDir in $script:PinnedThemeDirectories.Keys) {
+        if ($full.StartsWith($pinnedDir, [System.StringComparison]::OrdinalIgnoreCase) -and $script:XamlEntryCache.ContainsKey($full)) {
+            return $script:XamlEntryCache[$full]
+        }
+    }
+    $raw = [System.IO.File]::ReadAllText($full)
+    if ($script:XamlEntryCache.ContainsKey($full)) {
+        $existing = $script:XamlEntryCache[$full]
+        if ($existing.Raw -ceq $raw) { return $existing }
+    }
+    $clean = [regex]::Replace($raw, '<!--.*?-->', '', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    $doc = New-Object System.Xml.XmlDocument
+    $parseError = $null
+    try {
+        $doc.LoadXml($raw)
+    }
+    catch {
+        $doc = $null
+        $parseError = $_.Exception.Message
+        if ($_.Exception.InnerException) { $parseError = $_.Exception.InnerException.Message }
+    }
+    $entry = [pscustomobject]@{
+        FullName   = $full
+        Name       = [System.IO.Path]::GetFileName($full)
+        Raw        = $raw
+        Clean      = $clean
+        Doc        = $doc
+        ParseError = $parseError
+    }
+    $script:XamlEntryCache[$full] = $entry
+    return $entry
+}
+
+function Read-XamlDocument {
+    param([string]$Path)
+    $entry = Get-CachedXamlEntry -Path $Path
+    if ($null -eq $entry) { return $null }
+    return $entry.Doc
+}
+
+function Get-CachedThemeXamlEntries {
+    param([Parameter(Mandatory = $true)] [string]$Directory)
+    $dirFull = [System.IO.Path]::GetFullPath($Directory).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    if ($script:PinnedThemeDirectories.ContainsKey($dirFull)) {
+        return $script:PinnedThemeDirectories[$dirFull]
+    }
+    $entries = [System.Collections.Generic.List[object]]::new()
+    foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "*.xaml") {
+        $entry = Get-CachedXamlEntry -Path $file.FullName
+        if ($null -ne $entry) {
+            $entries.Add([pscustomobject]@{
+                FullName   = $entry.FullName
+                Name       = $entry.Name
+                Relative   = ((Get-RelativePathCompat -Root $Directory -Path $entry.FullName) -replace "\\", "/")
+                Raw        = $entry.Raw
+                Clean      = $entry.Clean
+                Doc        = $entry.Doc
+                ParseError = $entry.ParseError
+            }) | Out-Null
+        }
+    }
+    return $entries.ToArray()
+}
+
+function Invoke-WithPinnedThemeDirectory {
+    param(
+        [Parameter(Mandatory = $true)] [string]$Directory,
+        [Parameter(Mandatory = $true)] [scriptblock]$ScriptBlock
+    )
+    $dirFull = [System.IO.Path]::GetFullPath($Directory).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    $entries = @(Get-CachedThemeXamlEntries -Directory $Directory)
+    $script:PinnedThemeDirectories[$dirFull] = $entries
+    try {
+        & $ScriptBlock
+    }
+    finally {
+        [void]$script:PinnedThemeDirectories.Remove($dirFull)
+    }
+}
+
 function Get-PlayniteThemeApiData {
     param([ValidateSet("Desktop", "Fullscreen")] [string]$Mode = "Desktop")
 
     if (-not (Test-Path $script:ThemeApiDataPath)) {
         throw "Playnite theme API data not found at $script:ThemeApiDataPath. Run scripts/update-playnite-theme-api.ps1."
+    }
+
+    $ticks = (Get-Item -LiteralPath $script:ThemeApiDataPath).LastWriteTimeUtc.Ticks
+    $cacheKey = "$Mode|$ticks"
+    if ($script:ThemeApiCache.ContainsKey($cacheKey)) {
+        return $script:ThemeApiCache[$cacheKey]
     }
 
     $data = Get-Content -Raw -Path $script:ThemeApiDataPath | ConvertFrom-Json
@@ -36,12 +131,14 @@ function Get-PlayniteThemeApiData {
         throw "No '$Mode' theme data in $script:ThemeApiDataPath. Run scripts/update-playnite-theme-api.ps1 -Mode $Mode."
     }
 
-    return [pscustomobject]@{
+    $result = [pscustomobject]@{
         PlayniteVersion = $data.playniteVersion
         ApiVersion      = $modeData.apiVersion
         Files           = @($modeData.files)
         Keys            = @($modeData.keys) + @($data.globalKeys)
     }
+    $script:ThemeApiCache[$cacheKey] = $result
+    return $result
 }
 
 function Get-ThemeKeyCatalog {
@@ -51,6 +148,11 @@ function Get-ThemeKeyCatalog {
     #>
     if (-not (Test-Path $script:ThemeKeysPath)) {
         throw "Shared theme keys not found at $script:ThemeKeysPath."
+    }
+
+    $ticks = (Get-Item -LiteralPath $script:ThemeKeysPath).LastWriteTimeUtc.Ticks
+    if ($null -ne $script:ThemeCatalogCache -and $script:ThemeCatalogTicks -eq $ticks) {
+        return $script:ThemeCatalogCache
     }
 
     $data = Get-Content -Raw -Path $script:ThemeKeysPath | ConvertFrom-Json
@@ -79,13 +181,15 @@ function Get-ThemeKeyCatalog {
         }
     }
 
-    return [pscustomobject]@{
+    $script:ThemeCatalogCache = [pscustomobject]@{
         Entries          = @($data.keys)
         ByKey            = $byKey
         Types            = $data.types
         Groups           = @($data.groups)
         PaletteConstants = @($paletteConstants)
     }
+    $script:ThemeCatalogTicks = $ticks
+    return $script:ThemeCatalogCache
 }
 
 function Get-ThemeKeyDefinitions {
@@ -93,16 +197,15 @@ function Get-ThemeKeyDefinitions {
     param([Parameter(Mandatory = $true)] [string]$Directory)
 
     $defs = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::Ordinal)
-    foreach ($file in Get-ChildItem -Path $Directory -Recurse -File -Filter "*.xaml") {
-        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
-        $doc = New-Object System.Xml.XmlDocument
-        try { $doc.Load($file.FullName) } catch { continue }
+    foreach ($entry in Get-CachedThemeXamlEntries -Directory $Directory) {
+        $doc = $entry.Doc
+        if (-not $doc) { continue }
         $ns = New-Object System.Xml.XmlNamespaceManager($doc.NameTable)
         $ns.AddNamespace("x", $script:XamlNamespace)
         foreach ($node in $doc.SelectNodes("//*[@x:Key]", $ns)) {
             $key = $node.GetAttribute("Key", $script:XamlNamespace)
             if ($key -match "[{}]") { continue }
-            $defs[$key] = [pscustomobject]@{ File = $relative; Element = $node.LocalName }
+            $defs[$key] = [pscustomobject]@{ File = $entry.Relative; Element = $node.LocalName }
         }
     }
     return $defs
@@ -701,16 +804,16 @@ function Test-ThemeBuild {
     $playniteKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($k in $api.Keys) { $playniteKeys.Add($k) | Out-Null }
 
-    $xamlFiles = @(Get-ChildItem -Path $Directory -Recurse -File -Filter "*.xaml")
+    $xamlEntries = @(Get-CachedThemeXamlEntries -Directory $Directory)
     $definedByFile = @{}
     $allOverlayKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     $colorKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     foreach ($k in $api.Keys) { if ($k -cmatch 'Color$') { $colorKeys.Add($k) | Out-Null } }
     $refPattern = '\{(StaticResource|DynamicResource)\s+([^\s{}]+)\s*\}'
 
-    foreach ($file in $xamlFiles) {
-        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
-        $text = Get-Content -Raw -Path $file.FullName
+    foreach ($fileEntry in $xamlEntries) {
+        $relative = $fileEntry.Relative
+        $text = $fileEntry.Raw
 
         if (-not $acceptedFiles.Contains($relative)) {
             $errors.Add("$relative is not a Playnite $Mode theme file (API $($api.ApiVersion)); Playnite never loads it.") | Out-Null
@@ -720,14 +823,9 @@ function Test-ThemeBuild {
             $errors.Add("$relative still contains an unrendered {{placeholder}}.") | Out-Null
         }
 
-        $doc = New-Object System.Xml.XmlDocument
-        try {
-            $doc.LoadXml($text)
-        }
-        catch {
-            $reason = $_.Exception.Message
-            if ($_.Exception.InnerException) { $reason = $_.Exception.InnerException.Message }
-            $errors.Add("$relative is not well-formed XML: $reason") | Out-Null
+        $doc = $fileEntry.Doc
+        if (-not $doc) {
+            $errors.Add("$relative is not well-formed XML: $($fileEntry.ParseError)") | Out-Null
             continue
         }
 
@@ -757,10 +855,10 @@ function Test-ThemeBuild {
         $definedByFile[$relative] = $keys
     }
 
-    foreach ($file in $xamlFiles) {
-        $relative = (Get-RelativePathCompat -Root $Directory -Path $file.FullName) -replace "\\", "/"
+    foreach ($fileEntry in $xamlEntries) {
+        $relative = $fileEntry.Relative
         if (-not $definedByFile.ContainsKey($relative)) { continue }
-        $text = Get-Content -Raw -Path $file.FullName
+        $text = $fileEntry.Raw
 
         foreach ($m in [regex]::Matches($text, $refPattern)) {
             $kind = $m.Groups[1].Value

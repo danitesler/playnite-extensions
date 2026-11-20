@@ -352,7 +352,7 @@ ${body('Grid', pad)}
 </ScrollViewer>
 
 <!-- Close (hides the side panel): a plate over the top left corner. Shown when the configured banner is 120px or taller and always when no game is selected. -->
-${sidePanelCloseButton({ comment: '' })}
+${sidePanelCloseButton({ preset: 'plate', comment: '' })}
                         </Grid>
                     </Border>
                     ${emptyLoop}

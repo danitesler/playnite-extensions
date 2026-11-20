@@ -195,23 +195,7 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
         </Style>
     </Grid.Style>
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,40">
-        <Grid Width="300" Height="180" HorizontalAlignment="Center" IsHitTestVisible="False">
-            <Rectangle Fill="{DynamicResource TitleSuffixBrush}" Opacity="0.5">
-                <Rectangle.OpacityMask>
-                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/bloom.png'}" Stretch="Fill" />
-                </Rectangle.OpacityMask>
-${indent(whenEmpty('Rectangle', 'BloomBreathe', breathe), 16)}
-            </Rectangle>
-            <Path Width="34" Height="10" HorizontalAlignment="Left" VerticalAlignment="Top" Data="M0,10 L10,0 L34,0" Stroke="{DynamicResource TitleSuffixBrush}" StrokeThickness="1" Opacity="0.7" />
-            <Path Width="34" Height="10" HorizontalAlignment="Right" VerticalAlignment="Top" Data="M0,0 L24,0 L34,10" Stroke="{DynamicResource TitleSuffixBrush}" StrokeThickness="1" Opacity="0.7" />
-            <Path Width="34" Height="10" HorizontalAlignment="Left" VerticalAlignment="Bottom" Data="M0,0 L10,10 L34,10" Stroke="{DynamicResource TitleSuffixBrush}" StrokeThickness="1" Opacity="0.7" />
-            <Path Width="34" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Data="M0,10 L24,10 L34,0" Stroke="{DynamicResource TitleSuffixBrush}" StrokeThickness="1" Opacity="0.7" />
-            <Viewbox Width="96" Height="96">
-                <Canvas Width="24" Height="24">
-                    <Path Data="{DynamicResource IconMainMenu}" Fill="{DynamicResource TitleSuffixBrush}" />
-                </Canvas>
-            </Viewbox>
-        </Grid>
+        <Control Template="{DynamicResource EmptyGameTemplate}" Width="340" Height="210" HorizontalAlignment="Center" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
             <TextBlock Text="&#8249;" Margin="0,0,14,2" Style="{DynamicResource HeadingTextBlock}" Foreground="{DynamicResource HeadingMarkerBrush}" />
             <TextBlock Text="{DynamicResource LOCErrorNoGameSelected}" Style="{DynamicResource HeadingTextBlock}" />
@@ -329,7 +313,7 @@ ${indent(pane('stack', 'GridDetailsPaneWidth', '18,16,18,18').replace('<Grid Ver
 ${indent(emptyState, 36)}
                                 </Grid>
                             </ScrollViewer>
-${indent(sidePanelCloseButton({ exitDuration: '0:0:0.2' }), 28)}
+${indent(sidePanelCloseButton({ preset: 'plate', exitDuration: '0:0:0.2' }), 28)}
                         </Grid>
                     </Border>
                 </ControlTemplate>

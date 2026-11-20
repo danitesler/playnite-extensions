@@ -25,7 +25,7 @@ namespace GameHoverDetails
             var api = boundSettings.TryGetPlayniteApi();
             var game = previewSampleGame;
             var previewChromeWidth = System.Math.Max(120, boundSettings.HoverWidth);
-            var pad = ClampPreviewContentPaddingDip(boundSettings.HoverContentPaddingDip);
+            var pad = GameHoverDetailsSettings.ClampContentPaddingDip(boundSettings.HoverContentPaddingDip);
             var innerMax = System.Math.Max(60.0, previewChromeWidth - (pad * 2.0));
             var palette = HoverChromePalette.Resolve(boundSettings);
             var keyList = boundSettings.SelectedFieldKeys.Where(HoverFieldCatalog.IsKnownKey).ToList();
@@ -239,48 +239,15 @@ namespace GameHoverDetails
             }
 
             var cover = boundSettings.IsGameCoverBackgroundStyle ? TryLoadPreviewCover() : null;
-            var coverActive = cover != null;
-            if (PreviewCoverHost != null)
-            {
-                if (coverActive)
-                {
-                    PreviewCoverHost.Background = new ImageBrush(cover)
-                    {
-                        Stretch = Stretch.UniformToFill,
-                        AlignmentX = AlignmentX.Center,
-                        AlignmentY = AlignmentY.Center,
-                        TileMode = TileMode.None
-                    };
-                    PreviewCoverHost.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    PreviewCoverHost.Background = null;
-                    PreviewCoverHost.Visibility = Visibility.Collapsed;
-                }
-            }
-
-            if (PreviewCoverTint != null)
-            {
-                PreviewCoverTint.Background = HoverChromePalette.CoverTintBrush;
-                var tintOpacity = boundSettings.HoverChromeBackgroundOpacity / 100.0;
-                if (tintOpacity < 0)
-                {
-                    tintOpacity = 0;
-                }
-                else if (tintOpacity > 1)
-                {
-                    tintOpacity = 1;
-                }
-
-                PreviewCoverTint.Opacity = tintOpacity;
-                PreviewCoverTint.Visibility = coverActive ? Visibility.Visible : Visibility.Collapsed;
-            }
-
+            var coverActive = HoverChromePalette.ApplyCoverBackdrop(
+                PreviewCoverHost,
+                PreviewCoverTint,
+                cover,
+                boundSettings.HoverChromeBackgroundOpacity);
             HoverChromePalette.ApplyToChromeBorder(PreviewChromeBorder, boundSettings, coverActive);
             if (PreviewFieldsHost != null)
             {
-                var pad = ClampPreviewContentPaddingDip(boundSettings.HoverContentPaddingDip);
+                var pad = GameHoverDetailsSettings.ClampContentPaddingDip(boundSettings.HoverContentPaddingDip);
                 PreviewFieldsHost.Margin = new Thickness(pad, pad, pad, pad);
                 PreviewFieldsHost.VerticalAlignment = VerticalAlignment.Top;
             }
@@ -295,20 +262,7 @@ namespace GameHoverDetails
 
         private void UpdatePreviewCoverClip()
         {
-            if (PreviewChromeBody == null)
-            {
-                return;
-            }
-
-            var w = PreviewChromeBody.ActualWidth;
-            var h = PreviewChromeBody.ActualHeight;
-            if (w <= 0 || h <= 0)
-            {
-                PreviewChromeBody.Clip = null;
-                return;
-            }
-
-            PreviewChromeBody.Clip = new RectangleGeometry(new Rect(0, 0, w, h), 7, 7);
+            HoverChromePalette.ApplyRoundedClip(PreviewChromeBody, 7);
         }
 
         private ImageSource TryLoadPreviewCover()
@@ -333,18 +287,6 @@ namespace GameHoverDetails
 
             cachedPreviewCover = TryLoadFirstLibraryArt(api, previewSampleGame, "BackgroundImage");
             return cachedPreviewCover;
-        }
-
-        private static int ClampPreviewContentPaddingDip(int pad)
-        {
-            if (pad < GameHoverDetailsSettings.MinContentPaddingDip)
-            {
-                return GameHoverDetailsSettings.MinContentPaddingDip;
-            }
-
-            return pad > GameHoverDetailsSettings.MaxContentPaddingDip
-                ? GameHoverDetailsSettings.MaxContentPaddingDip
-                : pad;
         }
     }
 }

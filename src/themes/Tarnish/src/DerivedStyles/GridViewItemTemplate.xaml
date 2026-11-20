@@ -1,7 +1,8 @@
-<!--
-    Tarnish: cover content. The Play and Info overlay buttons are 44px button prompts: a black disc in a thin
+﻿<!--
+    Tarnish: cover content. The Play and Info overlay buttons are 48px button prompts: a black disc in a thin
     parchment ring with a pale glyph (IconPlay, IconDownload, IconInfo); hover fades a lit olive disc with a gold
-    ring in over 0.12s. Entrance: the shade fades in over 0.15s, the discs rise 10px and grow from 0.86 to 1 with
+    ring in over 0.12s. Play is also a Site of Grace: a gold rim, a broken gold halo that turns slowly and a
+    vertical beam of grace that rises through the disc on hover; Info stays the plain prompt. Entrance: the shade fades in over 0.15s, the discs rise 10px and grow from 0.86 to 1 with
     a small overshoot (BackEase), Info 60ms after Play; exit reverses in 0.15s and hides the panel at the end.
     Uninstalled darkening stays static and separate from the animated hover shade.
     Structure and parts: Playnite Default 10.60.
@@ -18,39 +19,57 @@
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}" />
         <Setter Property="Background" Value="{DynamicResource ScrimBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource FrameBrush}" />
-        <Setter Property="Width" Value="44" />
-        <Setter Property="Height" Value="44" />
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Height" Value="48" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid Background="Transparent">
-                        <Path Stretch="Fill" Data="M22,0.5A21.5,21.5 0 1 1 22,43.5A21.5,21.5 0 1 1 22,0.5Z" Fill="{TemplateBinding Background}"
+                        <Grid x:Name="Glow" Margin="-14" Opacity="0" IsHitTestVisible="False">
+                            <Ellipse Fill="{DynamicResource PrimaryButtonGlowBrush}">
+                                <Ellipse.OpacityMask>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="#00000000" Offset="0.55" /><GradientStop Color="#99000000" Offset="0.7" /><GradientStop Color="#00000000" Offset="1" />
+                                    </RadialGradientBrush>
+                                </Ellipse.OpacityMask>
+                            </Ellipse>
+                        </Grid>
+                        <Path x:Name="Disc" Stretch="Fill" Data="M22,0.5A21.5,21.5 0 1 1 22,43.5A21.5,21.5 0 1 1 22,0.5Z" Fill="{TemplateBinding Background}"
                               Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1" IsHitTestVisible="False" />
                         <Path x:Name="Lit" Stretch="Fill" Data="M22,0.5A21.5,21.5 0 1 1 22,43.5A21.5,21.5 0 1 1 22,0.5Z" Fill="{DynamicResource PrimaryButtonBackgroundBrush}"
                               Stroke="{DynamicResource PrimaryButtonGlowBrush}" StrokeThickness="1" Opacity="0" IsHitTestVisible="False" />
                         <Path x:Name="Pressed" Stretch="Fill" Data="M22,0.5A21.5,21.5 0 1 1 22,43.5A21.5,21.5 0 1 1 22,0.5Z" Fill="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
                               Stroke="{DynamicResource PrimaryButtonGlowBrush}" StrokeThickness="1" Opacity="0" IsHitTestVisible="False" />
+                        <Ellipse x:Name="GraceRing" Visibility="Collapsed" Margin="-4" Opacity="0.35" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"
+                                 Stroke="{DynamicResource PrimaryButtonGlowBrush}" StrokeThickness="1.4" StrokeDashArray="2 3.2" StrokeDashCap="Round">
+                            <Ellipse.RenderTransform><RotateTransform x:Name="GraceSpin" Angle="0" /></Ellipse.RenderTransform>
+                        </Ellipse>
                         <ContentControl Focusable="False" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                                         Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Foreground="{TemplateBinding Foreground}" />
                         <ContentControl x:Name="LitGlyph" Focusable="False" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Opacity="0"
                                         Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}" Foreground="{DynamicResource PrimaryButtonForegroundBrush}" />
                     </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="Name" Value="PART_ButtonPlay">
+                            <Setter TargetName="GraceRing" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Disc" Property="Stroke" Value="{DynamicResource PrimaryButtonGlowBrush}" />
+                        </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetName="LitGlyph" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" /><DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LitGlyph" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" /><DoubleAnimation Storyboard.TargetName="GraceRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.25" />
                                     </Storyboard>
                                 </BeginStoryboard>
+                                <BeginStoryboard Name="GraceLoop"><Storyboard><DoubleAnimation Storyboard.TargetName="GraceSpin" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:14" RepeatBehavior="Forever"/></Storyboard></BeginStoryboard>
                             </Trigger.EnterActions>
                             <Trigger.ExitActions>
                                 <BeginStoryboard>
                                     <Storyboard FillBehavior="Stop">
-                                        <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                        <DoubleAnimation Storyboard.TargetName="LitGlyph" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" /><DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation Storyboard.TargetName="LitGlyph" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" /><DoubleAnimation Storyboard.TargetName="GraceRing" Storyboard.TargetProperty="Opacity" To="0.35" Duration="0:0:0.2" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -63,6 +82,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+
 
     <Style x:Key="GridViewItemTemplate" TargetType="{x:Type GameListItem}">
         <Setter Property="Template">

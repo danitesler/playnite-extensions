@@ -1,6 +1,8 @@
 <!--
     Guiding Wind: ComboBox. Keycap well matching TextBox, 36px chevron column clearance, smooth crimson
-    hover border, and Sayagata-rimmed washi popup menu. Structure: Playnite Default 10.60.
+    hover border; the list is the menus' washi sheet (LocalWashiSheetTemplate, ContextMenu.xaml) with 30px rows like
+    Menu.xaml's: the sumi brush stroke on IsHighlighted, the crimson keycap tick on the chosen item.
+    Structure: Playnite Default 10.60.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
@@ -88,7 +90,7 @@
                                  Visibility="Hidden"
                                  IsReadOnly="{TemplateBinding IsReadOnly}" />
 
-                        <Popup x:Name="Popup"
+                        <Popup x:Name="PART_Popup"
                                Grid.ColumnSpan="2"
                                Placement="Bottom"
                                IsOpen="{TemplateBinding IsDropDownOpen}"
@@ -99,14 +101,13 @@
                                   SnapsToDevicePixels="True"
                                   MinWidth="{TemplateBinding ActualWidth}"
                                   MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                <Border x:Name="DropDownBorder"
-                                        Margin="0,3,0,0"
-                                        Padding="{DynamicResource ComboBoxDropDownPadding}"
-                                        Style="{DynamicResource PopupBorder}">
-                                    <ScrollViewer SnapsToDevicePixels="True">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                <!-- The menus' washi sheet (LocalWashiSheetTemplate, ContextMenu.xaml) -->
+                                <Grid x:Name="DropDownBorder" Margin="0,3,0,0">
+                                    <Control Template="{DynamicResource LocalWashiSheetTemplate}" Focusable="False" IsTabStop="False" />
+                                    <ScrollViewer Margin="0,8,0,5" SnapsToDevicePixels="True" HorizontalScrollBarVisibility="Disabled">
+                                        <StackPanel IsItemsHost="True" Margin="4,0" KeyboardNavigation.DirectionalNavigation="Contained" />
                                     </ScrollViewer>
-                                </Border>
+                                </Grid>
                             </Grid>
                         </Popup>
                     </Grid>
@@ -138,31 +139,63 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                    <Grid Margin="0,1" SnapsToDevicePixels="True">
-                        <Border x:Name="HoverPlate" Background="{DynamicResource ListItemHoverBrush}"
-                                CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" IsHitTestVisible="False" />
-                        <Control x:Name="SelectedPlate" Template="{DynamicResource InkPlateTemplate}"
-                                 Background="{DynamicResource SelectedBrush}"
-                                 Opacity="0" IsHitTestVisible="False" Focusable="False" />
-                        <Rectangle x:Name="SelectedBar" Width="2" HorizontalAlignment="Left" Margin="0,2"
-                                   Fill="{DynamicResource SelectedBorderBrush}" Opacity="0" IsHitTestVisible="False" />
-                        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                        </Border>
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid Margin="26,1,3,1" ClipToBounds="True">
+                            <Control x:Name="ListStroke" Template="{DynamicResource InkPlateTemplate}" Background="{DynamicResource PrimaryButtonBackgroundBrush}"
+                                     Opacity="0" Visibility="Collapsed" Focusable="False" IsTabStop="False">
+                                <Control.RenderTransform>
+                                    <TranslateTransform x:Name="ListStrokeShift" X="-14" />
+                                </Control.RenderTransform>
+                            </Control>
+                        </Grid>
+                        <Grid Margin="8,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="30" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid x:Name="ListCheck" Width="13" Height="13" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Hidden">
+                                <Border Background="{DynamicResource SelectedBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                                <Path Width="8" Height="6" Stretch="Fill" Data="M 0,3 L 3,6 L 8,0" Stroke="{DynamicResource SelectedForegroundBrush}"
+                                      StrokeThickness="1.6" StrokeStartLineCap="Square" StrokeEndLineCap="Square" />
+                            </Grid>
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="HoverPlate" Property="Opacity" Value="1" />
-                        </Trigger>
                         <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListCheck" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
                             <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
-                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Hidden" />
-                            <Setter TargetName="SelectedPlate" Property="Opacity" Value="1" />
-                            <Setter TargetName="SelectedBar" Property="Opacity" Value="1" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListStrokeIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListStroke" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListStroke" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ListStrokeShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.16">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListStrokeOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListStroke" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListStroke" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="ListStrokeShift" Storyboard.TargetProperty="X" To="-14" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
