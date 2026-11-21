@@ -7,8 +7,8 @@
 // git tags `<key>-v<version>` (an add-on counts as released when such a tag exists).
 //
 // Rules: a README is only overwritten when it is missing or starts with the generated marker, so a hand-written one
-// (RandomTheme) is kept. The root README keeps its hand-written row text; the generator rewrites each add-on row's image
-// link (it opens the Details page) and its final links line.
+// (RandomTheme) is kept. The root README rows are name plus release status only: the generator rewrites each add-on
+// row's image link (it opens the Details page) and its title line (name · Download or not released yet).
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
@@ -151,18 +151,19 @@ function buildReadme(a) {
 }
 
 // ---- root README rows --------------------------------------------------------------------------------------------
-function linksLine(a) {
+// Release status sits on the title line, right of the name: the Download link, or plain text when unreleased.
+function releaseStatus(a) {
   const rel = latestRelease(a.key);
-  return `${rel ? `[Download ${rel.version}](${rel.url})` : '_not released yet_'} · [More](${a.dir}/README.md)`;
+  return rel ? `[Download ${rel.version}](${rel.url})` : '_not released yet_';
 }
 
 function themeCell(a, cell) {
-  const [preview, heading, ...body] = cell.split('<br>');
+  const [preview, heading] = cell.split('<br>');
   const imgTag = /<img\b[^>]*>/.exec(preview)?.[0];
   const img = imgTag ? `<a href="${a.dir}/README.md">${imgTag}</a>` : preview;
-  const title = heading || `[**${a.name}**](${a.dir}/README.md)`;
-  if (body.at(-1)?.includes(`[More](${a.dir}/README.md)`)) body.pop();
-  return [img, title, ...body, linksLine(a)].join('<br>');
+  // The heading may already carry a status from an earlier run ("[**Name**](...) · status"); keep only the name part.
+  const name = heading ? heading.split(' · ')[0] : `[**${a.name}**](${a.dir}/README.md)`;
+  return [img, `${name} · ${releaseStatus(a)}`].join('<br>');
 }
 
 function updateRootReadme(text) {
@@ -178,11 +179,7 @@ function updateRootReadme(text) {
       const firstCell = cells.shift();
       const img = /<img\b[^>]*\/>/.exec(firstCell);
       const first = img ? `<a href="${plugin.dir}/README.md">${img[0]}</a>` : firstCell;
-      const cell = cells.join(' | ');
-      const parts = cell.split('<br>');
-      const name = `**${plugin.name}**`;
-      const desc = parts.length > 1 ? parts[1] : '';
-      return `| ${first} | ${name}<br>${desc}<br>${linksLine(plugin)} |`;
+      return `| ${first} | **${plugin.name}** · ${releaseStatus(plugin)} |`;
     }
     // Otherwise, check if this is a 2-column theme grid row
     const rowThemes = cells.map((c) => addons.find((x) => x.kind === 'theme' && c.includes(`${x.dir}/art/screenshot-details.png`)));
