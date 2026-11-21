@@ -1,6 +1,7 @@
 <!--
-    Cogplate: Slider. Recessed void channel filled with acid-lime (ProgressBarForegroundBrush) and anchored by a
-    flanged vertical steel I-beam thumb matching Boltgun 2 settings sliders. Track.Thumb is set last.
+    Cogplate: Slider. Recessed ordnance CRT gauge channel (10px tall) with unlit segmented HUD cell ticks and scanlines,
+    filled by a glowing acid-lime / phosphor segmented telemetry bar and anchored by a chamfered bronze-and-steel
+    shuttle thumb carrying a glowing vertical LED sight-line. Track.Thumb is set last.
     Disables ThemeModifier's GameBannerHeight and GameBannerDarken sliders while ShowBackgroundImageOnWindow is True.
     Structure: Playnite Default 10.60.
 -->
@@ -23,28 +24,76 @@
     <Style x:Key="SliderRangeButton" TargetType="RepeatButton" BasedOn="{StaticResource SliderTrackButton}" />
 
     <Style x:Key="SliderThumb" TargetType="Thumb">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="18" />
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Grid Background="Transparent" SnapsToDevicePixels="True">
-                        <Border x:Name="Stem" Width="6" Height="14" Background="{DynamicResource SliderThumbBackgroundBrush}"
-                                BorderBrush="{DynamicResource SliderThumbHoverBorderBrush}" BorderThickness="1" CornerRadius="1" />
-                        <Border x:Name="TopCap" Width="10" Height="3" VerticalAlignment="Top"
-                                Background="{DynamicResource TextBrush}" CornerRadius="1" />
-                        <Border x:Name="BottomCap" Width="10" Height="3" VerticalAlignment="Bottom"
-                                Background="{DynamicResource TextBrush}" CornerRadius="1" />
+                    <Grid Background="Transparent" SnapsToDevicePixels="False">
+                        <Control x:Name="ThumbGlow" Template="{DynamicResource LocalDropGlowSquareTemplate}"
+                                 Foreground="{DynamicResource PrimaryButtonGlowBrush}"
+                                 Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" Focusable="False"
+                                 RenderTransformOrigin="0.5,0.4">
+                            <Control.RenderTransform>
+                                <ScaleTransform ScaleX="1.8" ScaleY="1.5" />
+                            </Control.RenderTransform>
+                        </Control>
+                        <!-- Outer dark shadow keyline -->
+                        <Path Data="M3,0 L11,0 L14,3 L14,19 L11,22 L3,22 L0,19 L0,3 Z"
+                              Fill="{DynamicResource BevelShadowBrush}" />
+                        <!-- Chamfered bronze/steel shuttle housing -->
+                        <Path x:Name="ThumbBody" Data="M3.4,1 L10.6,1 L13,3.4 L13,18.6 L10.6,21 L3.4,21 L1,18.6 L1,3.4 Z"
+                              Fill="{DynamicResource ButtonBackgroundBrush}"
+                              Stroke="{DynamicResource LocalBezelLitBrush}" StrokeThickness="1.2" />
+                        <!-- Top & bottom tarnished brass flange grips -->
+                        <Rectangle x:Name="TopCap" Width="6" Height="1.5" Margin="0,2.5,0,0" VerticalAlignment="Top"
+                                   Fill="{DynamicResource LocalBrassLitBrush}" Opacity="0.85" />
+                        <Rectangle x:Name="BottomCap" Width="6" Height="1.5" Margin="0,0,0,2.5" VerticalAlignment="Bottom"
+                                   Fill="{DynamicResource LocalBrassLitBrush}" Opacity="0.85" />
+                        <!-- Center vertical glowing LED sight-line -->
+                        <Control x:Name="ThumbHalo" Template="{DynamicResource LocalLedGlowTemplate}"
+                                 Foreground="{DynamicResource LocalLimeLitBrush}" Width="11" Height="18"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.52" Focusable="False" />
+                        <Border x:Name="ThumbLed" Width="2.4" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                CornerRadius="1.2" Background="{DynamicResource LocalLimeLitBrush}" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Stem" Property="Background" Value="{DynamicResource SliderThumbHoverBorderBrush}" />
-                            <Setter TargetName="TopCap" Property="Background" Value="{DynamicResource LocalLedHotBrush}" />
-                            <Setter TargetName="BottomCap" Property="Background" Value="{DynamicResource LocalLedHotBrush}" />
+                            <Setter TargetName="ThumbBody" Property="Fill" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+                            <Setter TargetName="ThumbBody" Property="Stroke" Value="{DynamicResource PrimaryButtonGlowBrush}" />
+                            <Setter TargetName="TopCap" Property="Fill" Value="{DynamicResource TextBrush}" />
+                            <Setter TargetName="BottomCap" Property="Fill" Value="{DynamicResource TextBrush}" />
+                            <Setter TargetName="ThumbLed" Property="Background" Value="{DynamicResource LocalLedHotBrush}" />
+                            <Setter TargetName="ThumbHalo" Property="Foreground" Value="{DynamicResource PrimaryButtonGlowBrush}" />
+                            <Setter TargetName="ThumbHalo" Property="Opacity" Value="0.85" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="ThumbHoverExit" />
+                                <BeginStoryboard Name="ThumbHoverEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ThumbGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ThumbGlow" Storyboard.TargetProperty="Opacity" To="0.34" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="ThumbHoverExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="ThumbGlow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ThumbGlow" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="ThumbHoverEnter" />
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
-                            <Setter TargetName="Stem" Property="Background" Value="{DynamicResource LocalLedHotBrush}" />
-                            <Setter TargetName="Stem" Property="BorderBrush" Value="{DynamicResource TextBrush}" />
+                            <Setter TargetName="ThumbBody" Property="Fill" Value="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                            <Setter TargetName="ThumbBody" Property="Stroke" Value="{DynamicResource LocalLedHotBrush}" />
+                            <Setter TargetName="ThumbLed" Property="Background" Value="{DynamicResource LocalLedHotBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -54,6 +103,7 @@
 
     <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="MinHeight" Value="24" />
         <Setter Property="Background" Value="{DynamicResource ControlBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ProgressBarForegroundBrush}" />
@@ -61,7 +111,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Slider}">
-                    <Grid x:Name="GridRoot">
+                    <Grid x:Name="GridRoot" VerticalAlignment="Center">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
@@ -69,11 +119,28 @@
                         </Grid.RowDefinitions>
                         <TickBar x:Name="TopTick" Visibility="Collapsed" Height="4" Placement="Top"
                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Fill="{DynamicResource NormalBorderBrush}" />
-                        <Border x:Name="Border" Grid.Row="1" Height="6"
-                                Background="{DynamicResource SliderTrackBrush}" BorderBrush="{DynamicResource WindowPanelSeparatorBrush}"
-                                BorderThickness="{DynamicResource ControlBorderThickness}" CornerRadius="1" />
-                        <Border x:Name="Fill" Grid.Row="1" Margin="1,0,0,0" Height="4" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                Background="{TemplateBinding Foreground}" Width="{Binding ActualWidth, ElementName=ButtonDecrease}" CornerRadius="1" />
+                        <!-- Recessed ordnance CRT gauge channel -->
+                        <Border x:Name="OuterGroove" Grid.Row="1" Height="10" VerticalAlignment="Center"
+                                Background="{DynamicResource BevelShadowBrush}" BorderBrush="{DynamicResource LocalBezelBrush}"
+                                BorderThickness="1" CornerRadius="2">
+                            <Grid ClipToBounds="True">
+                                <Rectangle Fill="{DynamicResource LocalCrtDeepBrush}" />
+                                <Rectangle Fill="{DynamicResource LocalBezelBrush}" Opacity="0.16"
+                                           OpacityMask="{DynamicResource LocalSegmentedCellsMaskBrush}" />
+                                <Rectangle Fill="{DynamicResource GlyphBrush}" Opacity="0.06"
+                                           OpacityMask="{DynamicResource LocalScanlinesMaskBrush}" />
+                            </Grid>
+                        </Border>
+                        <!-- Segmented acid-lime / phosphor telemetry fill -->
+                        <Border x:Name="Fill" Grid.Row="1" Margin="2,0,0,0" Height="6" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                Background="{DynamicResource CheckMarkBrush}" Width="{Binding ActualWidth, ElementName=ButtonDecrease}"
+                                CornerRadius="1" ClipToBounds="True">
+                            <Grid>
+                                <Rectangle x:Name="FillCells" Fill="{TemplateBinding Foreground}"
+                                           OpacityMask="{DynamicResource LocalSegmentedCellsMaskBrush}" />
+                                <Rectangle Height="1" VerticalAlignment="Top" Fill="{DynamicResource LocalLedHotBrush}" Opacity="0.38" />
+                            </Grid>
+                        </Border>
                         <Track Grid.Row="1" x:Name="PART_Track" Height="{TemplateBinding Height}">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton x:Name="ButtonDecrease" Style="{DynamicResource SliderRangeButton}" Command="Slider.DecreaseLarge" />
@@ -90,11 +157,12 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Fill" Property="Background" Value="{DynamicResource SliderHoverForegroundBrush}" />
+                            <Setter TargetName="OuterGroove" Property="BorderBrush" Value="{DynamicResource LocalBezelLitBrush}" />
+                            <Setter TargetName="FillCells" Property="Fill" Value="{DynamicResource SliderHoverForegroundBrush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
                             <Setter TargetName="PART_Track" Property="FocusManager.FocusedElement" Value="{Binding ElementName=PART_Track}" />
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                            <Setter TargetName="OuterGroove" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
                         </Trigger>
                         <Trigger Property="TickPlacement" Value="TopLeft">
                             <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
@@ -113,6 +181,9 @@
                                 </Setter.Value>
                             </Setter>
                             <Setter TargetName="PART_Track" Property="Orientation" Value="Horizontal" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.42" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

@@ -37,6 +37,7 @@ Unofficial Warhammer 40,000: Boltgun 2-inspired dark Playnite desktop theme: bol
 ## Notices and licenses
 
 - [LICENSE-Playnite.txt](info/LICENSE-Playnite.txt)
+- [LICENSE-streamline-cyber.txt](info/LICENSE-streamline-cyber.txt)
 - [NOTICE-Cogplate.txt](info/NOTICE-Cogplate.txt)
 
 ---

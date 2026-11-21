@@ -39,8 +39,10 @@
     <ImageBrush x:Key="LocalParchmentStainMaskBrush" ImageSource="{ThemeFile 'Images/fx/parchment-stain.png'}" Stretch="Fill" />
     <ImageBrush x:Key="LocalDropGlowMaskBrush" ImageSource="{ThemeFile 'Images/fx/drop-glow.png'}" Stretch="Fill" />
     <ImageBrush x:Key="LocalDropGlowSquareMaskBrush" ImageSource="{ThemeFile 'Images/fx/drop-glow-square.png'}" Stretch="Fill" />
-    <!-- The same scanline tile at a 3px pitch: tighter lines for the drop glows. -->
-    <ImageBrush x:Key="LocalScanlinesDenseMaskBrush" ImageSource="{ThemeFile 'Images/fx/scanlines.png'}" TileMode="Tile" Viewport="0,0,3,3" ViewportUnits="Absolute" Stretch="Fill" />
+    <!-- Fine CRT scanline tiles compensated for host ScaleTransform so every glow shares a crisp ~2.6px raster pitch on screen. -->
+    <ImageBrush x:Key="LocalScanlinesDenseMaskBrush" ImageSource="{ThemeFile 'Images/fx/scanlines.png'}" TileMode="Tile" Viewport="0,0,2.6,2.6" ViewportUnits="Absolute" Stretch="Fill" />
+    <ImageBrush x:Key="LocalDropGlowScanlinesMaskBrush" ImageSource="{ThemeFile 'Images/fx/scanlines.png'}" TileMode="Tile" Viewport="0,0,2.5,1.25" ViewportUnits="Absolute" Stretch="Fill" />
+    <ImageBrush x:Key="LocalDropGlowSquareScanlinesMaskBrush" ImageSource="{ThemeFile 'Images/fx/scanlines.png'}" TileMode="Tile" Viewport="0,0,2.2,1.6" ViewportUnits="Absolute" Stretch="Fill" />
     <ImageBrush x:Key="LocalLedGlowMaskBrush" ImageSource="{ThemeFile 'Images/fx/led-glow.png'}" Stretch="Fill" />
     <ImageBrush x:Key="LocalVignetteMaskBrush" ImageSource="{ThemeFile 'Images/fx/vignette.png'}" Stretch="Fill" />
     <ImageBrush x:Key="LocalSegmentedCellsMaskBrush" ImageSource="{ThemeFile 'Images/fx/segmented-cells.png'}" TileMode="Tile" Viewport="0,0,16,8" ViewportUnits="Absolute" Stretch="Fill" />
@@ -98,41 +100,221 @@
     </ControlTemplate>
 
     <ControlTemplate x:Key="LocalScanGlowTemplate" TargetType="Control">
-        <Grid IsHitTestVisible="False">
+        <Grid x:Name="TerminalField" IsHitTestVisible="False">
             <Grid.RenderTransform>
-                <TranslateTransform Y="3" />
+                <TranslateTransform Y="2" />
             </Grid.RenderTransform>
-            <Control Template="{DynamicResource LocalGlowFrameSoftTemplate}" Foreground="{TemplateBinding Foreground}" Opacity="0.22" Focusable="False" />
+            <Grid.OpacityMask>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop x:Name="RevealFill" Color="#FF000000" Offset="1" />
+                    <GradientStop x:Name="RevealEdge" Color="#00000000" Offset="1.15" />
+                </LinearGradientBrush>
+            </Grid.OpacityMask>
+            <Control Template="{DynamicResource LocalGlowFrameSoftTemplate}" Foreground="{TemplateBinding Foreground}" Opacity="0.54" Focusable="False" />
             <Grid OpacityMask="{StaticResource LocalScanlinesDenseMaskBrush}">
-                <Control Template="{DynamicResource LocalGlowFrameSoftTemplate}" Foreground="{TemplateBinding Foreground}" Focusable="False" />
-                <Control Template="{DynamicResource LocalGlowFrameSoftTemplate}" Foreground="{TemplateBinding Foreground}" Focusable="False" />
+                <Control Template="{DynamicResource LocalGlowFrameSoftTemplate}" Foreground="{TemplateBinding Foreground}" Opacity="0.48" Focusable="False" />
+                <Control x:Name="BeamSweep" Template="{DynamicResource LocalGlowFrameSoftTemplate}" Foreground="{TemplateBinding Foreground}" Opacity="0.62" Focusable="False">
+                    <Control.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop x:Name="BeamTop" Color="#00000000" Offset="-0.32" />
+                            <GradientStop x:Name="BeamPeak" Color="#FF000000" Offset="-0.16" />
+                            <GradientStop x:Name="BeamBot" Color="#00000000" Offset="0" />
+                        </LinearGradientBrush>
+                    </Control.OpacityMask>
+                </Control>
             </Grid>
         </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="TerminalBoot">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="RevealFill" Storyboard.TargetProperty="Offset" From="-0.22" To="1" Duration="0:0:0.26">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RevealEdge" Storyboard.TargetProperty="Offset" From="0.02" To="1.22" Duration="0:0:0.26">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TerminalField" Storyboard.TargetProperty="Opacity" Duration="0:0:0.26">
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.15" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.045" Value="0.92" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.085" Value="0.36" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.145" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.19" Value="0.74" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.26" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamTop" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.8">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.35" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.32" Value="1" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamPeak" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.8">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.17" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.32" Value="1.18" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1.18" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamBot" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.8">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.32" Value="1.35" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.8" Value="1.35" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="TerminalBoot" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <!-- Dissipated CRT drop shadow for the hero Play plate (Images/fx/drop-glow.png, art/sprites.py): a soft phosphor
-         haze under a scanlined layer, lying low and spreading farther below the plate than above it. The host covers the
-         plate and is enlarged with a ScaleTransform (1.289 x 2.2, origin 0.5,0.375) to the sprite's box. Host Foreground = glow colour, Opacity = strength. -->
+    <!-- Soft diffused CRT drop aura for the hero Play plate (Images/fx/drop-glow.png, art/sprites.py): a soft Gaussian
+         phosphor haze blended with a fine scanlined terminal layer that sweeps top-to-bottom with 90s CRT sync-flicker
+         and continuous Matrix scanline drift on hover. Host is enlarged with ScaleTransform (1.289 x 2.2, origin 0.5,0.375). -->
     <ControlTemplate x:Key="LocalDropGlowTemplate" TargetType="Control">
-        <Grid IsHitTestVisible="False">
-            <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.22" OpacityMask="{StaticResource LocalDropGlowMaskBrush}" />
-            <Grid OpacityMask="{StaticResource LocalScanlinesDenseMaskBrush}">
-                <Rectangle Fill="{TemplateBinding Foreground}" OpacityMask="{StaticResource LocalDropGlowMaskBrush}" />
-                <Rectangle Fill="{TemplateBinding Foreground}" OpacityMask="{StaticResource LocalDropGlowMaskBrush}" />
+        <Grid x:Name="TerminalField" IsHitTestVisible="False">
+            <Grid.OpacityMask>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop x:Name="RevealFill" Color="#FF000000" Offset="1" />
+                    <GradientStop x:Name="RevealEdge" Color="#00000000" Offset="1.15" />
+                </LinearGradientBrush>
+            </Grid.OpacityMask>
+            <Grid OpacityMask="{StaticResource LocalDropGlowMaskBrush}" ClipToBounds="True">
+                <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.54" />
+                <Rectangle Margin="0,-4,0,-4" Fill="{TemplateBinding Foreground}" Opacity="0.48"
+                           OpacityMask="{StaticResource LocalDropGlowScanlinesMaskBrush}">
+                    <Rectangle.RenderTransform>
+                        <TranslateTransform x:Name="ScanDrift" Y="0" />
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.58">
+                    <Rectangle.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop x:Name="BeamTop" Color="#00000000" Offset="-0.32" />
+                            <GradientStop x:Name="BeamPeak" Color="#FF000000" Offset="-0.16" />
+                            <GradientStop x:Name="BeamBot" Color="#00000000" Offset="0" />
+                        </LinearGradientBrush>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
             </Grid>
         </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="TerminalBoot">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="RevealFill" Storyboard.TargetProperty="Offset" From="-0.22" To="1" Duration="0:0:0.26">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RevealEdge" Storyboard.TargetProperty="Offset" From="0.02" To="1.22" Duration="0:0:0.26">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TerminalField" Storyboard.TargetProperty="Opacity" Duration="0:0:0.26">
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.15" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.045" Value="0.92" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.085" Value="0.36" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.145" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.19" Value="0.74" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.26" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="ScanDrift" Storyboard.TargetProperty="Y" From="0" To="1.25" Duration="0:0:0.42" RepeatBehavior="Forever" />
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamTop" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.35" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.32" Value="1" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamPeak" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.17" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.32" Value="1.18" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1.18" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamBot" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.32" Value="1.35" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1.35" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="TerminalBoot" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
     </ControlTemplate>
 
     <!-- Square version for the 48px cover Play / Info buttons (drop-glow-square.png). Host covers the tile and is
          enlarged with ScaleTransform 1.583 x 1.667 around origin 0.5,0.375 to the sprite's box. -->
     <ControlTemplate x:Key="LocalDropGlowSquareTemplate" TargetType="Control">
-        <Grid IsHitTestVisible="False">
-            <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.22" OpacityMask="{StaticResource LocalDropGlowSquareMaskBrush}" />
-            <Grid OpacityMask="{StaticResource LocalScanlinesDenseMaskBrush}">
-                <Rectangle Fill="{TemplateBinding Foreground}" OpacityMask="{StaticResource LocalDropGlowSquareMaskBrush}" />
-                <Rectangle Fill="{TemplateBinding Foreground}" OpacityMask="{StaticResource LocalDropGlowSquareMaskBrush}" />
+        <Grid x:Name="TerminalField" IsHitTestVisible="False">
+            <Grid.OpacityMask>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop x:Name="RevealFill" Color="#FF000000" Offset="1" />
+                    <GradientStop x:Name="RevealEdge" Color="#00000000" Offset="1.15" />
+                </LinearGradientBrush>
+            </Grid.OpacityMask>
+            <Grid OpacityMask="{StaticResource LocalDropGlowSquareMaskBrush}" ClipToBounds="True">
+                <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.54" />
+                <Rectangle Margin="0,-4,0,-4" Fill="{TemplateBinding Foreground}" Opacity="0.48"
+                           OpacityMask="{StaticResource LocalDropGlowSquareScanlinesMaskBrush}">
+                    <Rectangle.RenderTransform>
+                        <TranslateTransform x:Name="ScanDrift" Y="0" />
+                    </Rectangle.RenderTransform>
+                </Rectangle>
+                <Rectangle Fill="{TemplateBinding Foreground}" Opacity="0.58">
+                    <Rectangle.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop x:Name="BeamTop" Color="#00000000" Offset="-0.32" />
+                            <GradientStop x:Name="BeamPeak" Color="#FF000000" Offset="-0.16" />
+                            <GradientStop x:Name="BeamBot" Color="#00000000" Offset="0" />
+                        </LinearGradientBrush>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
             </Grid>
         </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="TerminalBoot">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="RevealFill" Storyboard.TargetProperty="Offset" From="-0.22" To="1" Duration="0:0:0.24">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RevealEdge" Storyboard.TargetProperty="Offset" From="0.02" To="1.22" Duration="0:0:0.24">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="TerminalField" Storyboard.TargetProperty="Opacity" Duration="0:0:0.24">
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.15" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.04" Value="0.92" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.08" Value="0.36" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.14" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.18" Value="0.74" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="ScanDrift" Storyboard.TargetProperty="Y" From="0" To="1.6" Duration="0:0:0.42" RepeatBehavior="Forever" />
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamTop" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.35" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamPeak" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.17" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1.18" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1.18" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BeamBot" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1.35" KeySpline="0.35,0 0.25,1" />
+                                <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1.35" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="TerminalBoot" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
     </ControlTemplate>
 
     <!-- Octagonal chamfered CRT steel plate (6px corner chamfers). Host Background = fill, BorderBrush = edge. -->
@@ -260,6 +442,30 @@
         </Grid>
     </ControlTemplate>
 
+    <!-- Recessed CRT input & selector well (ComboBox, TextBox, PasswordBox, SearchBox, ComboBoxList, FilterSelectionBox):
+         dark shadow keyline, 2px chamfered bronze bezel (BorderBrush = rim fill, Foreground = outer lit edge),
+         recessed deep CRT glass (Background) with radial phosphor glow, scanlines, and top glass sheen. -->
+    <ControlTemplate x:Key="LocalInputWellTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="False">
+            <Control Template="{DynamicResource ChamferTemplate}" Background="{DynamicResource BevelShadowBrush}"
+                     BorderBrush="{DynamicResource BevelShadowBrush}" Focusable="False" />
+            <Control Margin="1" Template="{DynamicResource ChamferTemplate}" Background="{TemplateBinding BorderBrush}"
+                     BorderBrush="{TemplateBinding Foreground}" Focusable="False" />
+            <Control Margin="3" Template="{DynamicResource ChamferTemplate}" Background="{TemplateBinding Background}"
+                     BorderBrush="{DynamicResource LocalBezelDarkBrush}" Focusable="False" />
+            <Rectangle Margin="4" Fill="{DynamicResource GlyphBrush}" Opacity="0.06" IsHitTestVisible="False">
+                <Rectangle.OpacityMask>
+                    <RadialGradientBrush Center="0.5,0.6" GradientOrigin="0.5,0.6" RadiusX="0.65" RadiusY="0.95">
+                        <GradientStop Color="#FF000000" Offset="0" />
+                        <GradientStop Color="#00000000" Offset="1" />
+                    </RadialGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle Margin="4" Fill="{DynamicResource GlyphBrush}" Opacity="0.07" OpacityMask="{StaticResource LocalScanlinesMaskBrush}" />
+            <Rectangle Margin="8,4,8,0" Height="1" VerticalAlignment="Top" Fill="{DynamicResource GlyphBrush}" Opacity="0.1" />
+        </Grid>
+    </ControlTemplate>
+
     <!-- Short LED stub at a plate's end (the game's menu plates carry one at each end, dark when idle, mint when lit). -->
     <ControlTemplate x:Key="LocalLedStubTemplate" TargetType="Control">
         <Grid IsHitTestVisible="False" Width="14">
@@ -268,6 +474,61 @@
             <Border Width="3" Margin="0,2" HorizontalAlignment="Center" CornerRadius="1.5"
                     Background="{TemplateBinding Background}" BorderBrush="{DynamicResource BevelShadowBrush}" BorderThickness="0.5" />
         </Grid>
+    </ControlTemplate>
+
+    <!-- Ordnance CRT score readout plate (Community / Critic / User scores in the parchment dossier):
+         chamfered bronze bezel, recessed scanlined CRT glass, radial phosphor bloom, and twin vertical LED end-capsules
+         colored by ScoreRating (Positive = acid-lime/mint, Mixed = tarnished brass-gold, Negative = conduit crimson). -->
+    <ControlTemplate x:Key="LocalScorePlateTemplate" TargetType="Control">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="False">
+            <Control Template="{DynamicResource ChamferTemplate}" Background="{DynamicResource BevelShadowBrush}"
+                     BorderBrush="{DynamicResource BevelShadowBrush}" Focusable="False" />
+            <Control x:Name="BezelRim" Margin="1" Template="{DynamicResource ChamferTemplate}"
+                     Background="{DynamicResource LocalBezelBrush}" BorderBrush="{DynamicResource LocalBezelLitBrush}" Focusable="False" />
+            <Control x:Name="CrtGlass" Margin="2.5" Template="{DynamicResource ChamferTemplate}"
+                     Background="{DynamicResource PropertyItemBackgroundBrush}" BorderBrush="{DynamicResource LocalBezelDarkBrush}" Focusable="False" />
+            <Rectangle x:Name="PhosphorGlow" Margin="3.5" Fill="{DynamicResource PositiveRatingBrush}" Opacity="0.16" IsHitTestVisible="False">
+                <Rectangle.OpacityMask>
+                    <RadialGradientBrush Center="0.5,0.58" GradientOrigin="0.5,0.58" RadiusX="0.65" RadiusY="0.95">
+                        <GradientStop Color="#FF000000" Offset="0" />
+                        <GradientStop Color="#00000000" Offset="1" />
+                    </RadialGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="Scanlines" Margin="4" Fill="{DynamicResource GlyphBrush}" Opacity="0.09"
+                       OpacityMask="{StaticResource LocalScanlinesMaskBrush}" />
+            <Rectangle Margin="7,3.5,7,0" Height="1" VerticalAlignment="Top" Fill="{DynamicResource GlyphBrush}" Opacity="0.14" />
+            <Control x:Name="LeftLedHalo" Template="{DynamicResource LocalLedGlowTemplate}"
+                     Foreground="{DynamicResource PositiveRatingBrush}" Width="11" Height="18"
+                     Margin="0.5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0.48" Focusable="False" />
+            <Border x:Name="LeftLedCore" Width="2.2" Height="9" Margin="5,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                    CornerRadius="1.1" Background="{DynamicResource PositiveRatingBrush}" />
+            <Control x:Name="RightLedHalo" Template="{DynamicResource LocalLedGlowTemplate}"
+                     Foreground="{DynamicResource PositiveRatingBrush}" Width="11" Height="18"
+                     Margin="0,0,0.5,0" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0.48" Focusable="False" />
+            <Border x:Name="RightLedCore" Width="2.2" Height="9" Margin="0,0,5,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                    CornerRadius="1.1" Background="{DynamicResource PositiveRatingBrush}" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Tag" Value="{x:Static ScoreRating.Mixed}">
+                <Setter TargetName="CrtGlass" Property="Background" Value="{DynamicResource ShellBackgroundBrush}" />
+                <Setter TargetName="PhosphorGlow" Property="Fill" Value="{DynamicResource MixedRatingBrush}" />
+                <Setter TargetName="Scanlines" Property="Fill" Value="{DynamicResource MixedRatingBrush}" />
+                <Setter TargetName="LeftLedHalo" Property="Foreground" Value="{DynamicResource MixedRatingBrush}" />
+                <Setter TargetName="RightLedHalo" Property="Foreground" Value="{DynamicResource MixedRatingBrush}" />
+                <Setter TargetName="LeftLedCore" Property="Background" Value="{DynamicResource MixedRatingBrush}" />
+                <Setter TargetName="RightLedCore" Property="Background" Value="{DynamicResource MixedRatingBrush}" />
+            </Trigger>
+            <Trigger Property="Tag" Value="{x:Static ScoreRating.Negative}">
+                <Setter TargetName="CrtGlass" Property="Background" Value="{DynamicResource LocalBloodStainBrush}" />
+                <Setter TargetName="PhosphorGlow" Property="Fill" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="Scanlines" Property="Fill" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="LeftLedHalo" Property="Foreground" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="RightLedHalo" Property="Foreground" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="LeftLedCore" Property="Background" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="RightLedCore" Property="Background" Value="{DynamicResource SelectedForegroundBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
     </ControlTemplate>
 
     <!-- Brass corner miters & bolts over a panel frame (no desired width >= 200). -->

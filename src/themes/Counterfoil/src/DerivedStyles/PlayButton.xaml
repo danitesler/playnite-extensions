@@ -1,0 +1,413 @@
+<!--
+    Counterfoil: DerivedStyles/PlayButton.xaml.
+    Hero Play CTA modeled directly on Disco Elysium's Dialogue Reply & CONTINUE ▶ painterly brush slab:
+    - Plate shape: brush-bar.png (LocalBrushSilhouetteTemplate) filled with fiery Red-Check Vermilion (#C83D1B),
+      layered with Psyche Violet impasto oil wash (oil-wash.png), separated left play-glyph cell, and subtle chalk lip.
+    - Running / Launching state: plate switches to Check Success Emerald (#1B9E62), darkened by RunningBreath scrim
+      (0.5 launching; 0.30..0.44 breathing running so white label stays >= 5.5:1), swept by an angled FELD exposure comet
+      (RunningScan, EndPoint="1,0.28") in the exact brush-bar.png silhouette, segmented 35mm sprocket foot bar, and twin
+      2d6 skill-check diamonds (◆ ◆) in a reserved right strip (PlayRoom 0,0,44,0).
+    - Running hover: MultiDataTrigger on IsRunning + IsMouseOver (RelativeSource Self) shows LOCCancelLabel,
+      hides PlayContent (Visibility="Hidden"), and fades in RunningHoverDim below the label.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Over the Play / ContextAction cell: emerald frame, subtle wash, segmented sprocket foot line, twin 2d6 check diamonds -->
+    <Style x:Key="RunningActionIndicator" TargetType="{x:Type Control}">
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Control}">
+                    <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.88" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                        <!-- Subtle emerald wash in exact brush-bar silhouette -->
+                        <Control x:Name="RunningWash" Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                 Background="{DynamicResource RunningIndicatorBrush}"
+                                 Opacity="0.12" Focusable="False" IsTabStop="False" />
+
+                        <!-- Angled FELD exposure scan inside overlay (mirrors slab scan) -->
+                        <Control x:Name="RunningScan" Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                 Visibility="Collapsed" Background="{DynamicResource LocalRunningHighlightBrush}"
+                                 Opacity="0.34" Focusable="False" IsTabStop="False">
+                            <Control.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.28">
+                                    <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.45" />
+                                    <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                    <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                </LinearGradientBrush>
+                            </Control.OpacityMask>
+                        </Control>
+
+                        <!-- Crisp emerald film frame with dark inner keyline -->
+                        <Grid x:Name="RunningFrame" Margin="1">
+                            <Border BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="2" />
+                            <Border Margin="2" BorderBrush="{DynamicResource BevelShadowBrush}" BorderThickness="1" Opacity="0.68" />
+                        </Grid>
+
+                        <!-- Segmented 35mm sprocket foot progress bar -->
+                        <Grid Height="3" Margin="14,0,46,5" VerticalAlignment="Bottom"
+                              OpacityMask="{DynamicResource LocalSprocketSegmentsMask}">
+                            <Rectangle Fill="{DynamicResource PrimaryButtonForegroundBrush}" Opacity="0.25" />
+                            <Rectangle x:Name="RunningFill" Fill="{DynamicResource PrimaryButtonForegroundBrush}" Opacity="0.95"
+                                       RenderTransformOrigin="0,0.5">
+                                <Rectangle.RenderTransform>
+                                    <ScaleTransform x:Name="RunningFillScale" ScaleX="0" />
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Grid>
+
+                        <!-- Twin 2d6 skill-check diamonds (◆ ◆) in reserved right strip -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,14,0" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Path x:Name="RunningDie1" Width="10" Height="10" Stretch="Fill"
+                                  Data="M5,0 L10,5 L5,10 L0,5 Z"
+                                  Fill="{DynamicResource PrimaryButtonForegroundBrush}"
+                                  Stroke="{DynamicResource BevelShadowBrush}" StrokeThickness="0.8"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <ScaleTransform x:Name="Die1Scale" ScaleX="1" ScaleY="1" />
+                                </Path.RenderTransform>
+                            </Path>
+                            <Path x:Name="RunningDie2" Width="10" Height="10" Margin="4,0,0,0" Stretch="Fill"
+                                  Data="M5,0 L10,5 L5,10 L0,5 Z"
+                                  Fill="{DynamicResource PrimaryButtonForegroundBrush}"
+                                  Stroke="{DynamicResource BevelShadowBrush}" StrokeThickness="0.8"
+                                  RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <ScaleTransform x:Name="Die2Scale" ScaleX="1" ScaleY="1" />
+                                </Path.RenderTransform>
+                            </Path>
+                        </StackPanel>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1.45" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.45" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1.452" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.452" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.95" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="0.95" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDie1" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.32" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.78" Value="0.32" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.94" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.4" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.32" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Die1Scale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.78" Value="0.82" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.94" Value="1.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Die1Scale" Storyboard.TargetProperty="ScaleY" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.78" Value="0.82" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.94" Value="1.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDie2" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.32" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.92" Value="0.32" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.08" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.42" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.32" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Die2Scale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.92" Value="0.82" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.08" Value="1.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.24" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Die2Scale" Storyboard.TargetProperty="ScaleY" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.92" Value="0.82" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.08" Value="1.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.24" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDie1" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.52" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDie2" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.52" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.52" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.42">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" To="0.92" Duration="0:0:0.3" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Height" Value="42" />
+        <Setter Property="MinWidth" Value="168" />
+        <Setter Property="Padding" Value="16,0,22,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <!-- Inner opaque core strictly inside brush-bar.png's solid bounds (guarantees solid fill even if mask is stripped in headless harness) -->
+                        <Border x:Name="PlayCore" Margin="5,5,12,5" Background="{TemplateBinding Background}" IsHitTestVisible="False" />
+
+                        <!-- Main brush-bar.png slab (opaque fill so page behind never degrades label contrast) -->
+                        <Control x:Name="PlayFill" Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                 Background="{TemplateBinding Background}" Focusable="False" IsTabStop="False" />
+
+                        <!-- Subtle Psyche Violet oil-wash impasto sheen (echoing CONTINUE ▶ gradient!) -->
+                        <Rectangle x:Name="OilSheen" Fill="{DynamicResource PrimaryButtonGlowBrush}" Opacity="0.28"
+                                   OpacityMask="{DynamicResource LocalOilWashMaskBrush}" IsHitTestVisible="False" />
+
+                        <!-- Idle Hover brighter vermilion brush-bar plate (collapsed while launching or running) -->
+                        <Control x:Name="HoverPlate" Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                 Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
+                                 Visibility="Collapsed" Opacity="0" Focusable="False" IsTabStop="False" />
+
+                        <!-- RunningBreath scrim darkening RunningIndicatorBrush plate for >= 5.5:1 label legibility -->
+                        <Grid x:Name="RunningBreath" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False">
+                            <Border Margin="5,5,12,5" Background="{DynamicResource ScrimBrush}" />
+                            <Control Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                     Background="{DynamicResource ScrimBrush}" Focusable="False" IsTabStop="False" />
+                        </Grid>
+
+                        <!-- RunningScan angled exposure band across exact brush-bar silhouette -->
+                        <Grid x:Name="RunningScan" Visibility="Collapsed" Opacity="0.38" IsHitTestVisible="False">
+                            <Grid.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.28">
+                                    <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.45" />
+                                    <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                    <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                </LinearGradientBrush>
+                            </Grid.OpacityMask>
+                            <Border Margin="5,5,12,5" Background="{DynamicResource LocalRunningHighlightBrush}" />
+                            <Control Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                     Background="{DynamicResource LocalRunningHighlightBrush}" Focusable="False" IsTabStop="False" />
+                        </Grid>
+
+                        <!-- RunningHoverDim scrim under Cancel label when hovering RUNNING button -->
+                        <Grid x:Name="RunningHoverDim" Opacity="0" IsHitTestVisible="False">
+                            <Border Margin="5,5,12,5" Background="{DynamicResource ScrimBrush}" />
+                            <Control Template="{DynamicResource LocalBrushSilhouetteTemplate}"
+                                     Background="{DynamicResource ScrimBrush}" Focusable="False" IsTabStop="False" />
+                        </Grid>
+
+                        <!-- Subtle exposed chalk-paper bottom lip -->
+                        <Rectangle x:Name="PaperLip" Height="2" VerticalAlignment="Bottom" Margin="4,0,16,2"
+                                   Fill="{DynamicResource SelectedBrush}" Opacity="0.82" IsHitTestVisible="False" />
+
+                        <!-- Label room reserving space for twin check diamonds while launching/running -->
+                        <Border x:Name="PlayRoom" Padding="0,0,0,0">
+                            <Grid x:Name="PlayContent" Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Separated lead Play glyph cell (hidden on ContextAction) -->
+                                    <Border x:Name="PlayGlyphCell" BorderBrush="{DynamicResource PrimaryButtonForegroundBrush}"
+                                            BorderThickness="0,0,1,0" Padding="0,0,10,0" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <ContentControl x:Name="PlayGlyph" Width="13" Height="13"
+                                                        Content="{DynamicResource IconPlay}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                        Foreground="{TemplateBinding Foreground}" Focusable="False" IsHitTestVisible="False">
+                                            <ContentControl.RenderTransform>
+                                                <TranslateTransform x:Name="GlyphShift" X="0" />
+                                            </ContentControl.RenderTransform>
+                                        </ContentControl>
+                                    </Border>
+                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                      RecognizesAccessKey="True"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Cancel label shown ONLY on Running + Self IsMouseOver -->
+                        <TextBlock x:Name="CancelLabel" Visibility="Collapsed" Opacity="0"
+                                   Text="{DynamicResource LOCCancelLabel}"
+                                   FontFamily="{DynamicResource HeadingFontFamily}" FontSize="18" FontWeight="Bold"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   IsHitTestVisible="False" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Tag" Value="ContextAction">
+                            <Setter TargetName="PlayGlyphCell" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="PlayHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="GlyphShift" Storyboard.TargetProperty="X" To="3" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="PlayHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="GlyphShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource PrimaryButtonPressedBackgroundBrush}" />
+                        </Trigger>
+
+                        <!-- RunningMarkRoom left="0" right="44" -->
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                            <Setter TargetName="OilSheen" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PaperLip" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PlayRoom" Property="Padding" Value="0,0,44,0" />
+                            <Setter TargetName="CancelLabel" Property="Margin" Value="0,0,44,0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" From="0.32" To="0.50" Duration="0:0:0.25" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1.45" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.45" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1.452" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.452" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                            <Setter TargetName="OilSheen" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PaperLip" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PlayRoom" Property="Padding" Value="0,0,44,0" />
+                            <Setter TargetName="CancelLabel" Property="Margin" Value="0,0,44,0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.30" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.44" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.30" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                        <!-- Cancel on Running + Self IsMouseOver ONLY (never TemplatedParent) -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsRunning}" Value="True" />
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="PlayContent" Property="Visibility" Value="Hidden" />
+                            <Setter TargetName="CancelLabel" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningCancelIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningHoverDim" Storyboard.TargetProperty="Opacity" To="0.34" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="CancelLabel" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningCancelIn" />
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,206 @@
+<!--
+    Testbed: DefaultControls/TreeView.xaml (Settings & Add-ons section list, Filter & Explorer trees).
+    Minimal bare 28px Barlow Semi Condensed rows (no idle boxes): #CFD4D8 modular wash on hover (110ms),
+    Aperture Charcoal (#343639) inversion plate + 3px Portal Cyan left slit + #F5F7F9 white label on selected (170ms).
+    WindowSettings (256px) and WindowExtensions (276px) set ContentBackgroundBrush and reserve VerticalScrollBarVisibility=Visible
+    so expanding nodes never reflows the window.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- TreeView Expander Toggle (fixed 16x16 host, IconSubmenu/IconDropDown in Portal Blue) -->
+    <Style x:Key="LocalTreeExpanderStyle" TargetType="ToggleButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent" Width="16" Height="16">
+                        <ContentControl x:Name="Arrow" Width="10" Height="10"
+                                        Content="{DynamicResource IconSubmenu}" ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                        Foreground="{DynamicResource GlyphBrush}"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Arrow" Property="Content" Value="{DynamicResource IconDropDown}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Arrow" Property="Foreground" Value="{DynamicResource LocalPortalCyanBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Non-selectable Separator inside Settings tree -->
+    <Style TargetType="{x:Type Separator}" x:Key="LocalTreeSeparatorStyle">
+        <Setter Property="Tag" Value="TreeSeparator" />
+        <Setter Property="Height" Value="10" />
+        <Setter Property="Margin" Value="8,2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Separator}">
+                    <Control Template="{DynamicResource DividerTemplate}"
+                             Foreground="{DynamicResource GlyphBrush}"
+                             BorderBrush="{DynamicResource WindowPanelSeparatorBrush}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type TreeViewItem}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
+        <Setter Property="Padding" Value="6,0,8,0" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <StackPanel>
+                        <Grid x:Name="RowGrid" MinHeight="28" Margin="0,0.5" Background="Transparent" SnapsToDevicePixels="True">
+                            <!-- Hover wash (Collapsed at rest) -->
+                            <Border x:Name="HoverPlate" Background="{DynamicResource ListItemHoverBrush}"
+                                    Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+                            <!-- Selected Aperture Charcoal inversion bar + 3px Portal Cyan left slit -->
+                            <Border x:Name="SelectedPlate" Background="{DynamicResource ListItemSelectedBrush}"
+                                    Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+                            <Rectangle x:Name="SelectedBar" Width="3" HorizontalAlignment="Left"
+                                       Fill="{DynamicResource LocalPortalCyanBrush}"
+                                       Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+                            <Grid Margin="{TemplateBinding Padding}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <ToggleButton x:Name="Expander" Grid.Column="0" Width="16" Height="16"
+                                              Style="{StaticResource LocalTreeExpanderStyle}"
+                                              IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                              ClickMode="Press" />
+                                <ContentPresenter x:Name="PART_Header" Grid.Column="1" ContentSource="Header"
+                                                  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                                    <ContentPresenter.Resources>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                            <Setter Property="MaxWidth" Value="196" />
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </Grid>
+                        </Grid>
+
+                        <ItemsPresenter x:Name="ItemsHost" Margin="18,0,0,0" Visibility="Collapsed" />
+                    </StackPanel>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ItemsHost" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter TargetName="Expander" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" SourceName="RowGrid" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="TreeHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0.9" Duration="0:0:0.11" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="TreeHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="TreeSelectIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.17" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.17" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="TreeSelectOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedBar" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Header.Tag, RelativeSource={RelativeSource Self}}" Value="TreeSeparator">
+                            <Setter Property="IsEnabled" Value="False" />
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter TargetName="RowGrid" Property="MinHeight" Value="10" />
+                            <Setter TargetName="Expander" Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type TreeView}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="4,6,4,6" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Style.Resources>
+            <Style TargetType="{x:Type Separator}" BasedOn="{StaticResource LocalTreeSeparatorStyle}" />
+        </Style.Resources>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=(AutomationProperties.AutomationId), RelativeSource={RelativeSource AncestorType=Window}}" Value="WindowSettings">
+                <Setter Property="Width" Value="256" />
+                <Setter Property="Background" Value="{DynamicResource ContentBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
+                <Setter Property="BorderThickness" Value="0,0,1,0" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Path=(AutomationProperties.AutomationId), RelativeSource={RelativeSource AncestorType=Window}}" Value="WindowExtensions">
+                <Setter Property="Width" Value="276" />
+                <Setter Property="Background" Value="{DynamicResource ContentBackgroundBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
+                <Setter Property="BorderThickness" Value="0,0,1,0" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,217 @@
+<!--
+    Joyride: cover tiles, the panels of a GTA box-art collage. Structure: Playnite Default 10.60 (GridViewItemStyle).
+    Brushes: LocalGutterBrush (the hard offset the panel lifts off, the frame's black outline), GridViewItemHoverBorderBrush (the hover
+    rim), GridViewItemSelectedBorderBrush (the mission-yellow frame), LocalGoldBrush (the wanted star), ScrimBrush (light-bar bands),
+    RunningIndicatorBrush (siren blue) with LocalWastedBrush (the red lamp blocks).
+    Hover, animated both ways and never reading as selected: the panel lifts 3px up-left off a hard black offset that grows under it
+    (120ms cubic out) and a 2px light grey rim fades in. Leaving returns, FillBehavior Stop.
+    Selected: a 3px mission-yellow frame outlined in black punches in from 104% (BackEase, the MISSION PASSED punch) and a gold wanted
+    star in a black tab pops onto the top-right corner; the slot settles from 0.985 to 1. No glow.
+    Everything is drawn inside the item spacing margin; the covers are clipped to a 2px-radius panel in GridViewItemTemplate.
+    Running game (docs/themes/reference.md): RunningIndicator is inset 4px so selection keeps the outer edge. It holds a siren-blue
+    band, a 3px siren frame, and police light bars (blue and red blocks on dark bands) along the top and bottom edges, passing in
+    opposite directions: fast while launching, slow while running while the frame breathes. Hover and selection never touch it.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DrawingBrush x:Key="LocalLightBarBrush" TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,24,6" ViewboxUnits="Absolute" Viewbox="0,0,24,6">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="{DynamicResource RunningIndicatorBrush}" Geometry="M0,0 L9,0 L9,6 L0,6 Z" />
+                <GeometryDrawing Brush="{DynamicResource LocalWastedBrush}" Geometry="M12,0 L21,0 L21,6 L12,6 Z" />
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+    <Style x:Key="GridViewItemStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <Grid Margin="{Settings ItemSpacingMargin}" x:Name="ItemGrid" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="SelectScale" ScaleX="1" ScaleY="1" />
+                        </Grid.RenderTransform>
+                        <!-- The hard offset the panel lifts off on hover. -->
+                        <Border x:Name="LiftShadow" Background="{DynamicResource LocalGutterBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" IsHitTestVisible="False" Opacity="0" />
+                        <Grid x:Name="Panel" Background="{DynamicResource GridItemBackgroundBrush}">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="CoverLift" X="0" Y="0" />
+                            </Grid.RenderTransform>
+                            <ContentPresenter x:Name="CoverPresenter" />
+                            <!-- Hover: a light grey rim. -->
+                            <Border x:Name="HoverFrame" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" BorderThickness="2" CornerRadius="{DynamicResource CornerRadiusSmall}"
+                                    BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
+                        </Grid>
+                        <!-- Selected: a mission-yellow frame outlined in black, a wanted star in a black tab on the top-right corner. -->
+                        <Grid x:Name="SelectionBorder" Visibility="Collapsed" Opacity="0" Margin="-4" IsHitTestVisible="False" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="SelectionPunch" ScaleX="1" ScaleY="1" />
+                            </Grid.RenderTransform>
+                            <Border BorderThickness="5" BorderBrush="{DynamicResource LocalGutterBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                            <Border Margin="1" BorderThickness="3" BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                            <Border x:Name="SelectionStar" Width="24" Height="24" Margin="0,-6,-6,0" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                    Background="{DynamicResource LocalGutterBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="SelectionStarPop" ScaleX="1" ScaleY="1" />
+                                </Border.RenderTransform>
+                                <Control Template="{DynamicResource LocalStarCheckTemplate}" Width="17" Height="17" Foreground="{DynamicResource LocalGoldBrush}" Focusable="False" IsTabStop="False" />
+                            </Border>
+                        </Grid>
+                        <Grid x:Name="RunningIndicator" Margin="4" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                            <Border x:Name="RunningWash" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="7" CornerRadius="{DynamicResource CornerRadiusSmall}" Opacity="0.16" />
+                            <Border x:Name="RunningFrame" BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="3" CornerRadius="{DynamicResource CornerRadiusSmall}" />
+                            <Grid Height="10" Margin="3,3,3,0" VerticalAlignment="Top" ClipToBounds="True">
+                                <Border Background="{DynamicResource ScrimBrush}" Opacity="0.85" />
+                                <Canvas>
+                                    <Rectangle Canvas.Left="-24" Canvas.Top="2" Width="900" Height="6" Fill="{DynamicResource LocalLightBarBrush}">
+                                        <Rectangle.RenderTransform>
+                                            <TranslateTransform x:Name="MarchTopShift" X="0" />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Canvas>
+                            </Grid>
+                            <Grid Height="10" Margin="3,0,3,3" VerticalAlignment="Bottom" ClipToBounds="True">
+                                <Border Background="{DynamicResource ScrimBrush}" Opacity="0.85" />
+                                <Canvas>
+                                    <Rectangle Canvas.Left="-24" Canvas.Top="2" Width="900" Height="6" Fill="{DynamicResource LocalLightBarBrush}">
+                                        <Rectangle.RenderTransform>
+                                            <TranslateTransform x:Name="MarchBottomShift" X="0" />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Canvas>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="HoverExit" />
+                                <BeginStoryboard Name="HoverEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="LiftShadow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="X" To="-3" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="Y" To="-3" Duration="0:0:0.12">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="HoverExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="LiftShadow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="CoverLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.15" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility" Duration="0:0:0.18">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="HoverEnter" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="SelectExit" />
+                                <BeginStoryboard Name="SelectEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectionPunch" Storyboard.TargetProperty="ScaleX" From="1.04" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionPunch" Storyboard.TargetProperty="ScaleY" From="1.04" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionStarPop" Storyboard.TargetProperty="ScaleX" From="0" To="1" BeginTime="0:0:0.08" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionStarPop" Storyboard.TargetProperty="ScaleY" From="0" To="1" BeginTime="0:0:0.08" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectScale" Storyboard.TargetProperty="ScaleX">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.16" Value="1">
+                                                <EasingDoubleKeyFrame.EasingFunction><CubicEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction>
+                                            </EasingDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectScale" Storyboard.TargetProperty="ScaleY">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.985" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.16" Value="1">
+                                                <EasingDoubleKeyFrame.EasingFunction><CubicEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction>
+                                            </EasingDoubleKeyFrame>
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="SelectExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="SelectEnter" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
+                            <Setter Property="Background" Value="Transparent" TargetName="Panel" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchTopShift" Storyboard.TargetProperty="X" From="0" To="24" Duration="0:0:0.4" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchBottomShift" Storyboard.TargetProperty="X" From="0" To="-24" Duration="0:0:0.4" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.7" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.7" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="MarchTopShift" Storyboard.TargetProperty="X" From="0" To="24" Duration="0:0:2.4" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchBottomShift" Storyboard.TargetProperty="X" From="0" To="-24" Duration="0:0:2.4" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

@@ -148,7 +148,7 @@
                         <!-- 9-slice mint CRT bloom aura (rasterized FX mask, no BlurEffect) -->
                         <!-- Scaled with a RenderTransform, not negative margins: margins this large make WPF clip the plate to its slot -->
                         <Control x:Name="Bloom" Template="{DynamicResource LocalDropGlowTemplate}" Foreground="{DynamicResource PrimaryButtonGlowBrush}"
-                                 Opacity="0" IsHitTestVisible="False" Focusable="False" RenderTransformOrigin="0.5,0.375">
+                                 Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" Focusable="False" RenderTransformOrigin="0.5,0.375">
                             <Control.RenderTransform>
                                 <ScaleTransform ScaleX="1.289" ScaleY="2.2" />
                             </Control.RenderTransform>
@@ -197,11 +197,21 @@
                                      BorderBrush="Transparent" Focusable="False" />
                         </Grid>
 
-                        <!-- Hover CRT surge plate (Collapsed at rest) -->
+                        <!-- Hover CRT surge plate + inner Matrix/90s terminal scanline beam (Collapsed at rest) -->
                         <Control x:Name="HoverLayer" Template="{DynamicResource ChamferTemplate}"
                                  Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}"
                                  BorderBrush="{DynamicResource LocalBezelDarkBrush}"
                                  Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" Focusable="False" />
+                        <Rectangle x:Name="HoverScan" Margin="3" Fill="{DynamicResource GlyphBrush}"
+                                   Visibility="Collapsed" Opacity="0.24" IsHitTestVisible="False">
+                            <Rectangle.OpacityMask>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop x:Name="HoverScanTop" Color="#00000000" Offset="-0.38" />
+                                    <GradientStop x:Name="HoverScanPeak" Color="#FF000000" Offset="-0.18" />
+                                    <GradientStop x:Name="HoverScanBot" Color="#00000000" Offset="0" />
+                                </LinearGradientBrush>
+                            </Rectangle.OpacityMask>
+                        </Rectangle>
 
                         <!-- Pressed sink plate (Collapsed at rest) -->
                         <Control x:Name="PressLayer" Template="{DynamicResource ChamferTemplate}"
@@ -221,12 +231,20 @@
                                      Foreground="{DynamicResource GlyphBrush}" Width="16" Height="26"
                                      Margin="-1,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0" Focusable="False" />
                             <Border x:Name="LeftLedCore" Width="3" Height="16" Margin="7,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    CornerRadius="1.5" Background="{DynamicResource LocalLedHotBrush}" Opacity="0" />
+                                    CornerRadius="1.5" Background="{DynamicResource LocalLedHotBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="LeftLedScale" ScaleY="0.18" />
+                                </Border.RenderTransform>
+                            </Border>
                             <Control x:Name="RightLedHalo" Template="{DynamicResource LocalLedGlowTemplate}"
                                      Foreground="{DynamicResource GlyphBrush}" Width="16" Height="26"
                                      Margin="0,0,-1,0" HorizontalAlignment="Right" VerticalAlignment="Center" Opacity="0" Focusable="False" />
                             <Border x:Name="RightLedCore" Width="3" Height="16" Margin="0,0,7,0" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                    CornerRadius="1.5" Background="{DynamicResource LocalLedHotBrush}" Opacity="0" />
+                                    CornerRadius="1.5" Background="{DynamicResource LocalLedHotBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="RightLedScale" ScaleY="0.18" />
+                                </Border.RenderTransform>
+                            </Border>
                         </Grid>
 
                         <!-- Running + hover Cancel dim scrim -->
@@ -264,6 +282,7 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsLaunching}" Value="True">
                             <Setter TargetName="HoverLayer" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverScan" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="Bloom" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="LedCapsules" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
@@ -295,6 +314,7 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
                             <Setter TargetName="HoverLayer" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverScan" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="Bloom" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="LedCapsules" Property="Visibility" Value="Collapsed" />
                             <DataTrigger.EnterActions>
@@ -340,34 +360,98 @@
                                 <Condition Binding="{Binding IsRunning}" Value="False" />
                             </MultiDataTrigger.Conditions>
                             <MultiDataTrigger.EnterActions>
-                                <BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="PlayHoverExit" />
+                                <BeginStoryboard Name="PlayHoverEnter">
                                     <Storyboard>
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Visibility">
                                             <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
                                         </ObjectAnimationUsingKeyFrames>
-                                        <DoubleAnimation Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
-                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.18" />
-                                        <DoubleAnimation Storyboard.TargetName="LeftLedHalo" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.18" />
-                                        <DoubleAnimation Storyboard.TargetName="RightLedHalo" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.18" />
-                                        <DoubleAnimation Storyboard.TargetName="LeftLedCore" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
-                                        <DoubleAnimation Storyboard.TargetName="RightLedCore" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverScan" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Opacity" Duration="0:0:0.24">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.15" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.045" Value="0.86" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.085" Value="0.42" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.19" Value="0.82" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0.34" Duration="0:0:0.24">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LeftLedHalo" Storyboard.TargetProperty="Opacity" Duration="0:0:0.24">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.045" Value="0.44" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.085" Value="0.18" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="0.48" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RightLedHalo" Storyboard.TargetProperty="Opacity" Duration="0:0:0.24">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.045" Value="0.44" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.085" Value="0.18" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="0.48" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LeftLedCore" Storyboard.TargetProperty="Opacity" Duration="0:0:0.22">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.04" Value="0.95" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.08" Value="0.34" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.22" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RightLedCore" Storyboard.TargetProperty="Opacity" Duration="0:0:0.22">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.04" Value="0.95" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.08" Value="0.34" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.15" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.22" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="LeftLedScale" Storyboard.TargetProperty="ScaleY" From="0.18" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="RightLedScale" Storyboard.TargetProperty="ScaleY" From="0.18" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverScanTop" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.38" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1" KeySpline="0.35,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverScanPeak" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.19" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1.19" KeySpline="0.35,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1.19" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverScanBot" Storyboard.TargetProperty="Offset" RepeatBehavior="Forever" Duration="0:0:1.7">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.3" Value="1.38" KeySpline="0.35,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.7" Value="1.38" />
+                                        </DoubleAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </MultiDataTrigger.EnterActions>
                             <MultiDataTrigger.ExitActions>
-                                <BeginStoryboard>
+                                <BeginStoryboard Name="PlayHoverExit">
                                     <Storyboard FillBehavior="Stop">
                                         <DoubleAnimation Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
                                         <DoubleAnimation Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
-                                        <DoubleAnimation Storyboard.TargetName="LeftLedHalo" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
-                                        <DoubleAnimation Storyboard.TargetName="RightLedHalo" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
-                                        <DoubleAnimation Storyboard.TargetName="LeftLedCore" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
-                                        <DoubleAnimation Storyboard.TargetName="RightLedCore" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                                        <DoubleAnimation Storyboard.TargetName="LeftLedHalo" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="RightLedHalo" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="LeftLedCore" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="RightLedCore" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LeftLedScale" Storyboard.TargetProperty="ScaleY" To="0.18" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="RightLedScale" Storyboard.TargetProperty="ScaleY" To="0.18" Duration="0:0:0.2" />
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Visibility">
                                             <DiscreteObjectKeyFrame KeyTime="0:0:0.22" Value="{x:Static Visibility.Collapsed}" />
                                         </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverScan" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.22" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Bloom" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.25" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="PlayHoverEnter" />
                             </MultiDataTrigger.ExitActions>
                         </MultiDataTrigger>
                         <Trigger Property="IsPressed" Value="True">

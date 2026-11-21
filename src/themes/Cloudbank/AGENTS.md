@@ -27,6 +27,7 @@ Shared anatomy and first-run checks: [`../AGENTS.md`](../AGENTS.md). Loading rul
 | `tr-bracket`, `tr-mint` | `FocusBrush`, `SelectedBorderBrush`, selected cover outline; links, chips, `TitleSuffixBrush`, main menu glyph |
 | `tr-text`, `tr-text-body`, `tr-text-menu` | `TextColor`; `TextColorDarker`, `HeadingRuleBrush`; idle sidebar glyphs |
 | `tr-func`, `tr-detail`, `tr-mem` | `HeadingMarkerBrush` (orange bar), `HeadingMarkerAltBrush` (blue bar); `PositiveRatingBrush` |
+| `tr-gilt`, `tr-gilt-hot`, `tr-gilt-dim`, `tr-gilt-text` | `GiltBrush` (lit gold frame, toggled top bar cells), `GiltHotBrush` (frame core, corner brackets, active glyph), `GiltDimBrush` (inner line, group rules), `GiltTextBrush` (metadata captions, DETAILS rule) |
 | `tr-active`, `tr-process` | `WarningBrush`, `MixedRatingBrush`, `DataChangeNotifColor`; `DangerBrush`, `NegativeRatingBrush` |
 
 Radii: `ControlCornerRadius` 2 (`tr-radius`), small 1, large 3, XL 4, full 9999 only on square badges. Slider track 3 / fill 2 (6 / 4px), scroll thumb 3 (6px), tab indicator 1 (2px). Fonts: headings bundled Sora (`./Typography/#Sora`), then `Raleway, Century Gothic, Segoe UI` (`HeadingFontFamily`), body `Ubuntu, Segoe UI`; nothing ships. Scale 12 / 14 / 15 / 20 / 29.
@@ -63,6 +64,7 @@ White alpha masks, colored in XAML by filling a rectangle with a theme brush and
 | Sprite | Size | Used by |
 |--------|------|---------|
 | `glow-frame.png` | 128, 9-slice 44 / 40 / 44 | `GlowFrameTemplate`: details pane, GroupBox (0.22), Play, current view cell, selected and hovered covers |
+| `gilt-frame.png` | 128, same 9-slice | `LocalGiltFrameTemplate`: the lit gold frame (hot 2px core, inner light, bloom) of the details pane and of toggled top bar cells |
 | `glow-line.png` | 256x48 | `GlowLineTemplate`: top bar and dialog title rules |
 | `arc-strip.png` | 512x40, tiles in x | `ArcStripTemplate`: top bar charge; Play hover (its own crawling strips) |
 | `spark.png`, `halo.png`, `flourish.png` | 64, 128, 72x18 | top bar tip; sidebar halo and library glow; end of every section rule (`DividerTemplate`) |
@@ -108,3 +110,7 @@ Both previews are written from `RESEARCH.md`, colors as `var(--tr-*)`, sprites l
 - In Playnite: the cover hover target lock (no leftover boxes at 125% and 150%), the Play hover animation (fade in and out, crawl, flicker, leaving while pressed), the top bar bloom over the details and grid views, the Play arcs on hover, GroupBox bloom on the Statistics page (cards must still wrap compactly), and dialog title charge in Settings and the game editor.
 - ThemeModifier recoloring of the glows (they follow `FrameBrush`, `GlyphBrush`, `TopPanelRuleStartBrush`, `PrimaryButton*` and `SelectedBorderBrush`).
 - Performance with many glowing covers on large libraries.
+
+## Gold glow
+
+The Functions screen lights selected function tiles with a gold frame and cyan brackets. Cloudbank uses it for the metadata pane (near-black panel, `LocalGiltFrameTemplate` bloom, gold corner brackets via `LocalGiltBracketsTemplate`, a diamond on the top edge, gold captions and group rules) and for every toggled top bar control (`TopPanelItem`, filter and notifications toggles: black cell, gold edge, hot gold glyph, bloom, brackets). The pane is written by `art/gen-overviews.mjs`; rerun it after editing. The sidebar's current item stays aqua.

@@ -1,0 +1,288 @@
+<!doctype html>
+<!-- Brushlight: HTML replica of Playnite's Game Details view (1280x720), the spec for the XAML.
+     Unofficial fan theme inspired by Clair Obscur: Expedition 33. No game logo, art, icon or font file is used:
+     the paint sprites come from art/sprites.py, the icons from art/icons.py, Cinzel and Oswald are open fonts.
+     Colors: var(--token) from src/tokens.css (injected at render). Rules: docs/themes/previews.md. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Brushlight - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--void); color: var(--white);
+         font-family: "Palatino Linotype", Georgia; font-size: 14px; position: relative; }
+  svg.i { width: 16px; height: 16px; flex: none; }
+  .cap { font-family: Cinzel, "Palatino Linotype"; }
+  .num { font-family: Oswald, Bahnschrift; }
+  .fx { position: absolute; pointer-events: none; }
+  /* Tapered plate: arrow point on the left, a slanted cut on the right, a broken dry-brush rim (chalk.png) */
+  .plate { position: relative; display: flex; align-items: center; --fill: var(--plate); --rimc: var(--rim-dim); --n: 10px; --c: 7px; }
+  .plate::before, .plate::after { content: ""; position: absolute; pointer-events: none; }
+  .plate::before { inset: 0; background: var(--rimc);
+    clip-path: polygon(var(--n) 0, 100% 0, calc(100% - var(--c)) 100%, var(--n) 100%, 0 50%);
+    -webkit-mask: url("../src/Images/fx/chalk.png") repeat; }
+  .plate::after { inset: 1.5px; background: var(--fill);
+    clip-path: polygon(calc(var(--n) - 1px) 0, 100% 0, calc(100% - var(--c)) 100%, calc(var(--n) - 1px) 100%, 0 50%); }
+  .plate > * { position: relative; z-index: 1; }
+  /* Lozenge: pointed at both ends (inventory tabs, chips) */
+  .loz { --c: 0px; }
+  .loz::before { clip-path: polygon(var(--n) 0, calc(100% - var(--n)) 0, 100% 50%, calc(100% - var(--n)) 100%, var(--n) 100%, 0 50%); }
+  .loz::after { clip-path: polygon(calc(var(--n) - 1px) 0, calc(100% - var(--n) + 1px) 0, 100% 50%, calc(100% - var(--n) + 1px) 100%, calc(var(--n) - 1px) 100%, 0 50%); }
+  .sel { --fill: var(--plum); --rimc: var(--rim); }
+  /* hairline rule with a crossing tick (Victory / Battle Loot) */
+  .rule { position: relative; height: 1px; background: linear-gradient(90deg, var(--bronze-lit), var(--bronze-lit) 70%, transparent); }
+  .rule::before { content: ""; position: absolute; left: 10px; top: -5px; width: 1px; height: 11px; background: var(--cream-dim); }
+  .rule.lit { background: linear-gradient(90deg, var(--cream-dim), var(--bronze-lit) 60%, transparent); }
+
+  /* ---------- rail ---------- */
+  .rail { position: absolute; left: 0; top: 0; width: 44px; height: 720px; background: var(--void);
+          border-right: 1px solid var(--bronze); }
+  .rail .lattice { position: absolute; left: 0; bottom: 0; width: 43px; height: 220px; background: var(--bronze);
+          -webkit-mask: url("../src/Images/fx/lattice.png") repeat, linear-gradient(transparent, #000);
+          -webkit-mask-composite: source-in; opacity: 0.7; }
+  .rail-menu { height: 52px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .rail-menu svg { width: 26px; height: 26px; color: var(--cream); }
+  .rail-menu .bs { position: absolute; width: 26px; height: 26px; color: var(--ochre); opacity: 0.7; }
+  .rail-item { height: 40px; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .rail-item.cur { color: var(--cream); }
+  .rail-item.cur .plate { width: 38px; height: 28px; justify-content: center; --n: 8px; }
+
+  /* ---------- top bar ---------- */
+  .main { position: absolute; left: 44px; top: 0; right: 0; bottom: 0; }
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 52px; display: flex; align-items: center; padding: 0 0 0 14px; gap: 6px; }
+  .top .foot { position: absolute; left: 0; right: 0; bottom: 0; }
+  .search { width: 260px; height: 32px; padding: 0 12px 0 16px; gap: 9px; color: var(--muted); font-size: 14px; }
+  .search svg { color: var(--muted); }
+  .tool { width: 38px; height: 34px; justify-content: center; color: var(--muted); --n: 8px; --c: 0px; }
+  .tool.on { color: var(--cream); }
+  .tool.ghost::before, .tool.ghost::after { opacity: 0; }
+  .filter-mark { position: absolute; right: 6px; top: 4px; width: 7px; height: 10px; background: var(--ochre);
+                 clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); z-index: 2; }
+  .items { display: flex; gap: 2px; margin-left: 4px; }
+  .sep { width: 1px; height: 18px; background: var(--bronze-lit); margin: 0 6px; }
+  .winbtns { position: absolute; right: 0; top: 0; height: 32px; display: flex; color: var(--muted); }
+  .winbtns div { width: 44px; height: 32px; display: flex; align-items: center; justify-content: center; }
+  .winbtns svg { width: 12px; height: 12px; }
+
+  /* ---------- game list ---------- */
+  .list { position: absolute; left: 0; top: 52px; width: 292px; bottom: 0; padding: 14px 10px 0 14px; }
+  .group-head { display: flex; align-items: center; gap: 8px; height: 26px; color: var(--cream); font-size: 13px; letter-spacing: 1px; }
+  .group-head .count { font-family: Oswald, Bahnschrift; color: var(--muted); font-size: 12px; }
+  .row { height: 30px; display: flex; align-items: center; gap: 10px; padding-left: 18px; color: var(--white); margin: 1px 0; }
+  .row .ic { width: 20px; height: 20px; border-radius: 2px; flex: none; }
+  .row.hov { --fill: var(--plate); --rimc: var(--rim-dim); }
+  .row.cur { margin-left: -8px; padding-left: 26px; font-size: 15px; }
+  .row.dim { color: var(--muted); }
+
+  /* ---------- game page ---------- */
+  .page { position: absolute; left: 292px; top: 52px; right: 0; bottom: 0; overflow: hidden; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 270px; overflow: hidden;
+            background:
+              radial-gradient(ellipse 30% 40% at 72% 30%, rgba(255, 214, 160, 0.85), transparent 70%),
+              radial-gradient(ellipse 60% 50% at 30% 70%, rgba(48, 74, 86, 0.9), transparent 75%),
+              radial-gradient(ellipse 40% 30% at 85% 75%, rgba(126, 52, 40, 0.8), transparent 70%),
+              linear-gradient(160deg, #3d4c54 0%, #a3785a 45%, #5b3a32 70%, #1b1416 100%); }
+  .banner .tower { position: absolute; left: 61%; top: 22px; width: 26px; height: 210px; background: linear-gradient(#20181a, #3a2b28);
+                   clip-path: polygon(40% 0, 60% 0, 100% 100%, 0 100%); opacity: 0.85; }
+  .banner .petal { position: absolute; width: 7px; height: 4px; border-radius: 60% 10%; }
+  .banner .foot { position: absolute; left: 0; right: 0; bottom: -2px; height: 120px; background: var(--void);
+                  -webkit-mask: url("../src/Images/fx/brush-foot.png") repeat-x 0 0 / 1024px 120px; }
+  .head { position: absolute; left: 32px; right: 32px; top: 168px; }
+  .title { font-family: Cinzel, "Palatino Linotype"; font-size: 34px; color: var(--cream); letter-spacing: 1px; line-height: 1.1; }
+  .title b { font-weight: 400; font-size: 42px; }
+  .head .rule { width: 520px; margin: 8px 0 0 -14px; }
+  .actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  /* Play: the combat command stroke with a key prompt, the ochre smear swept in under it (hover end state) */
+  .play { position: relative; width: 184px; height: 46px; display: flex; align-items: center; gap: 12px; padding-left: 18px; }
+  .play .smear { position: absolute; left: -22px; top: -14px; width: 248px; height: 76px; background: var(--ochre);
+                 -webkit-mask: url("../src/Images/fx/smear.png") no-repeat 0 0 / 100% 100%; transform: rotate(-4deg); }
+  .play .stroke { position: absolute; left: -4px; top: -3px; width: 196px; height: 52px; background: var(--plate);
+                  -webkit-mask: url("../src/Images/fx/stroke.png") no-repeat 0 0 / 100% 100%; }
+  .key { width: 26px; height: 26px; border: 1px solid var(--cream); border-radius: 3px; display: flex; align-items: center;
+         justify-content: center; position: relative; flex: none; }
+  .play .key { background: var(--cream); color: var(--ink); }
+  .play .key svg { width: 13px; height: 13px; }
+  .play .lbl { position: relative; font-family: Cinzel, "Palatino Linotype"; font-size: 18px; color: var(--cream); letter-spacing: 2px; }
+  .sq { width: 40px; height: 40px; border: 1px solid var(--rim-dim); border-radius: 3px; display: flex; align-items: center;
+        justify-content: center; color: var(--white); background: var(--plate); }
+  .sq svg { width: 18px; height: 18px; }
+
+  .body { position: absolute; left: 32px; top: 330px; right: 32px; bottom: 0; display: flex; gap: 24px; }
+  .maincol { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; margin-bottom: 14px; }
+  .shot { width: 150px; height: 84px; border: 1px solid var(--bronze-lit); border-radius: 2px; position: relative; overflow: hidden; }
+  .sec { font-family: Cinzel, "Palatino Linotype"; color: var(--cream); font-size: 15px; letter-spacing: 1px; margin: 4px 0 4px; }
+  .desc { color: var(--white); font-size: 14px; line-height: 1.55; }
+  .desc p { margin-bottom: 8px; }
+  .desc em { color: var(--cream); font-style: normal; }
+
+  /* metadata: the description card (plum-black, corner ticks) */
+  .meta { width: 332px; flex: none; position: relative; background: var(--card); border: 1px solid var(--bronze);
+          padding: 12px 16px 10px; align-self: flex-start; }
+  .meta .tick { position: absolute; width: 10px; height: 10px; border-color: var(--cream); border-style: solid; }
+  .meta .tl { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+  .meta .br { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+  .kv { display: grid; grid-template-columns: 122px 1fr; column-gap: 12px; align-items: center; min-height: 23px; font-size: 13px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { color: var(--white); }
+  .kv .v.cream { color: var(--cream); }
+  .meta .rule { margin: 7px 0 7px -16px; width: calc(100% + 16px); }
+  .scores { display: flex; gap: 18px; padding: 2px 0 0 4px; }
+  .node { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--muted); }
+  .node .d { width: 30px; height: 30px; position: relative; display: flex; align-items: center; justify-content: center; }
+  .node .d::before { content: ""; position: absolute; inset: 4px; border: 1px solid var(--cream); transform: rotate(45deg); background: var(--plate); }
+  .node .d span { position: relative; font-family: Oswald, Bahnschrift; font-size: 14px; color: var(--cream); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { height: 22px; padding: 0 12px; font-size: 12px; color: var(--white); --n: 7px; }
+</style>
+</head>
+<body>
+<!-- ICONS:BEGIN (art/icons.py) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="IconSearch" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4,10.5 a6.5,6.5 0 1 0 13,0 a6.5,6.5 0 1 0 -13,0 Z M15.2,15.2 L20.5,20.5"/></symbol>
+<symbol id="IconClear" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M6,6 L18,18 M18,6 L6,18"/></symbol>
+<symbol id="IconViewSettings" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M3,6 L21,6 M3,12 L21,12 M3,18 L21,18 M8,3.8 L10.2,6 L8,8.2 L5.8,6 Z M16,9.8 L18.2,12 L16,14.2 L13.8,12 Z M10,15.8 L12.2,18 L10,20.2 L7.8,18 Z"/></symbol>
+<symbol id="IconFilterPresets" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M3,5 L15,5 L10.5,11 L10.5,17 L7.5,19 L7.5,11 Z M17,10 L21,10 M17,14 L21,14 M17,18 L21,18"/></symbol>
+<symbol id="IconGroup" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M7,4.5 L19.5,4.5 L21.5,7.5 L19.5,10.5 L7,10.5 L9,7.5 Z M3,13.5 L15.5,13.5 L17.5,16.5 L15.5,19.5 L3,19.5 L5,16.5 Z"/></symbol>
+<symbol id="IconSort" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M3,6 L14,6 M3,12 L11,12 M3,18 L8,18 M18,4.5 L18,19 M14.8,15.8 L18,19 L21.2,15.8"/></symbol>
+<symbol id="IconDetailsView" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M5,4.2 L6.8,6 L5,7.8 L3.2,6 Z M9,6 L21,6 M5,10.2 L6.8,12 L5,13.8 L3.2,12 Z M9,12 L21,12 M5,16.2 L6.8,18 L5,19.8 L3.2,18 Z M9,18 L21,18"/></symbol>
+<symbol id="IconGridView" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4,4 L10.5,4 L10.5,10.5 L4,10.5 Z M13.5,4 L20,4 L20,10.5 L13.5,10.5 Z M4,13.5 L10.5,13.5 L10.5,20 L4,20 Z M13.5,13.5 L20,13.5 L20,20 L13.5,20 Z"/></symbol>
+<symbol id="IconListView" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M3,6 L21,6 M3,12 L21,12 M3,18 L16,18"/></symbol>
+<symbol id="IconUpdate" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M19,9.5 A7.5,7.5 0 0 0 5.4,8 M5,14.5 A7.5,7.5 0 0 0 18.6,16 M19.4,4.6 L19,9.5 L14.2,9 M4.6,19.4 L5,14.5 L9.8,15"/></symbol>
+<symbol id="IconExplorer" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M3,6 L9,6 L10.5,8 L21,8 L21,19 L3,19 Z M3,11 L21,11"/></symbol>
+<symbol id="IconRandom" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M12,3 L21,12 L12,21 L3,12 Z M11.4,8 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z M7.4,12 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z M15.4,12 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z M11.4,16 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z"/></symbol>
+<symbol id="IconViewRandom" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M12,3 L21,12 L12,21 L3,12 Z M11.4,8 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z M7.4,12 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z M15.4,12 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z M11.4,16 a0.6,0.6 0 1 0 1.2,0 a0.6,0.6 0 1 0 -1.2,0 Z"/></symbol>
+<symbol id="IconFilter" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M3.5,4.5 L20.5,4.5 L14,12 L14,18.5 L10,20.5 L10,12 Z"/></symbol>
+<symbol id="IconNotifications" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M6.5,17 L6.5,10.5 A5.5,5.5 0 0 1 17.5,10.5 L17.5,17 L19.5,18.5 L4.5,18.5 Z M10,21 L14,21 M12,3 L12,5"/></symbol>
+<symbol id="IconMainMenu" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M9,6 L21,6 M9,12 L21,12 M9,18 L21,18 M4.5,10.1 L6.4,12 L4.5,13.9 L2.6,12 Z"/></symbol>
+<symbol id="IconLibrary" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4,4.5 L8,4.5 L8,19.5 L4,19.5 Z M10,6.5 L14,6.5 L14,19.5 L10,19.5 Z M15.8,6.2 L19.6,5.2 L22,18.8 L18.2,19.8 Z M4,8 L8,8 M10,10 L14,10"/></symbol>
+<symbol id="IconStatistics" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4,20 L20,20 M5.5,20 L5.5,13 L9,13 L9,20 M10.5,20 L10.5,8 L14,8 L14,20 M15.5,20 L15.5,4 L19,4 L19,20"/></symbol>
+<symbol id="IconWindowMinimize" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M5,17 L19,17"/></symbol>
+<symbol id="IconWindowMaximize" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M5,5 L19,5 L19,19 L5,19 Z"/></symbol>
+<symbol id="IconWindowRestore" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M8.5,4.5 L19.5,4.5 L19.5,15.5 M4.5,8.5 L15.5,8.5 L15.5,19.5 L4.5,19.5 Z"/></symbol>
+<symbol id="IconWindowClose" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M5.5,5.5 L18.5,18.5 M18.5,5.5 L5.5,18.5"/></symbol>
+<symbol id="IconDropDown" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M6,9.5 L12,15.5 L18,9.5"/></symbol>
+<symbol id="IconSubmenu" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M9.5,6 L15.5,12 L9.5,18"/></symbol>
+<symbol id="IconCheck" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4.5,12.5 L9.5,17.5 L19.5,6.5"/></symbol>
+<symbol id="IconAdd" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M12,4.5 L12,19.5 M4.5,12 L19.5,12"/></symbol>
+<symbol id="IconEdit" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M14.5,4.5 L19.5,9.5 L10,19 L5,19 L5,14 Z M12.5,6.5 L17.5,11.5 M5,19 L3.5,20.5"/></symbol>
+<symbol id="IconRemove" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4,6.5 L20,6.5 M9.5,6.5 L9.5,3.5 L14.5,3.5 L14.5,6.5 M6,6.5 L7,20.5 L17,20.5 L18,6.5 M10,10 L10,17 M14,10 L14,17"/></symbol>
+<symbol id="IconOptions" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M4.1,12 a0.9,0.9 0 1 0 1.8,0 a0.9,0.9 0 1 0 -1.8,0 Z M11.1,12 a0.9,0.9 0 1 0 1.8,0 a0.9,0.9 0 1 0 -1.8,0 Z M18.1,12 a0.9,0.9 0 1 0 1.8,0 a0.9,0.9 0 1 0 -1.8,0 Z"/></symbol>
+<symbol id="IconPlay" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M7,4 L20,12 L7,20 Z M9.6,9.2 L14.2,12 L9.6,14.8 Z"/></symbol>
+<symbol id="IconInfo" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M12,2.5 L21.5,12 L12,21.5 L2.5,12 Z M12,10.5 L12,16.5 M11.5,7.6 a0.5,0.5 0 1 0 1,0 a0.5,0.5 0 1 0 -1,0 Z"/></symbol>
+<symbol id="IconDownload" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter" d="M12,3.5 L12,15 M7.5,10.5 L12,15 L16.5,10.5 M4.5,19.5 L19.5,19.5"/></symbol>
+<symbol id="LocalBrushMark" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="miter" d="M12,1.4 L17.2,12 L12,22.6 L6.8,12 Z M12,4.6 L12,19.4 M3.2,10.2 L5,12 L3.2,13.8 L1.4,12 Z M20.8,10.2 L22.6,12 L20.8,13.8 L19,12 Z"/></symbol>
+<symbol id="LocalBrushMarkStroke" viewBox="0 0 24 24"><path fill="currentColor" d="M1.6,15.4 L4.2,14.6 L7.6,14.2 L11.8,13.4 L16.4,12.8 L20.4,12.2 L22.6,11.8 L22.1,12.9 L19.6,13.6 L21.4,13.9 L17.2,14.6 L12.6,15.2 L8.4,15.8 L5.2,16.3 L2.4,16.6 L3.6,16 Z"/></symbol>
+</defs></svg>
+<!-- ICONS:END -->
+
+<div class="rail" data-part="sidebar">
+  <div class="lattice"></div>
+  <div class="rail-menu" data-part="PART_ElemMainMenu" title="Menu">
+    <svg class="bs"><use href="#LocalBrushMarkStroke"/></svg>
+    <svg><use href="#LocalBrushMark"/></svg>
+  </div>
+  <div class="rail-item cur"><div class="plate loz sel"><svg class="i"><use href="#IconLibrary"/></svg></div></div>
+  <div class="rail-item"><svg class="i"><use href="#IconStatistics"/></svg></div>
+  <div class="rail-item"><svg class="i"><use href="#IconRandom"/></svg></div>
+</div>
+
+<div class="main">
+  <div class="top" data-part="top-panel">
+    <div class="plate search" data-part="PART_TextMainSearch"><svg class="i"><use href="#IconSearch"/></svg><span>Search library</span></div>
+    <div class="plate tool on" data-part="PART_ToggleFilter" title="Filters"><svg class="i"><use href="#IconFilter"/></svg><i class="filter-mark"></i></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="plate tool ghost" title="Sort"><svg class="i"><use href="#IconSort"/></svg></div>
+      <div class="sep"></div>
+      <div class="plate loz tool sel on" title="Details view"><svg class="i"><use href="#IconDetailsView"/></svg></div>
+      <div class="plate tool ghost" title="Grid view"><svg class="i"><use href="#IconGridView"/></svg></div>
+      <div class="plate tool ghost" title="List view"><svg class="i"><use href="#IconListView"/></svg></div>
+      <div class="sep"></div>
+      <div class="plate tool ghost" title="Group"><svg class="i"><use href="#IconGroup"/></svg></div>
+      <div class="plate tool ghost" title="View settings"><svg class="i"><use href="#IconViewSettings"/></svg></div>
+    </div>
+    <div class="plate tool ghost" data-part="PART_ToggleNotifications" title="Notifications"><svg class="i"><use href="#IconNotifications"/></svg></div>
+    <div class="winbtns"><div><svg><use href="#IconWindowMinimize"/></svg></div><div><svg><use href="#IconWindowMaximize"/></svg></div><div><svg><use href="#IconWindowClose"/></svg></div></div>
+    <div class="rule foot lit"></div>
+  </div>
+
+  <div class="list" data-part="game-list">
+    <div class="group-head cap">Installed <span class="count">8</span></div>
+    <div class="row"><i class="ic" style="background:#6b4a3a"></i>Ashen Promenade</div>
+    <div class="row"><i class="ic" style="background:#38505c"></i>Belle Rive Nocturne</div>
+    <div class="row plate hov"><i class="ic" style="background:#8a6a44"></i><span>Canvas of Ruin</span></div>
+    <div class="row plate sel cur"><i class="ic" style="background:#b88858"></i><span>Lanterns of Vellemont</span></div>
+    <div class="row"><i class="ic" style="background:#4a3a52"></i>Lumen Coast</div>
+    <div class="row"><i class="ic" style="background:#2e4a44"></i>Monolith Bay</div>
+    <div class="row"><i class="ic" style="background:#5c2c2c"></i>Paper Cavalry</div>
+    <div class="row"><i class="ic" style="background:#3c4a2c"></i>Quiet Atelier</div>
+    <div class="group-head cap" style="margin-top:10px">Not Installed <span class="count">5</span></div>
+    <div class="row dim"><i class="ic" style="background:#3a3434"></i>Saltwind Ferry</div>
+    <div class="row dim"><i class="ic" style="background:#30343c"></i>Thirty Lamps</div>
+    <div class="row dim"><i class="ic" style="background:#3c3030"></i>Vermilion Expanse</div>
+    <div class="row dim"><i class="ic" style="background:#2c3436"></i>Winter Easel</div>
+  </div>
+
+  <div class="page" data-part="game-page">
+    <div class="banner">
+      <div class="tower"></div>
+      <i class="petal" style="left:120px;top:60px;background:var(--blood);transform:rotate(30deg)"></i>
+      <i class="petal" style="left:420px;top:40px;background:var(--white);transform:rotate(-20deg);opacity:.8"></i>
+      <i class="petal" style="left:300px;top:120px;background:var(--blood);transform:rotate(70deg)"></i>
+      <i class="petal" style="left:820px;top:90px;background:var(--white);opacity:.7"></i>
+      <i class="petal" style="left:700px;top:150px;background:var(--blood);transform:rotate(-40deg)"></i>
+      <div class="foot"></div>
+    </div>
+    <div class="head">
+      <div class="title"><b>L</b>ANTERNS OF <b>V</b>ELLEMONT</div>
+      <div class="rule lit"></div>
+      <div class="actions">
+        <div class="play" title="Play (hovered)">
+          <div class="smear"></div><div class="stroke"></div>
+          <div class="key"><svg><use href="#IconPlay"/></svg></div>
+          <span class="lbl">PLAY</span>
+        </div>
+        <div class="sq" title="More"><svg><use href="#IconOptions"/></svg></div>
+        <div class="sq" title="Edit"><svg><use href="#IconEdit"/></svg></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="maincol">
+        <div class="shots">
+          <div class="shot" style="background:linear-gradient(150deg,#4c5a62,#a37a58 60%,#3a2a26)"></div>
+          <div class="shot" style="background:linear-gradient(200deg,#1d2a30,#38505c 50%,#6a4a3a)"></div>
+          <div class="shot" style="background:linear-gradient(120deg,#5a2c28,#b88858 55%,#2a2224)"></div>
+        </div>
+        <div class="sec">DESCRIPTION</div>
+        <div class="desc">
+          <p>Every year the painter on the far shore writes a number on her stone, and everyone of that age turns to petals. This year the lamplighters of <em>Vellemont</em> sail out to stop her.</p>
+          <p>Lead an expedition across a painted continent in a turn-based fight where every dodge and parry is played in real time.</p>
+        </div>
+      </div>
+
+      <div class="meta" data-part="metadata">
+        <i class="tick tl"></i><i class="tick br"></i>
+        <div class="kv"><span class="k">Completion Status</span><span class="v cream">Playing</span></div>
+        <div class="kv"><span class="k">Time Played</span><span class="v num">41h 12m</span></div>
+        <div class="kv"><span class="k">Last Played</span><span class="v">Today</span></div>
+        <div class="rule"></div>
+        <div class="scores">
+          <div class="node"><div class="d"><span>92</span></div>Community</div>
+          <div class="node"><div class="d"><span>88</span></div>Critic</div>
+          <div class="node"><div class="d"><span>95</span></div>User</div>
+        </div>
+        <div class="rule"></div>
+        <div class="kv"><span class="k">Developers</span><span class="v">Atelier Vauclair</span></div>
+        <div class="kv"><span class="k">Release Date</span><span class="v">24 April 2025</span></div>
+        <div class="rule"></div>
+        <div class="kv" style="align-items:start"><span class="k" style="padding-top:2px">Genres</span>
+          <div class="chips"><span class="plate loz chip"><span>Role Playing</span></span><span class="plate loz chip"><span>Turn-based</span></span></div></div>
+        <div class="rule"></div>
+        <div class="kv"><span class="k">Library</span><span class="v">Steam</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

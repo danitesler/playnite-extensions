@@ -24,32 +24,60 @@ const fieldOptions = {
   sideColumnWidth: '104',
   captionFontFamily: 'HeadingFontFamily',
   captionFontWeight: 'SemiBold',
+  captionForeground: 'GiltTextBrush',
 };
 
 // Section header: marker bar, heading, rule with circuit stub.
-const header = (loc, marker, margin = '0,0,0,12') => `<DockPanel Margin="${margin}">
+const header = (loc, marker, margin = '0,0,0,12', rule = 'HeadingRuleBrush') => `<DockPanel Margin="${margin}">
     <Rectangle DockPanel.Dock="Left" Width="4" Height="14" Margin="0,0,8,0" VerticalAlignment="Center" Fill="{DynamicResource ${marker}}" />
     <TextBlock DockPanel.Dock="Left" Text="{DynamicResource ${loc}}" Style="{DynamicResource HeadingTextBlock}" />
-    <Control Template="{DynamicResource DividerTemplate}" Foreground="{DynamicResource HeadingRuleBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
+    <Control Template="{DynamicResource DividerTemplate}" Foreground="{DynamicResource ${rule}}" Margin="12,0,0,0" VerticalAlignment="Center" />
 </DockPanel>`;
 
-// The metadata pane: a Functions-screen DETAILS panel: lit circuit edge, a second line 3px inside at 25% (the
-// game's multi-line circuit bus) and the panel bloom (GlowFrameTemplate, host at -32).
+// The metadata pane: a lit gold function-tile frame around a near-black DETAILS panel. Gilt bloom with a hot core
+// (LocalGiltFrameTemplate, host at -32), a dim gold line 3px inside, gold corner brackets, a gold diamond on the top edge
+// and a gold wash falling from the top. Captions are gold, values stay white/mint, group rules are dim gold.
 // Groups sit in a clipping wrapper whose panel is pulled up by 2 x 12 + 1 + 8 = 33 (first rule hidden) and down by 8.
 function pane(layout, widthKey, padding) {
   return `<Grid VerticalAlignment="Top">
-    <Control Template="{DynamicResource GlowFrameTemplate}" Foreground="{DynamicResource FrameBrush}" Margin="-32" Opacity="0.85" />
-    <Border Background="{DynamicResource ExpanderBackgroundBrush}" BorderBrush="{DynamicResource FrameBrush}" BorderThickness="1" Padding="${padding}">
+    <Control Template="{DynamicResource LocalGiltFrameTemplate}" Foreground="{DynamicResource FrameBrush}" Margin="-32" Opacity="0.8">
+        <Control.OpacityMask>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#00000000" Offset="0.15" />
+                <GradientStop Color="#FF000000" Offset="1" />
+            </LinearGradientBrush>
+        </Control.OpacityMask>
+    </Control>
+    <Control Template="{DynamicResource LocalGiltFrameTemplate}" Foreground="{DynamicResource GiltBrush}" Margin="-32" Opacity="0.8">
+        <Control.OpacityMask>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FF000000" Offset="0" />
+                <GradientStop Color="#00000000" Offset="0.85" />
+            </LinearGradientBrush>
+        </Control.OpacityMask>
+    </Control>
+    <Border Background="{DynamicResource ShellBackgroundBrush}" BorderBrush="{DynamicResource GiltFadeBrush}" BorderThickness="1" Padding="${padding}">
         <StackPanel Width="{DynamicResource ${widthKey}}">
-${indent(header('LOCGameDetails', 'HeadingMarkerAltBrush', '0,0,0,4'), 12)}
+${indent(header('LOCGameDetails', 'GiltFade0Brush', '0,0,0,4', 'GiltFade0Brush'), 12)}
             <Grid ClipToBounds="True">
                 <StackPanel Margin="0,-33,0,-8">
-${indent(META_GROUPS.map(g => metadataGroup(g, layout, { fieldOptions })).join('\n'), 20)}
+${indent(META_GROUPS.map((g, i) => metadataGroup(g, layout, { fieldOptions: { ...fieldOptions, captionForeground: 'GiltFade5Brush' }, borderBrush: `GiltFadeDim${i}Brush` })).join('\n'), 20)}
                 </StackPanel>
             </Grid>
         </StackPanel>
     </Border>
-    <Border Margin="3" BorderBrush="{DynamicResource FrameInnerBrush}" BorderThickness="1" IsHitTestVisible="False" />
+    <Rectangle Height="56" VerticalAlignment="Top" Margin="1,1,1,0" Fill="{DynamicResource GiltBrush}" IsHitTestVisible="False" Opacity="0.2">
+        <Rectangle.OpacityMask>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                <GradientStop Color="#FF000000" Offset="0" />
+                <GradientStop Color="#00000000" Offset="1" />
+            </LinearGradientBrush>
+        </Rectangle.OpacityMask>
+    </Rectangle>
+    <Border Margin="3" BorderBrush="{DynamicResource GiltFadeInnerBrush}" BorderThickness="1" IsHitTestVisible="False" />
+    <Control Template="{DynamicResource LocalGiltBracketsFadeTemplate}" Foreground="{DynamicResource GiltHotBrush}" Tag="{DynamicResource TitleSuffixBrush}" Margin="-4" />
+    <Path Data="M0,5 L5,0 10,5 5,10Z" Fill="{DynamicResource GiltHotBrush}" Stroke="{DynamicResource ShellBackgroundBrush}" StrokeThickness="1.5"
+          Width="11" Height="11" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-6,0,0" IsHitTestVisible="False" />
 </Grid>`;
 }
 

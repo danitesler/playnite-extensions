@@ -1,0 +1,354 @@
+<!--
+    Tatterspire: Play, the Proceed hexagon. Structure: Playnite Default 10.60 (PlayButton); every Default state is kept.
+    Brushes: Background (the plate, PrimaryButtonBackgroundBrush), LocalProceedLitBrush (the lit top and the hover wash), BorderBrush (the
+    rest rim, PrimaryButtonBorderBrush), LocalInkBrush (the 2px outline), LocalGoldBrush (the hover rim, the gem, the label),
+    LocalGoldBrightBrush (the label on hover), LocalGoldInkBrush (the glyph in the gem), LocalProceedDeepBrush (the press),
+    RunningIndicatorBrush, ScrimBrush, ShellBackgroundBrush.
+    Rest: a flat hexagon pointed left and right (LocalHexPlateTemplate, 14px caps) in a 2px ink outline, the plate in the proceed
+    red with a lit top, a 1.5px rose rim, a gold gem (an ink-ringed disc holding the play triangle) on the left, the label in bold
+    gold slab serif.
+    Hover, both ways (CubicEase): the gold rim draws around the hexagon from left to right (0.22s), the plate lifts a step,
+    the label turns bright gold and a gold ring opens around the gem. The hit area never moves.
+    Press, its own layer: the plate sinks 2px and drops to the deep proceed red; release recovers in 0.22s.
+    Running and launching: the plate fills with RunningIndicatorBrush (the energy green) with an ink label and rim; the lit top,
+    gem ring and hover layers drop out. Launching: a dark band sweeps the plate. Running: a light scrim breathes over it. The
+    RUNNING label shows Cancel only while the button itself is hovered (RelativeSource Self), and the hover layers stay off while it runs.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!--
+        RunningActionIndicator: laid over the Play / context action cell on both game pages. While the game runs Playnite
+        swaps Play for the context action (RUNNING). The overlay carries a faint energy wash, a 1.5px energy rim in the plate's own
+        hexagon (ink keyline inside) and a foot band of little hexagonal gems passing along the bottom edge. Launching: the gems
+        run fast (0.5s per gem). Running: slow (2.4s per gem) while the frame breathes 0.72 to 1. The band is 6px at the foot and
+        never reaches the label, which sits in the middle. DataContext is Playnite's GameDetailsViewModel (IsRunning, IsLaunching).
+    -->
+    <Style x:Key="RunningActionIndicator" TargetType="{x:Type Control}">
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Control}">
+                    <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                        <Control x:Name="RunningWash" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{DynamicResource RunningIndicatorBrush}" Opacity="0.2" Focusable="False" IsTabStop="False" />
+                        <Control x:Name="RunningFrame" Template="{DynamicResource LocalHexRimTemplate}" Foreground="{DynamicResource RunningIndicatorBrush}" Focusable="False" IsTabStop="False" />
+                        <Control Template="{DynamicResource LocalHexRimTemplate}" Margin="1.5" Foreground="{DynamicResource TextBrushDark}" Opacity="0.6" Focusable="False" IsTabStop="False" />
+                        <Grid Height="6" Margin="20,0,20,5" VerticalAlignment="Bottom" ClipToBounds="True">
+                            <Border Background="{DynamicResource ScrimBrush}" Opacity="0.82" />
+                            <Canvas>
+                                <Rectangle x:Name="MarchFoot" Canvas.Left="-12" Width="600" Height="6">
+                                    <Rectangle.Fill>
+                                        <DrawingBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,12,6" ViewboxUnits="Absolute" Viewbox="0,0,12,6">
+                                            <DrawingBrush.Drawing>
+                                                <GeometryDrawing Brush="{DynamicResource RunningIndicatorBrush}" Geometry="M2,0 L6,0 L8,3 L6,6 L2,6 L0,3 Z" />
+                                            </DrawingBrush.Drawing>
+                                        </DrawingBrush>
+                                    </Rectangle.Fill>
+                                    <Rectangle.RenderTransform>
+                                        <TranslateTransform x:Name="MarchFootShift" X="0" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                            </Canvas>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="MarchFootShift" Storyboard.TargetProperty="X" From="0" To="12" Duration="0:0:0.5" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="MarchFootShift" Storyboard.TargetProperty="X" From="0" To="12" Duration="0:0:2.4" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="52,0,24,2" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="19" />
+        <Setter Property="MinHeight" Value="42" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="Root" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid x:Name="Face" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform x:Name="PressScale" ScaleX="1" ScaleY="1" />
+                                    <TranslateTransform x:Name="PressShift" Y="0" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <!-- 2px ink outline, the plate and its lit top -->
+                            <Control Template="{DynamicResource LocalHexPlateTemplate}" Foreground="{DynamicResource LocalInkBrush}" Focusable="False" IsTabStop="False" />
+                            <Control x:Name="Plate" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{TemplateBinding Background}" Focusable="False" IsTabStop="False" />
+                            <Control x:Name="TopLit" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{DynamicResource LocalProceedLitBrush}" Focusable="False" IsTabStop="False">
+                                <Control.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Offset="0" Color="#E6000000" />
+                                        <GradientStop Offset="0.85" Color="#00000000" />
+                                    </LinearGradientBrush>
+                                </Control.OpacityMask>
+                            </Control>
+                            <Control x:Name="RimRest" Template="{DynamicResource LocalHexRimTemplate}" Margin="2" Foreground="{TemplateBinding BorderBrush}" Focusable="False" IsTabStop="False" />
+                            <Control x:Name="RunningBreath" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{DynamicResource ScrimBrush}" Opacity="0" Focusable="False" IsTabStop="False" />
+                            <Control x:Name="RunningScan" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Visibility="Collapsed" Foreground="{DynamicResource ShellBackgroundBrush}" Opacity="0.25" Focusable="False" IsTabStop="False">
+                                <Control.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.4" />
+                                        <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                        <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                    </LinearGradientBrush>
+                                </Control.OpacityMask>
+                            </Control>
+                            <Control x:Name="RunningHoverDim" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{DynamicResource ScrimBrush}" Opacity="0" Focusable="False" IsTabStop="False" />
+                            <!-- Hover: the plate lifts a step, the gold rim draws around it from the left. -->
+                            <Control x:Name="HoverPlate" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{DynamicResource LocalProceedLitBrush}" Opacity="0" Focusable="False" IsTabStop="False" />
+                            <Control x:Name="RimHover" Template="{DynamicResource LocalHexRimTemplate}" Margin="1" Foreground="{DynamicResource LocalGoldBrush}" Opacity="0" Focusable="False" IsTabStop="False">
+                                <Control.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="RimHead" Color="#FF000000" Offset="0" />
+                                        <GradientStop x:Name="RimEdge" Color="#00000000" Offset="0.001" />
+                                    </LinearGradientBrush>
+                                </Control.OpacityMask>
+                            </Control>
+                            <Control x:Name="PressedPlate" Template="{DynamicResource LocalHexPlateTemplate}" Margin="2" Foreground="{DynamicResource LocalProceedDeepBrush}" Opacity="0" Focusable="False" IsTabStop="False" />
+                            <!-- The gem: an ink-ringed gold disc with the play triangle, like the controller prompts. -->
+                            <Grid x:Name="Gem" Width="36" Height="36" Margin="9,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                                <Ellipse x:Name="GemRing" Stroke="{DynamicResource LocalGoldBrush}" StrokeThickness="2" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                    <Ellipse.RenderTransform>
+                                        <ScaleTransform x:Name="GemRingScale" ScaleX="0.86" ScaleY="0.86" />
+                                    </Ellipse.RenderTransform>
+                                </Ellipse>
+                                <Ellipse Width="28" Height="28" Fill="{DynamicResource LocalInkBrush}" />
+                                <Ellipse x:Name="GemFace" Width="24" Height="24" Fill="{DynamicResource LocalGoldBrush}" />
+                                <Path x:Name="PlayGlyph" Data="M0,0 L8,5 L0,10 Z" Width="8" Height="10" Margin="2,0,0,0" Fill="{DynamicResource LocalGoldInkBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Grid>
+                            <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
+                                <StackPanel x:Name="LabelRow" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <ContentPresenter x:Name="PlayContent" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                                </StackPanel>
+                            </Viewbox>
+                            <StackPanel x:Name="LabelRowHover" Orientation="Horizontal" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" Opacity="0" IsHitTestVisible="False">
+                                <ContentPresenter x:Name="PlayContentHover" VerticalAlignment="Center" RecognizesAccessKey="True" TextElement.Foreground="{DynamicResource LocalGoldBrightBrush}" />
+                            </StackPanel>
+                            <ContentPresenter x:Name="CancelLabel" Content="{DynamicResource LOCCancelLabel}" Visibility="Collapsed" IsHitTestVisible="False"
+                                              HorizontalAlignment="Left" VerticalAlignment="Center" Margin="52,0,0,2" TextElement.Foreground="{TemplateBinding Foreground}">
+                                <ContentPresenter.Resources>
+                                    <DataTemplate DataType="{x:Type sys:String}">
+                                        <TextBlock Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                                    </DataTemplate>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Tag" Value="ContextAction">
+                            <Setter TargetName="Gem" Property="Visibility" Value="Collapsed" />
+                            <Setter Property="Padding" Value="28,0,28,2" />
+                            <Setter Property="HorizontalContentAlignment" Value="Center" />
+                            <Setter TargetName="CancelLabel" Property="Margin" Value="0,0,0,2" />
+                            <Setter TargetName="CancelLabel" Property="HorizontalAlignment" Value="Center" />
+                        </Trigger>
+                        <!-- Hover and press: only while the game is not launching or running. -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RimHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.02" />
+                                        <DoubleAnimation Storyboard.TargetName="RimHead" Storyboard.TargetProperty="Offset" From="0" To="1.001" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="RimEdge" Storyboard.TargetProperty="Offset" From="0.001" To="1.002" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelRowHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelRow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="GemRing" Storyboard.TargetProperty="Opacity" To="0.9" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="GemRingScale" Storyboard.TargetProperty="ScaleX" To="1.02" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="GemRingScale" Storyboard.TargetProperty="ScaleY" To="1.02" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard Name="PlayHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="RimHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="RimHead" Storyboard.TargetProperty="Offset" To="0" BeginTime="0:0:0.2" Duration="0:0:0.001" />
+                                        <DoubleAnimation Storyboard.TargetName="RimEdge" Storyboard.TargetProperty="Offset" To="0.001" BeginTime="0:0:0.2" Duration="0:0:0.001" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelRowHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="LabelRow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="GemRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="GemRingScale" Storyboard.TargetProperty="ScaleX" To="0.86" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="GemRingScale" Storyboard.TargetProperty="ScaleY" To="0.86" Duration="0:0:0.2" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayPressIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PressShift" Storyboard.TargetProperty="Y" To="2" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleX" To="0.985" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleY" To="0.985" Duration="0:0:0.06" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard Name="PlayPressOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="PressedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="PressShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="PressScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RimHover" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TopLit" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="GemRing" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningBreath" Property="Opacity" Value="0.1" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayFillLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.5">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.4" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.5">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.4" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.4" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.5">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.402" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.5" Value="1.402" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayFillLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RimHover" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="TopLit" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="GemRing" Property="Visibility" Value="Collapsed" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayFillRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.04" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="0.12" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.04" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayFillRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <!-- Cancel: only while a RUNNING plate is under the pointer. The binding is Self (this button). TemplatedParent is the whole game page. -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsRunning}" Value="True" />
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="CancelLabel" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PlayContent" Property="Visibility" Value="Hidden" />
+                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Hidden" />
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningCancelIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningHoverDim" Storyboard.TargetProperty="Opacity" To="0.14" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="CancelLabel" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.15" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningCancelIn" />
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <!-- Launching and running keep Play's plate; it fills with the running colour (the energy green) with ink text. -->
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDark}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextBrushDark}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDark}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextBrushDark}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

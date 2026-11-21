@@ -2,6 +2,8 @@
 
 glow-line 256x48: stretch horizontally beneath top-bar and other glowing rules.
 glow-frame 128x128: bloom-only 9-slice, 32px margins; host draws its crisp border.
+gilt-frame 128x128: same 9-slice as glow-frame, but with a hot 2px core on the edge and a stronger inner light
+(the lit gold frame of a selected function tile).
 arc-strip 512x40: tile along lit rules and hovered Play buttons at low opacity.
 spark 64x64: hot charge tip and selection-bracket flare.
 halo 128x128: soft glow behind active sidebar items and above the library.
@@ -86,6 +88,17 @@ def glow_frame():
     return np.where(s >= 0,
                     0.55 * fade(np.maximum(s, 0), 30, fitted_rate(30, 10, 0.18/0.55)),
                     0.35 * fade(np.maximum(-s, 0), 12, fitted_rate(12, 6, 0.08/0.35)))
+
+
+def gilt_frame():
+    y, x = np.mgrid[:128, :128]
+    qx, qy = np.abs(x - 64) - 32, np.abs(y - 64) - 32
+    s = np.hypot(np.maximum(qx, 0), np.maximum(qy, 0)) + np.minimum(np.maximum(qx, qy), 0)
+    outside = 0.62 * fade(np.maximum(s, 0), 30, fitted_rate(30, 9, 0.22/0.62))
+    inside = 0.5 * fade(np.maximum(-s, 0), 12, fitted_rate(12, 5, 0.12/0.5))
+    field = np.where(s >= 0, outside, inside)
+    core = np.clip(1.6 - np.abs(s), 0, 1)  # 2px hot line straddling the edge
+    return np.maximum(field, core)
 
 
 def arc_strip():
@@ -216,7 +229,7 @@ def main():
     folder = ROOT / "src/Images/fx"
     folder.mkdir(parents=True, exist_ok=True)
     sprites = []
-    for name, render in (("glow-line", glow_line), ("glow-frame", glow_frame),
+    for name, render in (("glow-line", glow_line), ("glow-frame", glow_frame), ("gilt-frame", gilt_frame),
                          ("arc-strip", arc_strip),
                          ("spark", spark), ("halo", halo), ("flourish", flourish)):
         alpha = np.rint(np.clip(render(), 0, 1)*255).astype(np.uint8)
@@ -227,11 +240,11 @@ def main():
         sprite.save(path, optimize=True)
         sprites.append((path, sprite))
     # Native-size sprites in two columns, 16px gutters and readable labels.
-    sheet = Image.new("RGBA", (816, 576), "#041A1B")
+    sheet = Image.new("RGBA", (816, 704), "#041A1B")
     draw = ImageDraw.Draw(sheet)
     font = ImageFont.load_default(size=13)
-    positions = [(16, 16), (16, 104), (16, 272), (544, 16),
-                 (544, 312), (640, 312), (16, 352)]
+    positions = [(16, 16), (16, 104), (176, 104), (16, 272), (544, 16),
+                 (544, 312), (640, 312), (16, 456)]
     for (path, sprite), (x, y) in zip(sprites, positions):
         tinted = Image.new("RGBA", sprite.size, "#75FFFB")
         tinted.putalpha(sprite.getchannel("A"))

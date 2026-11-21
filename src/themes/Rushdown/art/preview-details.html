@@ -1,0 +1,1302 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Rushdown — Game Details Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--rd-shell);
+    color: var(--rd-white);
+    font-family: "Barlow", "Segoe UI";
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    display: flex;
+    width: 1280px;
+    height: 720px;
+    background: var(--rd-canvas);
+    position: relative;
+  }
+
+  /* === SIDEBAR: 44px Midnight Indigo Rail + Neon Magenta / Cyan Edge Rule === */
+  .sidebar {
+    width: 44px;
+    height: 720px;
+    background: var(--rd-shell);
+    border-right: 1px solid var(--rd-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 6;
+  }
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: 48px;
+    height: 76px;
+    width: 2px;
+    background: var(--rd-cyan);
+  }
+  .main-menu-btn {
+    width: 44px;
+    height: 48px;
+    background: var(--rd-surface);
+    border-bottom: 1.5px solid var(--rd-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+    color: var(--rd-white);
+  }
+  .main-menu-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2.5px;
+    background: var(--rd-magenta-neon);
+  }
+  .sidebar-items {
+    display: flex;
+    flex-direction: column;
+    width: 44px;
+    padding-top: 8px;
+    gap: 4px;
+  }
+  .sidebar-item {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--rd-muted);
+  }
+  .sidebar-item.selected {
+    color: var(--rd-pure-white);
+  }
+  /* Luminous ultraviolet-to-magenta active rail plate + glowing white-pink rim */
+  .sidebar-item.selected .rail-plate {
+    position: absolute;
+    inset: 4px 5px;
+    background: linear-gradient(125deg, var(--rd-grad-start) 0%, var(--rd-grad-mid) 50%, var(--rd-grad-end) 100%);
+    border: 1px solid var(--rd-ice-rim);
+    border-radius: var(--rd-radius-sm);
+    box-shadow: 0 0 12px var(--rd-magenta-glow);
+    z-index: 0;
+    overflow: hidden;
+  }
+  .sidebar-item.selected .rail-plate::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--rd-ice-lit);
+    opacity: 0.16;
+    -webkit-mask-image: url('../src/Images/fx/ice-facet.png');
+    -webkit-mask-size: 256px 100%;
+  }
+  .sidebar-item.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 7px;
+    bottom: 7px;
+    width: 3px;
+    background: var(--rd-ice-rim);
+    box-shadow: 0 0 8px var(--rd-magenta-neon);
+    z-index: 2;
+  }
+  .sidebar-item svg { position: relative; z-index: 1; }
+
+  /* === MAIN COLUMN === */
+  .main-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 720px;
+  }
+
+  /* === TOP PANEL: Search -> Filter -> Sorting -> Group -> Views -> ViewSettings -> Progress -> Notif -> Caption === */
+  .top-panel {
+    height: 50px;
+    background: var(--rd-shell);
+    border-bottom: 1.5px solid var(--rd-border);
+    padding: 0 10px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+  /* Neon Magenta laser hairline crowning the top bar */
+  .top-panel::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1.5px;
+    height: 1.5px;
+    background: linear-gradient(90deg, var(--rd-magenta-neon) 0%, var(--rd-cyan) 42%, var(--rd-border) 100%);
+    pointer-events: none;
+  }
+
+  /* Glowing SearchBox (height 32px) */
+  .search-box {
+    width: 224px;
+    height: 32px;
+    background: var(--rd-void);
+    border: 1px solid var(--rd-ice-rim);
+    border-radius: var(--rd-radius-md);
+    box-shadow: 0 0 10px var(--rd-magenta-glow);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .search-glyph { color: var(--rd-cyan); flex-shrink: 0; }
+  .search-text {
+    font-size: 13px;
+    color: var(--rd-white);
+    white-space: nowrap;
+  }
+  .search-cursor {
+    display: inline-block;
+    width: 1.5px;
+    height: 14px;
+    background: var(--rd-magenta-neon);
+    margin-left: -4px;
+  }
+
+  /* Toolbar icon buttons (uniform 32px height) */
+  .tb-btn {
+    width: 34px;
+    height: 32px;
+    background: linear-gradient(120deg, var(--rd-card-start), var(--rd-card-end));
+    border: 1px solid var(--rd-border);
+    border-radius: var(--rd-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rd-muted);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .tb-btn.filter-active {
+    color: var(--rd-pure-white);
+    border-color: var(--rd-spray-orange);
+    background: linear-gradient(115deg, var(--rd-grad-start), var(--rd-grad-mid));
+    box-shadow: 0 0 10px var(--rd-magenta-glow);
+  }
+  /* Active filter mark: 8px rotated Spray Orange diamond/cube pip (no text label) */
+  .filter-pip {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 7px;
+    height: 7px;
+    background: var(--rd-spray-orange);
+    transform: rotate(45deg);
+    border: 1px solid var(--rd-ink);
+  }
+
+  .main-items {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tb-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--rd-border);
+    margin: 0 2px;
+  }
+  /* Active view switch: Pause Mode Aqua-Teal Glass tab + crisp white border + cyan glow */
+  .tb-btn.active {
+    background: linear-gradient(180deg, var(--rd-teal-tab-top) 0%, var(--rd-teal-tab-bot) 68%, var(--rd-teal-glow) 100%);
+    border: 1.5px solid var(--rd-pure-white);
+    color: var(--rd-pure-white);
+    box-shadow: 0 0 12px var(--rd-teal-glow-soft);
+    overflow: hidden;
+  }
+  .tb-btn.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--rd-pure-white);
+    opacity: 0.14;
+    -webkit-mask-image: url('../src/Images/fx/ice-facet.png');
+    -webkit-mask-size: 256px 100%;
+  }
+  .tb-btn.active svg { position: relative; z-index: 1; }
+
+  .top-spacer { flex: 1; min-width: 12px; }
+
+  /* 12px SF6 6-Block Slanted Drive Gauge Global Progress Bar (PART_ProgressGlobal) */
+  .global-progress {
+    width: 176px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .gp-track {
+    width: 100%;
+    height: 12px;
+    display: flex;
+    gap: 4px;
+    padding: 0 3px;
+    align-items: center;
+    position: relative;
+  }
+  .gp-seg {
+    flex: 1;
+    height: 10px;
+    background: var(--rd-void);
+    border: 1.2px solid var(--rd-border-subtle);
+    transform: skewX(26deg);
+  }
+  .gp-seg.filled {
+    background: var(--rd-drive-block-fill);
+    border: 1.5px solid var(--rd-drive-block-rim);
+    box-shadow: 0 0 6px var(--rd-drive-block-rim);
+  }
+  .gp-label {
+    position: absolute;
+    inset: 0;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--rd-pure-white);
+    text-shadow: 0 1px 3px var(--rd-void), 0 0 6px var(--rd-void);
+  }
+
+  .notif-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--rd-radius-full);
+    background: var(--rd-magenta-neon);
+  }
+
+  .win-btns {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 4px;
+  }
+  .win-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rd-muted);
+    border-radius: var(--rd-radius-sm);
+  }
+  .win-btn.close { color: var(--rd-white); }
+
+  /* === WORKSPACE === */
+  .workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    background: var(--rd-canvas);
+  }
+
+  /* === GAME LIST (Left ultraviolet canvas + glowing violet-to-magenta selected row) === */
+  .game-list {
+    width: 266px;
+    background: var(--rd-canvas);
+    border-right: 1px solid var(--rd-border-subtle);
+    padding: 10px 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .list-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px 5px 4px;
+    font-family: "Rajdhani", "Segoe UI";
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--rd-cyan);
+  }
+  .list-group-hdr::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: var(--rd-magenta-neon);
+    transform: rotate(45deg);
+  }
+
+  .game-row {
+    height: 36px;
+    padding: 0 10px;
+    border-radius: var(--rd-radius-md);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--rd-white);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .game-row.dim { color: var(--rd-muted); }
+  .game-ico {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--rd-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Rajdhani", "Segoe UI";
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--rd-pure-white);
+    flex-shrink: 0;
+    border: 1px solid var(--rd-border);
+  }
+  .game-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* SELECTED ROW: Pause Mode Sunburst Amber-Gold bar + glowing warm rim + crisp obsidian ink */
+  .game-row.selected {
+    background: linear-gradient(105deg, var(--rd-gold-start) 0%, var(--rd-gold-mid) 52%, var(--rd-gold-end) 100%);
+    border: 1.5px solid var(--rd-gold-rim);
+    box-shadow: 0 0 14px var(--rd-gold-glow);
+    color: var(--rd-ink);
+    font-weight: 700;
+    padding-left: 14px;
+    overflow: hidden;
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--rd-pure-white);
+    opacity: 0.2;
+    -webkit-mask-image: url('../src/Images/fx/ice-facet.png');
+    -webkit-mask-size: 256px 100%;
+    z-index: 0;
+  }
+  .game-row.selected::after {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--rd-gold-rim);
+    z-index: 2;
+  }
+  .row-chev {
+    margin-left: auto;
+    color: var(--rd-ink);
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+
+  /* HOVERED ROW: Pause Mode translucent deep teal-indigo glass + aqua-teal tick + RowHoverPlay */
+  .game-row.hovered {
+    background: linear-gradient(105deg, var(--rd-teal-card-top), var(--rd-teal-card));
+    border: 1px solid var(--rd-teal-border);
+    box-shadow: 0 0 10px var(--rd-teal-glow-soft);
+    padding-left: 12px;
+  }
+  .game-row.hovered::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 5px; bottom: 5px;
+    width: 3px;
+    background: var(--rd-teal-glow);
+  }
+  .row-hover-play {
+    margin-left: auto;
+    color: var(--rd-white);
+    opacity: 0.85;
+    flex-shrink: 0;
+  }
+
+  /* RUNNING ROW: Drive Gauge Overdrive Green 2px frame + dark inner keyline + slanted foot + 3 chevrons */
+  .game-row.running {
+    background: var(--rd-surface);
+    border: 2px solid var(--rd-drive-run);
+    box-shadow: inset 0 0 0 1px var(--rd-ink);
+    padding-right: 8px;
+  }
+  .game-row.running .run-wash {
+    position: absolute;
+    inset: 0;
+    background: var(--rd-drive-run);
+    opacity: 0.16;
+    pointer-events: none;
+  }
+  .run-chevrons {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+    z-index: 2;
+  }
+  .run-chev {
+    width: 6px;
+    height: 10px;
+    background: var(--rd-drive-bright);
+    clip-path: polygon(0 0, 55% 0, 100% 50%, 55% 100%, 0 100%, 45% 50%);
+  }
+  .run-foot {
+    position: absolute;
+    left: 4px; right: 4px; bottom: 2px;
+    height: 2px;
+    background: var(--rd-drive-bright);
+    -webkit-mask-image: url('../src/Images/fx/drive-segments.png');
+    -webkit-mask-size: 16px 100%;
+  }
+
+  /* Glowing Shortcut-Settings style magenta-violet scrollbar */
+  .mini-scroll {
+    position: absolute;
+    right: 2px;
+    top: 38px;
+    bottom: 12px;
+    width: 4px;
+    background: var(--rd-void);
+    border-radius: var(--rd-radius-sm);
+  }
+  .mini-scroll-thumb {
+    width: 4px;
+    height: 120px;
+    background: linear-gradient(180deg, var(--rd-violet-glow), var(--rd-magenta-neon), var(--rd-violet-glow));
+    box-shadow: 0 0 8px var(--rd-magenta-neon);
+    border-radius: var(--rd-radius-sm);
+    margin-top: 12px;
+  }
+
+  /* === GAME PAGE === */
+  .game-page {
+    flex: 1;
+    min-width: 0;
+    background: var(--rd-canvas);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Hero Banner: Fighting Ground Laser-Ruled Stage Bezel + Neon Magenta/Cyan hairlines */
+  .hero-wrap {
+    position: relative;
+    height: 186px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .hero-art {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--rd-magenta-tint) 0%, var(--rd-panel) 54%, var(--rd-cyan-deep) 100%);
+  }
+  .hero-art svg { width: 100%; height: 100%; display: block; }
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 22%, var(--rd-canvas) 96%);
+  }
+
+  .page-content {
+    margin-top: -66px;
+    padding: 0 26px 16px 26px;
+    position: relative;
+    z-index: 3;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header Row: Icon + Title + Hero PlayButton (hovered state) + 40x40 More & Edit */
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .title-cluster {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .title-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: var(--rd-radius-md);
+    background: var(--rd-panel);
+    border: 1.5px solid var(--rd-cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .title-text {
+    font-family: "Rajdhani", "Segoe UI";
+    font-weight: 700;
+    font-size: 42px;
+    line-height: 1.02;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--rd-pure-white);
+    text-shadow: 0 0 12px var(--rd-magenta-neon), 0 0 22px var(--rd-violet-glow);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* HERO MOMENT: 45° Top-Right Chamfered Ultraviolet -> Neon-Magenta Gradient PlayButton + neon glow */
+  .play-btn {
+    min-width: 162px;
+    height: 42px;
+    padding: 0 22px 0 18px;
+    background: linear-gradient(115deg, var(--rd-play-start) 0%, var(--rd-play-mid) 52%, var(--rd-play-end) 100%);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+    filter: drop-shadow(0 0 10px var(--rd-magenta-neon));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--rd-pure-white);
+    text-shadow: 0 0 10px var(--rd-magenta-neon);
+    font-family: "Rajdhani", "Segoe UI";
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.08em;
+    position: relative;
+    overflow: hidden;
+  }
+  .play-frame-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Diagonal crystal overdrive sheen + prismatic facets */
+  .play-facets {
+    position: absolute;
+    inset: 0;
+    background: var(--rd-ice-lit);
+    opacity: 0.16;
+    -webkit-mask-image: url('../src/Images/fx/ice-facet.png');
+    -webkit-mask-size: 256px 100%;
+  }
+  .play-sheen {
+    position: absolute;
+    inset: 0;
+    background: var(--rd-pure-white);
+    opacity: 0.36;
+    -webkit-mask-image: url('../src/Images/fx/prism-sheen.png');
+    -webkit-mask-size: 100% 100%;
+  }
+  .play-label { position: relative; z-index: 2; }
+
+  /* Equal 40x40 glowing ultraviolet icon-only SecondaryButton (More, Edit) */
+  .sec-btn {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(120deg, var(--rd-card-start), var(--rd-card-end));
+    border: 1.5px solid var(--rd-border-strong);
+    border-radius: var(--rd-radius-md);
+    box-shadow: 0 0 10px var(--rd-magenta-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--rd-white);
+    position: relative;
+  }
+  .sec-btn::after {
+    content: "";
+    position: absolute;
+    left: 2px; bottom: 2px;
+    width: 6px; height: 2px;
+    background: var(--rd-magenta-neon);
+  }
+
+  /* Two-column body: Main (Screenshots + Description left) & Metadata (Right, 300px usable) */
+  .body-cols {
+    display: flex;
+    gap: 22px;
+    flex: 1;
+    min-height: 0;
+  }
+  .main-pane {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .sec-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .sec-ribbon {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 18px 3px 10px;
+    background: linear-gradient(95deg, var(--rd-teal-tab-top) 0%, var(--rd-teal-tab-bot) 68%, var(--rd-teal-border) 100%);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    filter: drop-shadow(0 0 8px var(--rd-teal-glow-soft));
+    flex-shrink: 0;
+  }
+  .sec-ribbon.violet {
+    background: linear-gradient(95deg, var(--rd-royal) 0%, var(--rd-grad-mid) 58%, var(--rd-grad-end) 100%);
+    filter: drop-shadow(0 0 8px var(--rd-magenta-glow));
+  }
+  .sec-title {
+    font-family: "Rajdhani", "Segoe UI";
+    font-weight: 700;
+    font-size: 13.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--rd-pure-white);
+    text-shadow: 0 0 8px var(--rd-teal-glow);
+  }
+  .sec-ribbon.violet .sec-title {
+    text-shadow: 0 0 8px var(--rd-magenta-neon);
+  }
+  .sec-rule {
+    flex: 1;
+    height: 1.5px;
+    background: var(--rd-teal-border);
+  }
+  .sec-rule.violet {
+    background: var(--rd-border);
+  }
+
+  /* Screenshots showcase (glowing ultraviolet-magenta frame + Challenger Gold top-left corner badge) */
+  .shots-grid {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 8px;
+  }
+  .shot-main {
+    height: 148px;
+    border-radius: var(--rd-radius-md);
+    border: 2px solid var(--rd-ice-rim);
+    box-shadow: 0 0 14px var(--rd-magenta-glow);
+    background: linear-gradient(135deg, var(--rd-panel) 0%, var(--rd-grad-start) 58%, var(--rd-grad-end) 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Challenger Gold 45° top-left corner triangle */
+  .challenger-tri {
+    position: absolute;
+    top: 0; left: 0;
+    width: 16px; height: 16px;
+    background: var(--rd-challenger-gold);
+    clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  .shot-thumbs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 8px;
+    height: 148px;
+  }
+  .shot-thumb {
+    border-radius: var(--rd-radius-md);
+    border: 1px solid var(--rd-border);
+    background: var(--rd-surface);
+    position: relative;
+    overflow: hidden;
+  }
+  .shot-thumb.t1 { background: linear-gradient(135deg, var(--rd-surface-raised), var(--rd-royal)); }
+  .shot-thumb.t2 { background: linear-gradient(135deg, var(--rd-surface-raised), var(--rd-magenta-deep)); }
+  .shot-thumb.t3 { background: linear-gradient(135deg, var(--rd-surface-raised), var(--rd-cyan-band)); }
+  .shot-thumb.t4 { background: linear-gradient(135deg, var(--rd-surface-raised), var(--rd-drive-run)); }
+
+  .desc-body {
+    font-size: 13px;
+    line-height: 1.52;
+    color: var(--rd-white);
+  }
+  .desc-body p + p { margin-top: 8px; color: var(--rd-muted); }
+
+  .disclaimer {
+    margin-top: auto;
+    font-size: 11px;
+    color: var(--rd-muted);
+    padding-top: 6px;
+  }
+
+  /* === METADATA DOSSIER (300px usable inner content width, Pause Mode translucent teal-indigo glass) === */
+  .meta-frame {
+    width: 328px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    background: linear-gradient(160deg, var(--rd-teal-card-top) 0%, var(--rd-teal-card) 52%, var(--rd-teal-deep) 100%);
+    border: 1.5px solid var(--rd-teal-border);
+    border-radius: var(--rd-radius-lg);
+    box-shadow: 0 0 18px var(--rd-teal-glow-soft);
+    overflow: hidden;
+    position: relative;
+  }
+  .meta-cap {
+    height: 28px;
+    background: var(--rd-teal-bar);
+    border-bottom: 1.5px solid var(--rd-teal-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 12px;
+    position: relative;
+  }
+  /* Diagonal-tipped Pause Mode Aqua-Teal ribbon */
+  .meta-ribbon {
+    height: 28px;
+    padding: 0 22px 0 18px;
+    background: linear-gradient(95deg, var(--rd-teal-tab-top) 0%, var(--rd-teal-tab-bot) 68%, var(--rd-teal-border) 100%);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+  }
+  .meta-cap-title {
+    font-family: "Rajdhani", "Segoe UI";
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--rd-pure-white);
+    text-shadow: 0 0 9px var(--rd-teal-glow);
+  }
+  .meta-drive-ticks {
+    display: flex;
+    gap: 3px;
+  }
+  .drive-tick {
+    width: 8px;
+    height: 7px;
+    background: var(--rd-teal-glow);
+    transform: skewX(-24deg);
+  }
+  .drive-tick.lit { background: var(--rd-magenta-neon); }
+  .drive-tick.gold { background: var(--rd-gold-mid); }
+
+  .meta-inner {
+    padding: 10px 13px 12px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .meta-row {
+    display: grid;
+    grid-template-columns: 98px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 12.5px;
+  }
+  .meta-lbl { color: var(--rd-muted); font-weight: 500; }
+  .meta-val { color: var(--rd-white); font-weight: 500; }
+  .meta-link { color: var(--rd-cyan); font-weight: 600; }
+
+  /* 10px Diamond-Capped Technical Callout Rule (DividerTemplate) */
+  .diamond-divider {
+    height: 10px;
+    margin: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .div-dia {
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--rd-teal-glow);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+  .div-line {
+    flex: 1;
+    height: 1px;
+    background: var(--rd-teal-border);
+  }
+  .div-node {
+    width: 5px;
+    height: 5px;
+    background: var(--rd-magenta-neon);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  /* SF6 Super Art Slanted Score Bars + Glowing Numerals (Critic = Pink, Community = Electric Blue) */
+  .score-gauge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .score-bar {
+    width: 48px;
+    height: 11px;
+    border: 1.5px solid var(--rd-pure-white);
+    transform: skewX(26deg);
+    display: inline-block;
+  }
+  .score-bar.critic {
+    background: var(--rd-score-pink);
+    box-shadow: 0 0 10px var(--rd-score-pink-glow);
+  }
+  .score-bar.community {
+    background: var(--rd-score-blue);
+    box-shadow: 0 0 10px var(--rd-score-blue-glow);
+  }
+  .score-num {
+    font-family: "Rajdhani", "Segoe UI";
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1;
+    color: var(--rd-pure-white);
+  }
+  .score-num.critic { text-shadow: 0 0 10px var(--rd-score-pink-glow), 0 0 4px var(--rd-score-pink-glow); }
+  .score-num.community { text-shadow: 0 0 10px var(--rd-score-blue-glow), 0 0 4px var(--rd-score-blue-glow); }
+
+  /* Pause Mode Teal Glass Metadata Chips (rest) -> Sunburst Amber-Gold (hover) */
+  .chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px 2px 8px;
+    border-radius: var(--rd-radius-md);
+    background: linear-gradient(110deg, var(--rd-teal-card-top), var(--rd-teal-card));
+    border: 1px solid var(--rd-teal-border);
+    border-left: 2.5px solid var(--rd-teal-glow);
+    color: var(--rd-white);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+  .chip.hover {
+    background: linear-gradient(110deg, var(--rd-gold-start), var(--rd-gold-mid), var(--rd-gold-end));
+    border-color: var(--rd-gold-rim);
+    border-left: 3px solid var(--rd-gold-rim);
+    box-shadow: 0 0 10px var(--rd-gold-glow);
+    color: var(--rd-ink);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LEFT SIDEBAR RAIL (44px compact, Prismatic White-Ice active plate + Neon Magenta edge bar) -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <!-- Rushdown original 3D isometric street-graffiti cube brand mark -->
+      <svg width="24" height="24" viewBox="0 0 64 64" fill="currentColor">
+        <path fill-rule="evenodd" d="M32 7 L54 19.5 L54 44.5 L32 57 L10 44.5 L10 19.5 Z M32 12 L15.5 21.4 L32 30.8 L48.5 21.4 Z M14 25.2 L14 42.2 L30 51.3 L30 34.3 Z M50 25.2 L34 34.3 L34 51.3 L50 42.2 Z"/>
+        <path d="M17.5 31.8 L26.5 36.9 L26.5 40.6 L17.5 35.5 Z"/>
+        <path d="M46.5 31.8 L37.5 36.9 L37.5 40.6 L46.5 35.5 Z"/>
+        <path d="M51 9 L59 5 L55 14 Z"/>
+        <path d="M13 55 L5 59 L9 50 Z"/>
+        <path d="M32 16.8 L39.5 21.4 L32 26.0 L24.5 21.4 Z"/>
+      </svg>
+    </div>
+    <div class="sidebar-items">
+      <div class="sidebar-item selected">
+        <div class="rail-plate"></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 4h8v7H3V4zm10 0h8v7h-8V4zM3 13h8v7H3v-7zm10 0h8v7h-8v-7z"/>
+        </svg>
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 13h4v7H4v-7zm6-5h4v12h-4V8zm6-4h4v16h-4V4z"/>
+        </svg>
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zm0 2.6L6.4 8.7 12 11.8l5.6-3.1L12 5.6z"/>
+        </svg>
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l2.9 6.2 6.8.8-5 4.7 1.3 6.7L12 17.1 6 20.4l1.3-6.7-5-4.7 6.8-.8L12 2z"/>
+        </svg>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-col">
+    <!-- TOP PANEL: search -> filter -> sorting -> group -> icon view switches -> tools -> progress -> notif -> window -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <svg class="search-glyph" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/>
+        </svg>
+        <span class="search-text">Hyper</span>
+        <span class="search-cursor"></span>
+      </div>
+
+      <div class="tb-btn filter-active" data-part="PART_ToggleFilter" title="Filter">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z"/>
+        </svg>
+        <span class="filter-pip"></span>
+      </div>
+
+      <div class="main-items" data-part="PART_PanelMainItems">
+        <div class="tb-btn" title="Sorting">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 6h10v2.5H4V6zm0 4.8h7v2.5H4v-2.5zm0 4.7h4v2.5H4v-2.5zm12.5-9.5H19v9h2.5L17.8 19 14 15h2.5V6z"/>
+          </svg>
+        </div>
+        <div class="tb-btn" title="Grouping">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 5h16v3H4V5zm3 5.5h13v3H7v-3zm3 5.5h10v3H10v-3z"/>
+          </svg>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-btn active" title="Details View">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 5h6v14H3V5zm8 0h10v6H11V5zm0 8h10v6H11v-6z"/>
+          </svg>
+        </div>
+        <div class="tb-btn" title="Grid View">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/>
+          </svg>
+        </div>
+        <div class="tb-btn" title="List View">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 5h16v3H4V5zm0 5.5h16v3H4v-3zm0 5.5h16v3H4v-3z"/>
+          </svg>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-btn" title="View Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 7h7v2H4V7zm11 0h5v2h-5V7zm-3-2h2v6h-2V5zM4 15h3v2H4v-2zm7 0h9v2h-9v-2zm-3-2h2v6H8v-6z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="top-spacer"></div>
+
+      <!-- SF6 6-Block Slanted Drive Gauge global progress bar -->
+      <div class="global-progress">
+        <div class="gp-track">
+          <span class="gp-seg filled"></span>
+          <span class="gp-seg filled"></span>
+          <span class="gp-seg filled"></span>
+          <span class="gp-seg filled"></span>
+          <span class="gp-seg"></span>
+          <span class="gp-seg"></span>
+        </div>
+        <div class="gp-label">Updating Steam...</div>
+      </div>
+
+      <div class="tb-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3a6 6 0 00-6 6v4l-2 3h16l-2-3V9a6 6 0 00-6-6zm0 18a2.5 2.5 0 002.4-2H9.6A2.5 2.5 0 0012 21z"/>
+        </svg>
+        <span class="notif-badge"></span>
+      </div>
+
+      <div class="win-btns">
+        <div class="win-btn"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="2" y="7.5" width="12" height="2"/></svg></div>
+        <div class="win-btn"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="10" height="10"/></svg></div>
+        <div class="win-btn close"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5"/></svg></div>
+      </div>
+    </header>
+
+    <!-- WORKSPACE -->
+    <div class="workspace">
+      <!-- GAME LIST -->
+      <section class="game-list" data-part="game-list">
+        <div class="list-group-hdr">FIGHTING GROUND (12)</div>
+
+        <!-- Selected row: Prismatic Faceted White-Ice Crystal Bar + Neon Magenta left bar -->
+        <div class="game-row selected">
+          <span class="game-ico" style="background: var(--rd-magenta);">HB</span>
+          <span class="game-name">Hyper Breaker VI</span>
+          <svg class="row-chev" width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M3 2l5 6-5 6h2.8l5-6-5-6H3zm5.2 0l5 6-5 6H11l5-6-5-6H8.2z"/>
+          </svg>
+        </div>
+
+        <!-- Hovered row: chamfered indigo capsule + cyan left notch + RowHoverPlay -->
+        <div class="game-row hovered">
+          <span class="game-ico" style="background: var(--rd-cyan-band);">IR</span>
+          <span class="game-name">Iron Rival Zero</span>
+          <svg class="row-hover-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+        </div>
+
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--rd-royal);">CD</span>
+          <span class="game-name">Chromadrive Turbo</span>
+        </div>
+
+        <!-- Running row: Drive Gauge Overdrive Green 2px frame + slanted foot + 3 chevrons -->
+        <div class="game-row running">
+          <div class="run-wash"></div>
+          <span class="game-ico" style="background: var(--rd-drive-run);">NC</span>
+          <span class="game-name">Neon Clash DX</span>
+          <div class="run-chevrons"><span class="run-chev"></span><span class="run-chev"></span><span class="run-chev"></span></div>
+          <div class="run-foot"></div>
+        </div>
+
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--rd-spray-orange); color: var(--rd-ink);">AB</span>
+          <span class="game-name">Arcade Brawler EX</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--rd-surface-raised);">SI</span>
+          <span class="game-name">Shadow Impact 2</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--rd-magenta-deep);">PS</span>
+          <span class="game-name">Pulse Strikers</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--rd-cyan-deep);">MD</span>
+          <span class="game-name">Metro Dojo Tour</span>
+        </div>
+        <div class="game-row">
+          <span class="game-ico" style="background: var(--rd-crimson);">VF</span>
+          <span class="game-name">Vortex Fighter V</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--rd-surface);">KT</span>
+          <span class="game-name">Kicker Tournament</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--rd-surface);">SP</span>
+          <span class="game-name">Super Parry Arena</span>
+        </div>
+        <div class="game-row dim">
+          <span class="game-ico" style="background: var(--rd-surface);">OD</span>
+          <span class="game-name">Overdrive Protocol</span>
+        </div>
+
+        <div class="mini-scroll"><div class="mini-scroll-thumb"></div></div>
+      </section>
+
+      <!-- GAME PAGE -->
+      <main class="game-page" data-part="game-page">
+        <div class="hero-wrap">
+          <div class="hero-art">
+            <svg viewBox="0 0 980 200" preserveAspectRatio="xMidYMid slice">
+              <!-- Original dynamic tournament light beams & prismatic street shards -->
+              <polygon points="80,0 240,0 130,200 10,200" fill="#FF3CE0" opacity="0.16"/>
+              <polygon points="560,0 740,0 600,200 440,200" fill="#18D8F2" opacity="0.14"/>
+              <polygon points="780,0 910,0 810,200 680,200" fill="#FF6B1A" opacity="0.12"/>
+              <path d="M520 20 L660 20 L610 155 L470 155 Z" fill="#18D8F2" opacity="0.15"/>
+              <path d="M620 45 L775 45 L735 160 L580 160 Z" fill="#FF3CE0" opacity="0.18"/>
+              <line x1="40" y1="36" x2="940" y2="36" stroke="#18D8F2" stroke-width="1" opacity="0.24"/>
+              <line x1="120" y1="110" x2="880" y2="110" stroke="#FF3CE0" stroke-width="1" opacity="0.2"/>
+            </svg>
+          </div>
+          <div class="hero-scrim"></div>
+        </div>
+
+        <div class="page-content">
+          <div class="game-header">
+            <div class="title-cluster">
+              <div class="title-icon">
+                <svg width="26" height="26" viewBox="0 0 64 64" fill="var(--rd-cyan)">
+                  <path fill-rule="evenodd" d="M32 7 L54 19.5 L54 44.5 L32 57 L10 44.5 L10 19.5 Z M32 12 L15.5 21.4 L32 30.8 L48.5 21.4 Z M14 25.2 L14 42.2 L30 51.3 L30 34.3 Z M50 25.2 L34 34.3 L34 51.3 L50 42.2 Z"/>
+                  <path d="M32 16.8 L39.5 21.4 L32 26.0 L24.5 21.4 Z" fill="var(--rd-magenta-neon)"/>
+                </svg>
+              </div>
+              <div class="title-text">Hyper Breaker VI</div>
+            </div>
+
+            <div class="actions">
+              <!-- Hero Moment: Chamfered Neon Magenta PlayButton in hovered state -->
+              <div class="play-btn">
+                <div class="play-facets"></div>
+                <div class="play-sheen"></div>
+                <svg class="play-frame-svg" viewBox="0 0 162 42" preserveAspectRatio="none">
+                  <polygon points="1,1 149,1 161,13 161,41 1,41" fill="none" stroke="var(--rd-magenta-neon)" stroke-width="2"/>
+                  <polygon points="3,3 148,3 159,14 159,39 3,39" fill="none" stroke="var(--rd-ice-lit)" stroke-width="1" opacity="0.85"/>
+                </svg>
+                <svg class="play-label" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+                <span class="play-label">PLAY</span>
+                <svg class="play-label" width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l5 6-5 6h2.8l5-6-5-6H3zm5.2 0l5 6-5 6H11l5-6-5-6H8.2z"/></svg>
+              </div>
+              <!-- Equal 40x40 icon-only More and Edit buttons -->
+              <div class="sec-btn" title="More">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/>
+                </svg>
+              </div>
+              <div class="sec-btn" title="Edit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 16.5L15.8 4.7l3.5 3.5L7.5 20H4v-3.5zm13.2-13.2l1.8-1.8a1.4 1.4 0 012 0l1.5 1.5a1.4 1.4 0 010 2l-1.8 1.8-3.5-3.5z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="body-cols">
+            <div class="main-pane">
+              <div>
+                <div class="sec-heading">
+                  <span class="sec-ribbon"><span class="sec-title">Screenshots</span></span>
+                  <span class="sec-rule"></span>
+                </div>
+                <div class="shots-grid">
+                  <div class="shot-main">
+                    <span class="challenger-tri"></span>
+                    <svg width="240" height="132" viewBox="0 0 240 132">
+                      <!-- Combat HUD meter preview geometry -->
+                      <polygon points="16,24 106,24 98,36 16,36" fill="#CC1E38" stroke="#FFFFFF" stroke-width="1.5"/>
+                      <polygon points="134,24 224,24 224,36 142,36" fill="#2460E8" stroke="#FFFFFF" stroke-width="1.5"/>
+                      <rect x="110" y="18" width="20" height="22" rx="3" fill="#0B0E1A" stroke="#FF3CE0" stroke-width="1.5"/>
+                      <text x="120" y="34" text-anchor="middle" fill="#FFFFFF" font-family="Rajdhani" font-weight="700" font-size="14">78</text>
+                      <polygon points="34,42 98,42 94,49 30,49" fill="#7CE826"/>
+                      <polygon points="142,42 206,42 210,49 146,49" fill="#7CE826"/>
+                      <polygon points="48,110 92,66 112,86 72,110" fill="#18D8F2" opacity="0.65"/>
+                      <polygon points="192,110 148,62 128,82 168,110" fill="#FF3CE0" opacity="0.65"/>
+                    </svg>
+                  </div>
+                  <div class="shot-thumbs">
+                    <div class="shot-thumb t1">
+                      <svg width="100%" height="100%" viewBox="0 0 120 70" preserveAspectRatio="none"><polygon points="0,70 42,20 75,45 120,12 120,70" fill="#18D8F2" opacity="0.16"/><line x1="12" y1="18" x2="88" y2="18" stroke="#FFFFFF" stroke-width="2" opacity="0.35"/></svg>
+                    </div>
+                    <div class="shot-thumb t2">
+                      <svg width="100%" height="100%" viewBox="0 0 120 70" preserveAspectRatio="none"><circle cx="60" cy="35" r="18" fill="none" stroke="#FF3CE0" stroke-width="2" opacity="0.45"/><polygon points="20,58 60,26 100,58" fill="#FF3CE0" opacity="0.18"/></svg>
+                    </div>
+                    <div class="shot-thumb t3">
+                      <svg width="100%" height="100%" viewBox="0 0 120 70" preserveAspectRatio="none"><rect x="14" y="16" width="92" height="10" rx="2" fill="#18D8F2" opacity="0.32"/><rect x="14" y="34" width="64" height="6" rx="1" fill="#FFFFFF" opacity="0.22"/></svg>
+                    </div>
+                    <div class="shot-thumb t4">
+                      <svg width="100%" height="100%" viewBox="0 0 120 70" preserveAspectRatio="none"><polygon points="15,48 48,22 76,38 105,18 105,54 15,54" fill="#7CE826" opacity="0.25"/></svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="flex:1; display:flex; flex-direction:column;">
+                <div class="sec-heading">
+                  <span class="sec-ribbon violet"><span class="sec-title">Description</span></span>
+                  <span class="sec-rule violet"></span>
+                </div>
+                <div class="desc-body">
+                  <p>Step onto neon-drenched tournament stages powered by a high-stakes six-bar Drive system. Chain explosive Drive Impacts, parry incoming pressure, and unleash Super Arts under rollback netcode.</p>
+                  <p>Roam open district hubs in World Tour, build custom fighter loadouts with diagonal-ribbon gear cards, and battle rivals across ranked lobbies.</p>
+                </div>
+                <div class="disclaimer">Rushdown — unofficial fan theme inspired by Street Fighter 6 UI. Contains no official assets or trademarks.</div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Metadata Dossier (300px inner width + diagonal cyan ribbon + diamond-capped dividers) -->
+            <aside class="meta-frame" data-part="metadata">
+              <div class="meta-cap">
+                <div class="meta-ribbon">
+                  <span class="challenger-tri" style="width:11px; height:11px;"></span>
+                  <span class="meta-cap-title">Game Details</span>
+                </div>
+                <div class="meta-drive-ticks">
+                  <span class="drive-tick lit"></span>
+                  <span class="drive-tick"></span>
+                  <span class="drive-tick gold"></span>
+                </div>
+              </div>
+
+              <div class="meta-inner">
+                <div class="meta-row"><span class="meta-lbl">Completion</span><span class="meta-val">Playing</span></div>
+                <div class="meta-row"><span class="meta-lbl">Time Played</span><span class="meta-val">148h 25m</span></div>
+                <div class="meta-row"><span class="meta-lbl">Last Played</span><span class="meta-val">Today</span></div>
+
+                <div class="diamond-divider"><span class="div-dia"></span><span class="div-line"></span><span class="div-node"></span><span class="div-line"></span><span class="div-dia"></span></div>
+
+                <div class="meta-row"><span class="meta-lbl">Critic Score</span><span class="meta-val"><span class="score-gauge"><span class="score-bar critic"></span><span class="score-num critic">92</span></span></span></div>
+                <div class="meta-row"><span class="meta-lbl">Community</span><span class="meta-val"><span class="score-gauge"><span class="score-bar community"></span><span class="score-num community">88</span></span></span></div>
+
+                <div class="diamond-divider"><span class="div-dia"></span><span class="div-line"></span><span class="div-node"></span><span class="div-line"></span><span class="div-dia"></span></div>
+
+                <div class="meta-row"><span class="meta-lbl">Developer</span><span class="meta-link">Metro Arcade Works</span></div>
+                <div class="meta-row"><span class="meta-lbl">Release Date</span><span class="meta-val">Jun 2, 2023</span></div>
+
+                <div class="diamond-divider"><span class="div-dia"></span><span class="div-line"></span><span class="div-node"></span><span class="div-line"></span><span class="div-dia"></span></div>
+
+                <div class="meta-row">
+                  <span class="meta-lbl">Platform</span>
+                  <div class="chip-wrap"><span class="chip">PC (Windows)</span></div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-lbl">Genres</span>
+                  <div class="chip-wrap">
+                    <span class="chip hover">Fighting</span>
+                    <span class="chip">Arcade</span>
+                    <span class="chip">Action</span>
+                  </div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-lbl">Features</span>
+                  <div class="chip-wrap">
+                    <span class="chip">Online PvP</span>
+                    <span class="chip">Controller</span>
+                  </div>
+                </div>
+
+                <div class="diamond-divider"><span class="div-dia"></span><span class="div-line"></span><span class="div-node"></span><span class="div-line"></span><span class="div-dia"></span></div>
+
+                <div class="meta-row"><span class="meta-lbl">Library</span><span class="meta-val">Steam</span></div>
+                <div class="meta-row"><span class="meta-lbl">Install Size</span><span class="meta-val">62.4 GB</span></div>
+
+                <div class="diamond-divider"><span class="div-dia"></span><span class="div-line"></span><span class="div-node"></span><span class="div-line"></span><span class="div-dia"></span></div>
+
+                <div class="meta-row"><span class="meta-lbl">Links</span><span class="meta-link">Store Page · Frame Data</span></div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!doctype html>
+<html class="dark">
+<head>
+<meta charset="utf-8">
+<title>Joyride: details view</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--asphalt); color: var(--white);
+         font-family: Barlow, 'Segoe UI'; font-size: 14px; position: relative; }
+  svg.i { width: 16px; height: 16px; display: block; fill: currentColor; }
+  .cond { font-family: 'Barlow Condensed', 'Bahnschrift SemiBold Condensed'; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+  /* Impact with a black outline built from eight offsets and a hard drop shadow (the XAML stacks offset TextBlocks). */
+  .poster { font-family: Impact, 'Arial Black'; color: var(--white); letter-spacing: 0.4px;
+            text-shadow: 2px 0 0 var(--gutter-black), -2px 0 0 var(--gutter-black), 0 2px 0 var(--gutter-black), 0 -2px 0 var(--gutter-black),
+                         2px 2px 0 var(--gutter-black), -2px -2px 0 var(--gutter-black), 2px -2px 0 var(--gutter-black), -2px 2px 0 var(--gutter-black),
+                         5px 5px 0 var(--gutter-black); }
+  .mask { position: absolute; -webkit-mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; }
+
+  /* Rail: the black gutter down the left edge. */
+  .rail { position: absolute; left: 0; top: 0; width: 44px; height: 720px; background: var(--gutter-black); }
+  .rail-menu { width: 44px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--mission); }
+  .rail-menu svg { width: 24px; height: 24px; }
+  .rail-item { width: 44px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--grey); position: relative; }
+  .rail-item.on .plate { width: 32px; height: 32px; background: var(--white); color: var(--ink); display: flex; align-items: center; justify-content: center;
+                         box-shadow: 3px 3px 0 var(--edge); position: relative; }
+  .rail-item.on .plate::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; background: var(--mission); }
+
+  /* Top bar: 48px of asphalt closed by a 4px black gutter with the tri-color tick. */
+  .top { position: absolute; left: 44px; top: 0; right: 0; height: 52px; background: var(--asphalt); }
+  .top .gut { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--gutter-black); }
+  .tri { position: absolute; left: 0; bottom: 0; height: 4px; width: 66px; display: flex; }
+  .tri i { flex: 1; } .tri i:nth-child(1) { background: var(--michael); } .tri i:nth-child(2) { background: var(--franklin); } .tri i:nth-child(3) { background: var(--trevor); }
+  .search { position: absolute; left: 12px; top: 8px; width: 248px; height: 32px; background: var(--panel); border: 1px solid var(--edge); border-radius: 3px;
+            display: flex; align-items: center; gap: 8px; padding: 0 10px; color: var(--grey); }
+  .cells { position: absolute; left: 268px; top: 7px; display: flex; gap: 2px; }
+  .cell { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--grey-light); border-radius: 3px; position: relative; }
+  .cell.on { background: var(--white); color: var(--ink); box-shadow: 2px 2px 0 var(--gutter-black); }
+  .cell .star { position: absolute; right: 3px; top: 3px; width: 10px; height: 10px; color: var(--gold); }
+  .cell .star svg { width: 10px; height: 10px; }
+  .sep { width: 10px; }
+  .notif { position: absolute; right: 150px; top: 7px; }
+  .winbtns { position: absolute; right: 0; top: 0; display: flex; }
+  .winbtns div { width: 46px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--grey-light); }
+  .winbtns svg { width: 12px; height: 12px; }
+
+  /* Game list: rows on asphalt; the selected row is the pause-menu white plate with a mission-yellow tab. */
+  .list { position: absolute; left: 44px; top: 52px; width: 268px; bottom: 0; padding: 8px 0 0 0; }
+  .list::after { content: ""; position: absolute; right: -6px; top: 0; bottom: 0; width: 6px; background: var(--gutter-black); }
+  .row { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 14px; color: var(--grey-light); position: relative; white-space: nowrap; }
+  .row .ic { width: 20px; height: 20px; border: 1px solid var(--gutter-black); flex: none; }
+  .row.hover { background: var(--panel-lit); color: var(--white); }
+  .row.sel { background: var(--white); color: var(--ink); font-weight: 600; margin-right: 8px; box-shadow: 4px 4px 0 var(--gutter-black); }
+  .row.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--mission); }
+  .row.run { color: var(--white); }
+  .row.run::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(var(--siren) 50%, var(--wasted) 50%); }
+  .row.run .siren { margin-left: auto; display: flex; gap: 3px; }
+  .row.run .siren i { width: 10px; height: 5px; }
+  .row.run .siren i:nth-child(1) { background: var(--siren); } .row.run .siren i:nth-child(2) { background: var(--wasted); opacity: 0.35; } .row.run .siren i:nth-child(3) { background: var(--siren); opacity: 0.35; }
+  .count { color: var(--grey); font-size: 12px; margin-left: auto; }
+  .grouphead { height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 14px; color: var(--mission); font-size: 13px; }
+  .grouphead::after { content: ""; flex: 1; height: 2px; background: var(--edge); }
+
+  /* Game page */
+  .page { position: absolute; left: 318px; top: 52px; right: 0; bottom: 0; overflow: hidden; }
+  .banner { position: absolute; left: 0; top: 0; right: 0; height: 250px; background: var(--gutter-black); }
+  .panel { position: absolute; overflow: hidden; }
+  .scene { position: absolute; left: 0; top: 0; width: 962px; height: 250px; background: linear-gradient(var(--vice-dusk) 0%, var(--vice-magenta) 46%, var(--trevor) 74%, var(--sa-cream) 82%); }
+  .scene .sea { position: absolute; left: 0; right: 0; top: 204px; bottom: 0; background: linear-gradient(var(--freemode-deep), var(--asphalt-deep)); }
+  .scene .sun { left: 150px; top: 58px; width: 190px; height: 190px; background: var(--mission-lit); -webkit-mask-image: url("../src/Images/fx/sun.png"); }
+  .scene .city { left: 0; top: 96px; width: 760px; height: 110px; background: var(--asphalt-deep); -webkit-mask-image: url("../src/Images/fx/skyline.png"); }
+  .scene .lit { left: 0; top: 96px; width: 760px; height: 110px; background: var(--mission); opacity: 0.85; -webkit-mask-image: url("../src/Images/fx/windows.png"); }
+  .scene .palms { left: 330px; top: 4px; width: 410px; height: 270px; background: var(--gutter-black); -webkit-mask-image: url("../src/Images/fx/palms.png"); }
+  .scene .heli { left: 470px; top: 22px; width: 120px; height: 60px; background: var(--gutter-black); -webkit-mask-image: url("../src/Images/fx/heli.png"); }
+  .gut-v { position: absolute; top: 0; bottom: 0; width: 6px; background: var(--gutter-black); }
+  .gut-h { position: absolute; height: 6px; background: var(--gutter-black); }
+  .scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(transparent, var(--scrim)); }
+  .halftone { position: absolute; left: 0; bottom: 0; width: 600px; height: 110px; background: var(--gutter-black); opacity: 0.35;
+              -webkit-mask-image: url("../src/Images/fx/halftone.png"), linear-gradient(transparent, black); -webkit-mask-size: 8px 8px, 100% 100%;
+              -webkit-mask-repeat: repeat, no-repeat; -webkit-mask-composite: source-in; }
+  .foot { position: absolute; left: 0; right: 0; top: 250px; height: 8px; background: var(--gutter-black); }
+
+  .head { position: absolute; left: 20px; top: 196px; right: 20px; height: 104px; display: flex; align-items: flex-end; gap: 16px; }
+  .gicon { width: 72px; height: 72px; flex: none; background: var(--gutter-black); padding: 3px; box-shadow: 5px 5px 0 var(--gutter-black); }
+  .gicon div { width: 100%; height: 100%; border: 1px solid var(--white);
+               background: linear-gradient(135deg, var(--vice-magenta), var(--trevor)); position: relative; overflow: hidden; }
+  .gicon div::after { content: ""; position: absolute; left: 10px; top: 12px; width: 44px; height: 44px; background: var(--gutter-black);
+                      -webkit-mask-image: url("../src/Images/fx/palms.png"); -webkit-mask-size: 100% 100%; }
+  .titles { flex: 1; min-width: 0; padding-bottom: 4px; }
+  .title { font-size: 44px; line-height: 50px; white-space: nowrap; }
+  .sub { margin-top: 6px; font-size: 13px; color: var(--grey-light); display: flex; gap: 10px; align-items: center; }
+  .sub b { color: var(--mission); }
+  .rule { width: 190px; height: 4px; margin-top: 8px; background: var(--gutter-black); position: relative; }
+  .rule i { position: absolute; left: 0; top: 0; width: 30px; height: 4px;
+            background: linear-gradient(90deg, var(--michael) 33.3%, var(--franklin) 33.3% 66.6%, var(--trevor) 66.6%); }
+  .actions { display: flex; gap: 12px; align-items: center; margin-bottom: -18px; position: relative; }
+  .corona { position: absolute; left: -46px; top: -40px; width: 250px; height: 124px; background: var(--mission); opacity: 0.55;
+            -webkit-mask-image: url("../src/Images/fx/corona.png"); }
+  .play { position: relative; width: 156px; height: 44px; }
+  .play .shadow { position: absolute; left: 4px; top: 4px; right: -4px; bottom: -4px; background: var(--gutter-black); }
+  .play .slab { position: absolute; inset: 0; transform: translate(-2px, -2px); background: var(--mission); border: 2px solid var(--gutter-black);
+                display: flex; align-items: center; gap: 10px; padding: 0 14px 0 6px; }
+  .play .key { width: 28px; height: 28px; background: var(--gutter-black); color: var(--mission); display: flex; align-items: center; justify-content: center; border-radius: 3px; }
+  .play .key svg { width: 14px; height: 14px; }
+  .play .lbl { font-family: Impact, 'Arial Black'; font-size: 24px; color: var(--ink); letter-spacing: 1px; }
+  .sq { width: 40px; height: 40px; background: var(--panel-up); border: 2px solid var(--gutter-black); border-radius: 3px; color: var(--white);
+        display: flex; align-items: center; justify-content: center; box-shadow: 3px 3px 0 var(--gutter-black); }
+
+  .body { position: absolute; left: 20px; right: 20px; top: 340px; bottom: 0; display: flex; gap: 20px; }
+  .main { flex: 1; min-width: 0; }
+  .tab { display: inline-flex; align-items: center; height: 24px; padding: 0 10px 0 12px; background: var(--gutter-black); color: var(--white); font-size: 13px; position: relative; }
+  .tab::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--mission); }
+  .shots { display: flex; height: 96px; background: var(--gutter-black); padding: 4px; gap: 4px; margin: 8px 0 14px; }
+  .shot { position: relative; overflow: hidden; flex: 1; }
+  .shot.a { background: linear-gradient(var(--vice-magenta), var(--trevor)); flex: 1.3; }
+  .shot.b { background: linear-gradient(var(--asphalt-deep), var(--liberty-deep)); }
+  .shot.c { background: linear-gradient(var(--sa-cream), var(--sa-rust)); }
+  .shot .m { position: absolute; -webkit-mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; }
+  .desc { margin-top: 8px; color: var(--grey-light); line-height: 21px; }
+  .desc p + p { margin-top: 8px; }
+
+  .meta { width: 336px; flex: none; align-self: flex-start; background: var(--panel); border: 2px solid var(--gutter-black); box-shadow: 6px 6px 0 var(--gutter-black);
+          padding: 10px 16px 12px; }
+  .kv { display: flex; gap: 12px; align-items: center; min-height: 26px; }
+  .k { width: 96px; flex: none; color: var(--grey); font-size: 12px; }
+  .v { color: var(--white); }
+  .money { font-family: Impact, 'Arial Black'; font-size: 19px; color: var(--cash); letter-spacing: 0.6px;
+           text-shadow: 1.5px 0 0 var(--gutter-black), -1.5px 0 0 var(--gutter-black), 0 1.5px 0 var(--gutter-black), 0 -1.5px 0 var(--gutter-black), 2px 2px 0 var(--gutter-black); }
+  .money.mid { color: var(--mission); }
+  .brk { height: 4px; background: var(--gutter-black); margin: 9px -16px; position: relative; }
+  .brk::after { content: ""; position: absolute; left: 16px; top: 0; width: 30px; height: 4px;
+                background: linear-gradient(90deg, var(--michael) 33.3%, var(--franklin) 33.3% 66.6%, var(--trevor) 66.6%); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px 8px; padding: 3px 0; }
+  .chip { height: 24px; padding: 0 9px; display: inline-flex; align-items: center; background: var(--panel-up); border: 1px solid var(--edge); border-radius: 2px;
+          box-shadow: 2px 2px 0 var(--gutter-black); font-size: 13px; color: var(--grey-light); }
+  .chip.hover { background: var(--mission); color: var(--ink); border-color: var(--gutter-black); }
+  .stars { display: inline-flex; gap: 2px; color: var(--gold); }
+  .stars svg { width: 13px; height: 13px; filter: drop-shadow(1px 1px 0 var(--gutter-black)); }
+  .meter { margin-left: 12px; position: relative; width: 75px; height: 13px; }
+  .meter .stars { position: absolute; left: 0; top: 0; }
+  .meter .lit { position: absolute; left: 0; top: 0; overflow: hidden; height: 13px; }
+  .meter .off { color: var(--dim); }
+</style>
+</head>
+<body>
+<!-- ICONS:BEGIN (art/icons.py) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="IconSearch" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.6,10 A7.4,7.4 0 1 1 17.4,10 A7.4,7.4 0 1 1 2.6,10 Z M5.6,10 A4.4,4.4 0 1 1 14.4,10 A4.4,4.4 0 1 1 5.6,10 Z M14.4,16.6 L16.6,14.4 L22.2,20 L20,22.2 Z"/></symbol>
+<symbol id="IconClear" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M4.94,7.06 L16.94,19.06 L19.06,16.94 L7.06,4.94 Z M7.06,19.06 L19.06,7.06 L16.94,4.94 L4.94,16.94 Z"/></symbol>
+<symbol id="IconViewSettings" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2,4 L22,4 L22,6.4 L2,6.4 Z M2,10.8 L22,10.8 L22,13.2 L2,13.2 Z M2,17.6 L22,17.6 L22,20 L2,20 Z M14,1.8 L18.6,1.8 L18.6,8.6 L14,8.6 Z M5,8.6 L9.6,8.6 L9.6,15.4 L5,15.4 Z M11,15.4 L15.6,15.4 L15.6,22.2 L11,22.2 Z"/></symbol>
+<symbol id="IconFilterPresets" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,3 L16,3 L10.6,10.6 L10.6,19 L7.4,21 L7.4,10.6 Z M18.4,10.4 L19.68,13.83 L23.35,13.99 L20.48,16.27 L21.46,19.81 L18.4,17.78 L15.34,19.81 L16.32,16.27 L13.45,13.99 L17.12,13.83 Z"/></symbol>
+<symbol id="IconGroup" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,2 L12.8,2 L12.8,22 L2,22 Z M15.2,2 L22,2 L22,10.8 L15.2,10.8 Z M15.2,13.2 L22,13.2 L22,22 L15.2,22 Z"/></symbol>
+<symbol id="IconSort" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,3.4 L13,3.4 L13,6.2 L2,6.2 Z M2,10.6 L10,10.6 L10,13.4 L2,13.4 Z M2,17.8 L7,17.8 L7,20.6 L2,20.6 Z M16.4,2.6 L19.2,2.6 L19.2,15 L16.4,15 Z M13.2,14 L22.4,14 L17.8,21.8 Z"/></symbol>
+<symbol id="IconDetailsView" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,3 L6.6,3 L6.6,7.6 L2,7.6 Z M9,3.8 L22,3.8 L22,6.8 L9,6.8 Z M2,9.7 L6.6,9.7 L6.6,14.3 L2,14.3 Z M9,10.5 L22,10.5 L22,13.5 L9,13.5 Z M2,16.4 L6.6,16.4 L6.6,21 L2,21 Z M9,17.2 L22,17.2 L22,20.2 L9,20.2 Z"/></symbol>
+<symbol id="IconGridView" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,2 L10.8,2 L10.8,10.8 L2,10.8 Z M13.2,2 L22,2 L22,10.8 L13.2,10.8 Z M2,13.2 L10.8,13.2 L10.8,22 L2,22 Z M13.2,13.2 L22,13.2 L22,22 L13.2,22 Z"/></symbol>
+<symbol id="IconListView" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,3 L22,3 L22,5.8 L2,5.8 Z M2,8.4 L22,8.4 L22,11.2 L2,11.2 Z M2,13.8 L22,13.8 L22,16.6 L2,16.6 Z M2,19.2 L22,19.2 L22,22 L2,22 Z"/></symbol>
+<symbol id="IconUpdate" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M20.2,11.6 A8.2,8.2 0 1 1 15.6,4.6 L14.4,7.2 A5.4,5.4 0 1 0 17.4,11.6 Z M12.4,1.4 L20.8,3.6 L15.2,9.8 Z"/></symbol>
+<symbol id="IconExplorer" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,3 L22,3 L22,21 L2,21 Z M4.6,5.6 L19.4,5.6 L19.4,18.4 L4.6,18.4 Z M4.6,5.6 L10,5.6 L10,18.4 L4.6,18.4 Z"/></symbol>
+<symbol id="IconRandom" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5,2 L19,2 Q22,2 22,5 L22,19 Q22,22 19,22 L5,22 Q2,22 2,19 L2,5 Q2,2 5,2 Z M5.5,7.4 A1.9,1.9 0 1 1 9.3,7.4 A1.9,1.9 0 1 1 5.5,7.4 Z M14.7,7.4 A1.9,1.9 0 1 1 18.5,7.4 A1.9,1.9 0 1 1 14.7,7.4 Z M10.1,12 A1.9,1.9 0 1 1 13.9,12 A1.9,1.9 0 1 1 10.1,12 Z M5.5,16.6 A1.9,1.9 0 1 1 9.3,16.6 A1.9,1.9 0 1 1 5.5,16.6 Z M14.7,16.6 A1.9,1.9 0 1 1 18.5,16.6 A1.9,1.9 0 1 1 14.7,16.6 Z"/></symbol>
+<symbol id="IconViewRandom" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5,2 L19,2 Q22,2 22,5 L22,19 Q22,22 19,22 L5,22 Q2,22 2,19 L2,5 Q2,2 5,2 Z M5.5,7.4 A1.9,1.9 0 1 1 9.3,7.4 A1.9,1.9 0 1 1 5.5,7.4 Z M14.7,16.6 A1.9,1.9 0 1 1 18.5,16.6 A1.9,1.9 0 1 1 14.7,16.6 Z M10.1,12 A1.9,1.9 0 1 1 13.9,12 A1.9,1.9 0 1 1 10.1,12 Z"/></symbol>
+<symbol id="IconFilter" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,3 L22,3 L14.2,12.4 L14.2,19.6 L9.8,22 L9.8,12.4 Z"/></symbol>
+<symbol id="IconNotifications" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M8,1.6 L16,1.6 Q18.4,1.6 18.4,4 L18.4,20 Q18.4,22.4 16,22.4 L8,22.4 Q5.6,22.4 5.6,20 L5.6,4 Q5.6,1.6 8,1.6 Z M7.8,4.4 L16.2,4.4 L16.2,16.2 L7.8,16.2 Z M10.4,18.2 L13.6,18.2 L13.6,20.2 L10.4,20.2 Z"/></symbol>
+<symbol id="IconMainMenu" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,4 L22,4 L22,7 L2,7 Z M2,10.5 L22,10.5 L22,13.5 L2,13.5 Z M2,17 L22,17 L22,20 L2,20 Z"/></symbol>
+<symbol id="IconLibrary" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,4 L6.6,4 L6.6,21 L2,21 Z M8.4,2.4 L13,2.4 L13,21 L8.4,21 Z M14.6,4.6 L18.8,3.4 L22.6,19.8 L18.4,21 Z M1,21.6 L23,21.6 L23,23 L1,23 Z"/></symbol>
+<symbol id="IconStatistics" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 L6.4,12 L6.4,21 L2,21 Z M9.8,4 L14.2,4 L14.2,21 L9.8,21 Z M17.6,8.4 L22,8.4 L22,21 L17.6,21 Z"/></symbol>
+<symbol id="IconWindowMinimize" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4,16.6 L20,16.6 L20,19.4 L4,19.4 Z"/></symbol>
+<symbol id="IconWindowMaximize" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4,4 L20,4 L20,20 L4,20 Z M6.8,8.4 L17.2,8.4 L17.2,17.2 L6.8,17.2 Z"/></symbol>
+<symbol id="IconWindowRestore" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M8,3 L21,3 L21,16 L18.4,16 L18.4,5.6 L10.6,5.6 L10.6,8 L8,8 Z M3,8 L16,8 L16,21 L3,21 Z M5.6,10.6 L13.4,10.6 L13.4,18.4 L5.6,18.4 Z"/></symbol>
+<symbol id="IconWindowClose" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M4.34,6.46 L17.54,19.66 L19.66,17.54 L6.46,4.34 Z M6.46,19.66 L19.66,6.46 L17.54,4.34 L4.34,17.54 Z"/></symbol>
+<symbol id="IconDropDown" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4.4,8.4 L19.6,8.4 L12,17 Z"/></symbol>
+<symbol id="IconSubmenu" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M8.4,4.4 L17,12 L8.4,19.6 Z"/></symbol>
+<symbol id="IconCheck" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.6,12.6 L5,10.2 L9.4,14.6 L19,5 L21.4,7.4 L9.4,19.4 Z"/></symbol>
+<symbol id="IconAdd" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.5,3 L13.5,3 L13.5,21 L10.5,21 Z M3,10.5 L21,10.5 L21,13.5 L3,13.5 Z"/></symbol>
+<symbol id="IconEdit" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M15.6,2.8 L21.2,8.4 L8.6,21 L3,21 L3,15.4 Z M5.8,16.6 L7.4,18.2 L6.2,18.2 L5.8,17.8 Z"/></symbol>
+<symbol id="IconRemove" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3,5 L21,5 L21,7.6 L3,7.6 Z M9,2.4 L15,2.4 L15,5 L9,5 Z M5,9.2 L19,9.2 L17.6,22 L6.4,22 Z M9.2,11.6 L10.8,11.6 L10.8,19.4 L9.2,19.4 Z M13.2,11.6 L14.8,11.6 L14.8,19.4 L13.2,19.4 Z"/></symbol>
+<symbol id="IconOptions" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.4,9.6 L7.2,9.6 L7.2,14.4 L2.4,14.4 Z M9.6,9.6 L14.4,9.6 L14.4,14.4 L9.6,14.4 Z M16.8,9.6 L21.6,9.6 L21.6,14.4 L16.8,14.4 Z"/></symbol>
+<symbol id="IconPlay" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M6,3 L20.6,12 L6,21 Z"/></symbol>
+<symbol id="IconInfo" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 A10,10 0 1 1 22,12 A10,10 0 1 1 2,12 Z M10.4,10.4 L13.6,10.4 L13.6,18 L10.4,18 Z M10.4,5.4 L13.6,5.4 L13.6,8.6 L10.4,8.6 Z"/></symbol>
+<symbol id="IconDownload" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.4,2 L13.6,2 L13.6,12 L10.4,12 Z M5.6,10.4 L18.4,10.4 L12,17.4 Z M3,19 L21,19 L21,22 L3,22 Z"/></symbol>
+<symbol id="LocalStarGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12,1.6 L14.72,8.86 L22.46,9.2 L16.39,14.03 L18.47,21.5 L12,17.22 L5.53,21.5 L7.61,14.03 L1.54,9.2 L9.28,8.86 Z"/></symbol>
+<symbol id="LocalMarkGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M1,1 L14.6,1 L14.6,23 L1,23 Z M16.6,1 L23,1 L23,10.8 L16.6,10.8 Z M16.6,12.8 L23,12.8 L23,23 L16.6,23 Z M7.8,7.2 L9.13,10.77 L12.94,10.93 L9.96,13.3 L10.97,16.97 L7.8,14.87 L4.63,16.97 L5.64,13.3 L2.66,10.93 L6.47,10.77 Z"/></symbol>
+</defs></svg>
+<!-- ICONS:END -->
+
+<div class="rail" data-part="sidebar">
+  <div class="rail-menu" data-part="PART_ElemMainMenu"><svg class="i" viewBox="0 0 24 24"><use href="#LocalMarkGeometry"/></svg></div>
+  <div class="rail-item on"><div class="plate"><svg class="i" viewBox="0 0 24 24"><use href="#IconLibrary"/></svg></div></div>
+  <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><use href="#IconStatistics"/></svg></div>
+  <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><use href="#IconViewRandom"/></svg></div>
+  <div class="rail-item"><svg class="i" viewBox="0 0 24 24"><use href="#IconExplorer"/></svg></div>
+</div>
+
+<div class="top" data-part="top-panel">
+  <div class="search" data-part="PART_TextMainSearch"><svg class="i" viewBox="0 0 24 24"><use href="#IconSearch"/></svg><span>Search library</span></div>
+  <div class="cells">
+    <div class="cell" data-part="PART_ToggleFilter"><svg class="i" viewBox="0 0 24 24"><use href="#IconFilter"/></svg>
+      <div class="star"><svg viewBox="0 0 24 24" fill="currentColor"><use href="#LocalStarGeometry"/></svg></div></div>
+    <div class="sep"></div>
+    <div data-part="PART_PanelMainItems" style="display:flex; gap:2px">
+      <div class="cell"><svg class="i" viewBox="0 0 24 24"><use href="#IconSort"/></svg></div>
+      <div class="cell"><svg class="i" viewBox="0 0 24 24"><use href="#IconGroup"/></svg></div>
+      <div class="sep"></div>
+      <div class="cell on"><svg class="i" viewBox="0 0 24 24"><use href="#IconDetailsView"/></svg></div>
+      <div class="cell"><svg class="i" viewBox="0 0 24 24"><use href="#IconGridView"/></svg></div>
+      <div class="cell"><svg class="i" viewBox="0 0 24 24"><use href="#IconListView"/></svg></div>
+      <div class="sep"></div>
+      <div class="cell"><svg class="i" viewBox="0 0 24 24"><use href="#IconViewSettings"/></svg></div>
+    </div>
+  </div>
+  <div class="notif"><div class="cell" data-part="PART_ToggleNotifications"><svg class="i" viewBox="0 0 24 24"><use href="#IconNotifications"/></svg></div></div>
+  <div class="winbtns"><div><svg viewBox="0 0 24 24" fill="currentColor"><use href="#IconWindowMinimize"/></svg></div>
+    <div><svg viewBox="0 0 24 24" fill="currentColor"><use href="#IconWindowMaximize"/></svg></div>
+    <div><svg viewBox="0 0 24 24" fill="currentColor"><use href="#IconWindowClose"/></svg></div></div>
+  <div class="gut"></div><div class="tri"><i></i><i></i><i></i></div>
+</div>
+
+<div class="list" data-part="game-list">
+  <div class="grouphead cond">Installed <span class="count" style="margin-left:0">7</span></div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--liberty),var(--liberty-deep))"></div>Borough Nights</div>
+  <div class="row run"><div class="ic" style="background:linear-gradient(var(--freemode),var(--asphalt-deep))"></div>Concrete Kings<div class="siren"><i></i><i></i><i></i></div></div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--sa-cream),var(--sa-rust))"></div>Dust &amp; Diesel</div>
+  <div class="row sel"><div class="ic" style="background:linear-gradient(var(--vice-magenta),var(--trevor))"></div>Harbor Heat</div>
+  <div class="row hover"><div class="ic" style="background:linear-gradient(var(--cash),var(--cash-deep))"></div>Hustle Avenue</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--vice-teal),var(--freemode-deep))"></div>Neon Coastline</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--trevor),var(--wasted-deep))"></div>Redline Desert</div>
+  <div class="grouphead cond">Not installed <span class="count" style="margin-left:0">9</span></div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--grey),var(--dim))"></div>Saint Marrow</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--michael),var(--freemode-deep))"></div>Skyline Getaway</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--franklin),var(--cash-deep))"></div>Southside Story</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--vice-pink),var(--vice-dusk))"></div>Sunset Boulevard Run</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--sa-blue),var(--asphalt-deep))"></div>The Long Haul</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--gold),var(--mission-deep))"></div>Vinyl Kingpins</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--wasted),var(--wasted-deep))"></div>Wanted: Five Stars</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--liberty),var(--asphalt))"></div>Wharf Rats</div>
+  <div class="row"><div class="ic" style="background:linear-gradient(var(--grey-light),var(--edge))"></div>Zero Tolerance</div>
+</div>
+
+<div class="page" data-part="game-page">
+  <div class="banner">
+    <!-- One background image seen through three panels of a box-art grid (the XAML binds the side panels to PART_ImageBackground's source). -->
+    <div class="panel" style="left:0; top:0; width:600px; height:250px">
+      <div class="scene"><div class="sea"></div><div class="mask sun"></div><div class="mask city"></div><div class="mask lit"></div><div class="mask palms"></div><div class="mask heli"></div></div>
+      <div class="scrim"></div><div class="halftone"></div>
+    </div>
+    <div class="gut-v" style="left:600px"></div>
+    <div class="panel" style="left:606px; top:0; width:356px; height:122px">
+      <div class="scene" style="transform: scale(1.7); transform-origin: 74% 8%"><div class="sea"></div><div class="mask sun"></div><div class="mask city"></div><div class="mask lit"></div><div class="mask palms"></div><div class="mask heli"></div></div>
+    </div>
+    <div class="gut-h" style="left:606px; right:0; top:122px"></div>
+    <div class="panel" style="left:606px; top:128px; width:356px; height:122px">
+      <div class="scene" style="transform: scale(1.5); transform-origin: 30% 78%"><div class="sea"></div><div class="mask sun"></div><div class="mask city"></div><div class="mask lit"></div><div class="mask palms"></div><div class="mask heli"></div></div>
+    </div>
+  </div>
+  <div class="foot"></div>
+
+  <div class="head">
+    <div class="gicon"><div></div></div>
+    <div class="titles">
+      <div class="title poster">HARBOR HEAT</div>
+      <div class="rule"><i></i></div>
+    </div>
+    <div class="actions">
+      <div class="corona"></div>
+      <div class="play"><div class="shadow"></div><div class="slab"><div class="key"><svg viewBox="0 0 24 24" fill="currentColor"><use href="#IconPlay"/></svg></div><span class="lbl">PLAY</span></div></div>
+      <div class="sq"><svg class="i" viewBox="0 0 24 24"><use href="#IconOptions"/></svg></div>
+      <div class="sq"><svg class="i" viewBox="0 0 24 24"><use href="#IconEdit"/></svg></div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="main">
+      <div class="tab cond">Screenshots</div>
+      <div class="shots">
+        <div class="shot a"><div class="m" style="left:30%; top:30px; width:110px; height:110px; background:var(--mission-lit); -webkit-mask-image:url('../src/Images/fx/sun.png')"></div>
+          <div class="m" style="right:-10px; bottom:0; width:150px; height:100px; background:var(--gutter-black); -webkit-mask-image:url('../src/Images/fx/palms.png')"></div></div>
+        <div class="shot b"><div class="m" style="left:0; bottom:0; width:330px; height:84px; background:var(--gutter-black); -webkit-mask-image:url('../src/Images/fx/skyline.png')"></div>
+          <div class="m" style="left:0; bottom:0; width:330px; height:84px; background:var(--mission); -webkit-mask-image:url('../src/Images/fx/windows.png')"></div></div>
+        <div class="shot c"><div class="m" style="left:0; bottom:0; width:100%; height:60px; background:var(--wasted-deep); -webkit-mask-image:url('../src/Images/fx/hills.png')"></div>
+          <div class="m" style="left:20px; bottom:6px; width:110px; height:34px; background:var(--gutter-black); -webkit-mask-image:url('../src/Images/fx/car.png')"></div></div>
+      </div>
+      <div class="tab cond">Description</div>
+      <div class="desc">
+        <p>Fresh off the bus with forty dollars and a borrowed jacket, you have one summer to turn a dead-end marina into the biggest racket on the bay. Run contraband by speedboat, steal the cars the mainland crews want, and keep the heat off long enough to buy the hotel on the strip.</p>
+        <p>Every district plays its own radio, every crew has its own colours, and every favour costs something later.</p>
+      </div>
+    </div>
+
+    <div class="meta" data-part="metadata">
+      <div class="kv"><span class="k cond">Completion</span><span class="v">Beaten</span></div>
+      <div class="kv"><span class="k cond">Time played</span><span class="money">42H 18M</span></div>
+      <div class="brk"></div>
+      <div class="kv"><span class="k cond">Critic score</span><span class="money">91</span>
+        <span class="meter"><span class="stars off"><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg></span><span class="lit" style="width:91%"><span class="stars"><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg></span></span></span></div>
+      <div class="kv"><span class="k cond">User score</span><span class="money mid">68</span><span class="meter"><span class="stars off"><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg></span><span class="lit" style="width:68%"><span class="stars"><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg><svg viewBox="0 0 24 24"><use href="#LocalStarGeometry"/></svg></span></span></span></div>
+      <div class="brk"></div>
+      <div class="kv"><span class="k cond">Developer</span><span class="v">Vice Bay Interactive</span></div>
+      <div class="kv"><span class="k cond">Release date</span><span class="v">29 October 2004</span></div>
+      <div class="brk"></div>
+      <div class="kv" style="align-items:flex-start"><span class="k cond" style="padding-top:5px">Genres</span>
+        <div class="chips"><span class="chip">Action</span><span class="chip hover">Open world</span><span class="chip">Driving</span><span class="chip">Crime</span></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

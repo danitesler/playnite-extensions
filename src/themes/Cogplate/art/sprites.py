@@ -95,10 +95,10 @@ def chain_trim():
 # ---------------------------------------------------------------------------
 def scanlines():
     a = np.zeros((4, 4), dtype=float)
-    a[0, :] = 0.85
-    a[1, :] = 0.22
-    a[2, :] = 0.04
-    a[3, :] = 0.0
+    a[0, :] = 0.74
+    a[1, :] = 0.40
+    a[2, :] = 0.14
+    a[3, :] = 0.26
     return a
 
 
@@ -226,37 +226,61 @@ def parchment_stain():
 # ---------------------------------------------------------------------------
 # 7. bloom (96x96, 9-slice with 36px corners): soft mint LED halo
 # ---------------------------------------------------------------------------
+def _blur2d(a: np.ndarray, sigma_px: float) -> np.ndarray:
+    """Fast FFT 2D Gaussian blur on high-res array (sigma in final pixels)."""
+    sig = sigma_px * S
+    rad = max(2, int(math.ceil(sig * 3.0)))
+    pad = np.pad(a, ((rad, rad), (rad, rad)), mode="constant")
+    nh, nw = pad.shape
+    fy = np.fft.fftfreq(nh)[:, None]
+    fx = np.fft.rfftfreq(nw)[None, :]
+    kern = np.exp(-2.0 * (math.pi * sig) ** 2 * (fx ** 2 + fy ** 2))
+    out = np.fft.irfft2(np.fft.rfft2(pad) * kern, s=(nh, nw))
+    return np.clip(out[rad : rad + a.shape[0], rad : rad + a.shape[1]], 0.0, None)
+
+
 def bloom():
     w = h = 96
     X, Y = grid(w, h)
+    # Exact 9-slice seam invariance across [36..60] with soft multi-scale radial phosphor falloff
     dx = np.maximum(np.maximum(36.0 - X, X - 60.0), 0.0)
     dy = np.maximum(np.maximum(36.0 - Y, Y - 60.0), 0.0)
     d = np.hypot(dx, dy)
-    return down(np.exp(-((d / 12.5) ** 2)), w, h)
+    window = smooth((35.5 - d) / 9.0)
+    glow = 0.45 * np.exp(-((d / 9.0) ** 1.25)) + 0.55 * np.exp(-((d / 16.0) ** 1.75))
+    return down(np.clip(glow * window * 0.82, 0.0, 1.0), w, h)
 
 
 # ---------------------------------------------------------------------------
-# 7b. drop-glow (232x88) and drop-glow-square (76x80): dissipated CRT drop shadows for the Play plate and the
-#     48px cover buttons. Each box is the plate plus its glow margins; the lit footprint sits 5px low and the
-#     falloff is long and soft, reaching farther below than above.
+# 7b. drop-glow (232x88) and drop-glow-square (76x80): multi-scale Gaussian CRT phosphor auras for the Play plate and
+#     the 48px cover buttons. True 2D Gaussian dispersion eliminates hard box ridges and corners.
 # ---------------------------------------------------------------------------
-def _drop(w, h, x0, x1, y0, y1, sx, su, sd):
+def _drop(w, h, x0, x1, y0, y1, s1, s2, s3, corner=8.0):
     X, Y = grid(w, h)
-    dx = np.maximum(np.maximum(x0 - X, X - x1), 0.0)
-    up = np.maximum(y0 - Y, 0.0)
-    dn = np.maximum(Y - y1, 0.0)
-    d = np.sqrt((dx / sx) ** 2 + (up / su) ** 2 + (dn / sd) ** 2)
-    return down(np.exp(-(d ** 1.6)) * 0.9, w, h)
+    cx = 0.5 * (x0 + x1)
+    cy = 0.5 * (y0 + y1)
+    hw = max(1.0, 0.5 * (x1 - x0) - corner)
+    hh = max(1.0, 0.5 * (y1 - y0) - corner)
+    qx = np.maximum(np.abs(X - cx) - hw, 0.0)
+    qy = np.maximum(np.abs(Y - cy) - hh, 0.0)
+    core = smooth((corner - np.hypot(qx, qy)) / 2.0)
+    # Multi-scale 2D Gaussian dispersion (tight rim + medium halo + wide atmospheric CRT haze)
+    g = 0.34 * _blur2d(core, s1) + 0.42 * _blur2d(core, s2) + 0.24 * _blur2d(core, s3)
+    g = g / max(g.max(), 1e-6)
+    bx = np.minimum(X / (w * 0.14), (w - X) / (w * 0.14))
+    by = np.minimum(Y / (h * 0.16), (h - Y) / (h * 0.17))
+    window = smooth(bx) * smooth(by)
+    return down(np.clip(g * window * 0.78, 0.0, 1.0), w, h)
 
 
 def drop_glow():
-    # Play: 180x40 plate in a 232x88 box (26 left/right, 18 top, 30 bottom)
-    return _drop(232, 88, 26.0, 206.0, 22.0, 62.0, 10.0, 7.0, 13.0)
+    # Play: 180x40 plate (X in 26..206, Y in 18..58) in a 232x88 box; core inset slightly & shifted 2px low
+    return _drop(232, 88, 30.0, 202.0, 22.0, 58.0, 5.0, 10.5, 17.5, corner=10.0)
 
 
 def drop_glow_square():
-    # Cover Play / Info: 48x48 tile in a 76x80 box (14 left/right, 12 top, 20 bottom)
-    return _drop(76, 80, 14.0, 62.0, 16.0, 64.0, 5.5, 4.5, 8.5)
+    # Cover Play / Info: 48x48 tile (X in 14..62, Y in 12..60) in a 76x80 box; core inset slightly & shifted 2px low
+    return _drop(76, 80, 16.0, 60.0, 15.0, 59.0, 3.8, 7.5, 12.5, corner=8.0)
 
 
 # ---------------------------------------------------------------------------
