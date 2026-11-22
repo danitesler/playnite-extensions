@@ -1477,3 +1477,59 @@ function Test-ThemeModifierIconButtons {
     }
     return @($errors | Select-Object -Unique)
 }
+
+function Test-WpfRuntimeTraps {
+    <#
+        Catches XAML patterns that parse cleanly in XmlDocument / static checks but throw at runtime in Playnite:
+        1. Style TargetType="Window" BasedOn StandardWindowStyle/MainWindowStyle (WindowBase is a subclass of Window; Style.Seal throws InvalidOperationException on startup).
+        2. Implicit ListBox style without ScrollViewer.CanContentScroll="True" (VirtualizingWrapPanel crashes Grid view with InvalidOperationException).
+        3. PasswordBox ControlTemplate binding VerticalScrollBarVisibility / HorizontalScrollBarVisibility via TemplateBinding (PasswordBox lacks those properties; XamlParseException when opening a dialog).
+        4. TextBlock.TextTrimming or TextBlock.TextWrapping used as attached attributes (not attached properties in WPF; XamlParseException on menu/ComboBox/TreeView open).
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    $xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml"
+    foreach ($entry in Get-CachedThemeXamlEntries -Directory $Directory) {
+        $doc = $entry.Doc
+        if (-not $doc) { continue }
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $entry.Relative
+        $raw = $entry.Text
+
+        # 1. Window style BasedOn a WindowBase style
+        foreach ($style in $doc.SelectNodes("//*[local-name()='Style'][@TargetType and @BasedOn]")) {
+            $tt = $style.GetAttribute("TargetType")
+            $bo = $style.GetAttribute("BasedOn")
+            if ($tt -match '^(Window|\{x:Type\s+Window\})$' -and $bo -match '(StandardWindowStyle|MainWindowStyle)') {
+                $errors.Add("${where}: Style targeting Window cannot be BasedOn '$bo' (which targets WindowBase, a subclass of Window); Playnite crashes on startup during Style.Seal. Remove BasedOn and set Background/Foreground/FontFamily directly.") | Out-Null
+            }
+        }
+
+        # 2. Implicit ListBox style missing ScrollViewer.CanContentScroll="True"
+        if ($entry.Relative -replace '\\', '/' -eq 'DefaultControls/ListBox.xaml') {
+            foreach ($style in $doc.SelectNodes("//*[local-name()='Style'][@TargetType]")) {
+                $tt = $style.GetAttribute("TargetType")
+                $key = $style.GetAttribute("Key", $xamlNs)
+                if (-not $key -and $tt -match '^(ListBox|\{x:Type\s+ListBox\})$') {
+                    $canScroll = $style.SelectSingleNode("./*[local-name()='Setter'][@Property='ScrollViewer.CanContentScroll' and @Value='True']")
+                    if (-not $canScroll) {
+                        $errors.Add("${where}: implicit ListBox style must set ScrollViewer.CanContentScroll=`"True`". Playnite's Grid view uses VirtualizingWrapPanel, which throws InvalidOperationException when CanContentScroll is false.") | Out-Null
+                    }
+                }
+            }
+        }
+
+        # 3. PasswordBox TemplateBinding to VerticalScrollBarVisibility / HorizontalScrollBarVisibility
+        if ($entry.Relative -replace '\\', '/' -eq 'DefaultControls/PasswordBox.xaml') {
+            if ($raw -match '\{TemplateBinding\s+(Vertical|Horizontal)ScrollBarVisibility\}') {
+                $errors.Add("${where}: PasswordBox does not inherit from TextBoxBase and has no VerticalScrollBarVisibility/HorizontalScrollBarVisibility properties; TemplateBinding throws XamlParseException at runtime. Set them to `"Hidden`" instead.") | Out-Null
+            }
+        }
+
+        # 4. Invalid attached TextBlock.TextTrimming / TextBlock.TextWrapping attributes
+        if ($raw -match 'TextBlock\.(TextTrimming|TextWrapping)\s*=') {
+            $errors.Add("${where}: TextBlock.$($Matches[1]) is not an attached property in WPF and throws XamlParseException at runtime. Apply it via <ContentPresenter.Resources><Style TargetType=`"TextBlock`"> instead.") | Out-Null
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}

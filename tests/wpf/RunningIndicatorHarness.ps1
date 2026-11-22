@@ -35,6 +35,7 @@ function Pump([int]$ms) {
 function ConvertTo-TestXaml([string]$text, [bool]$hover) {
     $text = $text -replace '\{Settings [A-Za-z.]+\}', '4'
     $text = $text -replace '\{ThemeFile [^}]*\}', '{x:Null}'
+    $text = $text -replace '\{MainViewModel [^}]*\}', '{x:Null}'
     $text = $text -replace '<DataTrigger Binding="4"[^>]*>[\s\S]*?</DataTrigger>', ''
     if ($hover) {
         # Emulate the pointer with keyboard focus on a scratch copy of the button style.
