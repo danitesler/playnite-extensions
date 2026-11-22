@@ -228,7 +228,7 @@ Previews and Playnite draw the same faces. A font stack starts with a font every
 
 ## Trademarks & Branding
 
-undefined
+A theme modeled on someone else's design system, app or game must never be branded as an official product of that owner. Give it an original abstract name that echoes the source (e.g. `Fluence`, `Primo`, `Shade`, `Hallowtide`) or a plain `<Source>-inspired` name, never an official title. Draw an original vector mark from the source's shapes rather than copying an owner's logo or game assets, state in `info/danitesler_<key>.yaml` (`ShortDescription` / `Description`) and `info/NOTICE-<Dir>.txt` that it is an unofficial fan/community theme not affiliated with or endorsed by the owner, and keep `Id`, `key` and folder stable if a display name changes.
 
 ## Per-theme notes
 

@@ -58,7 +58,7 @@ checklist above is the deliberate substitute.
 
 ## Sweeping many themes at once
 
-- Prove the change on one theme first. Record the key, the rule being fixed, and the checks that passed. Keep a targeted search with the coordinator and delegate substantial surveys or independent review.
-- When the remaining work is large enough to split, give each worker a distinct set of theme folders. Each worker owns the XAML, any generators that write it, and the previews affected by the change. Use the current checkout by default. Create a dedicated worktree only when the user requests or approves one.
-- Workers run `validate-themes.ps1 -Keys <keys>` and `build-themes.ps1 -Keys <keys>`. For a single theme, use `validate-extension.ps1 -Extension <key>` and `build-theme.ps1 -Extension <key> -NoDeploy`. Return touched keys, checks and failures to the coordinator.
-- The coordinator owns shared scripts, the extension catalog and generated root README links. Inspect the combined diff and run the relevant checks on the combined result. Deploy the touched themes from one session and restart only for the intended active theme. Check `playnite.log` for XAML errors after exercising the changed views.
+- Prove the change on one theme first. Record the key, the rule being fixed, and the checks that passed.
+- When splitting across workers (within `agent-delegate` limits), give each worker a distinct set of theme folders (`src/themes/<Name>/`: XAML, any generators that write it, and affected previews). The coordinator owns shared scripts, `src/extensions.json`, and generated root `README.md` links.
+- Workers run `validate-themes.ps1 -Keys <keys>` and `build-themes.ps1 -Keys <keys>` (or `validate-extension.ps1 -Extension <key>` and `build-theme.ps1 -Extension <key> -NoDeploy` for a single theme) and return touched keys, checks and failures.
+- The coordinator runs the combined checks, deploys the touched themes from one session (`-Deploy -NoRestart`), restarts once for the intended active theme, and checks `playnite.log` for XAML errors after exercising the changed views.

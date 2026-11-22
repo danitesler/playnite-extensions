@@ -62,7 +62,7 @@ gh pr create -R JosefNemec/PlayniteAddonDatabase --base master --title "Add <Nam
 - **PR body must link screenshots.** Embed every `Screenshots: Image:` URL from the listing as a markdown image (`![details](<Image URL>)`, `![settings](<Image URL>)`) so reviewers see the add-on without installing. Use the same raw `main` URLs as the listing. If the listing has no `Screenshots:` (plugin without UI), say so in the body instead of linking.
 
 - **One PR per add-on, always.** Several new add-ons or themes: repeat the whole sequence for each, on its own branch (`add-danitesler-<key>`), with its own PR titled `Add <Name>`, and never put two listing files in one PR. (Upstream PR 561 bundled two; do not repeat that.) Start each branch from a fresh `master` so the PRs stay independent.
-- Do not clone the database inside this repo. Use a sibling directory or the scratchpad.
+- Do not clone the database inside this repo. Place the clone in scratch (`agent-local-docs`) or an existing sibling directory.
 - After merge the add-on shows in the browser within about a minute: `https://playnite.link/addons.html#<AddonId>`, install link `playnite://playnite/installaddon/<AddonId>`.
 
 ## Update an existing add-on
