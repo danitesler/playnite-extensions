@@ -1,0 +1,158 @@
+<!--
+    Overlay on Playnite Default/CustomControls/FilterSelectionBox.xaml: the filter panel's dropdowns (they type to filter, so the
+    text box keeps its place). Same recessed value box as ComboBoxList.xaml: a LocalInsetBrush well with a ledge-slate top edge, a 32px
+    chevron cell (IconDropDown) set off by a thin line, a white rim that hover fades in and focus or an open list holds. It fills the height
+    it is given: the shared 32px (ControlHeight) by default, 28px in the filter panel (Views/FilterPanelView.xaml sets it). The popup is
+    the shared board (LocalMenuBoardTemplate, ContextMenu.xaml) and rises in when the toggle opens it. Playnite's named parts are kept;
+    the template triggers use SourceName="MainToggle" (these controls have no IsDropDownOpen). Recipe: docs/themes/menus.md.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTemplate x:Key="FilterSelectionBoxTemplate" TargetType="{x:Type FilterSelectionBoxBase}">
+        <Grid x:Name="Root" Background="Transparent" SnapsToDevicePixels="True">
+            <Control Template="{DynamicResource LocalWellTemplate}" Background="{DynamicResource LocalInsetBrush}" BorderBrush="{DynamicResource LocalLedgeSlateBrush}"
+                     Focusable="False" IsTabStop="False" />
+            <Border x:Name="HoverRim" Opacity="0" IsHitTestVisible="False" BorderBrush="{DynamicResource LocalWhiteBrush}" BorderThickness="2"
+                    CornerRadius="{DynamicResource ControlCornerRadius}" />
+            <Border x:Name="FocusRim" Opacity="0" IsHitTestVisible="False" BorderBrush="{DynamicResource LocalWhiteBrush}" BorderThickness="2"
+                    CornerRadius="{DynamicResource ControlCornerRadius}" />
+            <Grid IsHitTestVisible="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="32" />
+                </Grid.ColumnDefinitions>
+                <!-- text keeps clear of the clear button (24px) and the chevron cell (32px) -->
+                <TextBlock x:Name="PART_TextFilterString"
+                           Style="{StaticResource BaseTextBlockStyle}"
+                           TextTrimming="CharacterEllipsis" HorizontalAlignment="Stretch"
+                           VerticalAlignment="Center"
+                           Margin="10,0,24,0" />
+                <Rectangle Grid.Column="1" Width="1" Margin="0,5,0,5" HorizontalAlignment="Left" Fill="{DynamicResource LocalLBlackBrush}" />
+                <ContentControl x:Name="Chevron" Grid.Column="1" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Focusable="False" IsTabStop="False" RenderTransformOrigin="0.5,0.5"
+                                Foreground="{DynamicResource TextBrushDarker}"
+                                Content="{DynamicResource IconDropDown}" ContentTemplate="{DynamicResource IconTemplate}">
+                    <ContentControl.RenderTransform>
+                        <RotateTransform x:Name="ChevronTurn" />
+                    </ContentControl.RenderTransform>
+                </ContentControl>
+            </Grid>
+            <ToggleButton x:Name="MainToggle"
+                          BorderThickness="0" Focusable="False"
+                          HorizontalContentAlignment="Stretch"
+                          Background="Transparent">
+                <ToggleButton.Style>
+                    <Style TargetType="ToggleButton">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                    <Border Background="Transparent">
+                                        <ContentPresenter />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ToggleButton.Style>
+            </ToggleButton>
+            <TextBox x:Name="PART_TextFilterInput" Style="{DynamicResource BareTextBox}" BorderThickness="0" MinHeight="0"
+                     VerticalAlignment="Center" Margin="1,0,56,0" Padding="9,0,0,0" />
+            <Button x:Name="PART_ButtonClearFilter"
+                    Margin="0,0,32,0" Width="24" FontSize="18" MinHeight="0"
+                    Foreground="{DynamicResource TextBrushDarker}" HorizontalAlignment="Right"
+                    BorderThickness="0" Padding="3,0,3,0"
+                    ContentTemplate="{DynamicResource ClearTextIconTemplate}">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="Transparent">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource LocalWhiteBrush}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=Root}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <Popup Placement="Bottom" Focusable="False" AllowsTransparency="True" Name="Popup" VerticalOffset="3"
+                   IsOpen="{Binding IsChecked, ElementName=MainToggle, Mode=TwoWay, Delay=100}" StaysOpen="False"
+                   MaxHeight="300" MinWidth="{Binding ActualWidth, ElementName=MainToggle}">
+                <Grid x:Name="ListBoard" SnapsToDevicePixels="True">
+                    <Grid.RenderTransform>
+                        <TranslateTransform x:Name="ListRise" />
+                    </Grid.RenderTransform>
+                    <Control Template="{DynamicResource LocalMenuBoardTemplate}" Focusable="False" IsTabStop="False" />
+                    <Grid Margin="7,7,7,11">
+                        <ItemsControl x:Name="PART_ItemsPanel" />
+                    </Grid>
+                </Grid>
+            </Popup>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="RimHoverIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="RimHoverOut">
+                        <Storyboard FillBehavior="Stop">
+                            <DoubleAnimation Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="Opacity" Value="1" TargetName="FocusRim" />
+            </Trigger>
+            <Trigger SourceName="MainToggle" Property="IsChecked" Value="True">
+                <Setter Property="Opacity" Value="1" TargetName="FocusRim" />
+                <Setter Property="Foreground" Value="{DynamicResource LocalWhiteBrush}" TargetName="Chevron" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="ListRiseIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="ListBoard" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="ListRise" Storyboard.TargetProperty="Y" From="6" To="0" Duration="0:0:0.14">
+                                <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="ChevronTurn" Storyboard.TargetProperty="Angle" To="180" Duration="0:0:0.12">
+                                <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="ListRiseIn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type FilterEnumSelectionBox}" BasedOn="{StaticResource {x:Type FilterEnumSelectionBox}}">
+        <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+    </Style>
+    <Style TargetType="{x:Type FilterStringSelectionBox}" BasedOn="{StaticResource {x:Type FilterStringSelectionBox}}">
+        <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+    </Style>
+    <Style TargetType="{x:Type FilterSelectionBox}" BasedOn="{StaticResource {x:Type FilterSelectionBox}}">
+        <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+    </Style>
+</ResourceDictionary>

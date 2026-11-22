@@ -15,7 +15,6 @@ Prioritized backlog for upcoming Playnite desktop themes, ordered by visual cont
 
 | # | Source | Polarity | Lane | Mode | Signature Playnite Hook |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Balatro** | Dark (Green Felt) | Game (Card / Roguelike) | `Showcase` | Deep baize-green casino felt, chunky beveled poker-chip Play button, red/blue **Chips × Mult** score plaque, tilted playing-card cover tiles with foil/polychrome rim accents. |
 | 2 | **Return of the Obra Dinn** | Light (1-Bit) | Game (1-Bit Print) | `Showcase` | Pure two-tone Bayer-dithered Macintosh palette (warm cream + deep espresso-ink), crisp 1px pixel frames, ship-manifest metadata ledger, pocket-watch compass-rose running indicator. |
 | 3 | **Mirror's Edge** | Stark Light | Game (Minimalist) | `Hybrid` | Blinding architectural snow-white surfaces with razor-sharp **Runner Vision crimson** reserved strictly for Play and active selection, hairline Swiss grid rules, diagonal momentum accents. |
 | 4 | **Severance (Lumon MDR)** | Dark Teal (or Clinical White) | Fictional TV UI | `Showcase` | Rounded CRT terminal bezel, cold cyan-green macrodata telemetry, five refinement-bin progress/score bars, sterile mid-century corporate Swiss typography. |

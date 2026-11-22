@@ -1,0 +1,1621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Ditherwake — Details View Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--od-ink-void);
+    color: var(--od-vellum);
+    font-family: var(--od-font-body);
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-font-smoothing: none;
+    image-rendering: pixelated;
+  }
+
+  .app {
+    display: flex;
+    width: 1280px;
+    height: 720px;
+    background: var(--od-ink-void);
+  }
+
+  /* =========================================================
+     LEFT SIDEBAR RAIL (44px wide — E.I.C. Ledger Spine & Watch Crown)
+     ========================================================= */
+  .sidebar {
+    width: 44px;
+    height: 720px;
+    flex: 0 0 44px;
+    background: var(--od-ink-void);
+    border-right: 1.5px solid var(--od-border-strong);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 4;
+  }
+  /* Inner copperplate double-rule seam along rail right edge */
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    top: 50px;
+    bottom: 0;
+    right: 2px;
+    width: 1px;
+    background: var(--od-border);
+    pointer-events: none;
+  }
+
+  /* 44x50 Memento Mortem Pocket-Watch Crown Tile (PART_ElemMainMenu) */
+  .main-menu-btn {
+    width: 42.5px;
+    height: 50px;
+    background: var(--od-vellum);
+    border-bottom: 4px solid var(--od-zenith-amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-ink-void);
+    position: relative;
+    flex: 0 0 50px;
+  }
+  .main-menu-btn::before {
+    content: "";
+    position: absolute;
+    inset: 3px 3px 4px 3px;
+    border: 1px solid var(--od-ink-void);
+    pointer-events: none;
+  }
+  .main-menu-btn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+
+  .rail-frieze {
+    height: 8px;
+    width: 40px;
+    background: var(--od-vellum-dim);
+    opacity: 0.55;
+    -webkit-mask-image: url("../src/Images/fx/dither-band.png");
+    -webkit-mask-size: 40px 8px;
+    flex: 0 0 8px;
+    margin-bottom: 4px;
+  }
+
+  .rail-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 2px;
+  }
+
+  .rail-item {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--od-vellum-muted);
+  }
+  .rail-item svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+  }
+
+  /* Active rail item: 1-Bit Inverted Vellum Cream bookmark plate + 4px Zenith Amber spine */
+  .rail-item.active {
+    background: var(--od-vellum);
+    color: var(--od-ink-void);
+    border-top: 1px solid var(--od-zenith-deep);
+    border-bottom: 1px solid var(--od-zenith-deep);
+  }
+  .rail-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--od-zenith-amber);
+    border-right: 1px solid var(--od-ink-void);
+  }
+  .rail-item.active::after {
+    content: "";
+    position: absolute;
+    right: 2px;
+    top: 3px;
+    bottom: 3px;
+    width: 1px;
+    background: var(--od-ink-void);
+  }
+
+  .rail-spacer { flex: 1; }
+  .rail-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 10px;
+    padding-right: 3px;
+  }
+  .rail-compass-diamond {
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--od-zenith-amber);
+    transform: rotate(45deg);
+  }
+  .rail-stamp {
+    width: 32px;
+    padding: 5px 2px;
+    border: 1px solid var(--od-border-strong);
+    background: var(--od-slate-ledger);
+    font-family: "Consolas", "Cascadia Mono";
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--od-vellum-muted);
+    text-align: center;
+    line-height: 1.25;
+    letter-spacing: 0.4px;
+  }
+
+  /* =========================================================
+     RIGHT SHELL COLUMN (Top Panel + Library Body)
+     ========================================================= */
+  .main-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 720px;
+    position: relative;
+  }
+
+  /* =========================================================
+     TOP PANEL (50px tall — Copperplate Ledger Masthead & Ribbon)
+     ========================================================= */
+  .top-panel {
+    height: 50px;
+    flex: 0 0 50px;
+    background: var(--od-ink-void);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  .top-row {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    padding-right: 12px;
+    gap: 8px;
+    position: relative;
+  }
+
+  /* Search box (PART_TextMainSearch) — first at top left */
+  .search-box {
+    width: 244px;
+    height: 32px;
+    background: var(--od-slate-ledger);
+    border: 1px solid var(--od-border-strong);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 244px;
+  }
+  .search-box::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid var(--od-border);
+    pointer-events: none;
+  }
+  .search-spine {
+    width: 4px;
+    height: 32px;
+    background: var(--od-zenith-amber);
+    flex: 0 0 4px;
+    position: relative;
+    z-index: 2;
+  }
+  .search-icon {
+    width: 28px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-zenith-amber);
+    flex: 0 0 28px;
+    position: relative;
+    z-index: 2;
+  }
+  .search-icon svg { width: 14px; height: 14px; }
+  .search-text {
+    flex: 1;
+    color: var(--od-vellum);
+    font-size: 13px;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 2;
+  }
+  .search-clear {
+    width: 24px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-vellum-muted);
+    position: relative;
+    z-index: 2;
+  }
+  .search-clear svg { width: 11px; height: 11px; }
+
+  /* Toolbar buttons (34x32 copperplate plates) */
+  .top-btn {
+    width: 34px;
+    height: 32px;
+    background: var(--od-slate-surface);
+    border: 1px solid var(--od-border-strong);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-vellum-muted);
+    position: relative;
+    flex: 0 0 34px;
+  }
+  .top-btn svg { width: 15px; height: 15px; display: block; }
+
+  /* Filter toggle (PART_ToggleFilter) — active with 9x9px Commodore Cyan 4-point compass star pip */
+  .top-btn.filter-active {
+    border-color: var(--od-comm-cyan);
+    color: var(--od-vellum);
+  }
+  .filter-pip {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 9px;
+    height: 9px;
+    color: var(--od-comm-cyan);
+    display: block;
+  }
+
+  /* PART_PanelMainItems: sorting first, then icon-only view switches + group */
+  .main-items {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 32px;
+  }
+  /* Active view switch: True 1-Bit Inverted Vellum Cream plate + Zenith Amber top stitch */
+  .main-items .top-btn.checked {
+    background: var(--od-vellum);
+    border-color: var(--od-vellum);
+    border-top: 3px solid var(--od-zenith-amber);
+    color: var(--od-ink-void);
+  }
+
+  /* Global Progress & E.I.C. Ledger Masthead Inscription */
+  .top-telemetry {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-right: 8px;
+    min-width: 0;
+  }
+  .global-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .global-progress-label {
+    font-family: var(--od-font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.9px;
+    color: var(--od-vellum-muted);
+    text-transform: uppercase;
+  }
+  .global-progress {
+    width: 112px;
+    height: 12px;
+    background: var(--od-slate-surface);
+    border: 1px solid var(--od-border-strong);
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+    padding: 1px;
+  }
+  .global-progress-fill {
+    width: 70%;
+    height: 100%;
+    background: var(--od-zenith-amber);
+    -webkit-mask-image: url("../src/Images/fx/dither-cells.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 24px 10px;
+  }
+
+  .ledger-folio-tag {
+    font-family: var(--od-font-heading);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    color: var(--od-vellum);
+    white-space: nowrap;
+  }
+  .ledger-folio-tag span {
+    color: var(--od-zenith-amber);
+    margin-left: 5px;
+  }
+
+  .win-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 4px;
+  }
+  .win-btn {
+    width: 32px;
+    height: 28px;
+    background: var(--od-slate-surface);
+    border: 1px solid var(--od-border);
+    border-radius: 0;
+    color: var(--od-vellum-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .win-btn.close {
+    background: var(--od-slate-surface);
+    border-color: var(--od-vellum);
+    color: var(--od-vellum-bright);
+  }
+  .win-btn svg { width: 12px; height: 12px; }
+
+  /* Bottom 6px Double-Ruled Copperplate Border & Bayer Dither Frieze */
+  .top-copper-rule {
+    height: 6px;
+    position: relative;
+    border-top: 1.5px solid var(--od-vellum);
+    border-bottom: 1px solid var(--od-border-strong);
+    background: var(--od-ink-void);
+  }
+  .top-copper-dither {
+    position: absolute;
+    inset: 0;
+    background: var(--od-zenith-amber);
+    opacity: 0.45;
+    -webkit-mask-image: url("../src/Images/fx/dither-band.png");
+    -webkit-mask-size: 360px 6px;
+    -webkit-mask-repeat: no-repeat;
+  }
+
+  /* =========================================================
+     LIBRARY WORKSPACE (Game List + Game Details Page)
+     ========================================================= */
+  .library {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    background: var(--od-ink-void);
+    position: relative;
+  }
+
+  /* GAME LIST (248px left column — Inspector's Manifest Index) */
+  .game-list {
+    width: 248px;
+    flex: 0 0 248px;
+    background: var(--od-ink-void);
+    border-right: 1.5px solid var(--od-border-strong);
+    padding: 12px 8px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .list-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 4px 6px 2px;
+    font-family: var(--od-font-heading);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    color: var(--od-zenith-amber);
+    text-transform: uppercase;
+  }
+  .list-group-diamond {
+    width: 6px;
+    height: 6px;
+    border: 1.2px solid var(--od-zenith-amber);
+    transform: rotate(45deg);
+    flex: 0 0 6px;
+  }
+  .list-group-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--od-border-strong);
+  }
+
+  .game-row {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 10px 0 10px;
+    border-radius: 0;
+    position: relative;
+    color: var(--od-vellum);
+    font-size: 13.5px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .game-row-icon {
+    width: 20px;
+    height: 18px;
+    border-radius: 0;
+    background: var(--od-slate-surface);
+    border: 1px solid var(--od-border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 20px;
+    font-family: "Consolas", "Cascadia Mono";
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--od-vellum-muted);
+  }
+  .game-row-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Hovered row: Bayer-stippled slate wash + copperplate diamond nib + transparent RowHoverPlay */
+  .game-row.hovered {
+    background: var(--od-slate-hover);
+    padding-left: 16px;
+    padding-right: 34px;
+    color: var(--od-vellum-bright);
+  }
+  .game-row.hovered::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    width: 6px;
+    height: 6px;
+    border: 1.4px solid var(--od-zenith-amber);
+    transform: rotate(45deg);
+  }
+  .row-hover-play {
+    position: absolute;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-vellum);
+    opacity: 0.85;
+  }
+  .row-hover-play svg { width: 13px; height: 13px; }
+
+  /* Selected row: TRUE 1-BIT VELLUM INVERSION (#EBE5CE plate + var(--od-ink-void) ink + 4px Zenith Amber spine + Bayer dither tail) */
+  .game-row.selected {
+    background: var(--od-vellum);
+    color: var(--od-ink-void);
+    font-weight: 700;
+    padding-left: 14px;
+    border-top: 1px solid var(--od-zenith-deep);
+    border-bottom: 1px solid var(--od-zenith-deep);
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--od-zenith-amber);
+    border-right: 1px solid var(--od-ink-void);
+  }
+  .game-row.selected::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 4px;
+    top: 2px;
+    bottom: 2px;
+    border-top: 1px solid var(--od-ink-void);
+    border-bottom: 1px solid var(--od-ink-void);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .game-row.selected .game-row-icon {
+    background: var(--od-ink-void);
+    border-color: var(--od-ink-void);
+    color: var(--od-zenith-amber);
+  }
+
+  /* Running row: IBM 5151 Phosphor Emerald frame + wash + 2px foot rule + Three-Fate Roman Tallies (I II III) */
+  .game-row.running {
+    background: rgba(18, 130, 74, 0.24);
+    border: 1.5px solid var(--od-ibm-green);
+    border-bottom: 2px solid var(--od-ibm-phosphor);
+    padding-right: 38px;
+  }
+  .running-tallies {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 14px;
+  }
+  .running-tallies span {
+    width: 2.5px;
+    height: 12px;
+    background: var(--od-ibm-phosphor);
+    display: block;
+  }
+  .running-tallies span:nth-child(2) { height: 14px; }
+
+  .game-row.uninstalled { color: var(--od-vellum-muted); }
+
+  /* =========================================================
+     GAME PAGE (Details Overview — Chief Inspector's Logbook Spread)
+     ========================================================= */
+  .game-page {
+    flex: 1;
+    min-width: 0;
+    height: 670px;
+    background: var(--od-ink-void);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HERO BANNER (Woodcut Diptych Chapter Frame) */
+  .hero-wrap {
+    position: relative;
+    height: 222px;
+    flex: 0 0 222px;
+    overflow: hidden;
+  }
+  /* Double-ruled copperplate top engraving border with corner rosettes */
+  .hero-copper-frame {
+    position: absolute;
+    top: 10px;
+    left: 24px;
+    right: 24px;
+    height: 16px;
+    border-top: 1.5px solid var(--od-vellum);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .hero-copper-frame::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    right: 4px;
+    height: 1px;
+    background: var(--od-vellum-dim);
+  }
+  .hero-rosette {
+    position: absolute;
+    top: -4px;
+    width: 7px;
+    height: 7px;
+    background: var(--od-ink-void);
+    border: 1.5px solid var(--od-zenith-amber);
+    transform: rotate(45deg);
+  }
+  .hero-rosette.left { left: 0; }
+  .hero-rosette.right { right: 0; }
+
+  .hero-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(20, 21, 25, 0.14) 0%, rgba(20, 21, 25, 0.52) 56%, var(--od-ink-void) 100%),
+      linear-gradient(90deg, rgba(24, 25, 29, 0.72) 0%, rgba(24, 25, 29, 0.08) 46%, rgba(24, 25, 29, 0.44) 100%);
+  }
+
+  /* Game Title + Action Bar overlaying lower hero edge */
+  .game-header {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 4;
+  }
+  .game-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .game-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 0;
+    background: var(--od-slate-ledger);
+    border: 1.5px solid var(--od-vellum);
+    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 48px;
+    position: relative;
+  }
+  .game-icon-inner {
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--od-zenith-amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-vellum);
+  }
+  .game-title-stack { min-width: 0; }
+  .game-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 4px;
+    font-family: var(--od-font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--od-zenith-amber);
+    text-transform: uppercase;
+  }
+  .game-eyebrow-rule {
+    width: 28px;
+    height: 1.5px;
+    background: var(--od-vellum);
+  }
+  .game-title {
+    font-family: var(--od-font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 1.1px;
+    color: var(--od-vellum-bright);
+    white-space: nowrap;
+  }
+
+  /* ACTION BAR: Memento Mortem Play Plaque (STAGED IN HERO HOVER STATE!) + More + Edit */
+  .action-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+  }
+
+  /* HERO MOMENT: Memento Mortem Copperplate Play Plaque (Hovered End State in Zenith Amber + Soul-Burst) */
+  .play-btn {
+    height: 40px;
+    min-width: 168px;
+    background: var(--od-zenith-amber); /* Illuminates Vellum -> Zenith ZVM 1240 Amber on hover! */
+    border: 1.5px solid var(--od-vellum-bright);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 18px 0 12px;
+    color: var(--od-ink-void);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Inset double-ruled copperplate keyline with corner notches */
+  .play-btn::before {
+    content: "";
+    position: absolute;
+    inset: 2.5px;
+    border: 1px solid var(--od-ink-void);
+    pointer-events: none;
+    z-index: 2;
+  }
+  /* 1-Bit Bayer Dithered Memento Mortem Soul-Burst Wave (dither-glint.png via -webkit-mask) */
+  .play-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--od-vellum-bright);
+    opacity: 0.76;
+    -webkit-mask-image: url("../src/Images/fx/dither-glint.png");
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    pointer-events: none;
+  }
+  .play-watch-dial {
+    width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    background: var(--od-ink-void);
+    color: var(--od-zenith-amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 3;
+    transform: rotate(30deg); /* Rotated watch hands in hovered end state */
+  }
+  .play-watch-dial svg { width: 16px; height: 16px; }
+  .play-label {
+    font-family: var(--od-font-heading);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 2.2px;
+    line-height: 1;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 3;
+  }
+  .play-tally {
+    font-family: "Consolas", "Cascadia Mono";
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--od-ink-void);
+    opacity: 0.8;
+    position: relative;
+    z-index: 3;
+  }
+
+  /* Equal fixed-size 40x40 icon-only secondary actions (More, Edit) */
+  .action-icon-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--od-slate-surface);
+    border: 1.5px solid var(--od-border-strong);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--od-vellum);
+    position: relative;
+  }
+  .action-icon-btn::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid var(--od-border);
+    pointer-events: none;
+  }
+  .action-icon-btn svg { width: 16px; height: 16px; position: relative; z-index: 2; }
+
+  /* =========================================================
+     GAME PAGE BODY (Screenshots + Description Left, Metadata Right)
+     ========================================================= */
+  .page-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 20px;
+    padding: 8px 24px 16px 24px;
+    overflow: hidden;
+  }
+
+  /* MAIN CONTENT COLUMN */
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    overflow: hidden;
+  }
+
+  /* Copperplate Chapter Section Header */
+  .section-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 20px;
+  }
+  .section-rosette {
+    width: 7px;
+    height: 7px;
+    border: 1.5px solid var(--od-zenith-amber);
+    transform: rotate(45deg);
+    flex: 0 0 7px;
+  }
+  .section-bar-title {
+    font-family: var(--od-font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    color: var(--od-vellum-bright);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .section-bar-line {
+    flex: 1;
+    height: 3px;
+    border-top: 1px solid var(--od-vellum);
+    border-bottom: 1px solid var(--od-border-strong);
+  }
+  .section-bar-dither {
+    width: 36px;
+    height: 5px;
+    background: var(--od-zenith-amber);
+    opacity: 0.7;
+    -webkit-mask-image: url("../src/Images/fx/dither-band.png");
+    -webkit-mask-size: 36px 5px;
+  }
+
+  /* Steam Screenshots Strip (Three 1-Bit Engraved Memory Vignettes) */
+  .shots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    height: 108px;
+    flex: 0 0 108px;
+  }
+  .shot-card {
+    background: var(--od-slate-ledger);
+    border: 1.5px solid var(--od-border-strong);
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .shot-card::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid var(--od-border);
+    pointer-events: none;
+  }
+  .shot-card.active-shot {
+    border-color: var(--od-vellum);
+  }
+  .shot-card.active-shot::after {
+    border-color: var(--od-zenith-amber);
+  }
+  .shot-art {
+    flex: 1;
+    width: 100%;
+    display: block;
+  }
+  .shot-caption {
+    height: 20px;
+    background: var(--od-ink-void);
+    border-top: 1px solid var(--od-border);
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Consolas", "Cascadia Mono";
+    font-size: 10px;
+    color: var(--od-vellum-muted);
+  }
+  .shot-caption strong { color: var(--od-zenith-amber); }
+
+  /* Logbook Description Card */
+  .desc-card {
+    flex: 1;
+    background: var(--od-slate-ledger);
+    border: 1px solid var(--od-border);
+    border-left: 3px solid var(--od-vellum);
+    border-radius: 0;
+    padding: 9px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+  }
+  .desc-lead {
+    font-family: var(--od-font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--od-zenith-amber);
+    letter-spacing: 0.7px;
+  }
+  .desc-p {
+    color: var(--od-vellum);
+    font-size: 12px;
+    line-height: 1.38;
+  }
+  .desc-p em {
+    color: var(--od-vellum-bright);
+    font-style: italic;
+  }
+  .desc-p a {
+    color: var(--od-comm-cyan);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .desc-fate-box {
+    margin-top: auto;
+    padding: 7px 10px;
+    background: var(--od-ink-void);
+    border: 1px solid var(--od-border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--od-vellum-muted);
+  }
+  .desc-fate-box strong {
+    color: var(--od-vellum-bright);
+    font-family: var(--od-font-heading);
+    letter-spacing: 0.6px;
+  }
+
+  /* =========================================================
+     METADATA PANE (300px usable content inside E.I.C. Double-Ruled Crew Manifest)
+     ========================================================= */
+  .metadata-pane {
+    width: 334px;
+    flex: 0 0 334px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--od-slate-ledger);
+    border: 1.5px solid var(--od-vellum);
+    border-radius: 0;
+    padding: 3px;
+  }
+  .meta-inner-frame {
+    flex: 1;
+    border: 1px solid var(--od-border-strong);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Four carved corner rosette brackets inside metadata ledger */
+  .meta-corner {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border: 1.5px solid var(--od-zenith-amber);
+    background: var(--od-ink-void);
+    pointer-events: none;
+  }
+  .meta-corner.tl { top: 2px; left: 2px; }
+  .meta-corner.tr { top: 2px; right: 2px; }
+  .meta-corner.bl { bottom: 2px; left: 2px; }
+  .meta-corner.br { bottom: 2px; right: 2px; }
+
+  /* Hanging swallowtail book-ribbon bookmark at top-right of metadata manifest */
+  .meta-ribbon {
+    position: absolute;
+    top: 0;
+    right: 16px;
+    width: 14px;
+    height: 22px;
+    color: var(--od-zenith-amber);
+    z-index: 3;
+  }
+
+  .meta-masthead {
+    font-family: var(--od-font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: var(--od-zenith-amber);
+    text-transform: uppercase;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--od-border-strong);
+  }
+
+  .meta-body {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .meta-row {
+    display: grid;
+    grid-template-columns: 112px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 12.8px;
+  }
+  .meta-label {
+    color: var(--od-vellum-muted);
+    font-size: 12px;
+  }
+  .meta-val {
+    color: var(--od-vellum);
+    min-width: 0;
+  }
+  .meta-link {
+    color: var(--od-comm-cyan);
+  }
+
+  /* Engraved copperplate group divider centered on hollow compass diamond */
+  .meta-divider {
+    height: 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0;
+  }
+  .meta-div-line {
+    flex: 1;
+    height: 1px;
+    background: var(--od-border-strong);
+  }
+  .meta-div-diamond {
+    width: 6px;
+    height: 6px;
+    border: 1.3px solid var(--od-zenith-amber);
+    transform: rotate(45deg);
+  }
+
+  /* E.I.C. Insurance Assessment Stamp Score Plaques (TextBlockGameScore) */
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .score-plaque {
+    display: inline-flex;
+    align-items: stretch;
+    height: 22px;
+    background: var(--od-ink-void);
+    border: 1px solid var(--od-vellum);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .score-wax {
+    width: 4px;
+    background: var(--od-rating-pos);
+  }
+  .score-wax.amber { background: var(--od-zenith-amber); }
+  .score-num {
+    padding: 0 8px;
+    font-family: var(--od-font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--od-vellum-bright);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Swallowtail Book-Ribbon Tag Chips (PropertyItemButton Tag="Chip") */
+  .chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .od-chip {
+    height: 21px;
+    display: inline-flex;
+    align-items: center;
+    background: var(--od-slate-surface);
+    border: 1px solid var(--od-border-strong);
+    border-left: 3px solid var(--od-zenith-amber);
+    border-radius: 0;
+    padding: 0 8px 0 6px;
+    font-size: 11.5px;
+    color: var(--od-vellum);
+  }
+  /* Hovered chip: True 1-Bit Inverted Vellum Cream + dark Iron-Gall Ink */
+  .od-chip.hovered {
+    background: var(--od-vellum);
+    border-color: var(--od-vellum);
+    border-left: 3px solid var(--od-ink-void);
+    color: var(--od-ink-void);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- =========================================================
+       44px LEFT SIDEBAR RAIL
+       ========================================================= -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <!-- Ditherwake Original Watch-Compass Brand Mark -->
+      <svg viewBox="0 0 64 64" fill="currentColor">
+        <path d="M23,9 A9,6.5 0 0,1 41,9 H37.8 A5.8,4 0 0,0 26.2,9 Z"/>
+        <rect x="28.5" y="7.5" width="7" height="4.5" rx="1"/>
+        <path fill-rule="evenodd" d="M21,12 H43 L52,21 V43 L43,52 H21 L12,43 V21 Z M23,16 L16,23 V41 L23,48 H41 L48,41 V23 L41,16 Z"/>
+        <rect x="30.5" y="17.5" width="3" height="3.5"/>
+        <rect x="30.5" y="43" width="3" height="3.5"/>
+        <rect x="17.5" y="30.5" width="3.5" height="3"/>
+        <rect x="43" y="30.5" width="3.5" height="3"/>
+        <path fill-rule="evenodd" d="M32,21.5 L34.6,29.4 L42.5,32 L34.6,34.6 L32,42.5 L29.4,34.6 L21.5,32 L29.4,29.4 Z M32,29.5 A2.5,2.5 0 1,0 32,34.5 A2.5,2.5 0 1,0 32,29.5 Z"/>
+        <path d="M22.5,24.5 L24.5,22.5 L32,30 L30,32 Z"/>
+        <path d="M40.5,23.5 L42.2,25.5 L33.5,32.5 L31.8,30.5 Z"/>
+      </svg>
+    </div>
+    <div class="rail-frieze"></div>
+
+    <div class="rail-items">
+      <!-- Library (Active — 1-Bit Inverted Vellum Cream plate, Pixelarticons gamepad) -->
+      <div class="rail-item active" title="Library">
+        <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+          <path d="M4 4h16v2H4zm0 14h16v2H4zM2 6h2v12H2zm18 0h2v12h-2zM8 9h2v6H8zM6 11h6v2H6zm8-2h2v2h-2zm2 4h2v2h-2z"/>
+        </svg>
+      </div>
+      <!-- Statistics (Pixelarticons chart) -->
+      <div class="rail-item" title="Statistics">
+        <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+          <path d="M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM7 11h2v6H7zm4-4h2v10h-2zm4 6h2v4h-2z"/>
+        </svg>
+      </div>
+      <!-- Add-ons (Pixelarticons blocks) -->
+      <div class="rail-item" title="Add-ons">
+        <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+          <path d="M15 1h6v2h-6zm-2 2h2v6h-2zm2 6h6v2h-6zm6-6h2v6h-2zM3 5h6v2H3zM1 7h2v14H1zm2 14h14v2H3zm14-6h2v6h-2zM3 13h14v2H3zM9 7h2v14H9z"/>
+        </svg>
+      </div>
+      <!-- Random Game (Pixelarticons sparkles) -->
+      <div class="rail-item" title="Select Random Game">
+        <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+          <path d="M11 1h2v4h-2zm0 22h2v-4h-2zM9 5h2v4H9zm0 14h2v-4H9zm4-14h2v4h-2zm0 14h2v-4h-2zM5 9h4v2H5zm14 0h-4v2h4zM1 11h4v2H1zm22 0h-4v2h4zM5 13h4v2H5zm14 0h-4v2h4zm0-12h2v6h-2zM17 3h6v2h-6zM3 17h2v2H3zm-2 2h2v2H1zm2 2h2v2H3zm2-2h2v2H5z"/>
+        </svg>
+      </div>
+      <!-- Settings (Pixelarticons sliders) -->
+      <div class="rail-item" title="Settings">
+        <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+          <path d="M8 14H7v6H5v-6H2v-2h6v2Zm5 6h-2V10h2v10Zm9-2h-3v2h-2v-2h-1v-2h6v2Zm-3-4h-2V4h2v10ZM7 10H5V4h2v6Zm6-4h2v2H9V6h2V4h2v2Z"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="rail-spacer"></div>
+    <div class="rail-foot">
+      <div class="rail-compass-diamond"></div>
+      <div class="rail-stamp">1807<br/>E.I.C.<br/>LX</div>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       MAIN COLUMN (Top Panel + Library Content)
+       ========================================================= -->
+  <div class="main-col">
+
+    <!-- 50px TOP PANEL (search -> filter -> sorting first -> icon-only views) -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="top-row">
+        <!-- 1. Search Box (Pixelarticons search + close) -->
+        <div class="search-box" data-part="PART_TextMainSearch">
+          <div class="search-spine"></div>
+          <div class="search-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M22 22h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm-6-2H6v-2h8v2Zm4 0h-2v-2h2v2ZM6 16H4v-2h2v2Zm10 0h-2v-2h2v2ZM4 14H2V6h2v8Zm14 0h-2V6h2v8ZM6 6H4V4h2v2Zm10 0h-2V4h2v2Zm-2-2H6V2h8v2Z"/>
+            </svg>
+          </div>
+          <div class="search-text">The Bargain</div>
+          <div class="search-clear">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 2. Filter Toggle (Pixelarticons filter) -->
+        <div class="top-btn filter-active" data-part="PART_ToggleFilter" title="Filter Active">
+          <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+            <path d="M11 20H13V22H9V12H11V20ZM15 20H13V12H15V20ZM9 12H7V10H9V12ZM17 12H15V10H17V12ZM7 10H5V8H7V10ZM19 10H17V8H19V10ZM21 8H19V4H5V8H3V2H21V8Z"/>
+          </svg>
+          <svg class="filter-pip" viewBox="0 0 10 10" fill="currentColor" shape-rendering="crispEdges">
+            <path d="M4 0h2v4h4v2H6v4H4V6H0V4h4z"/>
+          </svg>
+        </div>
+
+        <!-- 3. PART_PanelMainItems: Sorting FIRST, then icon-only Pixelarticons view switches, group, explorer -->
+        <div class="main-items" data-part="PART_PanelMainItems">
+          <!-- Sort (FIRST, Pixelarticons sort-vertical) -->
+          <div class="top-btn" title="Sort By">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M16 4h2v16h-2zm-2 10h2v4h-2zm-2 0h2v2h-2zm6 0h2v4h-2zm2 0h2v2h-2zM6 20h2V4H6zM4 10h2V6H4zm-2 0h2V8H2zm6 0h2V6H8zm2 0h2V8h-2z"/>
+            </svg>
+          </div>
+          <!-- Details View (Active — Pixelarticons layout) -->
+          <div class="top-btn checked" title="Details View">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M20 20H4v-2h4v-8H4v8H2V6h2v2h16V6h2v12h-2v-8H10v8h10v2Zm0-14H4V4h16v2Z"/>
+            </svg>
+          </div>
+          <!-- Grid View (Pixelarticons grid-3x3) -->
+          <div class="top-btn" title="Grid View">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM4 8h16v2H4zm0 6h16v2H4zM8 4h2v16H8zm6 0h2v16h-2z"/>
+            </svg>
+          </div>
+          <!-- List View (Pixelarticons bulletlist) -->
+          <div class="top-btn" title="List View">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M10 5h12v2H10zm0 4h8v2h-8zm0 4h12v2H10zm0 4h8v2h-8zm-4-6H4V9h2v2ZM4 9H2V7h2v2Zm4 0H6V7h2v2ZM6 7H4V5h2v2Zm-2 6h2v2H4zm0 4h2v2H4zm-2 0v-2h2v2zm4 0v-2h2v2z"/>
+            </svg>
+          </div>
+          <!-- Group By (Pixelarticons blocks) -->
+          <div class="top-btn" title="Group By">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M15 1h6v2h-6zm-2 2h2v6h-2zm2 6h6v2h-6zm6-6h2v6h-2zM3 5h6v2H3zM1 7h2v14H1zm2 14h14v2H3zm14-6h2v6h-2zM3 13h14v2H3zM9 7h2v14H9z"/>
+            </svg>
+          </div>
+          <!-- Explorer Panel (Pixelarticons folder) -->
+          <div class="top-btn" title="Explorer Panel">
+            <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+              <path d="M4 4h6v2H4zm0 14h16v2H4zM20 8h2v10h-2zM2 6h2v12H2zm8 0h10v2H10z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Telemetry & 12px Bayer-Stepped Global Progress Bar -->
+        <div class="top-telemetry">
+          <div class="global-progress-wrap">
+            <span class="global-progress-label">Fates Verified · 42/60</span>
+            <div class="global-progress"><div class="global-progress-fill"></div></div>
+          </div>
+          <div class="ledger-folio-tag">CHIEF INSPECTOR'S LOG<span>MDCCCVII</span></div>
+        </div>
+
+        <!-- Notifications Toggle -->
+        <div class="top-btn" data-part="PART_ToggleNotifications" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+
+        <!-- Window Caption Buttons -->
+        <div class="win-controls">
+          <div class="win-btn">
+            <svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8"><line x1="2" y1="6" x2="10" y2="6"/></svg>
+          </div>
+          <div class="win-btn">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="7" height="7"/></svg>
+          </div>
+          <div class="win-btn close">
+            <svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="2"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6px Double-Ruled Copperplate Masthead Border & Bayer Dither Frieze -->
+      <div class="top-copper-rule">
+        <div class="top-copper-dither"></div>
+      </div>
+    </header>
+
+    <!-- =========================================================
+         LIBRARY WORKSPACE (Game List + Game Overview Page)
+         ========================================================= -->
+    <div class="library">
+
+      <!-- GAME LIST (data-part="game-list") -->
+      <aside class="game-list" data-part="game-list">
+        <div class="list-group-hdr">
+          <span class="list-group-diamond"></span>
+          <span>Book of Fates (12)</span>
+          <span class="list-group-rule"></span>
+        </div>
+
+        <div class="game-row">
+          <span class="game-row-icon">I</span>
+          <span class="game-row-name">I. Loose Cargo</span>
+        </div>
+        <div class="game-row">
+          <span class="game-row-icon">II</span>
+          <span class="game-row-name">II. A Bitter Cold</span>
+        </div>
+
+        <!-- Hovered Row (stippled slate wash + diamond nib + transparent RowHoverPlay) -->
+        <div class="game-row hovered">
+          <span class="game-row-icon">III</span>
+          <span class="game-row-name">III. Murder</span>
+          <span class="row-hover-play">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+          </span>
+        </div>
+
+        <div class="game-row">
+          <span class="game-row-icon">IV</span>
+          <span class="game-row-name">IV. The Calling</span>
+        </div>
+
+        <!-- Running Row (IBM 5151 Phosphor Emerald + Three-Fate Roman Tallies I II III) -->
+        <div class="game-row running">
+          <span class="game-row-icon" style="border-color: var(--od-ibm-phosphor); color: var(--od-ibm-phosphor);">V</span>
+          <span class="game-row-name">V. Unholy Captives</span>
+          <span class="running-tallies"><span></span><span></span><span></span></span>
+        </div>
+
+        <div class="game-row">
+          <span class="game-row-icon">VI</span>
+          <span class="game-row-name">VI. Soldiers of the Sea</span>
+        </div>
+
+        <!-- Selected Row (True 1-Bit Inverted Vellum Cream var(--od-vellum) + var(--od-ink-void) ink + 4px Zenith Amber spine) -->
+        <div class="game-row selected">
+          <span class="game-row-icon">VII</span>
+          <span class="game-row-name">VII. The Doom — Falmouth</span>
+        </div>
+
+        <div class="game-row">
+          <span class="game-row-icon">VIII</span>
+          <span class="game-row-name">VIII. The Bargain</span>
+        </div>
+        <div class="game-row">
+          <span class="game-row-icon">IX</span>
+          <span class="game-row-name">IX. Escape</span>
+        </div>
+        <div class="game-row">
+          <span class="game-row-icon">X</span>
+          <span class="game-row-name">X. The End</span>
+        </div>
+
+        <div class="list-group-hdr" style="margin-top: 6px;">
+          <span class="list-group-diamond"></span>
+          <span>Unexamined (3)</span>
+          <span class="list-group-rule"></span>
+        </div>
+        <div class="game-row uninstalled">
+          <span class="game-row-icon">61</span>
+          <span class="game-row-name">The Lazarette Ledger</span>
+        </div>
+        <div class="game-row uninstalled">
+          <span class="game-row-icon">62</span>
+          <span class="game-row-name">Formosa Star Soundings</span>
+        </div>
+        <div class="game-row uninstalled">
+          <span class="game-row-icon">63</span>
+          <span class="game-row-name">Cape Horn Watchbill</span>
+        </div>
+      </aside>
+
+      <!-- GAME PAGE (data-part="game-page") -->
+      <main class="game-page" data-part="game-page">
+
+        <!-- HERO BANNER (Woodcut Diptych Chapter Frame) -->
+        <div class="hero-wrap">
+          <div class="hero-copper-frame">
+            <span class="hero-rosette left"></span>
+            <span class="hero-rosette right"></span>
+          </div>
+
+          <!-- Original 1-Bit Pixelated Bayer 4x4 Maritime Scene (Moon, Clouds, Ship & Shimmering Waves) -->
+          <img src="preview-hero.png" alt="" class="hero-art" style="image-rendering: pixelated; object-fit: cover;" />
+          <div class="hero-scrim"></div>
+
+          <!-- HEADER: Icon + Eyebrow + Title + Hovered Play Plaque + More & Edit -->
+          <div class="game-header">
+            <div class="game-title-group">
+              <div class="game-icon-box">
+                <div class="game-icon-inner">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="12" cy="12" r="8"/><polygon points="12,5 14,10 19,12 14,14 12,19 10,14 5,12 10,10" fill="currentColor" fill-opacity="0.3"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="game-title-stack">
+                <div class="game-eyebrow">
+                  <span class="game-eyebrow-rule"></span>
+                  <span>Chapter VII · East India Company Logbook · 1807</span>
+                </div>
+                <h1 class="game-title">VII. The Doom — Falmouth</h1>
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <!-- HERO MOMENT: Memento Mortem Copperplate Play Plaque (Hovered End State) -->
+              <div class="play-btn">
+                <div class="play-watch-dial">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="12" cy="12" r="9"/><path d="M12 12L8 7M12 12L17 9"/>
+                  </svg>
+                </div>
+                <span class="play-label">Play</span>
+                <span class="play-tally">III/III</span>
+              </div>
+              <!-- Equal 40x40 icon-only secondary buttons (Pixelarticons more-horizontal + pencil) -->
+              <div class="action-icon-btn" title="More Actions">
+                <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+                  <path d="M3 9h2v2H3zm8 0h2v2h-2zm8 0h2v2h-2zM1 11h2v2H1zm8 0h2v2H9zm8 0h2v2h-2zM3 13h2v2H3zm8 0h2v2h-2zm8 0h2v2h-2zM5 11h2v2H5zm8 0h2v2h-2zm8 0h2v2h-2z"/>
+                </svg>
+              </div>
+              <div class="action-icon-btn" title="Edit Game">
+                <svg viewBox="0 0 24 24" fill="currentColor" shape-rendering="crispEdges">
+                  <path d="M4 16H6V18H8V20H10V22H2V14H4V16ZM12 20H10V18H12V20ZM14 18H12V16H14V18ZM10 16H8V14H10V16ZM16 16H14V14H16V16ZM6 14H4V12H6V14ZM12 14H10V12H12V14ZM18 14H16V12H18V14ZM8 12H6V10H8V12ZM14 12H12V10H14V12ZM20 12H18V10H20V12ZM10 10H8V8H10V10ZM18 10H16V8H18V10ZM22 10H20V8H22V10ZM12 8H10V6H12V8ZM16 8H14V6H16V8ZM20 8H18V6H20V8ZM14 6H12V4H14V6ZM18 6H16V4H18V6ZM16 4H14V2H16V4Z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY: Main Column Left + 300px Usable Metadata Manifest Right -->
+        <div class="page-body">
+          <div class="main-content">
+
+            <!-- Screenshots Section -->
+            <div class="section-bar">
+              <span class="section-rosette"></span>
+              <span class="section-bar-title">Memento Mortem Sketches</span>
+              <span class="section-bar-line"></span>
+              <span class="section-bar-dither"></span>
+            </div>
+
+            <div class="shots-grid">
+              <div class="shot-card active-shot">
+                <img src="preview-shot1.png" alt="" class="shot-art" style="image-rendering: pixelated; object-fit: cover;" />
+                <div class="shot-caption"><span>PT. 1 · QUARTERDECK</span><strong>VIII SOULS</strong></div>
+              </div>
+              <div class="shot-card">
+                <img src="preview-shot2.png" alt="" class="shot-art" style="image-rendering: pixelated; object-fit: cover;" />
+                <div class="shot-caption"><span>PT. 2 · BOWSPRIT RIG</span><strong>IV SOULS</strong></div>
+              </div>
+              <div class="shot-card">
+                <img src="preview-shot3.png" alt="" class="shot-art" style="image-rendering: pixelated; object-fit: cover;" />
+                <div class="shot-caption"><span>PT. 3 · ORLOP DECK</span><strong>VI SOULS</strong></div>
+              </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="section-bar">
+              <span class="section-rosette"></span>
+              <span class="section-bar-title">Description &amp; Testimony</span>
+              <span class="section-bar-line"></span>
+              <span class="section-bar-dither"></span>
+            </div>
+
+            <div class="desc-card">
+              <div class="desc-lead">EAST INDIA COMPANY · LONDON OFFICE · 14 OCTOBER 1807</div>
+              <p class="desc-p">
+                In 1802, the merchant barque departed London for the Orient with over two hundred tons of trade goods and sixty souls aboard. Six months later she failed to make her rendezvous at the <em>Cape of Good Hope</em> and was declared lost at sea.
+              </p>
+              <p class="desc-p">
+                This morning the vessel drifted into <a href="#">Falmouth Anchorage</a> with damaged sails and no crew in sight. Equipped with Henry Evans's ledger and the brass <em>Memento Mortem</em> watch, inspect every deck and prepare a complete assessment of fates.
+              </p>
+              <div class="desc-fate-box">
+                <span><strong>ENTRY #47 · TOPMEN</strong> — Torn apart by a terrible beast</span>
+                <span style="font-family: 'Consolas', 'Cascadia Mono'; color: var(--od-zenith-amber);">STAMPED IN INK</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- METADATA PANE (data-part="metadata" — E.I.C. Double-Ruled Crew Manifest) -->
+          <aside class="metadata-pane" data-part="metadata">
+            <div class="meta-inner-frame">
+              <span class="meta-corner tl"></span>
+              <span class="meta-corner tr"></span>
+              <span class="meta-corner bl"></span>
+              <span class="meta-corner br"></span>
+              <!-- Swallowtail Bookmark Ribbon -->
+              <svg class="meta-ribbon" viewBox="0 0 14 22" fill="currentColor">
+                <path d="M0,0 H14 V22 L7,16.5 L0,22 Z"/>
+              </svg>
+
+              <div class="meta-masthead">Manifest &amp; Assessment</div>
+
+              <div class="meta-body">
+                <!-- Group 1: MetaProgress -->
+                <div class="meta-row">
+                  <span class="meta-label">Completion Status</span>
+                  <span class="meta-val" style="color: var(--od-zenith-amber); font-weight: 700;">42 of 60 Fates Solved</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Time Played</span>
+                  <span class="meta-val">18h 45m</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Last Played</span>
+                  <span class="meta-val">Today, 20:15</span>
+                </div>
+
+                <div class="meta-divider">
+                  <span class="meta-div-line"></span><span class="meta-div-diamond"></span><span class="meta-div-line"></span>
+                </div>
+
+                <!-- Group 2: MetaScores -->
+                <div class="meta-row">
+                  <span class="meta-label">Scores</span>
+                  <div class="score-row">
+                    <span class="score-plaque"><span class="score-wax"></span><span class="score-num">94</span></span>
+                    <span class="score-plaque"><span class="score-wax amber"></span><span class="score-num">91</span></span>
+                    <span class="score-plaque"><span class="score-wax"></span><span class="score-num">96</span></span>
+                  </div>
+                </div>
+
+                <div class="meta-divider">
+                  <span class="meta-div-line"></span><span class="meta-div-diamond"></span><span class="meta-div-line"></span>
+                </div>
+
+                <!-- Group 3: MetaAbout -->
+                <div class="meta-row">
+                  <span class="meta-label">Developer</span>
+                  <span class="meta-val meta-link">Falmouth Studio</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Publisher</span>
+                  <span class="meta-val meta-link">Honourable E.I.C.</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Release Date</span>
+                  <span class="meta-val">18 Oct 1807</span>
+                </div>
+
+                <div class="meta-divider">
+                  <span class="meta-div-line"></span><span class="meta-div-diamond"></span><span class="meta-div-line"></span>
+                </div>
+
+                <!-- Group 4: MetaTags (Swallowtail Ribbon Chips, one hovered in 1-Bit Inverted Vellum!) -->
+                <div class="meta-row">
+                  <span class="meta-label">Genres</span>
+                  <div class="chip-wrap">
+                    <span class="od-chip hovered">Mystery</span>
+                    <span class="od-chip">Deduction</span>
+                    <span class="od-chip">1-Bit Dither</span>
+                  </div>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Features</span>
+                  <div class="chip-wrap">
+                    <span class="od-chip">Single-player</span>
+                    <span class="od-chip">Logbook</span>
+                  </div>
+                </div>
+
+                <div class="meta-divider">
+                  <span class="meta-div-line"></span><span class="meta-div-diamond"></span><span class="meta-div-line"></span>
+                </div>
+
+                <!-- Group 5 & 6: MetaLibrary & MetaLinks -->
+                <div class="meta-row">
+                  <span class="meta-label">Source</span>
+                  <span class="meta-val meta-link">Steam · 1-Bit Duotone</span>
+                </div>
+                <div class="meta-row">
+                  <span class="meta-label">Links</span>
+                  <span class="meta-val meta-link">Glossary · Deck Plan</span>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+        </div>
+      </main>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

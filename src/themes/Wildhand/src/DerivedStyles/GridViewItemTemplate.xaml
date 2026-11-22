@@ -1,0 +1,248 @@
+<!--
+    Wildhand: cover content. Parts from Playnite Default 10.60: PART_PanelHost, PART_ImageCover, PART_ButtonPlay, PART_ButtonInfo;
+    the empty-cover name, the under-cover name and the darken-uninstalled rules are kept.
+    Brushes: ExpanderBackgroundBrush and SlotBorderBrush (the empty slot), ScrimBrush (shades), LocalWhiteBrush and LocalInkBrush
+    (glyphs and rims), the Play and orange ledge brushes (the two tile buttons), PrimaryButtonBackgroundBrush (Play blue).
+    The cover is a card: art, its slot background and both shades are clipped by one OpacityMask to a 6px radius, so the corners stay
+    clear and the library behind shows through. The tile buttons sit above the mask, outside it, so they animate over a stable layer.
+    A cover with no image is a slot with a 2px rim and the name in Pixelify Sans.
+    Hover, animated both ways: the felt shade fades in; the Play and Info plates pop in (scale 0.7 to 1 with a BackEase, rising
+    8px), Info 50ms after Play; leaving reverses in 0.15s with FillBehavior Stop and hides the panel at the end.
+    GridTileButton is a ledged plate, 50x50: a flat face over a 4px ledge, 8px radius. Play is Play blue with a white play glyph,
+    Info (Tag Info) is orange with an ink info glyph. Hover rocks and pops the plate (1.08, -4, +3, -1.5 degrees) and draws a
+    white rim; press drops the face onto the ledge. The whole square is the hit area.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    mc:Ignorable="d">
+
+    <Style x:Key="GridTileButton" TargetType="Button">
+        <Setter Property="Width" Value="50" />
+        <Setter Property="Height" Value="50" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LocalPlayLedgeBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LocalWhiteBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="True" RenderTransformOrigin="0.5,0.5">
+                        <Grid.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="Pop" />
+                                <RotateTransform x:Name="Rock" />
+                            </TransformGroup>
+                        </Grid.RenderTransform>
+                        <Border x:Name="Ledge" Margin="0,4,0,0" Background="{TemplateBinding BorderBrush}" CornerRadius="8" IsHitTestVisible="False" />
+                        <Grid x:Name="Face" Margin="0,0,0,4" IsHitTestVisible="False">
+                            <Border x:Name="Plate" Background="{TemplateBinding Background}" CornerRadius="8" />
+                            <Border x:Name="HoverPlate" Background="{DynamicResource LocalWhiteBrush}" CornerRadius="8" Opacity="0" />
+                            <Viewbox Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <ContentControl Content="{TemplateBinding Content}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                Foreground="{TemplateBinding Foreground}" Focusable="False" IsTabStop="False" />
+                            </Viewbox>
+                        </Grid>
+                        <Border x:Name="Rim" Margin="-3,-3,-3,1" Opacity="0" IsHitTestVisible="False" BorderBrush="{DynamicResource LocalWhiteBrush}" BorderThickness="2" CornerRadius="11" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Name="TileHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Rim" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0.14" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="Pop" Storyboard.TargetProperty="ScaleX" To="1.08" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Pop" Storyboard.TargetProperty="ScaleY" To="1.08" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.5" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Rock" Storyboard.TargetProperty="Angle">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.06" Value="-4" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.14" Value="3" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.22" Value="-1.5" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="TileHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Rim" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Pop" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Pop" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Rock" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <!-- Press: the face drops onto the ledge. -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Face" Property="Margin" Value="0,4,0,0" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <!-- Info is the orange plate with an ink glyph. -->
+            <Trigger Property="Tag" Value="Info">
+                <Setter Property="Background" Value="{DynamicResource LocalOrangeBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource LocalOrangeLedgeBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="GridViewItemTemplate" TargetType="{x:Type GameListItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type GameListItem}">
+                    <Border BorderThickness="{Settings GridItemMargin}" BorderBrush="{DynamicResource GridItemBackgroundBrush}" CornerRadius="6">
+                        <StackPanel Name="PART_PanelHost"
+                                    d:DataContext="{x:Static DesignMainViewModel.DesignSelectedGameIntance}">
+                            <Grid Width="{Settings GridItemWidth}" Height="{Settings GridItemHeight}">
+                                <!-- Rounded cover and shades: one mask. The tile buttons stay outside it. -->
+                                <Grid x:Name="CoverHost" ClipToBounds="True">
+                                    <Grid.OpacityMask>
+                                        <VisualBrush Stretch="Fill">
+                                            <VisualBrush.Visual>
+                                                <Border Width="{Settings GridItemWidth}" Height="{Settings GridItemHeight}" CornerRadius="6" Background="Black" />
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Grid.OpacityMask>
+                                    <Border x:Name="CoverBlob" Background="{DynamicResource ExpanderBackgroundBrush}" />
+                                    <Image Name="PART_ImageCover"
+                                           RenderOptions.BitmapScalingMode="Fant" StretchDirection="Both"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Stretch="{Settings CoverArtStretch}" />
+                                    <Grid x:Name="TextGameName" Visibility="Collapsed">
+                                        <TextBlock Text="{Binding DisplayName}" FontFamily="{DynamicResource LocalPosterFontFamily}" FontSize="{DynamicResource FontSizeLarger}"
+                                                   Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" Margin="10"
+                                                   TextTrimming="CharacterEllipsis" TextAlignment="Center"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+                                    <!-- Darken uninstalled (static) and the hover shade (animated) are separate layers. -->
+                                    <Border x:Name="BorderUninstalled" Background="{DynamicResource ScrimBrush}" Opacity="0.62" Visibility="Collapsed" />
+                                    <Border x:Name="BorderMouseOver" Background="{DynamicResource ScrimBrush}" Opacity="0" />
+                                </Grid>
+                                <!-- The empty slot's rim, in the same card shape. -->
+                                <Border x:Name="CoverRim" Visibility="Collapsed" BorderBrush="{DynamicResource SlotBorderBrush}" BorderThickness="2"
+                                        CornerRadius="6" IsHitTestVisible="False" />
+                                <Viewbox VerticalAlignment="Center" HorizontalAlignment="Center" StretchDirection="DownOnly" MaxWidth="190"
+                                         Name="GameControls" Visibility="Hidden">
+                                    <StackPanel Orientation="Horizontal" Margin="8">
+                                        <Button Name="PART_ButtonPlay" Style="{StaticResource GridTileButton}" Margin="0,0,8,0"
+                                                Content="{DynamicResource IconPlay}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                            <Button.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform x:Name="PlayScale" ScaleX="0.7" ScaleY="0.7" />
+                                                    <TranslateTransform x:Name="PlayRise" Y="8" />
+                                                </TransformGroup>
+                                            </Button.RenderTransform>
+                                        </Button>
+                                        <Button Name="PART_ButtonInfo" Style="{StaticResource GridTileButton}" Tag="Info" Margin="0"
+                                                Content="{DynamicResource IconInfo}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                            <Button.RenderTransform>
+                                                <TransformGroup>
+                                                    <ScaleTransform x:Name="InfoScale" ScaleX="0.7" ScaleY="0.7" />
+                                                    <TranslateTransform x:Name="InfoRise" Y="8" />
+                                                </TransformGroup>
+                                            </Button.RenderTransform>
+                                        </Button>
+                                    </StackPanel>
+                                </Viewbox>
+                            </Grid>
+                            <TextBlock Text="{Binding DisplayName}"
+                                       Style="{DynamicResource BaseTextBlockStyle}"
+                                       TextAlignment="Center" TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center"
+                                       Padding="2,5,2,5" Grid.Row="1" Grid.Column="0"
+                                       Width="{Settings GridItemWidth}"
+                                       Visibility="{Settings ShowNamesUnderCovers}" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsInstalled}" Value="False">
+                            <Setter Property="Content" Value="{DynamicResource IconDownload}" TargetName="PART_ButtonPlay" />
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsInstalled}" Value="False" />
+                                <Condition Binding="{Settings DarkenUninstalledGamesGrid}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible" TargetName="BorderUninstalled" />
+                        </MultiDataTrigger>
+                        <DataTrigger Binding="{Binding CoverImage}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible" TargetName="CoverRim" />
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding CoverImage}" Value="{x:Null}" />
+                                <Condition Binding="{Settings ShowNameEmptyCover}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Visible" TargetName="TextGameName" />
+                        </MultiDataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="GameControls" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="BorderMouseOver" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0:0:0.15" />
+                                        <DoubleAnimation Storyboard.TargetName="PART_ButtonPlay" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="PlayRise" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PART_ButtonInfo" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.05" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="InfoRise" Storyboard.TargetProperty="Y" To="0" BeginTime="0:0:0.05" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="InfoScale" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.05" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="InfoScale" Storyboard.TargetProperty="ScaleY" To="1" BeginTime="0:0:0.05" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BorderMouseOver" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PART_ButtonPlay" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PART_ButtonInfo" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlayRise" Storyboard.TargetProperty="Y" To="8" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="InfoRise" Storyboard.TargetProperty="Y" To="8" Duration="0:0:0.15">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleX" To="0.7" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleY" To="0.7" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="InfoScale" Storyboard.TargetProperty="ScaleX" To="0.7" Duration="0:0:0.15" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="InfoScale" Storyboard.TargetProperty="ScaleY" To="0.7" Duration="0:0:0.15" />
+                                        <ObjectAnimationUsingKeyFrames FillBehavior="Stop" Storyboard.TargetName="GameControls" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Hidden}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

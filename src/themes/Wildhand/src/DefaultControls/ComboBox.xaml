@@ -1,0 +1,219 @@
+<!--
+    Wildhand: ComboBox. The closed box is Balatro's Options-screen value box: a danger-red face (LocalDangerBrush) over a 4px
+    LocalDangerLedgeBrush ledge, white label, a 32px chevron cell on the right (IconDropDown, white, 12px) set off by a thin ledge-coloured
+    line. 32px with the ledge counted in (28px face). Calm: no scale or rock, only a white 2px rim that fades in on hover and stays on keyboard
+    focus and while open; the chevron turns over while the list is open. The list is the shared board (LocalMenuBoardTemplate, ContextMenu.xaml)
+    and rises in on IsDropDownOpen; ComboBoxItem rows are the menu rows of Menu.xaml: 30px, the orange ledged pill fades in over 110ms with a 1px
+    hop, ink text, and the chosen item carries the inset tick box (LocalMenuCheckTemplate). Recipe: docs/themes/menus.md.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+        <Setter Property="Foreground" Value="{DynamicResource LocalWhiteBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource LocalDangerBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LocalDangerLedgeBrush}" />
+        <Setter Property="Padding" Value="12,3,4,3" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ComboBox}">
+                    <Grid SnapsToDevicePixels="True">
+                        <!-- value box: face over a 4px ledge (Background = face, BorderBrush = ledge) -->
+                        <Border x:Name="Ledge" Margin="0,4,0,0" IsHitTestVisible="False" Background="{TemplateBinding BorderBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="Face" Margin="0,0,0,4" IsHitTestVisible="False" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <ToggleButton x:Name="ToggleButton" Focusable="False" ClickMode="Press"
+                                      IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                    <Grid Background="Transparent">
+                                        <!-- chevron cell: 32px wide over the face, a thin ledge-coloured line on its left edge -->
+                                        <Grid Width="32" Margin="0,0,0,4" HorizontalAlignment="Right" IsHitTestVisible="False">
+                                            <Rectangle Width="1" Margin="0,5,0,5" HorizontalAlignment="Left" Fill="{DynamicResource LocalDangerLedgeBrush}" />
+                                            <ContentControl x:Name="Chevron" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                            Focusable="False" IsTabStop="False" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"
+                                                            Foreground="{DynamicResource LocalWhiteBrush}"
+                                                            Content="{DynamicResource IconDropDown}" ContentTemplate="{DynamicResource IconTemplate}">
+                                                <ContentControl.RenderTransform>
+                                                    <RotateTransform x:Name="ChevronTurn" />
+                                                </ContentControl.RenderTransform>
+                                            </ContentControl>
+                                        </Grid>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard x:Name="ChevronOpen">
+                                                    <Storyboard>
+                                                        <DoubleAnimation Storyboard.TargetName="ChevronTurn" Storyboard.TargetProperty="Angle" To="180" Duration="0:0:0.12">
+                                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                                        </DoubleAnimation>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard x:Name="ChevronClose">
+                                                    <Storyboard FillBehavior="Stop">
+                                                        <DoubleAnimation Storyboard.TargetName="ChevronTurn" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.1" />
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <!-- the white rim: hover fades HoverRim in; keyboard focus and an open list hold FocusRim (separate layers, so the hover exit never flickers a held rim) -->
+                        <Border x:Name="HoverRim" Margin="0,0,0,4" Opacity="0" IsHitTestVisible="False" BorderBrush="{DynamicResource LocalWhiteBrush}" BorderThickness="2"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Border x:Name="FocusRim" Margin="0,0,0,4" Opacity="0" IsHitTestVisible="False" BorderBrush="{DynamicResource LocalWhiteBrush}" BorderThickness="2"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <!-- 40px on the right for the chevron cell (32px) plus 8px of air -->
+                        <Border Margin="0,0,40,4" IsHitTestVisible="False">
+                            <ContentPresenter x:Name="ContentSite" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
+                        </Border>
+                        <TextBox x:Name="PART_EditableTextBox" MinHeight="0" Visibility="Hidden" VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                                 Margin="1,0,40,4" Focusable="True" BorderThickness="0" Background="Transparent"
+                                 Style="{DynamicResource BareTextBox}" Padding="10,0,10,0"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" Foreground="{DynamicResource LocalWhiteBrush}" CaretBrush="{DynamicResource LocalWhiteBrush}" />
+                        <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
+                               VerticalOffset="2" Focusable="False" AllowsTransparency="True">
+                            <Grid x:Name="ListBoard" MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="ListRise" />
+                                </Grid.RenderTransform>
+                                <Control Template="{DynamicResource LocalMenuBoardTemplate}" Focusable="False" IsTabStop="False" />
+                                <ScrollViewer Margin="7,7,7,11" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="RimHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="RimHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="Opacity" Value="1" TargetName="FocusRim" />
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter Property="Opacity" Value="1" TargetName="FocusRim" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListRiseIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ListBoard" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListRise" Storyboard.TargetProperty="Y" From="6" To="0" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="ListRiseIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter Property="IsTabStop" Value="False" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="PART_EditableTextBox" />
+                            <Setter Property="Visibility" Value="Hidden" TargetName="ContentSite" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="{x:Type ComboBoxItem}">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Control x:Name="ListHover" Template="{DynamicResource LocalMenuPillTemplate}" Margin="0,2,0,0" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False"
+                                 Focusable="False" IsTabStop="False" Background="{DynamicResource LocalOrangeBrush}" BorderBrush="{DynamicResource LocalOrangeLedgeBrush}">
+                            <Control.RenderTransform>
+                                <TranslateTransform x:Name="ListHoverHop" />
+                            </Control.RenderTransform>
+                        </Control>
+                        <Grid Margin="6,0,8,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- chosen: the inset tick box -->
+                            <Control x:Name="ListCheck" Template="{DynamicResource LocalMenuCheckTemplate}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                     Visibility="Collapsed" Focusable="False" IsTabStop="False" />
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListCheck" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="ListHoverHop" Storyboard.TargetProperty="Y" To="-1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="ListHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="ListHoverHop" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

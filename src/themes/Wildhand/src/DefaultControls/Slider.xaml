@@ -1,0 +1,157 @@
+<!--
+    Wildhand: Slider. Balatro's option slider: a 16px recessed track (SliderTrackBrush, radius 8 = half the thickness, a 2px dark inset strip along its top
+    edge) filled with the mult red (LocalMultBrush through the slider's Foreground), and a white 18x18 rounded-square thumb with a 2px dark under-edge. The thumb
+    takes a 2px orange rim on hover and while dragged, and a white focus ring from the keyboard. The thumb is 22px tall, so the row measures to the thumb and the
+    track centres in it.
+    Playnite's two ThemeModifier banner sliders grey out while window art is on (see below).
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="SliderTrackButton" TargetType="{x:Type RepeatButton}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="true" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The filled part: red, rounded on the left, running 9px under the thumb so its end never shows. -->
+    <Style x:Key="SliderRangeButton" TargetType="{x:Type RepeatButton}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type RepeatButton}">
+                    <Grid Background="Transparent">
+                        <Border Height="16" Margin="0,0,-9,0" VerticalAlignment="Center" Background="{DynamicResource LocalMultBrush}" CornerRadius="8,0,0,8" IsHitTestVisible="False" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SliderThumb" TargetType="{x:Type Thumb}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                    <Grid Width="18" Height="22" Background="Transparent">
+                        <Border x:Name="Ring" Margin="-3,-1,-3,1" Visibility="Collapsed" IsHitTestVisible="False" BorderBrush="{DynamicResource FocusBrush}" BorderThickness="2" CornerRadius="8" />
+                        <Border Margin="0,4,0,0" Background="{DynamicResource LocalLedgeSlateBrush}" CornerRadius="5" IsHitTestVisible="False" />
+                        <Border x:Name="Face" Margin="0,2,0,2" Background="{DynamicResource SliderThumbBackgroundBrush}" BorderBrush="{DynamicResource SliderThumbBackgroundBrush}"
+                                BorderThickness="2" CornerRadius="5" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource SliderThumbHoverBorderBrush}" TargetName="Face" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource SliderThumbHoverBorderBrush}" TargetName="Face" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource AncestorType=Slider}}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="Ring" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type Slider}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource SliderTrackBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource LocalMultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Slider}">
+                    <Grid x:Name="GridRoot">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TickBar x:Name="TopTick" Visibility="Collapsed" Height="4" Placement="Top"
+                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                 Fill="{DynamicResource TextBrushDarker}" />
+                        <Border x:Name="Rail" Grid.Row="1" Height="16" VerticalAlignment="Center" Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource LocalLedgeSlateBrush}" BorderThickness="0,2,0,0" CornerRadius="8" />
+                        <Track Grid.Row="1" x:Name="PART_Track" Height="{TemplateBinding Height}">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton x:Name="ButtonDecrease"
+                                              Style="{StaticResource SliderRangeButton}"
+                                              Command="Slider.DecreaseLarge" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton x:Name="ButtonIncrease"
+                                              Style="{StaticResource SliderTrackButton}"
+                                              Command="Slider.IncreaseLarge" />
+                            </Track.IncreaseRepeatButton>
+                            <!-- Set last: Track stacks its parts in the order they are set, so the thumb covers the range's end. -->
+                            <Track.Thumb>
+                                <Thumb Style="{DynamicResource SliderThumb}" />
+                            </Track.Thumb>
+                        </Track>
+                        <TickBar x:Name="BottomTick" Visibility="Collapsed" Grid.Row="2" Height="4" Placement="Bottom"
+                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                 Fill="{DynamicResource TextBrushDarker}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="PART_Track" Property="FocusManager.FocusedElement" Value="{Binding ElementName=PART_Track}" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="TopLeft">
+                            <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="BottomRight">
+                            <Setter Property="Visibility" Value="Visible" TargetName="BottomTick" />
+                        </Trigger>
+                        <Trigger Property="TickPlacement" Value="Both">
+                            <Setter Property="Visibility" Value="Visible" TargetName="TopTick" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="BottomTick" />
+                        </Trigger>
+                        <Trigger Property="Orientation" Value="Vertical">
+                            <Setter Property="LayoutTransform" TargetName="GridRoot">
+                                <Setter.Value>
+                                    <RotateTransform Angle="-90" />
+                                </Setter.Value>
+                            </Setter>
+                            <Setter TargetName="PART_Track" Property="Orientation" Value="Horizontal" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <!-- ThemeModifier's banner height and banner darkening sliders (each row label is the Grid's first child, Tag = the key) are off while Playnite
+                 draws the game art behind the whole window: the game pages collapse the banner then (AGENTS.md "Window background"). -->
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Children[0].Tag, RelativeSource={RelativeSource AncestorType=Grid}}" Value="GameBannerHeight" />
+                    <Condition Binding="{Settings ShowBackgroundImageOnWindow}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="Opacity" Value="0.4" />
+            </MultiDataTrigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Children[0].Tag, RelativeSource={RelativeSource AncestorType=Grid}}" Value="GameBannerDarken" />
+                    <Condition Binding="{Settings ShowBackgroundImageOnWindow}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="Opacity" Value="0.4" />
+            </MultiDataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

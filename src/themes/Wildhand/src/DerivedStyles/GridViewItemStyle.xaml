@@ -1,0 +1,301 @@
+<!--
+    Wildhand: cover tiles, drawn as Balatro's cards. Structure: Playnite Default 10.60 (GridViewItemStyle).
+    Brushes: GridViewItemHoverBorderBrush and GridViewItemSelectedBorderBrush (the white rims), LocalOrangeLedgeBrush (the ledge
+    under a selected card), ScrimBrush (the contact shade on the felt), RunningIndicatorBrush (green) with LocalInsetBrush (the
+    capsule behind the three value dots).
+    The cover is a card with a 6px radius (GridViewItemTemplate clips art, background and scrims to it); the corners stay clear.
+    Hover, animated both ways and from ControlTemplate.Triggers only: the card lifts 6px and tilts 1.5 degrees (140ms, BackEase)
+    while a hard contact shade fades in on the felt below it and a 2px white rim fades in. Hover motion has its own transforms and
+    only plays while the card is not selected.
+    Selected, on its own transforms: the card lifts 10px and tilts 2 degrees with an overshoot and a small wobble (the settle),
+    a 2px white rim sits over a 4px orange ledge drawn under the card. Everything is drawn in the card, so rims and ledge travel
+    with it; the item's own hit area (ItemGrid) never moves.
+    Running game (docs/themes/reference.md): RunningIndicator sits last in the card, inset 4px so selection keeps the outer edge.
+    It holds a green band inside the edge, a 2px green frame, a ledge strip at the foot that fills as a progress bar, and a dark
+    capsule with three green value dots. Launching: a green band sweeps the cover (1.6s loop) while the strip fills and the dots
+    step fast (220ms). Running: the frame breathes 0.7 to 1 over 3.2s and the dots step slowly (400ms). Hover and selection never
+    touch it.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="GridViewItemStyle" TargetType="{x:Type ListBoxItem}">
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                    <!-- ItemGrid never moves: its transparent background keeps the pointer over the item while the card lifts. -->
+                    <Grid x:Name="ItemGrid" Margin="{Settings ItemSpacingMargin}" Background="Transparent">
+                        <!-- The contact shade on the felt: it stays put while the card rises off it. -->
+                        <Border x:Name="LiftShadow" Opacity="0" IsHitTestVisible="False" CornerRadius="6" Background="{DynamicResource ScrimBrush}" />
+                        <Grid x:Name="Card" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform x:Name="HoverTilt" Angle="0" />
+                                    <RotateTransform x:Name="SelectTilt" Angle="0" />
+                                    <TranslateTransform x:Name="HoverLift" Y="0" />
+                                    <TranslateTransform x:Name="SelectLift" Y="0" />
+                                </TransformGroup>
+                            </Grid.RenderTransform>
+                            <!-- Selected: the orange ledge drawn under the card. -->
+                            <Border x:Name="SelectionLedge" Visibility="Collapsed" Opacity="0" Margin="0,4,0,-4" IsHitTestVisible="False" CornerRadius="6" Background="{DynamicResource LocalOrangeLedgeBrush}" />
+                            <Border x:Name="Panel" CornerRadius="6" Background="{DynamicResource GridItemBackgroundBrush}">
+                                <Grid>
+                                    <ContentPresenter x:Name="CoverPresenter" />
+                                    <!-- Hover: a 2px white rim. -->
+                                    <Border x:Name="HoverFrame" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" BorderThickness="2" CornerRadius="6"
+                                            BorderBrush="{DynamicResource GridViewItemHoverBorderBrush}" />
+                                    <!-- Selected: a 2px white rim over the ledge. -->
+                                    <Border x:Name="SelectionBorder" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" BorderThickness="2" CornerRadius="6"
+                                            BorderBrush="{DynamicResource GridViewItemSelectedBorderBrush}" />
+                                </Grid>
+                            </Border>
+                            <Grid x:Name="RunningIndicator" Margin="4" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                                <Border x:Name="RunningWash" CornerRadius="4" BorderThickness="8" BorderBrush="{DynamicResource RunningIndicatorBrush}" Opacity="0.2" />
+                                <Border x:Name="RunningScan" Visibility="Collapsed" CornerRadius="4" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.3">
+                                    <Border.OpacityMask>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.4" />
+                                            <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                            <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                        </LinearGradientBrush>
+                                    </Border.OpacityMask>
+                                </Border>
+                                <Border x:Name="RunningFrame" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource RunningIndicatorBrush}" />
+                                <Grid x:Name="RunningFoot" Height="3" Margin="12,0,12,7" VerticalAlignment="Bottom">
+                                    <Rectangle Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.3" />
+                                    <Rectangle x:Name="RunningFill" Fill="{DynamicResource RunningIndicatorBrush}" RenderTransformOrigin="0,0.5">
+                                        <Rectangle.RenderTransform>
+                                            <ScaleTransform x:Name="RunningFillScale" ScaleX="0" />
+                                        </Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Grid>
+                                <Border Margin="0,0,0,18" Padding="9,7" HorizontalAlignment="Center" VerticalAlignment="Bottom" CornerRadius="5" Background="{DynamicResource LocalInsetBrush}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Rectangle x:Name="RunningDot1" Width="6" Height="6" Fill="{DynamicResource RunningIndicatorBrush}" />
+                                        <Rectangle x:Name="RunningDot2" Width="6" Height="6" Margin="4,0,0,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.35" />
+                                        <Rectangle x:Name="RunningDot3" Width="6" Height="6" Margin="4,0,0,0" Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.35" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- Hover rim and contact shade: always while hovered, selected or not. -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="HoverExit" />
+                                <BeginStoryboard Name="HoverEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.1" />
+                                        <DoubleAnimation Storyboard.TargetName="LiftShadow" Storyboard.TargetProperty="Opacity" To="0.7" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="HoverExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="LiftShadow" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverFrame" Storyboard.TargetProperty="Visibility" Duration="0:0:0.16">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="HoverEnter" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <!-- Hover lift and tilt: a card that is not selected rises 6px and tilts 1.5 degrees. -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="IsSelected" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="LiftExit" />
+                                <BeginStoryboard Name="LiftEnter">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverLift" Storyboard.TargetProperty="Y" To="-6" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="HoverTilt" Storyboard.TargetProperty="Angle" To="1.5" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard Name="LiftExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverTilt" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.16" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="LiftEnter" />
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+                        <!-- Selected: the card lifts 10px and tilts 2 degrees with an overshoot and a wobble, the ledge and rim settle in. -->
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Canvas.ZIndex" Value="90" />
+                            <Trigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="SelectExit" />
+                                <BeginStoryboard Name="SelectEnter">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionLedge" Storyboard.TargetProperty="Visibility" Duration="0:0:0">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectionLedge" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.08" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectLift" Storyboard.TargetProperty="Y" To="-10" Duration="0:0:0.26">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.7" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SelectTilt" Storyboard.TargetProperty="Angle">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.09" Value="3.4" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.18" Value="1.2" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.26" Value="2" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Name="SelectExit">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectionLedge" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.16" />
+                                        <DoubleAnimation Storyboard.TargetName="SelectTilt" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionBorder" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectionLedge" Storyboard.TargetProperty="Visibility" Duration="0:0:0.14">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.14" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="SelectEnter" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <DataTrigger Binding="{Settings ShowGridItemBackground}" Value="False">
+                            <Setter Property="Background" Value="Transparent" TargetName="Panel" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningScan" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.4" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.4" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.4" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.402" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.402" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- The three value dots step one at a time, 220ms each (discrete), in their own storyboard. -->
+                                <BeginStoryboard Name="RunningDotsLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot1" Storyboard.TargetProperty="Opacity" Duration="0:0:0.66">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.22" Value="0.35" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot2" Storyboard.TargetProperty="Opacity" Duration="0:0:0.66">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.22" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.44" Value="0.35" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot3" Storyboard.TargetProperty="Opacity" Duration="0:0:0.66">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.44" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                                <RemoveStoryboard BeginStoryboardName="RunningDotsLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.7" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.7" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- The foot strip completes once (the band has landed) and stays full. -->
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- The same three dots, slower: 400ms a step. -->
+                                <BeginStoryboard Name="RunningDotsRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot1" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.4" Value="0.35" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot2" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.4" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.8" Value="0.35" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot3" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.8" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                                <RemoveStoryboard BeginStoryboardName="RunningDotsRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

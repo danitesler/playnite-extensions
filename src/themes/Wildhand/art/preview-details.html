@@ -1,0 +1,284 @@
+<!doctype html>
+<!-- Wildhand: HTML replica of Playnite's Game Details view (1280x720).
+     Lens: Balatro's run HUD. Slate panels with recessed wells on felt; every plate is a flat face over a hard 4px ledge
+     (box-shadow 0 Npx 0, drawn in XAML as two stacked Borders). Hero moment staged in its end state: Play hovered
+     (rocked -1.5deg, scaled 1.06, white rim). Colors: var(--token) from src/tokens.css. Rules: docs/themes/previews.md. -->
+<html class="dark">
+<head>
+<meta charset="utf-8">
+<title>Wildhand - Details Preview</title>
+<style>
+  :root {
+    --bg: var(--felt);
+    --font-ui: var(--font-body); --font-px: var(--font-pixel);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--bg); color: var(--white); font-family: var(--font-ui); font-size: 15px; display: flex; position: relative; }
+  svg { fill: currentColor; display: block; }
+  .i { width: 16px; height: 16px; flex: none; }
+  .sh { text-shadow: 0 2px 0 rgba(0,0,0,.4); }
+
+  /* Sidebar: HUD column, 44px, 44x40 items, 16px glyphs. The current item is a ledged orange plate; the red pointer sits on the rail edge. */
+  .rail { width: 44px; flex: none; background: var(--black); border-right: 3px solid var(--ledge-slate); display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; overflow: hidden; }
+  .menu-tile { width: 41px; height: 50px; display: flex; align-items: center; justify-content: center; color: var(--white); border-bottom: 3px dotted var(--l-black); margin-bottom: 4px; }
+  .menu-tile .i { width: 26px; height: 26px; }
+  .rail-item { width: 41px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--joker-grey); position: relative; }
+  .rail-item.active .plate { width: 32px; height: 32px; margin-top: -3px; background: var(--orange); box-shadow: 0 3px 0 var(--orange-ledge); border-radius: 6px; color: var(--ink); display: flex; align-items: center; justify-content: center; }
+  .rail-item.active::before { content: ""; position: absolute; left: -3px; top: 11px; border: 6px solid transparent; border-left: 7px solid var(--mult); border-right: 0; }
+  .rail-foot { position: absolute; left: 0; right: 0; bottom: 0; height: 190px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 12px; padding-bottom: 14px; background: repeating-linear-gradient(0deg, var(--scan) 0 1px, transparent 1px 3px); -webkit-mask-image: linear-gradient(to top, #000 55%, transparent); }
+  .rail-foot .i { width: 14px; height: 14px; color: var(--l-black); }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  /* Top panel: search, filter, then sorting + icon-only view switches (the Rank / Suit pair), notifications; window buttons at the right. */
+  .top-bar { height: 50px; flex: none; background: var(--black); border-bottom: 3px solid var(--ledge-slate); display: flex; align-items: center; padding: 0 10px 0 12px; gap: 8px; position: relative; z-index: 5; }
+  .search { width: 244px; height: 32px; background: var(--inset); box-shadow: inset 0 2px 0 var(--ledge-slate); border-radius: 6px; padding: 0 10px; color: var(--joker-grey); display: flex; align-items: center; gap: 8px; }
+  .search .i { color: var(--joker-grey); }
+  .tool { width: 34px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--joker-grey); position: relative; }
+  .tool.on { background: var(--l-black); color: var(--white); }
+  .filter-pip { position: absolute; right: 3px; top: 3px; width: 9px; height: 9px; color: var(--mult); }
+  .items { display: flex; align-items: center; gap: 4px; }
+  .pair { display: flex; gap: 2px; }
+  .pair .tool { width: 34px; height: 32px; border-radius: 6px; }
+  .pair .tool.sel { background: var(--orange); box-shadow: 0 3px 0 var(--orange-ledge); color: var(--ink); margin-top: -3px; }
+  .spacer { flex: 1; }
+  .winbtn { width: 32px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--joker-grey); }
+  .winbtn.x { background: var(--l-black); color: var(--white); }
+
+  .view { flex: 1; min-height: 0; display: flex; }
+
+  /* Details view: game list on the felt, game page on the right. */
+  .game-list { width: 282px; flex: none; background: var(--felt); border-right: 6px solid var(--felt-deep); padding: 8px 8px; overflow: hidden; position: relative; }
+  .game-row { height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 10px; color: var(--white); border-radius: 6px; position: relative; margin-bottom: 2px; }
+  .game-row i { width: 24px; height: 24px; border-radius: 4px; background: var(--inset); flex: none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .game-row span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .game-row.hover { background: var(--black); }
+  .game-row.sel { font-weight: 700; background: var(--orange); box-shadow: 0 3px 0 var(--orange-ledge); color: var(--ink); margin-bottom: 5px; transform: translateX(3px); }
+  .game-row.sel::before { content: ""; position: absolute; left: -9px; top: 11px; border: 7px solid transparent; border-left: 8px solid var(--mult); border-right: 0; }
+  .game-row.run { box-shadow: inset 0 0 0 2px var(--green); background: rgba(75,194,146,.14); }
+  .dots { margin-left: auto; display: flex; gap: 3px; }
+  .dots b { width: 5px; height: 5px; background: var(--green); display: block; }
+  .dots b:nth-child(3) { opacity: .35; }
+
+  .game-page { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 224px; overflow: hidden;
+    background:
+      radial-gradient(circle at 78% 30%, rgba(255,154,0,.55) 0 60px, transparent 61px),
+      radial-gradient(circle at 20% 62%, rgba(0,157,255,.5) 0 90px, transparent 91px),
+      linear-gradient(120deg, #1d5a6b 0 32%, #2b3d78 32% 62%, #5a3a7a 62% 100%); }
+  .banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 38%, var(--felt) 100%); }
+  .banner .scan { position: absolute; left: 0; right: 0; top: 100px; bottom: 0; z-index: 2; background: repeating-linear-gradient(0deg, var(--scan) 0 2px, transparent 2px 4px); -webkit-mask-image: linear-gradient(to bottom, transparent, #000 80%); }
+
+  .header { position: absolute; left: 28px; right: 28px; top: 146px; display: flex; align-items: center; gap: 12px; z-index: 3; }
+  .gicon { width: 60px; height: 60px; border-radius: 8px; background: var(--inset); box-shadow: 0 0 0 3px var(--ui-outline), 0 6px 0 3px var(--ledge-slate); flex: none; position: relative; overflow: hidden; background-image: linear-gradient(135deg, var(--orange) 0 50%, var(--play) 50%); }
+  .blind { font-family: var(--font-px); height: 48px; padding: 0; background: none; display: flex; align-items: center; font-size: 35px; white-space: nowrap; margin-left: 4px; }
+  .actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .play { font-family: var(--font-px); height: 50px; padding: 0 18px 0 22px; border-radius: 8px; background: var(--play-lit); box-shadow: 0 5px 0 var(--play-ledge); display: flex; align-items: center; gap: 10px; font-size: 24px; transform: rotate(-1.5deg) scale(1.06); outline: 2px solid var(--white); outline-offset: 2px; }
+  .play .bub { width: 22px; height: 22px; border-radius: 11px; background: var(--ink); display: flex; align-items: center; justify-content: center; color: var(--white); }
+  .play .bub .i { width: 10px; height: 10px; margin-left: 1px; }
+  .sq { width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .sq.more { background: var(--danger); box-shadow: 0 4px 0 var(--danger-ledge); }
+  .sq.edit { background: var(--orange); box-shadow: 0 4px 0 var(--orange-ledge); color: var(--ink); }
+  .sq .i { width: 20px; height: 20px; }
+
+  .content { position: absolute; left: 28px; right: 28px; top: 238px; bottom: 0; display: flex; gap: 22px; }
+  .col-main { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; margin-bottom: 14px; }
+  .shot { width: 138px; height: 78px; border-radius: 8px; box-shadow: 0 0 0 2px var(--ledge-slate), 0 4px 0 2px var(--ledge-slate); }
+  .shot:nth-child(1) { background: linear-gradient(160deg, #2a6f8f, #1a3550); }
+  .shot:nth-child(2) { background: linear-gradient(160deg, #8a4a2a, #3a2230); }
+  .shot:nth-child(3) { background: linear-gradient(160deg, #3a7a4a, #1d3a30); }
+  .desc { font-size: 15px; line-height: 1.5; color: var(--white); max-width: 520px; }
+  .desc p { margin-bottom: 10px; }
+  .dh { font-family: var(--font-px); font-size: 17px; color: var(--money); margin-bottom: 6px; }
+  .dl { height: 3px; margin-bottom: 10px; background: radial-gradient(circle, var(--l-black) 1px, transparent 1.5px) 0 0 / 6px 3px repeat-x; max-width: 520px; }
+  .desc .lead { color: var(--money); }
+
+  /* Metadata pane: twin inset cells (label above, recessed value), groups broken by a dotted leader. */
+  .meta { width: 330px; flex: none; background: var(--black); border-radius: 10px; box-shadow: 0 4px 0 var(--ledge-slate), inset 0 0 0 2px var(--l-black); padding: 12px 14px 10px; align-self: flex-start; }
+  .grid { display: flex; flex-direction: column; gap: 4px; }
+  .cell { display: flex; flex-direction: row; align-items: center; gap: 12px; min-width: 0; }
+  .cell.full { grid-column: 1 / -1; }
+  .cap { font-size: 13px; color: var(--joker-grey); width: 40%; flex: none; }
+  .cell .well, .cell .tag { flex: 1; }
+  .cell .tag { flex: none; }
+  .well { background: var(--inset); box-shadow: inset 0 2px 0 var(--ledge-slate); border-radius: 6px; min-height: 28px; padding: 3px 8px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .well.gold { color: var(--money); }
+  .stake { width: 10px; height: 10px; background: var(--green); transform: rotate(45deg); flex: none; }
+  .brk { height: 3px; margin: 5px 0 6px; background: radial-gradient(circle, var(--l-black) 1px, transparent 1.5px) 0 0 / 6px 3px repeat-x; }
+  .tag { font-family: var(--font-px); height: 28px; padding: 0 10px 0 8px; background: var(--inset); color: var(--money); font-size: 17px; display: flex; align-items: center; gap: 4px; clip-path: polygon(0 0, calc(50% - 6px) 0, 50% 5px, calc(50% + 6px) 0, 100% 0, 100% 100%, 0 100%); padding-top: 3px; border-radius: 0 0 6px 6px; }
+  .tag .i { width: 13px; height: 13px; color: var(--joker-grey); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-weight: 700; height: 26px; padding: 0 9px; background: var(--l-black); box-shadow: 0 2px 0 var(--ledge-slate); border-radius: 4px; display: flex; align-items: center; font-size: 14px; }
+  .chip.hot { background: var(--orange); box-shadow: 0 2px 0 var(--orange-ledge); color: var(--ink); }
+  .chip.link { color: var(--money); }
+
+  /* Main menu popup: the unified Wildhand menu (panel, orange ledged highlight, dotted break, bumper shortcut, red submenu mark, Exit in danger). */
+  .popup { position: absolute; left: 46px; top: 52px; width: 262px; background: var(--black); border: 2px solid var(--ui-outline); border-radius: 10px; box-shadow: 0 4px 0 var(--ledge-slate); padding: 5px; z-index: 30; }
+  .mrow { height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 6px; border-radius: 6px; color: var(--white); }
+  .mrow .i { width: 16px; height: 16px; color: var(--joker-grey); }
+  .mrow .lbl { flex: 1; }
+  .mrow.hi { font-weight: 700; background: var(--orange); box-shadow: 0 3px 0 var(--orange-ledge); color: var(--ink); margin-bottom: 3px; transform: translateY(-1px); }
+  .mrow.hi .i { color: var(--ink); }
+  .key { height: 18px; padding: 0 5px; background: var(--inset); color: var(--joker-grey); font-size: 12px; border-radius: 3px; display: flex; align-items: center; }
+  .sub { width: 14px; height: 14px; background: var(--danger); box-shadow: 0 2px 0 var(--danger-ledge); border-radius: 3px; display: flex; align-items: center; justify-content: center; color: var(--white); }
+  .sub .i { width: 8px; height: 8px; }
+  .mbrk { height: 3px; margin: 4px 6px; background: radial-gradient(circle, var(--l-black) 1px, transparent 1.5px) 0 0 / 6px 3px repeat-x; }
+  .chk { width: 16px; height: 16px; border: 2px solid var(--ui-outline); border-radius: 4px; background: var(--inset); display: flex; align-items: center; justify-content: center; color: var(--white); }
+  .chk .i { width: 10px; height: 10px; }
+  .mrow.exit { color: var(--mult-lit); }
+  .mrow.exit .i { color: var(--mult-lit); }
+</style>
+</head>
+<body>
+<!-- ICONS:BEGIN (art/icons.py) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="IconSearch" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.6,10 A7.4,7.4 0 1 1 17.4,10 A7.4,7.4 0 1 1 2.6,10 Z M5.6,10 A4.4,4.4 0 1 1 14.4,10 A4.4,4.4 0 1 1 5.6,10 Z M14.69,16.11 Q14.27,16.53 14.69,16.96 L19.04,21.31 Q19.47,21.73 19.89,21.31 L21.31,19.89 Q21.73,19.47 21.31,19.04 L16.96,14.69 Q16.53,14.27 16.11,14.69 Z"/></symbol>
+<symbol id="IconClear" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M5.29,6.71 Q4.87,7.13 5.29,7.56 L16.44,18.71 Q16.87,19.13 17.29,18.71 L18.71,17.29 Q19.13,16.87 18.71,16.44 L7.56,5.29 Q7.13,4.87 6.71,5.29 Z M6.71,18.71 Q7.13,19.13 7.56,18.71 L18.71,7.56 Q19.13,7.13 18.71,6.71 L17.29,5.29 Q16.87,4.87 16.44,5.29 L5.29,16.44 Q4.87,16.87 5.29,17.29 Z"/></symbol>
+<symbol id="IconViewSettings" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2,4.96 Q2,4 2.96,4 L21.04,4 Q22,4 22,4.96 L22,5.44 Q22,6.4 21.04,6.4 L2.96,6.4 Q2,6.4 2,5.44 Z M2,11.76 Q2,10.8 2.96,10.8 L21.04,10.8 Q22,10.8 22,11.76 L22,12.24 Q22,13.2 21.04,13.2 L2.96,13.2 Q2,13.2 2,12.24 Z M2,18.56 Q2,17.6 2.96,17.6 L21.04,17.6 Q22,17.6 22,18.56 L22,19.04 Q22,20 21.04,20 L2.96,20 Q2,20 2,19.04 Z M13,5.2 A3.2,3.2 0 1 1 19.4,5.2 A3.2,3.2 0 1 1 13,5.2 Z M4.2,12 A3.2,3.2 0 1 1 10.6,12 A3.2,3.2 0 1 1 4.2,12 Z M10.2,18.8 A3.2,3.2 0 1 1 16.6,18.8 A3.2,3.2 0 1 1 10.2,18.8 Z"/></symbol>
+<symbol id="IconFilterPresets" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.52,3.73 Q2,3 2.9,3 L15.1,3 Q16,3 15.48,3.73 L11.12,9.87 Q10.6,10.6 10.6,11.5 L10.6,18.1 Q10.6,19 9.84,19.48 L8.16,20.52 Q7.4,21 7.4,20.1 L7.4,11.5 Q7.4,10.6 6.88,9.87 Z M13.4,16.4 A4.6,4.6 0 1 1 22.6,16.4 A4.6,4.6 0 1 1 13.4,16.4 Z M15.8,16.4 A2.2,2.2 0 1 1 20.2,16.4 A2.2,2.2 0 1 1 15.8,16.4 Z"/></symbol>
+<symbol id="IconGroup" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.29,7.1 Q2.01,5.53 3.59,5.25 L8.12,4.45 Q9.69,4.17 9.97,5.75 L12.19,18.35 Q12.47,19.93 10.9,20.21 L6.37,21.01 Q4.79,21.28 4.51,19.71 Z M8.2,4.8 Q8.2,3.2 9.8,3.2 L14.4,3.2 Q16,3.2 16,4.8 L16,17.6 Q16,19.2 14.4,19.2 L9.8,19.2 Q8.2,19.2 8.2,17.6 Z M14.04,5.61 Q14.32,4.03 15.9,4.31 L20.43,5.11 Q22,5.39 21.72,6.96 L19.5,19.57 Q19.22,21.14 17.65,20.87 L13.12,20.07 Q11.54,19.79 11.82,18.21 Z"/></symbol>
+<symbol id="IconSort" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,4.3 Q2,3.4 2.9,3.4 L12.1,3.4 Q13,3.4 13,4.3 L13,5.3 Q13,6.2 12.1,6.2 L2.9,6.2 Q2,6.2 2,5.3 Z M2,11.5 Q2,10.6 2.9,10.6 L9.1,10.6 Q10,10.6 10,11.5 L10,12.5 Q10,13.4 9.1,13.4 L2.9,13.4 Q2,13.4 2,12.5 Z M2,18.7 Q2,17.8 2.9,17.8 L6.1,17.8 Q7,17.8 7,18.7 L7,19.7 Q7,20.6 6.1,20.6 L2.9,20.6 Q2,20.6 2,19.7 Z M16.4,3.5 Q16.4,2.6 17.3,2.6 L18.3,2.6 Q19.2,2.6 19.2,3.5 L19.2,14.1 Q19.2,15 18.3,15 L17.3,15 Q16.4,15 16.4,14.1 Z M13.66,14.78 Q13.2,14 14.1,14 L21.5,14 Q22.4,14 21.94,14.78 L18.26,21.02 Q17.8,21.8 17.34,21.02 Z"/></symbol>
+<symbol id="IconDetailsView" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,4.4 Q2,3 3.4,3 L5.2,3 Q6.6,3 6.6,4.4 L6.6,6.2 Q6.6,7.6 5.2,7.6 L3.4,7.6 Q2,7.6 2,6.2 Z M9,4.7 Q9,3.8 9.9,3.8 L21.1,3.8 Q22,3.8 22,4.7 L22,5.9 Q22,6.8 21.1,6.8 L9.9,6.8 Q9,6.8 9,5.9 Z M2,11.1 Q2,9.7 3.4,9.7 L5.2,9.7 Q6.6,9.7 6.6,11.1 L6.6,12.9 Q6.6,14.3 5.2,14.3 L3.4,14.3 Q2,14.3 2,12.9 Z M9,11.4 Q9,10.5 9.9,10.5 L21.1,10.5 Q22,10.5 22,11.4 L22,12.6 Q22,13.5 21.1,13.5 L9.9,13.5 Q9,13.5 9,12.6 Z M2,17.8 Q2,16.4 3.4,16.4 L5.2,16.4 Q6.6,16.4 6.6,17.8 L6.6,19.6 Q6.6,21 5.2,21 L3.4,21 Q2,21 2,19.6 Z M9,18.1 Q9,17.2 9.9,17.2 L21.1,17.2 Q22,17.2 22,18.1 L22,19.3 Q22,20.2 21.1,20.2 L9.9,20.2 Q9,20.2 9,19.3 Z"/></symbol>
+<symbol id="IconGridView" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,4 Q2,2 4,2 L8.8,2 Q10.8,2 10.8,4 L10.8,8.8 Q10.8,10.8 8.8,10.8 L4,10.8 Q2,10.8 2,8.8 Z M13.2,4 Q13.2,2 15.2,2 L20,2 Q22,2 22,4 L22,8.8 Q22,10.8 20,10.8 L15.2,10.8 Q13.2,10.8 13.2,8.8 Z M2,15.2 Q2,13.2 4,13.2 L8.8,13.2 Q10.8,13.2 10.8,15.2 L10.8,20 Q10.8,22 8.8,22 L4,22 Q2,22 2,20 Z M13.2,15.2 Q13.2,13.2 15.2,13.2 L20,13.2 Q22,13.2 22,15.2 L22,20 Q22,22 20,22 L15.2,22 Q13.2,22 13.2,20 Z"/></symbol>
+<symbol id="IconListView" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,4.12 Q2,3 3.12,3 L20.88,3 Q22,3 22,4.12 L22,4.68 Q22,5.8 20.88,5.8 L3.12,5.8 Q2,5.8 2,4.68 Z M2,9.52 Q2,8.4 3.12,8.4 L20.88,8.4 Q22,8.4 22,9.52 L22,10.08 Q22,11.2 20.88,11.2 L3.12,11.2 Q2,11.2 2,10.08 Z M2,14.92 Q2,13.8 3.12,13.8 L20.88,13.8 Q22,13.8 22,14.92 L22,15.48 Q22,16.6 20.88,16.6 L3.12,16.6 Q2,16.6 2,15.48 Z M2,20.32 Q2,19.2 3.12,19.2 L20.88,19.2 Q22,19.2 22,20.32 L22,20.88 Q22,22 20.88,22 L3.12,22 Q2,22 2,20.88 Z"/></symbol>
+<symbol id="IconUpdate" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M20.2,11.6 A8.2,8.2 0 1 1 15.6,4.6 L14.4,7.2 A5.4,5.4 0 1 0 17.4,11.6 Z M12.68,2.25 Q12.4,1.4 13.27,1.63 L19.93,3.37 Q20.8,3.6 20.2,4.27 L15.8,9.13 Q15.2,9.8 14.92,8.95 Z"/></symbol>
+<symbol id="IconExplorer" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,5.4 Q2,3 4.4,3 L19.6,3 Q22,3 22,5.4 L22,18.6 Q22,21 19.6,21 L4.4,21 Q2,21 2,18.6 Z M4.6,6.6 Q4.6,5.6 5.6,5.6 L18.4,5.6 Q19.4,5.6 19.4,6.6 L19.4,17.4 Q19.4,18.4 18.4,18.4 L5.6,18.4 Q4.6,18.4 4.6,17.4 Z M4.6,6.6 Q4.6,5.6 5.6,5.6 L9,5.6 Q10,5.6 10,6.6 L10,17.4 Q10,18.4 9,18.4 L5.6,18.4 Q4.6,18.4 4.6,17.4 Z"/></symbol>
+<symbol id="IconRandom" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,6 Q2,2 6,2 L18,2 Q22,2 22,6 L22,18 Q22,22 18,22 L6,22 Q2,22 2,18 Z M5.5,7.4 A1.9,1.9 0 1 1 9.3,7.4 A1.9,1.9 0 1 1 5.5,7.4 Z M14.7,7.4 A1.9,1.9 0 1 1 18.5,7.4 A1.9,1.9 0 1 1 14.7,7.4 Z M10.1,12 A1.9,1.9 0 1 1 13.9,12 A1.9,1.9 0 1 1 10.1,12 Z M5.5,16.6 A1.9,1.9 0 1 1 9.3,16.6 A1.9,1.9 0 1 1 5.5,16.6 Z M14.7,16.6 A1.9,1.9 0 1 1 18.5,16.6 A1.9,1.9 0 1 1 14.7,16.6 Z"/></symbol>
+<symbol id="IconViewRandom" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,6 Q2,2 6,2 L18,2 Q22,2 22,6 L22,18 Q22,22 18,22 L6,22 Q2,22 2,18 Z M5.5,7.4 A1.9,1.9 0 1 1 9.3,7.4 A1.9,1.9 0 1 1 5.5,7.4 Z M14.7,16.6 A1.9,1.9 0 1 1 18.5,16.6 A1.9,1.9 0 1 1 14.7,16.6 Z M10.1,12 A1.9,1.9 0 1 1 13.9,12 A1.9,1.9 0 1 1 10.1,12 Z"/></symbol>
+<symbol id="IconFilter" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.57,3.69 Q2,3 2.9,3 L21.1,3 Q22,3 21.43,3.69 L14.77,11.71 Q14.2,12.4 14.2,13.3 L14.2,18.7 Q14.2,19.6 13.41,20.03 L10.59,21.57 Q9.8,22 9.8,21.1 L9.8,13.3 Q9.8,12.4 9.23,11.71 Z"/></symbol>
+<symbol id="IconNotifications" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12,1.8 C7.8,1.8 5.8,5 5.8,9 L5.8,12.6 L3.2,17 L20.8,17 L18.2,12.6 L18.2,9 C18.2,5 16.2,1.8 12,1.8 Z M9.6,20 A2.4,2.4 0 1 1 14.4,20 A2.4,2.4 0 1 1 9.6,20 Z"/></symbol>
+<symbol id="IconMainMenu" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,5.2 Q2,4 3.2,4 L20.8,4 Q22,4 22,5.2 L22,5.8 Q22,7 20.8,7 L3.2,7 Q2,7 2,5.8 Z M2,11.7 Q2,10.5 3.2,10.5 L20.8,10.5 Q22,10.5 22,11.7 L22,12.3 Q22,13.5 20.8,13.5 L3.2,13.5 Q2,13.5 2,12.3 Z M2,18.2 Q2,17 3.2,17 L20.8,17 Q22,17 22,18.2 L22,18.8 Q22,20 20.8,20 L3.2,20 Q2,20 2,18.8 Z"/></symbol>
+<symbol id="IconLibrary" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,5.6 Q2,4 3.6,4 L5.2,4 Q6.8,4 6.8,5.6 L6.8,19.4 Q6.8,21 5.2,21 L3.6,21 Q2,21 2,19.4 Z M8.6,4 Q8.6,2.4 10.2,2.4 L11.8,2.4 Q13.4,2.4 13.4,4 L13.4,19.4 Q13.4,21 11.8,21 L10.2,21 Q8.6,21 8.6,19.4 Z M15.3,6.17 Q15,4.8 16.33,4.38 L18.07,3.82 Q19.4,3.4 19.7,4.77 L22.7,18.23 Q23,19.6 21.67,20.02 L19.93,20.58 Q18.6,21 18.3,19.63 Z"/></symbol>
+<symbol id="IconStatistics" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,13.4 Q2,12 3.4,12 L5,12 Q6.4,12 6.4,13.4 L6.4,19.6 Q6.4,21 5,21 L3.4,21 Q2,21 2,19.6 Z M9.8,5.4 Q9.8,4 11.2,4 L12.8,4 Q14.2,4 14.2,5.4 L14.2,19.6 Q14.2,21 12.8,21 L11.2,21 Q9.8,21 9.8,19.6 Z M17.6,9.8 Q17.6,8.4 19,8.4 L20.6,8.4 Q22,8.4 22,9.8 L22,19.6 Q22,21 20.6,21 L19,21 Q17.6,21 17.6,19.6 Z"/></symbol>
+<symbol id="IconWindowMinimize" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4,17.72 Q4,16.6 5.12,16.6 L18.88,16.6 Q20,16.6 20,17.72 L20,18.28 Q20,19.4 18.88,19.4 L5.12,19.4 Q4,19.4 4,18.28 Z"/></symbol>
+<symbol id="IconWindowMaximize" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M4,6 Q4,4 6,4 L18,4 Q20,4 20,6 L20,18 Q20,20 18,20 L6,20 Q4,20 4,18 Z M6.8,9 Q6.8,8.4 7.4,8.4 L16.6,8.4 Q17.2,8.4 17.2,9 L17.2,16.6 Q17.2,17.2 16.6,17.2 L7.4,17.2 Q6.8,17.2 6.8,16.6 Z"/></symbol>
+<symbol id="IconWindowRestore" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M8,3.9 Q8,3 8.9,3 L20.1,3 Q21,3 21,3.9 L21,15.1 Q21,16 20.1,16 L19.3,16 Q18.4,16 18.4,15.1 L18.4,6.5 Q18.4,5.6 17.5,5.6 L11.5,5.6 Q10.6,5.6 10.6,6.5 L10.6,7.1 Q10.6,8 9.7,8 L8.9,8 Q8,8 8,7.1 Z M3,10 Q3,8 5,8 L14,8 Q16,8 16,10 L16,19 Q16,21 14,21 L5,21 Q3,21 3,19 Z M5.6,11.2 Q5.6,10.6 6.2,10.6 L12.8,10.6 Q13.4,10.6 13.4,11.2 L13.4,17.8 Q13.4,18.4 12.8,18.4 L6.2,18.4 Q5.6,18.4 5.6,17.8 Z"/></symbol>
+<symbol id="IconWindowClose" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M4.69,6.11 Q4.27,6.53 4.69,6.96 L17.04,19.31 Q17.47,19.73 17.89,19.31 L19.31,17.89 Q19.73,17.47 19.31,17.04 L6.96,4.69 Q6.53,4.27 6.11,4.69 Z M6.11,19.31 Q6.53,19.73 6.96,19.31 L19.31,6.96 Q19.73,6.53 19.31,6.11 L17.89,4.69 Q17.47,4.27 17.04,4.69 L4.69,17.04 Q4.27,17.47 4.69,17.89 Z"/></symbol>
+<symbol id="IconDropDown" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M5,9.07 Q4.4,8.4 5.3,8.4 L18.7,8.4 Q19.6,8.4 19,9.07 L12.6,16.33 Q12,17 11.4,16.33 Z"/></symbol>
+<symbol id="IconSubmenu" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M8.4,5.3 Q8.4,4.4 9.07,5 L16.33,11.4 Q17,12 16.33,12.6 L9.07,19 Q8.4,19.6 8.4,18.7 Z"/></symbol>
+<symbol id="IconCheck" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3.24,13.44 Q2.6,12.8 3.24,12.16 L4.56,10.84 Q5.2,10.2 5.84,10.84 L8.76,13.76 Q9.4,14.4 10.04,13.76 L18.16,5.64 Q18.8,5 19.44,5.64 L20.76,6.96 Q21.4,7.6 20.76,8.24 L10.04,18.96 Q9.4,19.6 8.76,18.96 Z"/></symbol>
+<symbol id="IconAdd" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.4,4.2 Q10.4,3 11.6,3 L12.4,3 Q13.6,3 13.6,4.2 L13.6,19.8 Q13.6,21 12.4,21 L11.6,21 Q10.4,21 10.4,19.8 Z M3,11.6 Q3,10.4 4.2,10.4 L19.8,10.4 Q21,10.4 21,11.6 L21,12.4 Q21,13.6 19.8,13.6 L4.2,13.6 Q3,13.6 3,12.4 Z"/></symbol>
+<symbol id="IconEdit" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M14.96,3.44 Q15.6,2.8 16.24,3.44 L20.56,7.76 Q21.2,8.4 20.56,9.04 L9.24,20.36 Q8.6,21 7.7,21 L3.9,21 Q3,21 3,20.1 L3,16.3 Q3,15.4 3.64,14.76 Z"/></symbol>
+<symbol id="IconRemove" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3,6.04 Q3,5 4.04,5 L19.96,5 Q21,5 21,6.04 L21,6.56 Q21,7.6 19.96,7.6 L4.04,7.6 Q3,7.6 3,6.56 Z M9,3.4 Q9,2.4 10,2.4 L14,2.4 Q15,2.4 15,3.4 L15,4 Q15,5 14,5 L10,5 Q9,5 9,4 Z M5.1,10.09 Q5,9.2 5.9,9.2 L18.1,9.2 Q19,9.2 18.9,10.09 L17.7,21.11 Q17.6,22 16.7,22 L7.3,22 Q6.4,22 6.3,21.11 Z M9.2,12 Q9.2,11.6 9.6,11.6 L10.4,11.6 Q10.8,11.6 10.8,12 L10.8,19 Q10.8,19.4 10.4,19.4 L9.6,19.4 Q9.2,19.4 9.2,19 Z M13.2,12 Q13.2,11.6 13.6,11.6 L14.4,11.6 Q14.8,11.6 14.8,12 L14.8,19 Q14.8,19.4 14.4,19.4 L13.6,19.4 Q13.2,19.4 13.2,19 Z"/></symbol>
+<symbol id="IconOptions" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M2.3,12 A2.7,2.7 0 1 1 7.7,12 A2.7,2.7 0 1 1 2.3,12 Z M9.3,12 A2.7,2.7 0 1 1 14.7,12 A2.7,2.7 0 1 1 9.3,12 Z M16.3,12 A2.7,2.7 0 1 1 21.7,12 A2.7,2.7 0 1 1 16.3,12 Z"/></symbol>
+<symbol id="IconPlay" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M6,3.9 Q6,3 6.77,3.47 L19.83,11.53 Q20.6,12 19.83,12.47 L6.77,20.53 Q6,21 6,20.1 Z"/></symbol>
+<symbol id="IconInfo" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2,12 A10,10 0 1 1 22,12 A10,10 0 1 1 2,12 Z M10.4,11.2 Q10.4,10.4 11.2,10.4 L12.8,10.4 Q13.6,10.4 13.6,11.2 L13.6,17.2 Q13.6,18 12.8,18 L11.2,18 Q10.4,18 10.4,17.2 Z M10.3,6.9 A1.7,1.7 0 1 1 13.7,6.9 A1.7,1.7 0 1 1 10.3,6.9 Z"/></symbol>
+<symbol id="IconDownload" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.4,3 Q10.4,2 11.4,2 L12.6,2 Q13.6,2 13.6,3 L13.6,11 Q13.6,12 12.6,12 L11.4,12 Q10.4,12 10.4,11 Z M6.21,11.06 Q5.6,10.4 6.5,10.4 L17.5,10.4 Q18.4,10.4 17.79,11.06 L12.61,16.74 Q12,17.4 11.39,16.74 Z M3,20.2 Q3,19 4.2,19 L19.8,19 Q21,19 21,20.2 L21,20.8 Q21,22 19.8,22 L4.2,22 Q3,22 3,20.8 Z"/></symbol>
+<symbol id="LocalSpadeGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12,2.4 C9,6.2 4,9 4,13.4 C4,16.2 6.2,18 8.6,18 C9.9,18 11,17.5 11.6,16.6 L10.4,21.6 L13.6,21.6 L12.4,16.6 C13,17.5 14.1,18 15.4,18 C17.8,18 20,16.2 20,13.4 C20,9 15,6.2 12,2.4 Z"/></symbol>
+<symbol id="LocalHeartGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12,21.4 C6.4,17 2.6,13.6 2.6,9.2 C2.6,6 4.9,4 7.6,4 C9.6,4 11.2,5.1 12,6.7 C12.8,5.1 14.4,4 16.4,4 C19.1,4 21.4,6 21.4,9.2 C21.4,13.6 17.6,17 12,21.4 Z"/></symbol>
+<symbol id="LocalDiamondGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M11.43,2.29 Q12,1.6 12.57,2.29 L20.03,11.31 Q20.6,12 20.03,12.69 L12.57,21.71 Q12,22.4 11.43,21.71 L3.97,12.69 Q3.4,12 3.97,11.31 Z"/></symbol>
+<symbol id="LocalClubGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="nonzero" d="M7.4,7.4 A4.6,4.6 0 1 1 16.6,7.4 A4.6,4.6 0 1 1 7.4,7.4 Z M2.2,14 A4.6,4.6 0 1 1 11.4,14 A4.6,4.6 0 1 1 2.2,14 Z M12.6,14 A4.6,4.6 0 1 1 21.8,14 A4.6,4.6 0 1 1 12.6,14 Z M10.4,14 L13.6,14 L14.4,21.8 L9.6,21.8 Z"/></symbol>
+<symbol id="LocalPointerGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3,6 L21,6 L12,19 Z"/></symbol>
+<symbol id="LocalChipGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M7.8,12 A4.2,4.2 0 1 1 16.2,12 A4.2,4.2 0 1 1 7.8,12 Z M18.2,12.8 Q18.2,13.3 18.7,13.3 L21.9,13.3 Q22.4,13.3 22.4,12.8 L22.4,11.2 Q22.4,10.7 21.9,10.7 L18.7,10.7 Q18.2,10.7 18.2,11.2 ZM15.82,16.95 Q15.46,17.3 15.82,17.66 L18.08,19.92 Q18.43,20.27 18.79,19.92 L19.92,18.79 Q20.27,18.43 19.92,18.08 L17.66,15.82 Q17.3,15.46 16.95,15.82 ZM11.2,18.2 Q10.7,18.2 10.7,18.7 L10.7,21.9 Q10.7,22.4 11.2,22.4 L12.8,22.4 Q13.3,22.4 13.3,21.9 L13.3,18.7 Q13.3,18.2 12.8,18.2 ZM7.05,15.82 Q6.7,15.46 6.34,15.82 L4.08,18.08 Q3.73,18.43 4.08,18.79 L5.21,19.92 Q5.57,20.27 5.92,19.92 L8.18,17.66 Q8.54,17.3 8.18,16.95 ZM5.8,11.2 Q5.8,10.7 5.3,10.7 L2.1,10.7 Q1.6,10.7 1.6,11.2 L1.6,12.8 Q1.6,13.3 2.1,13.3 L5.3,13.3 Q5.8,13.3 5.8,12.8 ZM8.18,7.05 Q8.54,6.7 8.18,6.34 L5.92,4.08 Q5.57,3.73 5.21,4.08 L4.08,5.21 Q3.73,5.57 4.08,5.92 L6.34,8.18 Q6.7,8.54 7.05,8.18 ZM12.8,5.8 Q13.3,5.8 13.3,5.3 L13.3,2.1 Q13.3,1.6 12.8,1.6 L11.2,1.6 Q10.7,1.6 10.7,2.1 L10.7,5.3 Q10.7,5.8 11.2,5.8 ZM16.95,8.18 Q17.3,8.54 17.66,8.18 L19.92,5.92 Q20.27,5.57 19.92,5.21 L18.79,4.08 Q18.43,3.73 18.08,4.08 L15.82,6.34 Q15.46,6.7 15.82,7.05 Z"/></symbol>
+<symbol id="LocalMarkGeometry" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M3.42,5.53 Q3.05,2.96 5.63,2.6 L15.53,1.2 Q18.11,0.84 18.47,3.42 L20.58,18.47 Q20.95,21.04 18.37,21.4 L8.47,22.8 Q5.89,23.16 5.53,20.58 Z M5.71,6.02 Q5.54,4.83 6.73,4.66 L15.05,3.49 Q16.23,3.33 16.4,4.51 L18.29,17.98 Q18.46,19.17 17.27,19.34 L8.95,20.51 Q7.77,20.67 7.6,19.49 Z M8.78,17.1 Q8.08,17.2 8.06,16.5 L7.9,10.65 Q7.88,9.95 8.37,10.44 L9.72,11.76 Q10.22,12.25 10.43,11.58 L11.26,8.91 Q11.47,8.24 11.86,8.82 L13.4,11.16 Q13.78,11.75 14.13,11.14 L15.06,9.51 Q15.4,8.9 15.57,9.57 L17.02,15.24 Q17.2,15.92 16.5,16.01 Z M8.09,18.65 Q8,18.02 8.63,17.93 L16.87,16.77 Q17.5,16.68 17.59,17.31 L17.64,17.63 Q17.73,18.26 17.09,18.35 L8.85,19.51 Q8.22,19.6 8.13,18.97 Z M6.4,8.37 A1.25,1.25 0 1 1 8.9,8.37 A1.25,1.25 0 1 1 6.4,8.37 Z M9.97,6.45 A1.25,1.25 0 1 1 12.47,6.45 A1.25,1.25 0 1 1 9.97,6.45 Z M13.93,7.31 A1.25,1.25 0 1 1 16.43,7.31 A1.25,1.25 0 1 1 13.93,7.31 Z"/></symbol>
+</defs></svg>
+<!-- ICONS:END -->
+
+<div class="rail" data-part="sidebar">
+  <div class="menu-tile" data-part="PART_ElemMainMenu"><svg class="i"><use href="#LocalMarkGeometry"/></svg></div>
+  <div class="rail-item active"><div class="plate"><svg class="i"><use href="#IconLibrary"/></svg></div></div>
+  <div class="rail-item"><svg class="i"><use href="#IconStatistics"/></svg></div>
+  <div class="rail-item"><svg class="i"><use href="#IconExplorer"/></svg></div>
+  <div class="rail-foot"><svg class="i"><use href="#LocalSpadeGeometry"/></svg><svg class="i"><use href="#LocalHeartGeometry"/></svg><svg class="i"><use href="#LocalClubGeometry"/></svg><svg class="i"><use href="#LocalDiamondGeometry"/></svg></div>
+</div>
+
+<div class="main">
+  <div class="top-bar" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="i"><use href="#LocalChipGeometry"/></svg><span>Search</span></div>
+    <div class="tool on" data-part="PART_ToggleFilter"><svg class="i"><use href="#IconFilter"/></svg><svg class="filter-pip"><use href="#LocalPointerGeometry"/></svg></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool"><svg class="i"><use href="#IconSort"/></svg></div>
+      <div class="pair">
+        <div class="tool sel"><svg class="i"><use href="#IconDetailsView"/></svg></div>
+        <div class="tool"><svg class="i"><use href="#IconGridView"/></svg></div>
+        <div class="tool"><svg class="i"><use href="#IconListView"/></svg></div>
+      </div>
+      <div class="tool"><svg class="i"><use href="#IconGroup"/></svg></div>
+      <div class="tool"><svg class="i"><use href="#IconViewSettings"/></svg></div>
+    </div>
+    <div class="tool" data-part="PART_ToggleNotifications"><svg class="i"><use href="#IconNotifications"/></svg></div>
+    <div class="spacer"></div>
+    <div class="winbtn"><svg class="i"><use href="#IconWindowMinimize"/></svg></div>
+    <div class="winbtn"><svg class="i"><use href="#IconWindowMaximize"/></svg></div>
+    <div class="winbtn x"><svg class="i"><use href="#IconWindowClose"/></svg></div>
+  </div>
+
+  <div class="view">
+    <div class="game-list" data-part="game-list">
+      <div class="game-row"><i></i><span>Copper Run</span></div>
+      <div class="game-row"><i></i><span>Glass Harbor</span></div>
+      <div class="game-row hover"><i></i><span>Hex Garden</span></div>
+      <div class="game-row"><i></i><span>Last Orchard</span></div>
+      <div class="game-row"><i></i><span>Lantern Keep</span></div>
+      <div class="game-row run"><i></i><span>Night Shift Diner</span><div class="dots"><b></b><b></b><b></b></div></div>
+      <div class="game-row"><i></i><span>Orbit Salvage</span></div>
+      <div class="game-row"><i></i><span>Pixel Plains</span></div>
+      <div class="game-row sel"><i></i><span>Pocket Kingdoms</span></div>
+      <div class="game-row"><i></i><span>Rooftop Rally</span></div>
+      <div class="game-row"><i></i><span>Tin Soldier</span></div>
+      <div class="game-row"><i></i><span>Moss &amp; Mortar</span></div>
+      <div class="game-row"><i></i><span>Velvet Ledger</span></div>
+      <div class="game-row"><i></i><span>Wishing Well</span></div>
+      <div class="game-row"><i></i><span>Zephyr Tides</span></div>
+    </div>
+
+    <div class="game-page" data-part="game-page">
+      <div class="banner"><div class="scan"></div></div>
+      <div class="header">
+        <div class="gicon"></div>
+        <div class="blind sh">Pocket Kingdoms</div>
+        <div class="actions">
+          <div class="play sh">PLAY<span class="bub"><svg class="i"><use href="#IconPlay"/></svg></span></div>
+          <div class="sq more"><svg class="i"><use href="#IconOptions"/></svg></div>
+          <div class="sq edit"><svg class="i"><use href="#IconEdit"/></svg></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="col-main">
+          <div class="shots"><div class="shot"></div><div class="shot"></div><div class="shot"></div></div>
+          <div class="dh">Description</div><div class="dl"></div>
+          <div class="desc">
+            <p><span class="lead">Build a pocket kingdom one card at a time.</span> Every round you draw a hand of districts, play the best combination and count the coins that roll in.</p>
+            <p>Grow the market, hire a few odd advisors and keep the treasury ahead of the tax collector. Eight seasons, no two decks alike.</p>
+          </div>
+        </div>
+
+        <div class="meta" data-part="metadata">
+          <div class="grid">
+            <div class="cell"><div class="cap">Completion</div><div class="well"><span class="stake"></span>Playing</div></div>
+            <div class="cell"><div class="cap">Time played</div><div class="well gold">42h 30m</div></div>
+            <div class="cell"><div class="cap">Last played</div><div class="well">Yesterday</div></div>
+            <div class="brk"></div>
+            <div class="cell"><div class="cap">Community</div><div class="tag"><svg class="i"><use href="#LocalChipGeometry"/></svg>87</div></div>
+            <div class="cell"><div class="cap">Critic</div><div class="tag"><svg class="i"><use href="#LocalChipGeometry"/></svg>91</div></div>
+            <div class="brk"></div>
+            <div class="cell"><div class="cap">Developers</div><div class="well">Tin Whistle</div></div>
+            <div class="cell"><div class="cap">Release date</div><div class="well">Oct 12, 2024</div></div>
+            <div class="brk"></div>
+            <div class="chips"><div class="chip">Strategy</div><div class="chip hot">Roguelike</div><div class="chip">Card game</div></div>
+            <div class="brk"></div>
+            <div class="cell"><div class="cap">Source</div><div class="well">Steam</div></div>
+            <div class="brk"></div>
+            <div class="chips"><div class="chip link">Website</div><div class="chip link">Wiki</div><div class="chip link">Store page</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="popup" data-part="menu">
+  <div class="mrow"><svg class="i"><use href="#IconAdd"/></svg><span class="lbl">Add game</span><span class="sub"><svg class="i"><use href="#IconSubmenu"/></svg></span></div>
+  <div class="mrow hi"><svg class="i"><use href="#IconUpdate"/></svg><span class="lbl">Update library</span><span class="key">F5</span></div>
+  <div class="mrow"><svg class="i"><use href="#IconRandom"/></svg><span class="lbl">Open random game</span><span class="key">Ctrl+R</span></div>
+  <div class="mrow"><svg class="i"><use href="#IconViewSettings"/></svg><span class="lbl">Settings</span><span class="key">F4</span></div>
+  <div class="mbrk"></div>
+  <div class="mrow"><span class="chk"><svg class="i"><use href="#IconCheck"/></svg></span><span class="lbl">Show filter panel</span><span class="key">F8</span></div>
+  <div class="mrow"><svg class="i"><use href="#IconGridView"/></svg><span class="lbl">Fullscreen mode</span><span class="key">F11</span></div>
+  <div class="mbrk"></div>
+  <div class="mrow exit"><svg class="i"><use href="#IconWindowClose"/></svg><span class="lbl">Exit</span><span class="key">Alt+Q</span></div>
+</div>
+</body>
+</html>
