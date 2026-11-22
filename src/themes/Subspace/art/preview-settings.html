@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Subspace — Settings Window Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--lcars-void);
+    color: var(--lcars-text);
+    font-family: "Barlow Semi Condensed", "Segoe UI";
+    font-size: 14px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Subtle dark astrometric backdrop behind the centered Settings dialog */
+  .backdrop {
+    width: 1280px;
+    height: 720px;
+    background:
+      radial-gradient(ellipse at 50% 45%, rgba(38, 25, 59, 0.42) 0%, var(--lcars-void) 72%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .backdrop::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--lcars-periwinkle);
+    opacity: 0.08;
+    -webkit-mask-image: url("../src/Images/fx/viewscreen-grid.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 160px 96px;
+    pointer-events: none;
+  }
+
+  /* =========================================================
+     STANDARD WINDOW (920x660 centered dialog — StandardWindowStyle)
+     ========================================================= */
+  .settings-window {
+    width: 920px;
+    height: 660px;
+    background: var(--lcars-void);
+    border: 1.5px solid var(--lcars-lavender-edge);
+    border-radius: 18px 8px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* 44px LCARS Inline Title Band */
+  .title-band {
+    height: 44px;
+    flex: 0 0 44px;
+    background: var(--lcars-void);
+    display: flex;
+    align-items: stretch;
+    position: relative;
+  }
+  .title-band-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-right: 0;
+    height: 41px;
+  }
+
+  /* Brand mark inside left Tangerine elbow cap */
+  .title-emblem-cap {
+    width: 52px;
+    height: 41px;
+    background: var(--lcars-tangerine);
+    border-radius: 16px 0 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lcars-text-ink);
+    flex: 0 0 52px;
+  }
+  .title-emblem-cap svg { width: 22px; height: 22px; }
+
+  .title-text {
+    font-family: "Pathway Gothic One", "Barlow Semi Condensed", "Segoe UI";
+    font-size: 26px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--lcars-gold);
+    padding: 0 8px 0 6px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* Sweeping segmented LCARS bar filling title band */
+  .title-bar-seg { height: 22px; }
+  .title-bar-seg.s1 { flex: 1; background: var(--lcars-lavender); }
+  .title-bar-seg.s2 { width: 68px; background: var(--lcars-peach); }
+  .title-bar-seg.s3 { width: 42px; background: var(--lcars-periwinkle); border-radius: 0 11px 11px 0; margin-right: 6px; }
+
+  /* 46x41 WindowBarButton caption keys */
+  .cap-btns {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    height: 41px;
+  }
+  .cap-btn {
+    width: 44px;
+    height: 41px;
+    background: var(--lcars-surface);
+    color: var(--lcars-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cap-btn.close {
+    background: var(--lcars-alert-red);
+    color: var(--lcars-text);
+  }
+  .cap-btn svg { width: 12px; height: 12px; }
+
+  /* 3px lower closing rule under title band */
+  .title-rule {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    display: flex;
+    gap: 3px;
+  }
+  .title-rule .r1 { width: 260px; background: var(--lcars-tangerine); }
+  .title-rule .r2 { flex: 1; background: var(--lcars-periwinkle-dim); }
+  .title-rule .r3 { width: 88px; background: var(--lcars-lavender); }
+
+  /* =========================================================
+     DIALOG BODY (Section Tree Left + Controls Content Right)
+     ========================================================= */
+  .dialog-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
+
+  /* LEFT SECTION TREE (260px — bare 28px rows in body font, reserved quiet scrollbar) */
+  .settings-nav {
+    width: 260px;
+    flex: 0 0 260px;
+    background: var(--lcars-panel);
+    border-right: 1px solid var(--lcars-border);
+    padding: 10px 4px 10px 8px;
+    display: flex;
+    position: relative;
+  }
+  .tree-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+  }
+  .tree-scroll-lane {
+    width: 8px;
+    flex: 0 0 8px;
+    margin-left: 4px;
+    position: relative;
+  }
+  .tree-scroll-thumb {
+    position: absolute;
+    top: 8px;
+    left: 2px;
+    width: 4px;
+    height: 150px;
+    border-radius: 2px;
+    background: var(--lcars-periwinkle-dim);
+  }
+
+  .tree-row {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px 0 8px;
+    border-radius: 0 10px 10px 0;
+    color: var(--lcars-text-muted);
+    font-size: 13.5px;
+    position: relative;
+    white-space: nowrap;
+  }
+  .tree-row.child {
+    padding-left: 28px;
+  }
+  .tree-exp {
+    width: 14px;
+    height: 14px;
+    margin-right: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lcars-lavender);
+    font-size: 10px;
+    flex: 0 0 14px;
+  }
+  .tree-exp.hidden { visibility: hidden; }
+
+  /* Hovered tree row: soft Periwinkle wash, no border */
+  .tree-row.hovered {
+    background: var(--lcars-periwinkle-wash);
+    color: var(--lcars-text);
+  }
+
+  /* Selected tree row: deep plum wash + 2px African Violet left bar + Gold/White label */
+  .tree-row.selected {
+    background: var(--lcars-lavender-wash);
+    color: var(--lcars-gold);
+  }
+  .tree-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 2.5px;
+    border-radius: 0 2px 2px 0;
+    background: var(--lcars-lavender);
+  }
+
+  /* =========================================================
+     RIGHT SETTINGS PAGE (Controls Showcase)
+     ========================================================= */
+  .settings-content {
+    flex: 1;
+    min-width: 0;
+    background: var(--lcars-void);
+    padding: 18px 24px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .page-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .page-group-stub {
+    width: 16px;
+    height: 10px;
+    border-radius: 5px 0 0 5px;
+    background: var(--lcars-tangerine);
+  }
+  .page-group-title {
+    font-family: "Pathway Gothic One", "Barlow Semi Condensed", "Segoe UI";
+    font-size: 20px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--lcars-gold);
+    line-height: 1;
+  }
+  .page-group-rule {
+    flex: 1;
+    height: 2px;
+    background: var(--lcars-border-strong);
+  }
+  .page-group-end {
+    width: 24px;
+    height: 6px;
+    border-radius: 0 3px 3px 0;
+    background: var(--lcars-lavender);
+  }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .ctrl-label {
+    width: 175px;
+    flex: 0 0 175px;
+    color: var(--lcars-text-muted);
+    font-size: 13.5px;
+  }
+  .ctrl-field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* TextBox (32px height, pill-stubbed LCARS trough) */
+  .lcars-input {
+    width: 280px;
+    height: 32px;
+    background: var(--lcars-panel);
+    border: 1.5px solid var(--lcars-periwinkle-dim);
+    border-radius: 10px 6px 6px 10px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .lcars-input-stub {
+    width: 7px;
+    height: 32px;
+    background: var(--lcars-periwinkle);
+    border-right: 2px solid var(--lcars-void);
+    flex: 0 0 7px;
+  }
+  .lcars-input-val {
+    padding: 0 10px;
+    color: var(--lcars-text);
+    font-size: 13.5px;
+  }
+
+  /* ComboBox (32px height, right chevron room >= 12px) */
+  .lcars-combo {
+    width: 280px;
+    height: 32px;
+    background: var(--lcars-panel);
+    border: 1.5px solid var(--lcars-lavender-edge);
+    border-radius: 6px 12px 12px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px 0 10px;
+    color: var(--lcars-text);
+    font-size: 13.5px;
+  }
+  .combo-chev {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px 8px 8px 4px;
+    background: var(--lcars-lavender);
+    color: var(--lcars-text-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .sep-line {
+    height: 1px;
+    background: var(--lcars-border);
+    margin: 2px 0;
+  }
+
+  /* CheckBoxes (Checked Ops-Emerald pill + Unchecked recessed) */
+  .check-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--lcars-text);
+    font-size: 13.5px;
+  }
+  .check-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1.5px solid var(--lcars-periwinkle-dim);
+    background: var(--lcars-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 18px;
+  }
+  .check-box.checked {
+    background: var(--lcars-ops-mint);
+    border-color: var(--lcars-ops-mint);
+    color: var(--lcars-text-ink);
+  }
+  .check-box svg { width: 12px; height: 12px; }
+
+  /* Radio pair */
+  .radio-row {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--lcars-text);
+  }
+  .radio-ring {
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    border: 1.5px solid var(--lcars-periwinkle-dim);
+    background: var(--lcars-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radio-ring.checked { border-color: var(--lcars-lavender); }
+  .radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--lcars-lavender);
+  }
+
+  /* LCARS Segmented Slider */
+  .slider-wrap {
+    width: 280px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  .slider-track {
+    width: 100%;
+    height: 8px;
+    background: var(--lcars-surface);
+    border-radius: 4px;
+    border: 1px solid var(--lcars-border-strong);
+    overflow: hidden;
+    position: relative;
+  }
+  .slider-fill {
+    width: 64%;
+    height: 100%;
+    background: var(--lcars-tangerine);
+    -webkit-mask-image: url("../src/Images/fx/scan-cells.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 16px 8px;
+  }
+  .slider-thumb {
+    position: absolute;
+    left: calc(64% - 9px);
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    background: var(--lcars-gold);
+    border: 2px solid var(--lcars-void);
+    box-shadow: 0 0 0 1.5px var(--lcars-tangerine);
+  }
+  .slider-val {
+    font-family: "Consolas", "Cascadia Mono";
+    font-size: 12px;
+    color: var(--lcars-gold);
+  }
+
+  /* Inline Showcase Buttons (Primary + Secondary) */
+  .btn-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+  }
+  .lcars-btn {
+    height: 32px;
+    padding: 0 16px;
+    border-radius: 6px 14px 14px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Barlow Semi Condensed", "Segoe UI";
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .lcars-btn.primary {
+    background: var(--lcars-tangerine);
+    color: var(--lcars-text-ink);
+    padding: 0;
+    overflow: hidden;
+  }
+  .lcars-btn.primary::before {
+    content: "";
+    width: 8px;
+    height: 32px;
+    background: var(--lcars-gold);
+    border-right: 2px solid var(--lcars-void);
+    flex: 0 0 8px;
+  }
+  .lcars-btn.primary > span {
+    flex: 1;
+    text-align: center;
+    padding: 0 16px 0 12px;
+  }
+  .lcars-btn.plain {
+    background: var(--lcars-surface);
+    border: 1.5px solid var(--lcars-periwinkle-dim);
+    color: var(--lcars-text);
+  }
+
+  /* Compact LCARS Popup Menu Preview Strip inside Content (demonstrating unified menu language) */
+  .mini-callout {
+    margin-top: auto;
+    background: var(--lcars-panel);
+    border: 1px solid var(--lcars-border);
+    border-left: 6px solid var(--lcars-peach);
+    border-radius: 0 10px 10px 0;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--lcars-text-muted);
+  }
+  .mini-callout strong { color: var(--lcars-gold); font-weight: 600; }
+
+  /* =========================================================
+     BOTTOM BAR (settings-buttons — full width, Save then Cancel)
+     ========================================================= */
+  .settings-buttons {
+    height: 52px;
+    flex: 0 0 52px;
+    background: var(--lcars-panel);
+    border-top: 1px solid var(--lcars-border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .restart-note {
+    font-size: 12.5px;
+    color: var(--lcars-peach);
+  }
+  .bottom-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bottom-actions .lcars-btn {
+    min-width: 92px;
+    justify-content: center;
+  }
+  .bottom-actions .lcars-btn.primary {
+    justify-content: stretch;
+  }
+</style>
+</head>
+<body>
+<div class="backdrop">
+  <div class="settings-window" data-part="settings-window">
+
+    <!-- 44px LCARS TITLE BAND -->
+    <div class="title-band">
+      <div class="title-band-row">
+        <div class="title-emblem-cap">
+          <!-- Subspace Elbow-Wave Brand Mark -->
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2,10 A8,8 0 0,1 10,2 H16 V7 H11 A4,4 0 0,0 7,11 V17.5 H2 Z"/>
+            <rect x="2" y="19" width="5" height="3" rx="1"/>
+            <path d="M17.5,2 H19.5 A2.5,2.5 0 0,1 19.5,7 H17.5 Z"/>
+            <rect x="9.5" y="9.5" width="12.5" height="3" rx="1.5"/>
+            <rect x="9.5" y="14" width="8" height="3" rx="1.5"/>
+            <rect x="19" y="14" width="3" height="3" rx="1.5"/>
+            <rect x="9.5" y="18.5" width="5" height="3.5" rx="1.5"/>
+            <rect x="16" y="18.5" width="6" height="3.5" rx="1.75"/>
+          </svg>
+        </div>
+        <div class="title-text">Settings</div>
+        <div class="title-bar-seg s1"></div>
+        <div class="title-bar-seg s2"></div>
+        <div class="title-bar-seg s3"></div>
+      </div>
+      <div class="cap-btns">
+        <div class="cap-btn">
+          <svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8"><line x1="2" y1="6" x2="10" y2="6"/></svg>
+        </div>
+        <div class="cap-btn">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="7" height="7" rx="1.5"/></svg>
+        </div>
+        <div class="cap-btn close">
+          <svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg>
+        </div>
+      </div>
+      <div class="title-rule">
+        <span class="r1"></span><span class="r2"></span><span class="r3"></span>
+      </div>
+    </div>
+
+    <!-- BODY: SECTION TREE + CONTENT -->
+    <div class="dialog-body">
+      <nav class="settings-nav" data-part="settings-nav">
+        <div class="tree-list">
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>General</div>
+          <div class="tree-row"><span class="tree-exp">▾</span>Appearance</div>
+          <div class="tree-row child selected"><span class="tree-exp hidden">▸</span>General</div>
+          <div class="tree-row child hovered"><span class="tree-exp hidden">▸</span>Advanced</div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span>Details View</div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span>Grid View</div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span>List View</div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span>Layout</div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span>Top panel</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Search</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Updating</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Metadata</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Sorting</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Scripts</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Auto Close Clients</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Import Exclusion List</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Backup</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>For developers</div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span>Input</div>
+          <div class="tree-row"><span class="tree-exp">▸</span>Advanced</div>
+        </div>
+        <div class="tree-scroll-lane"><div class="tree-scroll-thumb"></div></div>
+      </nav>
+
+      <section class="settings-content" data-part="settings-content">
+        <div class="page-group-hdr">
+          <span class="page-group-stub"></span>
+          <span class="page-group-title">Appearance — General</span>
+          <span class="page-group-rule"></span>
+          <span class="page-group-end"></span>
+        </div>
+
+        <div class="ctrl-row">
+          <span class="ctrl-label">Theme *</span>
+          <div class="ctrl-field">
+            <div class="lcars-combo">
+              <span>Subspace (LCARS Console)</span>
+              <span class="combo-chev">▾</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ctrl-row">
+          <span class="ctrl-label">Database location *</span>
+          <div class="ctrl-field">
+            <div class="lcars-input">
+              <span class="lcars-input-stub"></span>
+              <span class="lcars-input-val">C:\Playnite\SubspaceLibrary</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sep-line"></div>
+
+        <div class="check-stack">
+          <div class="check-item">
+            <span class="check-box checked">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6.5 4.8,9.2 10,3.2"/></svg>
+            </span>
+            <span>Use game background image as window background</span>
+          </div>
+          <div class="check-item">
+            <span class="check-box checked">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6.5 4.8,9.2 10,3.2"/></svg>
+            </span>
+            <span>Show game icons on details list</span>
+          </div>
+          <div class="check-item">
+            <span class="check-box"></span>
+            <span>Fuzzy-match accented characters in library search</span>
+          </div>
+        </div>
+
+        <div class="sep-line"></div>
+
+        <div class="ctrl-row">
+          <span class="ctrl-label">Sidebar position</span>
+          <div class="ctrl-field">
+            <div class="radio-row">
+              <span class="radio-item"><span class="radio-ring checked"><span class="radio-dot"></span></span><span>Left</span></span>
+              <span class="radio-item"><span class="radio-ring"></span><span>Right</span></span>
+              <span class="radio-item"><span class="radio-ring"></span><span>Top</span></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ctrl-row">
+          <span class="ctrl-label">Background image darkening</span>
+          <div class="ctrl-field">
+            <div class="slider-wrap">
+              <div class="slider-track"><div class="slider-fill"></div></div>
+              <div class="slider-thumb"></div>
+            </div>
+            <span class="slider-val">64%</span>
+          </div>
+        </div>
+
+        <div class="sep-line"></div>
+
+        <div class="ctrl-row">
+          <span class="ctrl-label">Quick actions</span>
+          <div class="ctrl-field">
+            <div class="btn-row">
+              <span class="lcars-btn primary"><span>Apply Calibration</span></span>
+              <span class="lcars-btn plain">Reset Defaults</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mini-callout">
+          <span><strong>Subspace</strong> · Unofficial Star Trek: LCARS-inspired theme</span>
+          <span style="font-family: 'Consolas', 'Cascadia Mono'; color: var(--lcars-lavender);">REV 0.1.0</span>
+        </div>
+      </section>
+    </div>
+
+    <!-- BOTTOM ACTION BAR -->
+    <footer class="settings-buttons" data-part="settings-buttons">
+      <span class="restart-note">* Requires restart to apply</span>
+      <div class="bottom-actions">
+        <span class="lcars-btn primary"><span>Save</span></span>
+        <span class="lcars-btn plain">Cancel</span>
+      </div>
+    </footer>
+
+  </div>
+</div>
+</body>
+</html>

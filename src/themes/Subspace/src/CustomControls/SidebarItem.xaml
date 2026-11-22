@@ -1,0 +1,122 @@
+<!--
+    Subspace: CustomControls/SidebarItem.xaml.
+    44x40 LCARS rail cell, 16px glyph via fixed 14,12 padding (never stacked with IconPadding so add-on icons
+    stay >= 16x16). Idle sits as a dark right-rounded slot with a 4px Periwinkle spine tick; hover washes
+    Periwinkle; Selected snaps into a solid African Violet (#CC88FF) right-rounded lozenge (CornerRadius="0,14,14,0")
+    with a 5px Gold leading bar and crisp #000000 ink glyph.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type SidebarItem}">
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{DynamicResource SidebarItemForegroundBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type SidebarItem}">
+                    <Grid Background="Transparent" Margin="0,1.5">
+                        <!-- Idle dark LCARS rail slot with 4px Periwinkle spine tick -->
+                        <Grid x:Name="IdleSlot" IsHitTestVisible="False">
+                            <Border Background="{DynamicResource NormalBrush}" CornerRadius="0,10,10,0" />
+                            <Rectangle Width="4" HorizontalAlignment="Left" Fill="{DynamicResource LocalPeriwinkleDimBrush}" />
+                        </Grid>
+                        <!-- Hover wash (Periwinkle backlit) -->
+                        <Grid x:Name="HoverPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False">
+                            <Border Background="{DynamicResource TopPanelItemHoverBackgroundBrush}" CornerRadius="0,12,12,0" />
+                            <Rectangle Width="4" HorizontalAlignment="Left" Fill="{DynamicResource LocalPeriwinkleBrush}" />
+                        </Grid>
+                        <!-- Active/Selected: Solid African Violet LCARS lozenge + 5px Gold spine bar -->
+                        <Grid x:Name="SelectedPlate" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Border Background="{DynamicResource TopPanelItemCheckedBackgroundBrush}" CornerRadius="0,14,14,0" />
+                            <Rectangle Width="5" HorizontalAlignment="Left" Fill="{DynamicResource LocalGoldBrush}" />
+                        </Grid>
+                        <Border Padding="14,10">
+                            <Viewbox x:Name="ItemIcon">
+                                <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                            </Viewbox>
+                        </Border>
+                        <ContentControl x:Name="SetIcon" Visibility="Collapsed" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                        Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        ContentTemplate="{DynamicResource IconTemplate}" />
+                        <ProgressBar x:Name="PART_ProgressStatus" Height="2" MinHeight="0" Margin="6,0,8,2"
+                                     BorderThickness="0" Background="Transparent"
+                                     HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
+                            <ProgressBar.Template>
+                                <ControlTemplate TargetType="{x:Type ProgressBar}">
+                                    <Border x:Name="PART_Track" Background="{TemplateBinding Background}">
+                                        <Border x:Name="PART_Indicator" HorizontalAlignment="Left"
+                                                Background="{TemplateBinding Foreground}" />
+                                    </Border>
+                                </ControlTemplate>
+                            </ProgressBar.Template>
+                        </ProgressBar>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="IdleSlot" />
+                        </DataTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="SideHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="SideHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Selected}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="SelectedPlate" />
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="HoverPlate" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SideItem.Icon}" Value="SidebarLibraryIcon">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="ItemIcon" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="SetIcon" />
+                            <Setter Property="Content" Value="{DynamicResource IconLibrary}" TargetName="SetIcon" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding SideItem.Icon}" Value="SidebarStatisticsIcon">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="ItemIcon" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="SetIcon" />
+                            <Setter Property="Content" Value="{DynamicResource IconStatistics}" TargetName="SetIcon" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </Trigger>
+            <DataTrigger Binding="{Binding Selected}" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource SidebarItemSelectedForegroundBrush}" />
+            </DataTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="Content" Value="{x:Null}" />
+                    <Condition Property="ContentTemplate" Value="{x:Null}" />
+                </MultiTrigger.Conditions>
+                <MultiTrigger.Setters>
+                    <Setter Property="Background" Value="{DynamicResource WarningBrush}" />
+                </MultiTrigger.Setters>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

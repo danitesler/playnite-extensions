@@ -1,0 +1,463 @@
+<!--
+    Subspace: DerivedStyles/PlayButton.xaml (+ RunningActionIndicator).
+    Hero Moment (PlayButton): Dual-endcap LCARS Command Lozenge (Height=40, MinWidth=162):
+    - Left 14px pill endcap (CornerRadius="18,0,0,18") + 3px black channel + right-rounded Tangerine (#FF9900)
+      command body (CornerRadius="0,18,18,0") with Pathway Gothic One #000000 ink label and subtle 01 code
+      (hidden on Tag="ContextAction", IsLaunching, and IsRunning).
+    - Hover (gated off during IsLaunching/IsRunning): body illuminates smoothly to Sunflower Gold (#FFCC66),
+      left cap flips to African Violet (#CC88FF), outer Gold 1.5px rim illuminates, and LocalPlayGlintMaskBrush
+      (play-glint.png) sweeps cleanly across the lozenge (200ms CubicEase).
+    - Press: crisp LCARS pale-gold activation flash (#FFE6B3).
+    - Launching / Running: whole lozenge fills solid Warp Ops Teal (#0D7F6B) with Space White (#F2EFE9) label
+      darkened by ScrimBrush RunningBreath (0.45 launching / 0.22..0.42 running -> >= 6.4:1 contrast across all
+      frames), swept by segmented LocalScanCellsMaskBrush RunningScan (1.6s loop), and framed by
+      RunningActionIndicator with pill-capped foot bar + 3 staggered vertical LCARS equalizer bars inside 36px
+      right PlayRoom strip.
+    - Cancel on hover: single MultiDataTrigger on IsRunning + RelativeSource Self IsMouseOver (never TemplatedParent),
+      hiding PlayContent with Visibility="Hidden" so button width never jumps.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="PlayButton" TargetType="Button" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="MinWidth" Value="162" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="14,0,16,0" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryButtonBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <!-- Outer energized Gold hover rim (Collapsed at rest) -->
+                        <Border x:Name="HoverRim" Margin="-1.5" CornerRadius="19.5"
+                                BorderBrush="{DynamicResource PrimaryButtonGlowBrush}" BorderThickness="1.5"
+                                Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+                        <!-- Dual-Endcap LCARS Lozenge Shell (14px left cap + 3px black channel + main body) -->
+                        <Border x:Name="PlayShell" CornerRadius="18" Background="{DynamicResource ShellBackgroundBrush}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="14" />
+                                    <ColumnDefinition Width="3" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Left 14px LCARS Pill Endcap (Tangerine idle -> African Violet hover -> Ops Teal running) -->
+                                <Border x:Name="LeftCap" Grid.Column="0" CornerRadius="18,0,0,18"
+                                        Background="{TemplateBinding Background}" IsHitTestVisible="False">
+                                    <Grid>
+                                        <Border x:Name="LeftCapHover" CornerRadius="18,0,0,18"
+                                                Background="{DynamicResource GlyphBrush}"
+                                                Visibility="Collapsed" Opacity="0" />
+                                        <Border x:Name="LeftCapPress" CornerRadius="18,0,0,18"
+                                                Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                                Visibility="Collapsed" Opacity="0" />
+                                        <Border x:Name="LeftCapBreath" CornerRadius="18,0,0,18"
+                                                Background="{DynamicResource ScrimBrush}"
+                                                Visibility="Collapsed" Opacity="0.32" />
+                                    </Grid>
+                                </Border>
+
+                                <!-- Right-Rounded Main LCARS Command Body -->
+                                <Border x:Name="PlayFill" Grid.Column="2" CornerRadius="0,18,18,0"
+                                        Background="{TemplateBinding Background}">
+                                    <Grid ClipToBounds="True">
+                                        <!-- Hover Layer: Sunflower Gold illumination + sweeping backlit play-glint.png -->
+                                        <Grid x:Name="HoverLayer" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False">
+                                            <Border CornerRadius="0,18,18,0" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}" />
+                                            <Rectangle x:Name="HoverGlint" Width="136" HorizontalAlignment="Left"
+                                                       Fill="{DynamicResource LocalFlashBrush}" Opacity="0.72"
+                                                       OpacityMask="{DynamicResource LocalPlayGlintMaskBrush}">
+                                                <Rectangle.RenderTransform>
+                                                    <TranslateTransform x:Name="GlintSlideX" X="-120" />
+                                                </Rectangle.RenderTransform>
+                                            </Rectangle>
+                                        </Grid>
+
+                                        <!-- Pressed Layer: crisp LCARS pale-gold activation flash -->
+                                        <Border x:Name="PressedLayer" CornerRadius="0,18,18,0"
+                                                Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}"
+                                                Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+                                        <!-- Running / Launching plate darkening scrim (keeps Space White label >= 6.4:1) -->
+                                        <Border x:Name="RunningBreath" CornerRadius="0,18,18,0"
+                                                Background="{DynamicResource ScrimBrush}"
+                                                Visibility="Collapsed" Opacity="0.32" IsHitTestVisible="False" />
+
+                                        <!-- Segmented Launching Sweep (RunningScan masked by LocalScanCellsMaskBrush) -->
+                                        <Border x:Name="RunningScanHost" CornerRadius="0,18,18,0"
+                                                OpacityMask="{DynamicResource LocalScanCellsMaskBrush}"
+                                                IsHitTestVisible="False">
+                                            <Border x:Name="RunningScan" CornerRadius="0,18,18,0"
+                                                    Background="{DynamicResource LocalRunningHighlightBrush}"
+                                                    Visibility="Collapsed" Opacity="0.62">
+                                                <Border.OpacityMask>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                        <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.4" />
+                                                        <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                                        <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                                    </LinearGradientBrush>
+                                                </Border.OpacityMask>
+                                            </Border>
+                                        </Border>
+
+                                        <!-- Running hover darken scrim under Cancel label (below content) -->
+                                        <Border x:Name="RunningHoverDim" CornerRadius="0,18,18,0"
+                                                Background="{DynamicResource ScrimBrush}"
+                                                Opacity="0" IsHitTestVisible="False" />
+
+                                        <!-- Label host (PlayRoom reserves 36px right strip while Launching/Running) -->
+                                        <!-- RunningMarkRoom left="0" right="36" -->
+                                        <Border x:Name="PlayRoom" Margin="0">
+                                            <StackPanel x:Name="PlayContent" Orientation="Horizontal"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                        Margin="{TemplateBinding Padding}">
+                                                <ContentControl x:Name="PlayGlyph" Width="13" Height="13" Margin="0,0,8,0"
+                                                                Content="{DynamicResource IconPlay}" ContentTemplate="{DynamicResource IconTemplate}"
+                                                                Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"
+                                                                IsHitTestVisible="False">
+                                                    <ContentControl.RenderTransform>
+                                                        <TranslateTransform x:Name="PlayGlyphShift" X="0" />
+                                                    </ContentControl.RenderTransform>
+                                                </ContentControl>
+                                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                                  RecognizesAccessKey="True" />
+                                                <TextBlock x:Name="PlayCode" Text="01" Margin="8,2,0,0"
+                                                           FontFamily="{DynamicResource MonospaceFontFamily}"
+                                                           FontSize="10" FontWeight="Bold" Opacity="0.68"
+                                                           Foreground="{TemplateBinding Foreground}"
+                                                           VerticalAlignment="Center" IsHitTestVisible="False" />
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Cancel hover label (shown ONLY while IsRunning AND button itself IsMouseOver) -->
+                                        <TextBlock x:Name="CancelLabel" Text="{DynamicResource LOCCancelLabel}"
+                                                   FontFamily="{DynamicResource HeadingFontFamily}" FontSize="22"
+                                                   Foreground="{DynamicResource TextBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="Tag" Value="ContextAction">
+                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PlayCode" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+
+                        <!-- Idle Hover (gated off during IsLaunching/IsRunning) -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard x:Name="PlayHoverIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LeftCapHover" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="LeftCapHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="GlintSlideX" Storyboard.TargetProperty="X" From="-110" To="60" Duration="0:0:0.24">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlayGlyphShift" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard x:Name="PlayHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="LeftCapHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                        <DoubleAnimation Storyboard.TargetName="PlayGlyphShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverLayer" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LeftCapHover" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverRim" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+
+                        <!-- Pressed Activation Flash -->
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="PressedLayer" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PressedLayer" Property="Opacity" Value="1" />
+                            <Setter TargetName="LeftCapPress" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="LeftCapPress" Property="Opacity" Value="1" />
+                        </Trigger>
+
+                        <!-- Launching state: Ops Teal plate + darkened RunningBreath + segmented RunningScan -->
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="HoverLayer" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="LeftCapHover" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverRim" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PlayCode" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="LeftCapBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PlayRoom" Property="Padding" Value="0,0,36,0" />
+                            <Setter TargetName="CancelLabel" Property="Margin" Value="0,0,36,0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" From="0.32" To="0.46" Duration="0:0:0.22" />
+                                        <DoubleAnimation Storyboard.TargetName="LeftCapBreath" Storyboard.TargetProperty="Opacity" From="0.32" To="0.46" Duration="0:0:0.22" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.4" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.10" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.10" Value="1.4" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.4" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.10" Value="1.402" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.402" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                        <!-- Running state: Ops Teal plate + quiet breathing scrim -->
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="HoverLayer" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="LeftCapHover" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverRim" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PlayCode" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="LeftCapBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="PlayRoom" Property="Padding" Value="0,0,36,0" />
+                            <Setter TargetName="CancelLabel" Property="Margin" Value="0,0,36,0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.22" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.42" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.22" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="LeftCapBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.22" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.42" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.22" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+
+                        <!-- Running + Button Self Hover: show Cancel, hide PlayContent without layout collapse -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsRunning}" Value="True" />
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="PlayContent" Property="Visibility" Value="Hidden" />
+                            <Setter TargetName="CancelLabel" Property="Visibility" Value="Visible" />
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard x:Name="CancelHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningHoverDim" Storyboard.TargetProperty="Opacity" To="0.38" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="CancelLabel" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard x:Name="CancelHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="RunningHoverDim" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                                        <DoubleAnimation Storyboard.TargetName="CancelLabel" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Game Page Action Overlay: LCARS Warp Ops Teal frame + pill foot line + 3 staggered telemetry equalizer bars -->
+    <Style x:Key="RunningActionIndicator" TargetType="Control">
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Control">
+                    <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.94" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                        <Border x:Name="RunningWash" CornerRadius="18" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.12" />
+                        <Border x:Name="RunningFrame" CornerRadius="18"
+                                BorderBrush="{DynamicResource RunningIndicatorBrush}" BorderThickness="1.5" />
+                        <!-- 2px Pill-Capped Foot Track (5px above bottom edge) -->
+                        <Grid Height="2" Margin="20,0,18,5" VerticalAlignment="Bottom">
+                            <Border CornerRadius="1" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.34" />
+                            <Border x:Name="RunningFill" CornerRadius="1" Background="{DynamicResource LocalRunningHighlightBrush}"
+                                    RenderTransformOrigin="0,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="RunningFillScale" ScaleX="0" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </Grid>
+                        <!-- 3 Staggered LCARS Vertical Telemetry Equalizer Bars (right edge inside PlayRoom) -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0" Height="14">
+                            <Border x:Name="EqBar1" Width="3" Height="14" Margin="0,0,2.5,0" CornerRadius="1.5,1.5,0,0"
+                                    Background="{DynamicResource LocalRunningHighlightBrush}" RenderTransformOrigin="0.5,1">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="EqBar1ScaleY" ScaleY="0.45" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar2" Width="3" Height="14" Margin="0,0,2.5,0" CornerRadius="1.5,1.5,0,0"
+                                    Background="{DynamicResource TextBrush}" RenderTransformOrigin="0.5,1">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="EqBar2ScaleY" ScaleY="0.85" />
+                                </Border.RenderTransform>
+                            </Border>
+                            <Border x:Name="EqBar3" Width="3" Height="14" CornerRadius="1.5,1.5,0,0"
+                                    Background="{DynamicResource LocalRunningHighlightBrush}" RenderTransformOrigin="0.5,1">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="EqBar3ScaleY" ScaleY="0.60" />
+                                </Border.RenderTransform>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.10" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.20" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EqBar1ScaleY" Storyboard.TargetProperty="ScaleY" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.95" Value="0.95" KeySpline="0.3,0 0.2,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.35" Value="0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.35" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EqBar2ScaleY" Storyboard.TargetProperty="ScaleY" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.08" Value="1.0" KeySpline="0.3,0 0.2,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.45" Value="0.55" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.45" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EqBar3ScaleY" Storyboard.TargetProperty="ScaleY" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.35" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.20" Value="0.90" KeySpline="0.3,0 0.2,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.52" Value="0.40" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.35" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="RunningIndicator" Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EqBar1ScaleY" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="0.85" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:2.4" Value="0.50" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.45" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EqBar2ScaleY" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.88" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.55" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.88" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EqBar3ScaleY" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.55" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.9" Value="0.92" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.55" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimation Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
