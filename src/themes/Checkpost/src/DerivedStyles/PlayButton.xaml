@@ -1,0 +1,425 @@
+<!--
+    Checkpost: Play, the rubber stamp from Papers, Please's stamp bar. Structure: Playnite Default 10.60 (PlayButton); every Default
+    state is kept.
+    Plate: a flat face (PrimaryButtonBackgroundBrush, stamp green) over a hard 3px ledge (BorderBrush, LocalStampLedgeBrush), 2px
+    corners. A 26px black knob disc sits on the left (LocalEdgeBrush, 2px cream ring, a 4x3 cream highlight pixel), then the label:
+    uppercase Pixelify Sans 24px in cream. Nothing blurs; no DropShadowEffect; every move is a whole-pixel step.
+    Hover (hero): the face lifts 2px in two discrete steps (named TranslateTransform FaceLift, from ControlTemplate.Triggers), the
+    lit face (PrimaryButtonHoverBackgroundBrush) and a 1px lit top edge show, the knob ring turns lime. Pressed has its own layer: the
+    face slams 3px onto the ledge and a rotated (-4 degrees) double-frame ink imprint in stamp green flashes below the plate for
+    160ms in discrete steps.
+    PART_ButtonContextAction (Tag ContextAction) is the same plate in olive with a cream label and no knob.
+    Launching and running: the face fills with RunningIndicatorBrush (amber) over an amber ledge, with an ink label. The knob steps
+    aside for three amber-family dots (4px squares) in its own column (MarkHost), so the label (PlayRoom) never meets them; they
+    step like a typewriter (a dot added every 220ms while launching, every 600ms while running, then the row clears). Launching: a
+    short cream block with a hard head sweeps the plate (RunningScan). Running: a RunningBreath scrim breathes over it. The RUNNING
+    label shows Cancel only while the button itself is hovered (RelativeSource Self): the face turns DENIED red (RunningHoverDim,
+    cream label, red ledge, the knob back in place). Hover and the lift stay off while it runs.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!--
+        RunningActionIndicator: laid over the Play / context action cell on both game pages. While the game runs Playnite swaps
+        Play for the context action (RUNNING). The overlay frames the plate: a 2px amber ring 2px outside it, a faint wash on the
+        face, and a dashed foot (3px cells, 1px gaps) on the ledge that fills as a progress bar. Launching: the foot fills in step
+        with the block sweeping the plate (1.6s loop). Running: the ring breathes 0.72 to 1 (3.2s) and the foot stays full. The
+        three dots live on the plate itself. DataContext is Playnite's GameDetailsViewModel.
+    -->
+    <Style x:Key="RunningActionIndicator" TargetType="{x:Type Control}">
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Control}">
+                    <ControlTemplate.Resources>
+                        <!-- A 3px cell on a 4px pitch: the mask that turns the foot line into a bar of blocks. -->
+                        <DrawingBrush x:Key="LocalRunningCells" TileMode="Tile" Viewport="0,0,4,4" ViewportUnits="Absolute" Viewbox="0,0,4,4" ViewboxUnits="Absolute">
+                            <DrawingBrush.Drawing>
+                                <GeometryDrawing Brush="Black">
+                                    <GeometryDrawing.Geometry>
+                                        <RectangleGeometry Rect="0,0,3,4" />
+                                    </GeometryDrawing.Geometry>
+                                </GeometryDrawing>
+                            </DrawingBrush.Drawing>
+                        </DrawingBrush>
+                    </ControlTemplate.Resources>
+                    <Grid x:Name="RunningIndicator" Visibility="Collapsed" Opacity="0.85" IsHitTestVisible="False" SnapsToDevicePixels="True">
+                        <Border x:Name="RunningWash" Margin="0,0,0,3" CornerRadius="{DynamicResource ControlCornerRadius}" Background="{DynamicResource RunningIndicatorBrush}" Opacity="0.12" />
+                        <Grid x:Name="RunningFoot" Height="3" Margin="6,0,6,0" VerticalAlignment="Bottom" OpacityMask="{StaticResource LocalRunningCells}">
+                            <Rectangle Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0.3" />
+                            <Rectangle x:Name="RunningFill" Fill="{DynamicResource RunningIndicatorBrush}" RenderTransformOrigin="0,0.5">
+                                <Rectangle.RenderTransform>
+                                    <ScaleTransform x:Name="RunningFillScale" ScaleX="0" />
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                        </Grid>
+                        <Border x:Name="RunningFrame" Margin="-4,-4,-4,-3" CornerRadius="4" BorderThickness="2" BorderBrush="{DynamicResource RunningIndicatorBrush}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningFill" Storyboard.TargetProperty="Opacity" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="RunningIndicator" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="RunningIndicatorRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningIndicator" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.72" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.72" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- The foot fills once (the block has landed) and stays full. -->
+                                <BeginStoryboard Name="RunningIndicatorFill">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RunningFillScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.45">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorRunning" />
+                                <RemoveStoryboard BeginStoryboardName="RunningIndicatorFill" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="PlayButton" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LocalStampLedgeBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="10,0,18,0" />
+        <Setter Property="FontFamily" Value="{DynamicResource LocalDisplayFontFamily}" />
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="MinWidth" Value="158" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <ControlTemplate.Resources>
+                        <!-- Labels are caps whatever Playnite's string says. -->
+                        <DataTemplate DataType="{x:Type sys:String}">
+                            <TextBlock Text="{Binding Converter={StaticResource StringToUpperCaseConverter}}" />
+                        </DataTemplate>
+                    </ControlTemplate.Resources>
+                    <Grid x:Name="Root" Background="Transparent" SnapsToDevicePixels="True">
+                        <!-- The hard ledge under the face. -->
+                        <Border x:Name="Ledge" Margin="0,3,0,0" IsHitTestVisible="False" Background="{TemplateBinding BorderBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <!-- The face: plate, hover, pressed and running layers, then the content. FaceLift is the hover step; a press drops the whole face onto the ledge. -->
+                        <Grid x:Name="Face" Margin="0,0,0,3" IsHitTestVisible="False">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="FaceLift" Y="0" />
+                            </Grid.RenderTransform>
+                            <Border x:Name="Plate" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                            <Border x:Name="HoverPlate" Visibility="Collapsed" Background="{DynamicResource PrimaryButtonHoverBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                            <Border x:Name="PressedPlate" Visibility="Collapsed" Background="{DynamicResource PrimaryButtonPressedBackgroundBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                            <!-- The lit top edge of a lifted face. -->
+                            <Rectangle x:Name="LitEdge" Visibility="Collapsed" Height="1" Margin="1,0,1,0" VerticalAlignment="Top" Fill="{DynamicResource LocalOkBrush}" />
+                            <Border x:Name="RunningBreath" Visibility="Collapsed" Background="{DynamicResource ScrimBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0" />
+                            <Border x:Name="RunningScan" Visibility="Collapsed" Background="{DynamicResource LocalCreamBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0.55">
+                                <Border.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="RunningScanTail" Color="#00000000" Offset="-0.3" />
+                                        <GradientStop x:Name="RunningScanHead" Color="#FF000000" Offset="0" />
+                                        <GradientStop x:Name="RunningScanEdge" Color="#00000000" Offset="0.002" />
+                                    </LinearGradientBrush>
+                                </Border.OpacityMask>
+                            </Border>
+                            <!-- DENIED: the red face a RUNNING plate takes while the pointer is on it. Under the label. -->
+                            <Border x:Name="RunningHoverDim" Visibility="Collapsed" Background="{DynamicResource DangerBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                            <Grid x:Name="Content" Margin="{TemplateBinding Padding}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <!-- The knob at rest; the three typewriter dots while the game launches or runs. Its own column: the label never meets them. -->
+                                <Grid x:Name="MarkHost" Width="26" Height="26" Margin="0,0,12,0" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <Border x:Name="Knob" Background="{DynamicResource LocalEdgeBrush}" BorderBrush="{DynamicResource LocalCreamBrush}" BorderThickness="2" CornerRadius="13">
+                                        <Rectangle Width="4" Height="3" Margin="5,4,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Fill="{DynamicResource LocalCreamBrush}" Opacity="0.85" />
+                                    </Border>
+                                    <StackPanel x:Name="RunningDots" Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Rectangle x:Name="RunningDot1" Width="4" Height="4" Fill="{DynamicResource LocalInkBrush}" />
+                                        <Rectangle x:Name="RunningDot2" Width="4" Height="4" Margin="3,0,0,0" Fill="{DynamicResource LocalInkBrush}" Opacity="0.3" />
+                                        <Rectangle x:Name="RunningDot3" Width="4" Height="4" Margin="3,0,0,0" Fill="{DynamicResource LocalInkBrush}" Opacity="0.3" />
+                                    </StackPanel>
+                                </Grid>
+                                <!-- RunningMarkRoom left="0" right="0": the dots own MarkHost, a column of their own, so the label never meets them. -->
+                                <Border x:Name="PlayRoom" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1">
+                                    <Grid x:Name="PlayContent">
+                                        <ContentPresenter x:Name="PlayLabel" RecognizesAccessKey="True" Content="{TemplateBinding Content}"
+                                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                                    </Grid>
+                                </Border>
+                                <ContentPresenter x:Name="CancelLabel" Grid.Column="1" Content="{DynamicResource LOCCancelLabel}" Visibility="Collapsed" IsHitTestVisible="False"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,1" TextElement.Foreground="{TemplateBinding Foreground}" />
+                            </Grid>
+                        </Grid>
+                        <!-- The imprint a pressed stamp leaves on the page below it: a double ink frame, tilted -4 degrees. It flashes for 160ms and is collapsed at rest. -->
+                        <Grid x:Name="Imprint" Visibility="Collapsed" Width="54" Height="22" Margin="0,0,-6,-8" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                              IsHitTestVisible="False" Opacity="0.55" RenderTransformOrigin="0.5,0.5">
+                            <Grid.RenderTransform>
+                                <RotateTransform Angle="-4" />
+                            </Grid.RenderTransform>
+                            <Border BorderBrush="{DynamicResource LocalStampBrush}" BorderThickness="2" />
+                            <Border Margin="6" BorderBrush="{DynamicResource LocalStampBrush}" BorderThickness="2" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- The context action: an olive plate, a cream label, no knob while idle. -->
+                        <Trigger Property="Tag" Value="ContextAction">
+                            <Setter TargetName="MarkHost" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="HoverPlate" Property="Background" Value="{DynamicResource LocalOliveLitBrush}" />
+                            <Setter TargetName="PressedPlate" Property="Background" Value="{DynamicResource LocalOliveBrush}" />
+                            <Setter TargetName="LitEdge" Property="Fill" Value="{DynamicResource LocalLimeBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.45" />
+                        </Trigger>
+                        <!-- Hover: only while the game is not launching or running. The face lifts 2px in two steps; the lit face, the lit edge and the lime ring stay. -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="LitEdge" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Knob" Property="BorderBrush" Value="{DynamicResource LocalLimeBrush}" />
+                            <MultiDataTrigger.EnterActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayHoverOut" />
+                                <BeginStoryboard Name="PlayHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="FaceLift" Storyboard.TargetProperty="Y">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.05" Value="-1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.1" Value="-2" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <BeginStoryboard Name="PlayHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="FaceLift" Storyboard.TargetProperty="Y">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="-2" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.05" Value="-1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.1" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="PlayHoverIn" />
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                        <!-- Press: its own layers. The face slams 3px onto the ledge (the margin; PlayPressIn cancels the hover lift) and the imprint flashes. -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True" />
+                                <Condition Binding="{Binding IsRunning}" Value="False" />
+                                <Condition Binding="{Binding IsLaunching}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="Face" Property="Margin" Value="0,3,0,0" />
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="LitEdge" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Visible" />
+                            <MultiDataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayPressIn">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="FaceLift" Storyboard.TargetProperty="Y">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="PlayImprintFlash">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Imprint" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Imprint" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.9" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.04" Value="0.55" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.08" Value="0.9" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.12" Value="0.55" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiDataTrigger.EnterActions>
+                            <MultiDataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayPressIn" />
+                                <RemoveStoryboard BeginStoryboardName="PlayImprintFlash" />
+                            </MultiDataTrigger.ExitActions>
+                        </MultiDataTrigger>
+                        <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="LitEdge" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Knob" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningDots" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="MarkHost" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningBreath" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningBreath" Property="Opacity" Value="0.06" />
+                            <Setter Property="Padding" Value="10,0,16,0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayFillLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.3" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanHead" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1.3" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanEdge" Storyboard.TargetProperty="Offset" Duration="0:0:1.6">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.002" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.1" Value="1.302" KeySpline="0.45,0 0.25,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="1.302" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- Typewriter: a dot is added every 220ms (discrete), then the row clears. -->
+                                <BeginStoryboard Name="PlayDotsLaunching">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot1" Storyboard.TargetProperty="Opacity" Duration="0:0:0.88">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.66" Value="0.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot2" Storyboard.TargetProperty="Opacity" Duration="0:0:0.88">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.3" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.22" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.66" Value="0.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot3" Storyboard.TargetProperty="Opacity" Duration="0:0:0.88">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.3" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.44" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.66" Value="0.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayFillLaunching" />
+                                <RemoveStoryboard BeginStoryboardName="PlayDotsLaunching" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                            <Setter TargetName="HoverPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="LitEdge" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Knob" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RunningDots" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="MarkHost" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="RunningBreath" Property="Visibility" Value="Visible" />
+                            <Setter Property="Padding" Value="10,0,16,0" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayFillRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:3.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.04" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.6" Value="0.16" KeySpline="0.4,0 0.6,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:3.2" Value="0.04" KeySpline="0.4,0 0.6,1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <!-- The same typewriter, slower: a dot every 600ms. -->
+                                <BeginStoryboard Name="PlayDotsRunning">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot1" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.8" Value="0.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot2" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.3" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.6" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.8" Value="0.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningDot3" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.3" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.2" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:1.8" Value="0.3" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="PlayFillRunning" />
+                                <RemoveStoryboard BeginStoryboardName="PlayDotsRunning" />
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                        <!-- Cancel: only while a RUNNING plate is under the pointer. The binding is Self (this button). TemplatedParent is the whole game page.
+                             DENIED: the red face and ledge, a cream label, the knob back in place of the dots. One step, no fade (a stamp lands whole). -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsRunning}" Value="True" />
+                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter TargetName="CancelLabel" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="CancelLabel" Property="TextElement.Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                            <Setter TargetName="PlayContent" Property="Visibility" Value="Hidden" />
+                            <Setter TargetName="RunningHoverDim" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Ledge" Property="Background" Value="{DynamicResource LocalRedLedgeBrush}" />
+                            <Setter TargetName="RunningDots" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Knob" Property="Visibility" Value="Visible" />
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <!-- The context action is an olive plate; launching and running keep the plate and fill it amber with an ink label. MinWidth 190 holds LAUNCHING and the knob column. -->
+        <Style.Triggers>
+            <Trigger Property="Tag" Value="ContextAction">
+                <Setter Property="Background" Value="{DynamicResource LocalOliveBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource LocalEdgeBrush}" />
+                <Setter Property="Padding" Value="16,0,16,0" />
+                <Setter Property="MinWidth" Value="176" />
+            </Trigger>
+            <DataTrigger Binding="{Binding IsLaunching}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource LocalAmberLedgeBrush}" />
+                <Setter Property="MinWidth" Value="190" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                <Setter Property="Background" Value="{DynamicResource RunningIndicatorBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource LocalAmberLedgeBrush}" />
+                <Setter Property="MinWidth" Value="190" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

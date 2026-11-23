@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Starlane — OLED Star Wars Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--sw-oled);
+    color: var(--sw-text);
+    font-family: 'Barlow', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    position: relative;
+    display: flex;
+    width: 1280px;
+    height: 720px;
+    background: var(--sw-oled);
+  }
+  /* Calm OLED deep-space starfield across the entire window */
+  .starfield-layer {
+    position: absolute;
+    inset: 0;
+    background: var(--sw-text);
+    opacity: 0.65;
+    -webkit-mask-image: url('../src/Images/fx/starfield.png');
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 512px 512px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Ultra-minimalist 44px OLED Left Rail */
+  .sidebar {
+    position: relative;
+    width: 44px;
+    height: 720px;
+    flex: 0 0 44px;
+    background: rgba(0, 0, 0, 0.72);
+    border-right: 1px solid var(--sw-hairline);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 3;
+  }
+  .sidebar-menu-btn {
+    width: 44px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sw-yellow);
+    border-bottom: 1px solid var(--sw-hairline);
+  }
+  .sidebar-items {
+    display: flex;
+    flex-direction: column;
+    width: 44px;
+    padding-top: 8px;
+    gap: 2px;
+  }
+  .sidebar-item {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sw-text-muted);
+    position: relative;
+  }
+  .sidebar-item.active {
+    color: var(--sw-white);
+  }
+  /* Vertical Jedi Blue Lightsaber beam on active rail item */
+  .sidebar-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 18px;
+    background: var(--sw-saber-blue);
+    -webkit-mask-image: url('../src/Images/fx/saber-beam-v.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .sidebar-item.active::after {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: var(--sw-white);
+    border-radius: 1px;
+  }
+  .sidebar-item svg { width: 16px; height: 16px; position: relative; z-index: 2; }
+
+  /* Subtle tri-color lightsaber crystals at bottom of rail */
+  .saber-dots {
+    margin-top: auto;
+    padding-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    align-items: center;
+  }
+  .sdot { width: 3px; height: 10px; border-radius: 2px; }
+  .sdot.b { background: var(--sw-saber-blue); box-shadow: 0 0 6px var(--sw-saber-blue); }
+  .sdot.g { background: var(--sw-saber-green); box-shadow: 0 0 6px var(--sw-saber-green); }
+  .sdot.r { background: var(--sw-saber-red); box-shadow: 0 0 6px var(--sw-saber-red); }
+
+  /* Main Column */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 720px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Minimalist 48px OLED Top Bar */
+  .top-panel {
+    position: relative;
+    height: 48px;
+    flex: 0 0 48px;
+    background: rgba(0, 0, 0, 0.72);
+    border-bottom: 1px solid var(--sw-hairline);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 12px;
+    gap: 6px;
+  }
+
+  .search-box {
+    width: 240px;
+    height: 32px;
+    background: var(--sw-well);
+    border: 1px solid var(--sw-hairline);
+    border-radius: var(--sw-radius-md);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .search-box svg { width: 15px; height: 15px; color: var(--sw-text-muted); flex: 0 0 auto; }
+  .search-placeholder { color: var(--sw-text-muted); font-size: 13px; }
+
+  .tool-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--sw-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sw-text-muted);
+    position: relative;
+    flex: 0 0 32px;
+  }
+  .tool-btn svg { width: 16px; height: 16px; }
+  .tool-btn.active {
+    color: var(--sw-white);
+    background: var(--sw-saber-blue-wash);
+  }
+  .tool-btn.active::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    bottom: 0;
+    height: 2px;
+    background: var(--sw-white);
+    box-shadow: 0 0 6px var(--sw-saber-blue), 0 0 10px var(--sw-saber-blue);
+  }
+  .filter-pip {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 7px;
+    height: 7px;
+    background: var(--sw-cyan);
+    transform: rotate(45deg);
+    box-shadow: 0 0 6px var(--sw-cyan);
+  }
+  .top-tools {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .tool-sep {
+    width: 1px;
+    height: 16px;
+    background: var(--sw-hairline);
+    margin: 0 4px;
+  }
+
+  /* Minimalist Glowing Lightsaber Progress Beam */
+  .saber-progress {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+  }
+  .saber-progress-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--sw-text-muted);
+  }
+  .saber-progress-track {
+    width: 112px;
+    height: 4px;
+    background: var(--sw-hairline);
+    border-radius: 2px;
+    position: relative;
+  }
+  .saber-progress-fill {
+    width: 68%;
+    height: 100%;
+    background: var(--sw-white);
+    border-radius: 2px;
+    box-shadow: 0 0 6px var(--sw-saber-blue), 0 0 12px var(--sw-saber-blue);
+  }
+
+  .win-controls {
+    display: flex;
+    align-items: stretch;
+    height: 48px;
+    margin-left: 4px;
+  }
+  .win-btn {
+    width: 44px;
+    height: 47px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sw-text-muted);
+  }
+  .win-btn svg { width: 12px; height: 12px; }
+
+  /* Workspace */
+  .workspace {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  /* Ultra-minimalist OLED Game List */
+  .game-list {
+    width: 244px;
+    flex: 0 0 244px;
+    background: rgba(0, 0, 0, 0.65);
+    border-right: 1px solid var(--sw-hairline);
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .list-group-hdr {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sw-cyan);
+    padding: 4px 10px 8px;
+  }
+  .game-row {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px 0 12px;
+    gap: 10px;
+    position: relative;
+    border-radius: var(--sw-radius-md);
+    color: var(--sw-text-muted);
+  }
+  .game-row .g-ico {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    background: var(--sw-surface);
+    border: 1px solid var(--sw-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7.5px;
+    font-weight: 700;
+    color: var(--sw-yellow);
+    flex: 0 0 16px;
+  }
+  .game-row .g-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13.5px;
+    flex: 1;
+  }
+
+  /* Selected Row: Glowing Vertical Jedi Blue Lightsaber Blade */
+  .game-row.selected {
+    background: linear-gradient(90deg, rgba(40, 168, 255, 0.16) 0%, rgba(40, 168, 255, 0.02) 100%);
+    color: var(--sw-white);
+    font-weight: 500;
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 24px;
+    background: var(--sw-saber-blue);
+    -webkit-mask-image: url('../src/Images/fx/saber-beam-v.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .game-row.selected::after {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--sw-white);
+    border-radius: 1px;
+  }
+
+  /* Hovered Row: Minimal Whisper Lift + Bare Play Icon */
+  .game-row.hovered {
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--sw-text);
+  }
+  .row-hover-play {
+    width: 13px;
+    height: 13px;
+    color: var(--sw-text);
+    opacity: 0.85;
+    flex: 0 0 auto;
+  }
+
+  /* Running Row: Glowing Consular Green Lightsaber Blade */
+  .game-row.running {
+    background: linear-gradient(90deg, rgba(24, 201, 88, 0.16) 0%, rgba(24, 201, 88, 0.02) 100%);
+    color: var(--sw-white);
+  }
+  .game-row.running::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 24px;
+    background: var(--sw-saber-green);
+    -webkit-mask-image: url('../src/Images/fx/saber-beam-v.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .game-row.running::after {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--sw-white);
+    border-radius: 1px;
+  }
+  .saber-pips {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .saber-pips span {
+    width: 3px;
+    height: 10px;
+    border-radius: 1.5px;
+    background: var(--sw-white);
+    box-shadow: 0 0 6px var(--sw-saber-green);
+  }
+  .saber-pips span:nth-child(1) { height: 6px; opacity: 0.65; }
+  .saber-pips span:nth-child(3) { height: 8px; opacity: 0.8; }
+
+  /* Sith Red Alert Row Example (e.g. Updating / Uninstalled warning accent) */
+  .game-row.sith-accent {
+    color: var(--sw-text-muted);
+  }
+  .game-row.sith-accent::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--sw-saber-red);
+    box-shadow: 0 0 6px var(--sw-saber-red);
+  }
+
+  /* Right Game Page — Pure OLED Black Space */
+  .game-page {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Subtle atmospheric space banner fading seamlessly into pure OLED var(--sw-oled) */
+  .hero-art {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 270px;
+    background:
+      radial-gradient(ellipse 58% 72% at 75% 18%, rgba(40, 168, 255, 0.14), transparent 65%),
+      radial-gradient(ellipse 40% 60% at 20% 10%, rgba(255, 232, 31, 0.08), transparent 60%),
+      linear-gradient(180deg, rgba(10, 14, 24, 0.65) 0%, rgba(0, 0, 0, 0.92) 78%, var(--sw-oled) 100%);
+    pointer-events: none;
+  }
+
+  .page-inner {
+    position: relative;
+    z-index: 2;
+    padding: 138px 34px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+  }
+
+  /* Opening-Title Header Row */
+  .game-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--sw-hairline);
+    position: relative;
+  }
+  .title-cluster {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .opening-eyebrow {
+    font-family: 'Barlow', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--sw-cyan);
+  }
+  /* ICONIC HOLLOW-YELLOW OUTLINED STAR WARS MOVIE TITLE */
+  .game-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sw-oled);
+    -webkit-text-stroke: 1.8px var(--sw-yellow);
+    text-shadow: 0 0 18px rgba(255, 232, 31, 0.16);
+  }
+
+  /* HERO MOMENT: Full-Width Ignited Plasma Play Button */
+  .action-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+  .play-wrap {
+    position: relative;
+    height: 40px;
+    display: flex;
+    align-items: center;
+  }
+  /* Ignited Blue Lightsaber outer aura */
+  .play-aura {
+    position: absolute;
+    inset: -10px -12px;
+    background: var(--sw-saber-blue);
+    opacity: 0.88;
+    -webkit-mask-image: url('../src/Images/fx/saber-frame.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .play-saber-top,
+  .play-saber-bot {
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    height: 18px;
+    background: var(--sw-saber-blue);
+    -webkit-mask-image: url('../src/Images/fx/saber-beam-h.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .play-saber-top { top: -9px; }
+  .play-saber-bot { bottom: -9px; opacity: 0.82; }
+
+  .play-btn {
+    position: relative;
+    height: 40px;
+    min-width: 148px;
+    background: var(--sw-saber-blue-deep);
+    border: 1.5px solid var(--sw-white);
+    border-radius: var(--sw-radius-md);
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    box-shadow: 0 0 16px rgba(40, 168, 255, 0.72), inset 0 0 12px rgba(40, 168, 255, 0.35);
+  }
+  .play-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 22px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--sw-white);
+  }
+  .play-label svg { width: 12px; height: 12px; }
+
+  .sec-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--sw-panel);
+    border: 1px solid var(--sw-border);
+    border-radius: var(--sw-radius-md);
+    color: var(--sw-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sec-btn svg { width: 15px; height: 15px; }
+
+  /* Two-Column Minimalist OLED Content */
+  .page-body {
+    flex: 1;
+    display: flex;
+    gap: 30px;
+    min-height: 0;
+  }
+  .content-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .sec-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sw-yellow);
+  }
+  .sec-heading .saber-tick {
+    width: 14px;
+    height: 2px;
+    background: var(--sw-white);
+    border-radius: 1px;
+    box-shadow: 0 0 8px var(--sw-saber-blue), 0 0 4px var(--sw-saber-blue);
+  }
+  .sec-heading .saber-tick.green {
+    box-shadow: 0 0 8px var(--sw-saber-green), 0 0 4px var(--sw-saber-green);
+  }
+  .sec-heading::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--sw-hairline);
+  }
+
+  /* Minimalist Screenshots Preview */
+  .ss-block { display: flex; flex-direction: column; gap: 10px; }
+  .ss-main {
+    height: 182px;
+    background:
+      radial-gradient(ellipse 45% 65% at 32% 55%, rgba(40, 168, 255, 0.22), transparent 65%),
+      radial-gradient(ellipse 40% 60% at 72% 45%, rgba(229, 34, 34, 0.20), transparent 65%),
+      linear-gradient(160deg, #07090f 0%, var(--sw-banner-tint) 100%);
+    border: 1px solid var(--sw-hairline);
+    border-radius: var(--sw-radius-md);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Crossed Blue vs Red lightsaber duel minimalism inside preview art */
+  .duel-blue {
+    position: absolute;
+    left: 16%;
+    top: 52%;
+    width: 44%;
+    height: 3px;
+    background: var(--sw-white);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--sw-saber-blue), 0 0 18px var(--sw-saber-blue);
+    transform: rotate(-18deg);
+  }
+  .duel-red {
+    position: absolute;
+    right: 16%;
+    top: 48%;
+    width: 44%;
+    height: 3px;
+    background: var(--sw-white);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--sw-saber-red), 0 0 18px var(--sw-saber-red);
+    transform: rotate(22deg);
+  }
+  .ss-thumbs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .ss-thumb {
+    height: 44px;
+    background: var(--sw-space);
+    border: 1px solid var(--sw-hairline);
+    border-radius: var(--sw-radius-sm);
+  }
+  .ss-thumb.active {
+    border-color: var(--sw-saber-blue);
+    box-shadow: 0 0 8px rgba(40, 168, 255, 0.35);
+  }
+
+  .desc-block { display: flex; flex-direction: column; gap: 10px; }
+  .desc-text {
+    color: var(--sw-text-muted);
+    font-size: 14px;
+    line-height: 1.62;
+  }
+  .desc-text strong { color: var(--sw-text); font-weight: 500; }
+
+  /* Ultra-Minimalist Borderless OLED Metadata Column */
+  .metadata {
+    width: 284px;
+    flex: 0 0 284px;
+    border-left: 1px solid var(--sw-hairline);
+    padding-left: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 98px 1fr;
+    row-gap: 8px;
+    column-gap: 10px;
+    font-size: 13.5px;
+  }
+  .meta-k {
+    color: var(--sw-text-muted);
+    font-size: 12.5px;
+  }
+  .meta-v {
+    color: var(--sw-text);
+  }
+  .meta-v.cyan { color: var(--sw-cyan); }
+  .meta-v.yellow {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    color: var(--sw-yellow);
+    letter-spacing: 0.06em;
+  }
+  .meta-rule {
+    height: 1px;
+    background: var(--sw-hairline);
+    position: relative;
+    margin: 2px 0;
+  }
+  .meta-rule::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -0.5px;
+    width: 14px;
+    height: 2px;
+    background: var(--sw-yellow);
+  }
+
+  .chip-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    background: var(--sw-panel);
+    border: 1px solid var(--sw-hairline);
+    border-radius: var(--sw-radius-md);
+    padding: 2px 8px;
+    font-size: 12px;
+    color: var(--sw-text-muted);
+  }
+  .chip.lit {
+    color: var(--sw-white);
+    border-color: var(--sw-saber-blue);
+    box-shadow: 0 0 8px rgba(40, 168, 255, 0.25);
+  }
+
+  /* Minimalist Lightsaber-Underscored Rating Scores (Green / Yellow / Red) */
+  .score-row { display: flex; gap: 10px; }
+  .score-pill {
+    min-width: 50px;
+    padding: 4px 8px 6px;
+    background: var(--sw-space);
+    border: 1px solid var(--sw-hairline);
+    border-radius: var(--sw-radius-sm);
+    position: relative;
+    text-align: center;
+  }
+  .score-pill::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 0;
+    height: 2px;
+    background: var(--sw-white);
+    box-shadow: 0 0 6px var(--sw-saber-green), 0 0 10px var(--sw-saber-green);
+  }
+  .score-pill.red::after {
+    box-shadow: 0 0 6px var(--sw-saber-red), 0 0 10px var(--sw-saber-red);
+  }
+  .score-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sw-white);
+    display: block;
+  }
+  .score-lbl {
+    font-size: 10px;
+    color: var(--sw-text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="starfield-layer"></div>
+
+  <!-- Minimalist 44px OLED Rail -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="sidebar-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <svg viewBox="0 0 64 64" width="22" height="22" fill="currentColor">
+        <path fill-rule="evenodd" d="M6.04,30.5 C6.84,16.75 18.22,6 32,6 C45.78,6 57.16,16.75 57.96,30.5 Z M57.96,33.5 C57.16,47.25 45.78,58 32,58 C18.22,58 6.84,47.25 6.04,33.5 Z M42.5,12.7 C46.26,12.7 49.3,15.74 49.3,19.5 C49.3,23.26 46.26,26.3 42.5,26.3 C38.74,26.3 35.7,23.26 35.7,19.5 C35.7,15.74 38.74,12.7 42.5,12.7 Z" />
+      </svg>
+    </div>
+    <div class="sidebar-items">
+      <div class="sidebar-item active" title="Library">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4zM4 10h16"/></svg>
+      </div>
+      <div class="sidebar-item" title="Statistics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 19V12M12 19V5M19 19V9"/></svg>
+      </div>
+      <div class="sidebar-item" title="Favorites">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 3 14.9 9 21 9.8 16.5 14.1 17.6 20.4 12 17.3 6.4 20.4 7.5 14.1 3 9.8 9.1 9"/></svg>
+      </div>
+    </div>
+    <div class="saber-dots" aria-hidden="true">
+      <span class="sdot b"></span>
+      <span class="sdot g"></span>
+      <span class="sdot r"></span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <!-- Minimalist 48px OLED Top Bar -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/>
+        </svg>
+        <span class="search-placeholder">Search...</span>
+      </div>
+
+      <div class="tool-btn" data-part="PART_ToggleFilter" title="Filter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="4 5 20 5 14 12 14 19 10 17 10 12"/></svg>
+        <span class="filter-pip"></span>
+      </div>
+
+      <div class="top-tools" data-part="PART_PanelMainItems">
+        <div class="tool-btn" title="Sorting">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h11M4 12h8M4 17h5M18 6v12m0 0l-3-3m3 3l3-3"/></svg>
+        </div>
+        <span class="tool-sep"></span>
+        <div class="tool-btn active" title="Details View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="6" height="16"/><rect x="12" y="4" width="9" height="7"/><rect x="12" y="14" width="9" height="6"/></svg>
+        </div>
+        <div class="tool-btn" title="Grid View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg>
+        </div>
+        <div class="tool-btn" title="List View">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </div>
+        <span class="tool-sep"></span>
+        <div class="tool-btn" title="Grouping">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h6v5H4zM14 6h6v5h-6zM9 14h6v5H9z"/></svg>
+        </div>
+        <div class="tool-btn" title="View Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </div>
+      </div>
+
+      <div class="saber-progress">
+        <span class="saber-progress-label">SYNC</span>
+        <div class="saber-progress-track"><div class="saber-progress-fill"></div></div>
+      </div>
+
+      <div class="tool-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 16h12l-1.5-2.5V10a4.5 4.5 0 1 0-9 0v3.5L6 16zM10 19h4"/></svg>
+      </div>
+
+      <div class="win-controls">
+        <div class="win-btn"><svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.4"><path d="M2 6h8"/></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="2.5" width="7" height="7"/></svg></div>
+        <div class="win-btn"><svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.4"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <!-- Minimalist OLED Game List -->
+      <nav class="game-list" data-part="game-list">
+        <div class="list-group-hdr">Installed · 14</div>
+        <div class="game-row selected">
+          <span class="g-ico">ND</span>
+          <span class="g-name">Nebula Drift</span>
+        </div>
+        <div class="game-row hovered">
+          <span class="g-ico">SH</span>
+          <span class="g-name">Solaris Horizon</span>
+          <svg class="row-hover-play" viewBox="0 0 16 16" fill="currentColor"><polygon points="4 2 14 8 4 14"/></svg>
+        </div>
+        <div class="game-row running">
+          <span class="g-ico">OV</span>
+          <span class="g-name">Orbital Vector</span>
+          <span class="saber-pips"><span></span><span></span><span></span></span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">VZ</span>
+          <span class="g-name">Vanguard Zero</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">AM</span>
+          <span class="g-name">Astral Meridian</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">ES</span>
+          <span class="g-name">Ecliptic Station</span>
+        </div>
+        <div class="game-row sith-accent">
+          <span class="g-ico">DC</span>
+          <span class="g-name">Deep Core Protocol</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">HF</span>
+          <span class="g-name">Helios Frontier</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">AR</span>
+          <span class="g-name">Aether Relay</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">VC</span>
+          <span class="g-name">Void Cartographer</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">SC</span>
+          <span class="g-name">Starfall Chronicles</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">KO</span>
+          <span class="g-name">Kepler Outpost</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">PD</span>
+          <span class="g-name">Polaris Drift</span>
+        </div>
+        <div class="game-row">
+          <span class="g-ico">ZC</span>
+          <span class="g-name">Zenith Crossing</span>
+        </div>
+      </nav>
+
+      <!-- Minimalist OLED Game Page -->
+      <main class="game-page" data-part="game-page">
+        <div class="hero-art"></div>
+
+        <div class="page-inner">
+          <div class="game-header">
+            <div class="title-cluster">
+              <h1 class="game-title">Nebula Drift</h1>
+            </div>
+
+            <div class="action-cluster">
+              <!-- HERO MOMENT: Ignited Plasma Play Button -->
+              <div class="play-wrap">
+                <div class="play-aura"></div>
+                <div class="play-saber-top"></div>
+                <div class="play-saber-bot"></div>
+                <div class="play-btn">
+                  <div class="play-label">
+                    <span>Play</span>
+                  </div>
+                </div>
+              </div>
+              <div class="sec-btn" title="More">
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+              </div>
+              <div class="sec-btn" title="Edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4l10.5-10.5-4-4L4 16v4zM13.5 6.5l4 4"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="page-body">
+            <div class="content-col">
+              <div class="ss-block">
+                <div class="sec-heading"><span class="saber-tick"></span>Screenshots</div>
+                <div class="ss-main">
+                  <div class="duel-blue"></div>
+                  <div class="duel-red"></div>
+                </div>
+                <div class="ss-thumbs">
+                  <div class="ss-thumb active"></div>
+                  <div class="ss-thumb"></div>
+                  <div class="ss-thumb"></div>
+                  <div class="ss-thumb"></div>
+                </div>
+              </div>
+
+              <div class="desc-block">
+                <div class="sec-heading"><span class="saber-tick green"></span>Description</div>
+                <p class="desc-text">
+                  <strong>Chart uncharted corridors across deep space</strong> in a minimalist sci-fi expedition. Navigate quiet orbital beacons, balance ship telemetry, and uncover forgotten relays scattered along the outer starlanes.
+                </p>
+              </div>
+            </div>
+
+            <!-- Borderless OLED Metadata Ledger -->
+            <aside class="metadata" data-part="metadata">
+              <div class="meta-grid">
+                <span class="meta-k">Time Played</span>
+                <span class="meta-v yellow">48H 22M</span>
+                <span class="meta-k">Last Played</span>
+                <span class="meta-v">Today</span>
+                <span class="meta-k">Completion</span>
+                <span class="meta-v cyan">Playing</span>
+              </div>
+
+              <div class="meta-rule"></div>
+
+              <div class="meta-grid">
+                <span class="meta-k">Library</span>
+                <span class="meta-v">Steam</span>
+                <span class="meta-k">Platform</span>
+                <span class="meta-v">PC (Windows)</span>
+                <span class="meta-k">Release Date</span>
+                <span class="meta-v">2025-05-04</span>
+                <span class="meta-k">Developer</span>
+                <span class="meta-v">Meridian Studio</span>
+              </div>
+
+              <div class="meta-rule"></div>
+
+              <div class="meta-grid">
+                <span class="meta-k">Genres</span>
+                <div class="chip-wrap">
+                  <span class="chip lit">Action</span>
+                  <span class="chip">Sci-Fi</span>
+                  <span class="chip">Adventure</span>
+                </div>
+                <span class="meta-k">Ratings</span>
+                <div class="score-row">
+                  <div class="score-pill">
+                    <span class="score-num">86</span>
+                    <span class="score-lbl">Critic</span>
+                  </div>
+                  <div class="score-pill red">
+                    <span class="score-num">81</span>
+                    <span class="score-lbl">User</span>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</body>
+</html>

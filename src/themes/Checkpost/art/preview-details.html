@@ -1,0 +1,320 @@
+<!doctype html>
+<!-- Checkpost: HTML replica of Playnite's Game Details view (1280x720). Unofficial Papers, Please-inspired theme: no game art,
+     logo, seal, fonts or text. The game list, banner, screenshots and description are invented placeholders. Colours are var(--token)
+     from src/tokens.css (injected at render); icons are the pixel glyphs of art/icons.py (the symbol sheet between the markers). -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Checkpost - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; background: var(--void); color: var(--text); font-family: var(--font-body); font-size: 14px; display: flex; position: relative; }
+  svg { display: block; fill: currentColor; }
+  .disp { font-family: var(--font-display); text-transform: uppercase; }
+  .mono { font-family: var(--font-mono); }
+  .dots { height: 1px; background: repeating-linear-gradient(90deg, var(--moss) 0 1px, transparent 1px 3px); }
+
+  /* Rail: 44px booth-metal strip, key-cap plates, the current item a lime slip with a red seal pip on the rail edge. */
+  .rail { width: 44px; flex: none; background: var(--desk); border-right: 2px solid var(--desk-lit); display: flex; flex-direction: column; z-index: 10; position: relative; }
+  .menu-tile { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid var(--desk-lit); }
+  .menu-tile .plate { width: 32px; height: 32px; background: var(--olive); border-bottom: 3px solid var(--olive-deep); border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--cream); }
+  .menu-tile svg { width: 20px; height: 20px; }
+  .rail-item { width: 42px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--dim); position: relative; }
+  .rail-item svg { width: 16px; height: 16px; }
+  .rail-item.cur::before { content: ""; position: absolute; left: 3px; right: 3px; top: 3px; bottom: 5px; background: var(--lime); border-bottom: 2px solid var(--moss); border-radius: 2px; }
+  .rail-item.cur svg { color: var(--ink); position: relative; }
+  .rail-item.cur::after { content: ""; position: absolute; right: -2px; top: 14px; width: 4px; height: 12px; background: var(--seal); }
+  .rail-item.hov::before { content: ""; position: absolute; left: 4px; right: 4px; top: 4px; bottom: 4px; background: var(--olive-deep); border-radius: 2px; }
+  .rail-item.hov svg { position: relative; color: var(--text); }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
+
+  /* Top panel (Views/TopPanel.xaml): search, filter toggle with the red seal pip, then sorting, view switches, group, notifications. */
+  .top-bar { height: 50px; flex: none; background: var(--desk); border-bottom: 2px solid var(--olive-deep); display: flex; align-items: center; padding: 0 12px; gap: 8px; position: relative; }
+  .top-bar::after { content: ""; position: absolute; left: 8px; bottom: -2px; width: 4px; height: 4px; background: var(--moss); }
+  .search { width: 260px; height: 32px; background: var(--void); border: 1px solid var(--moss-deep); border-radius: 2px; padding: 0 10px; color: var(--dim); font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .search svg { width: 14px; height: 14px; color: var(--dim); }
+  .items { display: flex; gap: 5px; margin-left: 4px; }
+  .tool { width: 38px; height: 34px; border-radius: 2px; display: flex; align-items: center; justify-content: center; color: var(--dim); position: relative; }
+  .tool svg { width: 16px; height: 16px; }
+  .tool.on { background: var(--lime); color: var(--ink); border-bottom: 2px solid var(--moss); }
+  .tool .pip { position: absolute; right: 3px; top: 2px; width: 9px; height: 9px; color: var(--seal); }
+  .tool .pip svg { width: 9px; height: 9px; }
+  .win { position: absolute; right: 0; top: 0; height: 36px; display: flex; }
+  .win div { width: 46px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+  .win svg { width: 14px; height: 14px; }
+
+  .view { flex: 1; min-height: 0; display: flex; }
+
+  /* Details view: the game list on the void, a dotted gutter, the game page. */
+  .game-list { width: 272px; flex: none; background: var(--void); overflow: hidden; padding: 4px 8px 0 0; }
+  .gutter { width: 8px; flex: none; background: repeating-linear-gradient(180deg, var(--moss-deep) 0 1px, transparent 1px 3px) 3px 0 / 1px 100% no-repeat; }
+  .grp { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px 0 10px; }
+  .grp .tab { font-family: var(--font-display); background: var(--olive); color: var(--text); height: 22px; padding: 0 10px; font-size: 17px; line-height: 22px; clip-path: polygon(3px 0, calc(100% - 3px) 0, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 0 calc(100% - 3px), 0 3px); }
+  .grp .hair { flex: 1; height: 1px; background: var(--moss-deep); }
+  .game-row { height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 14px; color: var(--text); font-size: 14px; position: relative; }
+  .game-row i { width: 22px; height: 22px; background: var(--olive); border-bottom: 2px solid var(--olive-deep); flex: none; border-radius: 1px; }
+  .game-row.hov { background: var(--olive-deep); padding-left: 18px; }
+  .game-row.sel { background: var(--lime); color: var(--ink); border-bottom: 2px solid var(--moss); font-weight: 700; padding-left: 22px; }
+  .game-row.sel i { background: var(--ink-soft); border-color: var(--ink); }
+  .game-row.sel::before { content: ""; position: absolute; left: 6px; top: 6px; width: 3px; height: 3px; background: var(--void); box-shadow: 0 8px 0 var(--void), 0 16px 0 var(--void); }
+  .game-row .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .game-page { flex: 1; min-width: 0; position: relative; overflow: hidden; background: var(--void); }
+
+  /* Hero: art under 10px black letterbox bars, six hard bands of void climbing over its lower part (no smooth fade). */
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 224px; background:
+      repeating-linear-gradient(135deg, rgba(0,0,0,.20) 0 12px, transparent 12px 24px) 62% 0 / 36% 100% no-repeat,
+      linear-gradient(180deg, #46513e 0%, #2f3a2c 62%, #232d22 100%); }
+  .banner .bar { position: absolute; left: 0; right: 0; height: 10px; background: var(--void); }
+  .banner .bar.t { top: 0; }
+  .banner .steps { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; background: linear-gradient(180deg,
+      transparent 0 14%,
+      color-mix(in srgb, var(--void) 16%, transparent) 14% 28%,
+      color-mix(in srgb, var(--void) 34%, transparent) 28% 42%,
+      color-mix(in srgb, var(--void) 54%, transparent) 42% 57%,
+      color-mix(in srgb, var(--void) 74%, transparent) 57% 72%,
+      color-mix(in srgb, var(--void) 90%, transparent) 72% 86%,
+      var(--void) 86% 100%); }
+  .page-body { position: relative; padding: 126px 26px 0 24px; }
+  .head { display: flex; align-items: flex-end; gap: 14px; }
+  .icon-frame { width: 58px; height: 58px; flex: none; position: relative; background: linear-gradient(135deg, #5a6a4c, #2d3a2b); border: 2px solid var(--cream); outline: 2px solid var(--void); }
+  .icon-frame::before, .icon-frame::after { content: ""; position: absolute; width: 8px; height: 8px; border: 2px solid var(--lime); }
+  .icon-frame::before { left: -6px; top: -6px; border-right: 0; border-bottom: 0; }
+  .icon-frame::after { right: -6px; bottom: -6px; border-left: 0; border-top: 0; }
+  .title { flex: 1; min-width: 0; padding-bottom: 2px; }
+  .title h1 { font-family: var(--font-display); font-weight: 400; font-size: 40px; line-height: 44px; color: var(--text); text-shadow: 3px 3px 0 var(--olive); }
+  .title .dots { margin-top: 6px; }
+  .actions { display: flex; gap: 8px; align-items: flex-end; padding-bottom: 2px; }
+
+  /* Play: the rubber stamp, hovered end state: face lifted 2px (ledge shows 5px), knob ring lit, label tracked wide. */
+  .play { position: relative; width: 164px; height: 50px; background: var(--stamp-ledge); border-radius: 2px; }
+  .play .face { position: absolute; left: 0; right: 0; top: -2px; height: 47px; background: var(--stamp-lit); border-radius: 2px; display: flex; align-items: center; padding-left: 10px; gap: 12px; border-top: 1px solid var(--ok); }
+  .play .knob { width: 26px; height: 26px; border-radius: 50%; background: var(--edge); border: 2px solid var(--cream); position: relative; flex: none; }
+  .play .knob::after { content: ""; position: absolute; left: 5px; top: 4px; width: 4px; height: 3px; background: var(--cream); opacity: .85; }
+  .play .lab { font-family: var(--font-display); font-size: 24px; letter-spacing: .04em; color: var(--cream); text-transform: uppercase; line-height: 1; padding-top: 2px; }
+  .play .imprint { position: absolute; right: -6px; bottom: -8px; width: 54px; height: 22px; border: 2px solid var(--stamp); outline: 2px solid var(--stamp); outline-offset: -6px; transform: rotate(-4deg); opacity: .55; }
+  .sq { width: 44px; height: 44px; background: var(--olive-deep); border-radius: 2px; border-bottom: 3px solid var(--edge); display: flex; align-items: center; justify-content: center; color: var(--text); position: relative; }
+  .sq.red { background: var(--olive); }
+  .sq svg { width: 18px; height: 18px; }
+  .tip { position: absolute; left: -8px; top: -38px; background: var(--paper-blue); color: var(--ink); font-size: 13px; padding: 5px 11px 6px; white-space: nowrap; z-index: 20; }
+  .tip::after { content: ""; position: absolute; inset: 2px; border: 2px dotted var(--paper-soft); opacity: .55; pointer-events: none; }
+
+  .columns { display: flex; gap: 26px; margin-top: 22px; }
+  .left-col { flex: 1; min-width: 0; }
+  .screenshots-row { display: flex; gap: 8px; margin-bottom: 18px; }
+  .screen-thumb { flex: 1; height: 92px; border: 2px solid var(--moss-deep); }
+  h2 { font-family: var(--font-display); font-weight: 400; font-size: 20px; color: var(--lime); display: inline-block; padding-bottom: 3px; border-bottom: 1px dotted var(--lime); }
+  .desc-text { color: var(--text); line-height: 1.55; font-size: 14px; margin-top: 8px; max-width: 520px; }
+  .desc-text + .desc-text { margin-top: 10px; color: var(--dim); }
+
+  /* Metadata: the permit sheet. Pink paper with a scalloped edge (a ring of round dots), a taupe inner border broken by a mark, a lime sheet
+     peeking under it, a red seal on the corner; fields are a caption and a value on an underline, tags are outlined boxes, scores round seals. */
+  .meta { width: 356px; flex: none; position: relative; margin-top: 10px; }
+  .sheet { position: relative; padding: 34px 30px 28px; color: var(--paper-ink); }
+  .sc { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+  .sc rect { x: 5px; y: 5px; width: calc(100% - 10px); height: calc(100% - 10px); stroke-width: 10px; stroke-dasharray: 0 15px; stroke-linecap: round; fill: var(--paper-pink); stroke: var(--paper-pink); }
+  .sc.under { transform: translate(5px, 7px); }
+  .sc.under rect { fill: var(--lime); stroke: var(--lime); }
+  .sheet .frame { position: absolute; inset: 15px; border: 2px solid var(--paper-edge); pointer-events: none; }
+  .sheet .gap { position: absolute; left: 50%; top: 7px; transform: translateX(-50%); background: var(--paper-pink); padding: 0 9px; color: var(--paper-edge); line-height: 0; }
+  .sheet .gap svg { width: 16px; height: 16px; }
+  .sheet .seal { position: absolute; right: 12px; top: -15px; width: 40px; height: 40px; border-radius: 50%; background: var(--seal); color: var(--cream); display: flex; align-items: center; justify-content: center; transform: rotate(-12deg); }
+  .sheet .seal svg { width: 22px; height: 22px; }
+  .sheet .seal::after { content: ""; position: absolute; inset: 3px; border: 1px dotted var(--cream); border-radius: 50%; opacity: .7; }
+  .sheet .body { position: relative; }
+  .sgroup { padding: 9px 0; position: relative; }
+  .sgroup:first-child { padding-top: 0; }
+  .sgroup + .sgroup::before { content: ""; position: absolute; left: 0; right: 0; top: 0; border-top: 1px dotted var(--paper-edge); }
+  .srow { display: flex; align-items: flex-end; gap: 8px; padding: 3px 0; }
+  .srow .cap { color: var(--paper-soft); font-size: 13px; line-height: 20px; flex: none; }
+  .srow .fld { flex: 1; min-width: 0; border-bottom: 1px solid var(--paper-edge); text-align: center; color: var(--paper-ink); font-size: 14px; line-height: 20px; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fld.mono { font-family: var(--font-mono); font-size: 13px; }
+  .fld.neg { color: var(--red); }
+  .fld.fscore { display: flex; justify-content: center; padding: 2px 0 3px; }
+  .sdisc { position: relative; width: 30px; height: 30px; border-radius: 50%; background: var(--olive-deep); color: var(--ok); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 13px; }
+  .sdisc::after { content: ""; position: absolute; inset: 3px; border: 1px dotted var(--moss); border-radius: 50%; }
+  .sdisc.amber { color: var(--amber); }
+  .sdisc.bad { color: var(--red-lit); }
+  .sdisc.none { background: transparent; color: var(--paper-soft); border: 1px dotted var(--paper-edge); }
+  .sdisc.none::after { display: none; }
+  .schips { display: flex; flex-wrap: wrap; gap: 5px; padding: 1px 0; }
+  .schip { border: 1px solid var(--paper-edge); color: var(--paper-ink); font-size: 13px; padding: 1px 8px 2px; background: var(--paper-pink-lit); }
+  .schip.hov { background: var(--paper-ink); border-color: var(--paper-ink); color: var(--paper-pink); }
+  .slink { color: var(--red); border-bottom: 1px dotted var(--red); }
+
+  /* Main menu: olive board, 2px moss rim, hard black shadow; lime slip highlight with punched dots; key-cap shortcuts; dotted group break. */
+  .menu { position: absolute; left: 6px; top: 52px; width: 262px; background: var(--olive-deep); border: 2px solid var(--moss); box-shadow: 3px 3px 0 var(--edge); padding: 4px; z-index: 30; }
+  .mi { height: 30px; display: flex; align-items: center; padding: 0 8px 0 8px; position: relative; color: var(--text); font-size: 14px; }
+  .mi .ic { width: 26px; display: flex; align-items: center; color: var(--dim); }
+  .mi .ic svg { width: 16px; height: 16px; }
+  .mi .lb { flex: 1; }
+  .mi .key { font-family: var(--font-mono); font-size: 11px; color: var(--dim); background: var(--olive); border-bottom: 2px solid var(--void); padding: 0 5px; height: 17px; line-height: 16px; border-radius: 2px; }
+  .mi .sm { width: 8px; height: 8px; color: var(--seal); }
+  .mi.hi { background: var(--lime); color: var(--ink); border-bottom: 2px solid var(--moss); padding-left: 16px; }
+  .mi.hi .ic { color: var(--ink); }
+  .mi.hi .key { background: var(--lime-lit); color: var(--ink); border-bottom-color: var(--moss); }
+  .mi.hi::before { content: ""; position: absolute; left: 4px; top: 8px; width: 3px; height: 3px; background: var(--void); box-shadow: 0 6px 0 var(--void); }
+  .mi.ex { color: var(--red-lit); }
+  .mi.ex::before { content: ""; position: absolute; left: -4px; top: 3px; bottom: 3px; width: 3px; background: var(--red); }
+  .mi.ex .ic { color: var(--red-lit); }
+  .mi.ex .key { color: var(--red-lit); }
+  .msep { height: 9px; display: flex; align-items: center; margin: 0 4px 0 34px; }
+  .msep .dots { flex: 1; }
+  .ok { color: var(--lime); }
+</style>
+</head>
+<body>
+<!-- ICONS:BEGIN (art/icons.py) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="IconSearch" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M6,0 H7 V1 H6 Z M3,1 H10 V2 H3 Z M2,2 H11 V3 H2 Z M1,3 H5 V4 H1 Z M8,3 H12 V4 H8 Z M1,4 H4 V5 H1 Z M9,4 H12 V5 H9 Z M1,5 H3 V6 H1 Z M10,5 H12 V6 H10 Z M0,6 H3 V7 H0 Z M10,6 H13 V7 H10 Z M1,7 H3 V8 H1 Z M10,7 H12 V8 H10 Z M1,8 H4 V9 H1 Z M9,8 H12 V9 H9 Z M1,9 H5 V10 H1 Z M8,9 H12 V10 H8 Z M2,10 H12 V11 H2 Z M3,11 H13 V12 H3 Z M6,12 H7 V13 H6 Z M11,12 H14 V13 H11 Z M12,13 H15 V14 H12 Z M13,14 H15 V15 H13 Z"/></symbol>
+<symbol id="IconClear" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M2,2 H4 V3 H2 Z M12,2 H14 V3 H12 Z M2,3 H5 V4 H2 Z M11,3 H14 V4 H11 Z M3,4 H6 V5 H3 Z M10,4 H13 V5 H10 Z M4,5 H7 V6 H4 Z M9,5 H12 V6 H9 Z M5,6 H11 V7 H5 Z M6,7 H10 V9 H6 Z M5,9 H11 V10 H5 Z M4,10 H7 V11 H4 Z M9,10 H12 V11 H9 Z M3,11 H6 V12 H3 Z M10,11 H13 V12 H10 Z M2,12 H5 V13 H2 Z M11,12 H14 V13 H11 Z M2,13 H4 V14 H2 Z M12,13 H14 V14 H12 Z"/></symbol>
+<symbol id="IconViewSettings" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M9,1 H13 V2 H9 Z M1,2 H10 V4 H1 Z M12,2 H15 V4 H12 Z M9,4 H13 V5 H9 Z M3,6 H7 V7 H3 Z M1,7 H4 V9 H1 Z M6,7 H15 V9 H6 Z M3,9 H7 V10 H3 Z M7,11 H11 V12 H7 Z M1,12 H8 V14 H1 Z M10,12 H15 V14 H10 Z M7,14 H11 V15 H7 Z"/></symbol>
+<symbol id="IconFilterPresets" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,2 H13 V3 H1 Z M2,3 H12 V4 H2 Z M3,4 H11 V5 H3 Z M4,5 H10 V7 H4 Z M5,7 H9 V8 H5 Z M5,8 H8 V13 H5 Z M11,10 H15 V11 H11 Z M11,11 H12 V13 H11 Z M14,11 H15 V13 H14 Z M7,13 H8 V14 H7 Z M11,13 H15 V14 H11 Z"/></symbol>
+<symbol id="IconGroup" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,1 H15 V3 H5 Z M5,3 H7 V4 H5 Z M13,3 H15 V9 H13 Z M1,5 H11 V7 H1 Z M1,7 H3 V13 H1 Z M9,7 H11 V13 H9 Z M12,9 H15 V11 H12 Z M1,13 H11 V15 H1 Z"/></symbol>
+<symbol id="IconSort" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M11,1 H13 V10 H11 Z M1,2 H9 V4 H1 Z M1,7 H7 V9 H1 Z M9,10 H15 V12 H9 Z M1,12 H5 V14 H1 Z M10,12 H14 V13 H10 Z M11,13 H13 V14 H11 Z"/></symbol>
+<symbol id="IconDetailsView" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,1 H5 V5 H1 Z M7,2 H15 V4 H7 Z M1,6 H5 V10 H1 Z M7,7 H15 V9 H7 Z M1,11 H5 V15 H1 Z M7,12 H15 V14 H7 Z"/></symbol>
+<symbol id="IconGridView" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,1 H7 V7 H1 Z M9,1 H15 V7 H9 Z M1,9 H7 V15 H1 Z M9,9 H15 V15 H9 Z"/></symbol>
+<symbol id="IconListView" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,1 H15 V3 H1 Z M1,5 H15 V7 H1 Z M1,9 H15 V11 H1 Z M1,13 H15 V15 H1 Z"/></symbol>
+<symbol id="IconUpdate" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M8,0 H12 V1 H8 Z M9,1 H15 V2 H9 Z M5,2 H8 V3 H5 Z M9,2 H14 V3 H9 Z M3,3 H8 V4 H3 Z M10,3 H13 V4 H10 Z M3,4 H7 V5 H3 Z M10,4 H12 V5 H10 Z M2,5 H5 V7 H2 Z M2,7 H4 V9 H2 Z M12,8 H14 V9 H12 Z M2,9 H5 V11 H2 Z M11,9 H14 V11 H11 Z M3,11 H7 V12 H3 Z M9,11 H13 V12 H9 Z M3,12 H13 V13 H3 Z M5,13 H11 V14 H5 Z"/></symbol>
+<symbol id="IconExplorer" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,2 H15 V4 H1 Z M1,4 H6 V12 H1 Z M13,4 H15 V12 H13 Z M1,12 H15 V14 H1 Z"/></symbol>
+<symbol id="IconRandom" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,1 H15 V3 H1 Z M1,3 H5 V5 H1 Z M11,3 H15 V5 H11 Z M1,5 H3 V11 H1 Z M13,5 H15 V11 H13 Z M7,7 H9 V9 H7 Z M1,11 H5 V13 H1 Z M11,11 H15 V13 H11 Z M1,13 H15 V15 H1 Z"/></symbol>
+<symbol id="IconViewRandom" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,1 H15 V3 H1 Z M1,3 H5 V5 H1 Z M13,3 H15 V11 H13 Z M1,5 H3 V13 H1 Z M7,7 H9 V9 H7 Z M11,11 H15 V13 H11 Z M1,13 H15 V15 H1 Z"/></symbol>
+<symbol id="IconFilter" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,2 H15 V3 H1 Z M2,3 H14 V4 H2 Z M3,4 H13 V5 H3 Z M4,5 H12 V6 H4 Z M5,6 H11 V7 H5 Z M6,7 H10 V8 H6 Z M6,8 H9 V13 H6 Z M8,13 H9 V14 H8 Z"/></symbol>
+<symbol id="IconNotifications" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M6,1 H10 V2 H6 Z M5,2 H11 V3 H5 Z M4,3 H12 V10 H4 Z M3,10 H13 V11 H3 Z M2,11 H14 V12 H2 Z M6,12 H10 V15 H6 Z"/></symbol>
+<symbol id="IconMainMenu" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,3 H15 V5 H1 Z M1,7 H15 V9 H1 Z M1,11 H15 V13 H1 Z"/></symbol>
+<symbol id="IconLibrary" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M6,1 H10 V2 H6 Z M6,2 H13 V5 H6 Z M1,3 H5 V14 H1 Z M6,5 H14 V6 H6 Z M6,6 H10 V14 H6 Z M11,6 H14 V8 H11 Z M11,8 H15 V9 H11 Z M12,9 H15 V11 H12 Z M12,11 H16 V12 H12 Z M13,12 H16 V15 H13 Z"/></symbol>
+<symbol id="IconStatistics" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M6,3 H10 V15 H6 Z M11,6 H15 V15 H11 Z M1,9 H5 V15 H1 Z"/></symbol>
+<symbol id="IconWindowMinimize" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M3,11 H13 V13 H3 Z"/></symbol>
+<symbol id="IconWindowMaximize" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M3,3 H13 V5 H3 Z M3,5 H5 V11 H3 Z M11,5 H13 V11 H11 Z M3,11 H13 V13 H3 Z"/></symbol>
+<symbol id="IconWindowRestore" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,2 H14 V4 H5 Z M5,4 H7 V6 H5 Z M12,4 H14 V9 H12 Z M2,6 H11 V8 H2 Z M2,8 H4 V13 H2 Z M9,8 H11 V9 H9 Z M9,9 H14 V11 H9 Z M9,11 H11 V13 H9 Z M2,13 H11 V15 H2 Z"/></symbol>
+<symbol id="IconWindowClose" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M2,2 H4 V3 H2 Z M12,2 H14 V3 H12 Z M2,3 H5 V4 H2 Z M11,3 H14 V4 H11 Z M3,4 H6 V5 H3 Z M10,4 H13 V5 H10 Z M4,5 H7 V6 H4 Z M9,5 H12 V6 H9 Z M5,6 H11 V7 H5 Z M6,7 H10 V9 H6 Z M5,9 H11 V10 H5 Z M4,10 H7 V11 H4 Z M9,10 H12 V11 H9 Z M3,11 H6 V12 H3 Z M10,11 H13 V12 H10 Z M2,12 H5 V13 H2 Z M11,12 H14 V13 H11 Z M2,13 H4 V14 H2 Z M12,13 H14 V14 H12 Z"/></symbol>
+<symbol id="IconDropDown" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M3,5 H13 V6 H3 Z M4,6 H12 V7 H4 Z M5,7 H11 V8 H5 Z M6,8 H10 V9 H6 Z M7,9 H9 V10 H7 Z"/></symbol>
+<symbol id="IconSubmenu" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,3 H6 V4 H5 Z M5,4 H7 V5 H5 Z M5,5 H8 V6 H5 Z M5,6 H9 V7 H5 Z M5,7 H10 V9 H5 Z M5,9 H9 V10 H5 Z M5,10 H8 V11 H5 Z M5,11 H7 V12 H5 Z M5,12 H6 V13 H5 Z"/></symbol>
+<symbol id="IconCheck" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M13,3 H15 V4 H13 Z M12,4 H15 V5 H12 Z M11,5 H14 V6 H11 Z M9,6 H13 V7 H9 Z M1,7 H3 V8 H1 Z M8,7 H12 V8 H8 Z M1,8 H4 V9 H1 Z M7,8 H11 V9 H7 Z M2,9 H5 V10 H2 Z M6,9 H10 V10 H6 Z M3,10 H9 V11 H3 Z M4,11 H8 V12 H4 Z M4,12 H7 V13 H4 Z"/></symbol>
+<symbol id="IconAdd" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M7,2 H9 V7 H7 Z M2,7 H14 V9 H2 Z M7,9 H9 V14 H7 Z"/></symbol>
+<symbol id="IconEdit" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M10,1 H12 V2 H10 Z M9,2 H13 V3 H9 Z M9,3 H14 V4 H9 Z M9,4 H15 V5 H9 Z M8,5 H15 V6 H8 Z M7,6 H14 V7 H7 Z M6,7 H11 V8 H6 Z M5,8 H10 V9 H5 Z M4,9 H9 V10 H4 Z M3,10 H8 V11 H3 Z M2,11 H7 V12 H2 Z M2,12 H6 V13 H2 Z M2,13 H5 V14 H2 Z"/></symbol>
+<symbol id="IconRemove" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,1 H11 V3 H5 Z M1,3 H15 V5 H1 Z M3,6 H13 V8 H3 Z M3,8 H5 V13 H3 Z M7,8 H9 V13 H7 Z M11,8 H13 V13 H11 Z M3,13 H13 V15 H3 Z"/></symbol>
+<symbol id="IconOptions" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M1,6 H4 V10 H1 Z M6,6 H10 V10 H6 Z M12,6 H15 V10 H12 Z"/></symbol>
+<symbol id="IconPlay" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M4,2 H5 V3 H4 Z M4,3 H6 V4 H4 Z M4,4 H8 V5 H4 Z M4,5 H10 V6 H4 Z M4,6 H11 V7 H4 Z M4,7 H13 V9 H4 Z M4,9 H11 V10 H4 Z M4,10 H10 V11 H4 Z M4,11 H8 V12 H4 Z M4,12 H6 V13 H4 Z M4,13 H5 V14 H4 Z"/></symbol>
+<symbol id="IconInfo" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,1 H11 V2 H5 Z M3,2 H13 V3 H3 Z M2,3 H5 V4 H2 Z M11,3 H14 V4 H11 Z M2,4 H4 V5 H2 Z M7,4 H9 V6 H7 Z M12,4 H14 V5 H12 Z M1,5 H3 V11 H1 Z M13,5 H15 V11 H13 Z M7,7 H9 V12 H7 Z M2,11 H4 V12 H2 Z M12,11 H14 V12 H12 Z M2,12 H5 V13 H2 Z M11,12 H14 V13 H11 Z M3,13 H13 V14 H3 Z M5,14 H11 V15 H5 Z"/></symbol>
+<symbol id="IconDownload" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M7,1 H9 V7 H7 Z M3,7 H13 V8 H3 Z M4,8 H12 V9 H4 Z M5,9 H11 V10 H5 Z M6,10 H10 V11 H6 Z M7,11 H9 V12 H7 Z M2,13 H14 V15 H2 Z"/></symbol>
+<symbol id="LocalMarkGeometry" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M6,0 H10 V1 H6 Z M5,1 H11 V5 H5 Z M6,5 H10 V6 H6 Z M7,6 H9 V8 H7 Z M3,8 H13 V11 H3 Z M2,11 H14 V13 H2 Z M3,14 H5 V15 H3 Z M7,14 H9 V15 H7 Z M11,14 H13 V15 H11 Z"/></symbol>
+<symbol id="LocalSealGeometry" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,1 H11 V3 H5 Z M3,3 H13 V5 H3 Z M1,5 H15 V11 H1 Z M3,11 H13 V13 H3 Z M5,13 H11 V15 H5 Z"/></symbol>
+<symbol id="LocalKnobGeometry" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M5,1 H11 V2 H5 Z M3,2 H13 V3 H3 Z M2,3 H14 V5 H2 Z M1,5 H15 V11 H1 Z M2,11 H14 V13 H2 Z M3,13 H13 V14 H3 Z M5,14 H11 V15 H5 Z"/></symbol>
+<symbol id="LocalTickGeometry" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M12,3 H14 V4 H12 Z M11,4 H14 V5 H11 Z M10,5 H14 V6 H10 Z M9,6 H13 V7 H9 Z M2,7 H4 V8 H2 Z M9,7 H12 V8 H9 Z M2,8 H5 V9 H2 Z M8,8 H11 V9 H8 Z M2,9 H6 V10 H2 Z M7,9 H10 V10 H7 Z M3,10 H9 V11 H3 Z M4,11 H8 V12 H4 Z M5,12 H8 V13 H5 Z"/></symbol>
+<symbol id="LocalPointerGeometry" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="nonzero" shape-rendering="crispEdges" d="M3,4 H13 V5 H3 Z M4,5 H12 V7 H4 Z M5,7 H11 V8 H5 Z M6,8 H10 V9 H6 Z M7,9 H9 V11 H7 Z"/></symbol>
+</defs></svg>
+<!-- ICONS:END -->
+<div class="rail" data-part="sidebar">
+  <div class="menu-tile" data-part="PART_ElemMainMenu"><div class="plate"><svg viewBox="0 0 16 16"><use href="#LocalMarkGeometry"/></svg></div></div>
+  <div class="rail-item cur"><svg viewBox="0 0 16 16"><use href="#IconLibrary"/></svg></div>
+  <div class="rail-item hov"><svg viewBox="0 0 16 16"><use href="#IconStatistics"/></svg></div>
+  <div class="rail-item"><svg viewBox="0 0 16 16"><use href="#IconRandom"/></svg></div>
+</div>
+<div class="main">
+  <div class="top-bar" data-part="top-panel">
+    <div class="search" data-part="PART_TextMainSearch"><svg viewBox="0 0 16 16"><use href="#IconSearch"/></svg>Search</div>
+    <div class="tool" data-part="PART_ToggleFilter" title="Filter"><svg viewBox="0 0 16 16"><use href="#IconFilter"/></svg><span class="pip"><svg viewBox="0 0 16 16"><use href="#LocalSealGeometry"/></svg></span></div>
+    <!-- View switches, group, sort: icons only, never text. Sorting first, as the XAML orders them. -->
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool" title="Sort"><svg viewBox="0 0 16 16"><use href="#IconSort"/></svg></div>
+      <div class="tool on" title="Details view"><svg viewBox="0 0 16 16"><use href="#IconDetailsView"/></svg></div>
+      <div class="tool" title="Grid view"><svg viewBox="0 0 16 16"><use href="#IconGridView"/></svg></div>
+      <div class="tool" title="List view"><svg viewBox="0 0 16 16"><use href="#IconListView"/></svg></div>
+      <div class="tool" title="Group"><svg viewBox="0 0 16 16"><use href="#IconGroup"/></svg></div>
+      <div class="tool" title="View settings"><svg viewBox="0 0 16 16"><use href="#IconViewSettings"/></svg></div>
+    </div>
+    <div class="tool" data-part="PART_ToggleNotifications" title="Notifications"><svg viewBox="0 0 16 16"><use href="#IconNotifications"/></svg></div>
+    <div class="win"><div><svg viewBox="0 0 16 16"><use href="#IconWindowMinimize"/></svg></div><div><svg viewBox="0 0 16 16"><use href="#IconWindowMaximize"/></svg></div><div><svg viewBox="0 0 16 16"><use href="#IconWindowClose"/></svg></div></div>
+  </div>
+  <div class="view">
+    <div class="game-list" data-part="game-list">
+      <div class="grp"><span class="tab">Ashfall</span><span class="hair"></span></div>
+      <div class="game-row"><i></i><span class="nm">Ashfall Cartographer</span></div>
+      <div class="game-row"><i></i><span class="nm">Brass Lantern Run</span></div>
+      <div class="game-row"><i></i><span class="nm">Cinder Ward</span></div>
+      <div class="game-row"><i></i><span class="nm">Cobalt Orchard</span></div>
+      <div class="game-row"><i></i><span class="nm">Copper Lines</span></div>
+      <div class="grp"><span class="tab">Coldline</span><span class="hair"></span></div>
+      <div class="game-row sel"><i></i><span class="nm">Cold Meridian</span></div>
+      <div class="game-row hov"><i></i><span class="nm">Dust Signal</span></div>
+      <div class="game-row"><i></i><span class="nm">Hollow Quarter</span></div>
+      <div class="game-row"><i></i><span class="nm">Iron Tally</span></div>
+      <div class="game-row"><i></i><span class="nm">Lowtide Station</span></div>
+      <div class="game-row"><i></i><span class="nm">Moss Circuit</span></div>
+      <div class="game-row"><i></i><span class="nm">Nine Doors East</span></div>
+      <div class="game-row"><i></i><span class="nm">Quiet Static</span></div>
+      <div class="game-row"><i></i><span class="nm">Rust Atlas</span></div>
+    </div>
+    <div class="gutter"></div>
+    <div class="game-page" data-part="game-page">
+      <div class="banner"><div class="bar t"></div><div class="steps"></div></div>
+      <div class="page-body">
+        <div class="head">
+          <div class="icon-frame"></div>
+          <div class="title"><h1>Cold Meridian</h1><div class="dots"></div></div>
+          <div class="actions">
+            <div class="play"><div class="face"><span class="knob"></span><span class="lab">Play</span></div></div>
+            <div class="sq"><svg viewBox="0 0 16 16"><use href="#IconOptions"/></svg></div>
+            <div class="sq"><svg viewBox="0 0 16 16"><use href="#IconEdit"/></svg><span class="tip">Edit</span></div>
+          </div>
+        </div>
+        <div class="columns">
+          <div class="left-col">
+            <div class="screenshots-row">
+              <div class="screen-thumb" style="background: linear-gradient(160deg, #46513e, #1f291f);"></div>
+              <div class="screen-thumb" style="background: linear-gradient(200deg, #3a4636, #1b2219);"></div>
+              <div class="screen-thumb" style="background: linear-gradient(120deg, #4c5841, #212a20);"></div>
+            </div>
+            <h2>About</h2>
+            <p class="desc-text">A signal station on the Coldline loses contact with the valley below. You keep the log, answer the radio and decide who gets the last coal delivery before the pass closes for winter.</p>
+            <p class="desc-text">Every night the ledger must balance. Every morning someone is waiting at the gate with a story and a stamped letter.</p>
+          </div>
+          <div class="meta" data-part="metadata">
+            <div class="sheet">
+              <svg class="sc under"><rect/></svg>
+              <svg class="sc"><rect/></svg>
+              <div class="frame"></div>
+              <div class="gap"><svg viewBox="0 0 16 16" fill="currentColor"><use href="#LocalMarkGeometry"/></svg></div>
+              <div class="seal"><svg viewBox="0 0 16 16" fill="currentColor"><use href="#LocalMarkGeometry"/></svg></div>
+              <div class="body">
+                <div class="sgroup">
+                  <div class="srow"><span class="cap">Time played</span><span class="fld mono">48h 20m</span></div>
+                  <div class="srow"><span class="cap">Last played</span><span class="fld">Yesterday</span></div>
+                  <div class="srow"><span class="cap">Completion</span><span class="fld neg">Abandoned</span></div>
+                </div>
+                <div class="sgroup">
+                  <div class="srow"><span class="cap">Community</span><span class="fld fscore"><span class="sdisc">92</span></span></div>
+                  <div class="srow"><span class="cap">Critics</span><span class="fld fscore"><span class="sdisc amber">78</span></span></div>
+                </div>
+                <div class="sgroup">
+                  <div class="srow"><span class="cap">Developer</span><span class="fld">Lowtide Works</span></div>
+                </div>
+                <div class="sgroup">
+                  <div class="schips"><span class="schip">Strategy</span><span class="schip hov">Management</span><span class="schip">Solo</span></div>
+                </div>
+                <div class="sgroup">
+                  <div class="srow"><span class="cap">Source</span><span class="fld">Steam</span></div>
+                  <div class="srow"><span class="cap">Links</span><span class="fld"><span class="slink">Website</span> &middot; <span class="slink">Wiki</span></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="menu">
+    <div class="mi"><span class="ic"><svg viewBox="0 0 16 16"><use href="#IconAdd"/></svg></span><span class="lb">Add game</span><span class="sm"><svg viewBox="0 0 16 16"><use href="#IconSubmenu"/></svg></span></div>
+    <div class="mi hi"><span class="ic"><svg viewBox="0 0 16 16"><use href="#IconUpdate"/></svg></span><span class="lb">Update game library</span><span class="key">F5</span></div>
+    <div class="mi"><span class="ic"><svg viewBox="0 0 16 16"><use href="#IconExplorer"/></svg></span><span class="lb">Open library folder</span></div>
+    <div class="msep"><span class="dots"></span></div>
+    <div class="mi"><span class="ic"><svg viewBox="0 0 16 16"><use href="#IconCheck"/></svg></span><span class="lb ok">Fullscreen mode</span><span class="key">F11</span></div>
+    <div class="mi"><span class="ic"><svg viewBox="0 0 16 16"><use href="#IconViewSettings"/></svg></span><span class="lb">Settings</span><span class="key">F4</span></div>
+    <div class="msep"><span class="dots"></span></div>
+    <div class="mi ex"><span class="ic"><svg viewBox="0 0 16 16"><use href="#IconWindowClose"/></svg></span><span class="lb">Exit</span><span class="key">Alt+Q</span></div>
+  </div>
+</div>
+</body>
+</html>

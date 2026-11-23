@@ -194,6 +194,149 @@
         </Grid>
     </ControlTemplate>
 
+    <!-- Main menu mark (Sidebar and TopPanel PART_ElemMainMenu): an upgrade-slot hexagon holding three rows of memory pips
+         (2-3-2, the theme's 4px lit / 2px gap cells), the menu glyph made out of the game's own parts. Host = the whole button
+         (44x52 in the rail, 32x32 in the top bar); the mark is a fixed 28x28 in its middle, with its gilt halo behind it.
+         Hover (IsMouseOver): an aqua outline traces itself around the slot (dash offset 52 to 0 = the 78px perimeter in 1.5px
+         strokes, 0.32s, no opacity animation: a faded path leaves a faint box at its bounds) and the pip rows light aqua one
+         after another; leaving retracts the outline and fades the rows (FillBehavior Stop).
+         Open (the menu's ContextMenu.IsOpen on the nearest Border, which is PART_ElemMainMenu): the slot turns 60 degrees and
+         lights hot gold, the pip rows slide into the middle and go out, a diamond node with a ring ignites there, and the
+         halo and node breathe until the menu closes. Hover and open never animate the same element or property, so they
+         layer without fighting; each exit storyboard covers everything its enter storyboard animates. -->
+    <ControlTemplate x:Key="LocalMainMenuMarkTemplate" TargetType="Control">
+        <ControlTemplate.Resources>
+            <!-- halo.png's falloff (alpha 1 / .82 / .45 / .17 / 0 at 0 / 25 / 50 / 75 / 100% of the radius) as a gradient: a sprite mask
+                 re-rendered for the repaint patch of an animated neighbour leaves a faint box at the patch bounds. -->
+            <RadialGradientBrush x:Key="LocalMenuHaloMask" Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="0.5" RadiusY="0.5">
+                <GradientStop Color="#FF000000" Offset="0" />
+                <GradientStop Color="#D1000000" Offset="0.25" />
+                <GradientStop Color="#73000000" Offset="0.5" />
+                <GradientStop Color="#2B000000" Offset="0.75" />
+                <GradientStop Color="#00000000" Offset="1" />
+            </RadialGradientBrush>
+        </ControlTemplate.Resources>
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="True">
+            <Rectangle x:Name="Halo" Fill="{DynamicResource GiltBrush}" Opacity="0.3" OpacityMask="{StaticResource LocalMenuHaloMask}" IsHitTestVisible="False" />
+            <Rectangle x:Name="HaloOpen" Fill="{DynamicResource GiltBrush}" Opacity="0" OpacityMask="{StaticResource LocalMenuHaloMask}" IsHitTestVisible="False" />
+            <Grid Width="28" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Canvas x:Name="HexLayer" Width="28" Height="28" RenderTransformOrigin="0.5,0.5">
+                    <Canvas.RenderTransform><RotateTransform x:Name="HexTurn" Angle="0" /></Canvas.RenderTransform>
+                    <Path x:Name="Hex" Data="M7.5,2.75 L20.5,2.75 27,14 20.5,25.25 7.5,25.25 1,14Z" Stroke="{DynamicResource GiltBrush}" StrokeThickness="1.5" StrokeLineJoin="Miter" />
+                    <Path x:Name="HexHot" Data="M7.5,2.75 L20.5,2.75 27,14 20.5,25.25 7.5,25.25 1,14Z" Stroke="{DynamicResource GiltHotBrush}" StrokeThickness="1.5" StrokeLineJoin="Miter" Opacity="0" />
+                    <Path x:Name="Trace" Data="M7.5,2.75 L20.5,2.75 27,14 20.5,25.25 7.5,25.25 1,14Z" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1.5" StrokeLineJoin="Miter"
+                          StrokeDashArray="52 52" StrokeDashOffset="52" />
+                </Canvas>
+                <Canvas x:Name="BarTop" Width="28" Height="28">
+                    <Canvas.RenderTransform><TranslateTransform x:Name="BarTopMove" Y="0" /></Canvas.RenderTransform>
+                    <Path Data="M9,9 L19,9" Stroke="{DynamicResource GiltHotBrush}" StrokeThickness="2" StrokeDashArray="2 1" StrokeDashCap="Flat" />
+                    <Path x:Name="LitTop" Data="M9,9 L19,9" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="2" StrokeDashArray="2 1" StrokeDashCap="Flat" Opacity="0" />
+                </Canvas>
+                <Canvas x:Name="BarMid" Width="28" Height="28" RenderTransformOrigin="0.5,0.5">
+                    <Canvas.RenderTransform><ScaleTransform x:Name="BarMidScale" ScaleX="1" ScaleY="1" /></Canvas.RenderTransform>
+                    <Path Data="M6,14 L22,14" Stroke="{DynamicResource GiltHotBrush}" StrokeThickness="2" StrokeDashArray="2 1" StrokeDashCap="Flat" />
+                    <Path x:Name="LitMid" Data="M6,14 L22,14" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="2" StrokeDashArray="2 1" StrokeDashCap="Flat" Opacity="0" />
+                </Canvas>
+                <Canvas x:Name="BarBot" Width="28" Height="28">
+                    <Canvas.RenderTransform><TranslateTransform x:Name="BarBotMove" Y="0" /></Canvas.RenderTransform>
+                    <Path Data="M9,19 L19,19" Stroke="{DynamicResource GiltHotBrush}" StrokeThickness="2" StrokeDashArray="2 1" StrokeDashCap="Flat" />
+                    <Path x:Name="LitBot" Data="M9,19 L19,19" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="2" StrokeDashArray="2 1" StrokeDashCap="Flat" Opacity="0" />
+                </Canvas>
+                <Canvas Width="28" Height="28">
+                    <Rectangle x:Name="NodeRing" Canvas.Left="8.5" Canvas.Top="8.5" Width="11" Height="11" Stroke="{DynamicResource GiltBrush}" StrokeThickness="1"
+                               RenderTransformOrigin="0.5,0.5" Opacity="0">
+                        <Rectangle.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="RingScale" ScaleX="0.2" ScaleY="0.2" />
+                                <RotateTransform Angle="45" />
+                            </TransformGroup>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Rectangle x:Name="Node" Canvas.Left="11" Canvas.Top="11" Width="6" Height="6" Fill="{DynamicResource GiltHotBrush}"
+                               RenderTransformOrigin="0.5,0.5" Opacity="0">
+                        <Rectangle.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="NodeScale" ScaleX="0.2" ScaleY="0.2" />
+                                <RotateTransform Angle="45" />
+                            </TransformGroup>
+                        </Rectangle.RenderTransform>
+                    </Rectangle>
+                </Canvas>
+            </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Trace" Storyboard.TargetProperty="StrokeDashOffset" From="52" To="0" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="LitTop" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.06" Duration="0:0:0.12" />
+                            <DoubleAnimation Storyboard.TargetName="LitMid" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.13" Duration="0:0:0.12" />
+                            <DoubleAnimation Storyboard.TargetName="LitBot" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.2" Duration="0:0:0.12" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Trace" Storyboard.TargetProperty="StrokeDashOffset" To="52" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LitTop" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LitMid" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LitBot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="HexTurn" Storyboard.TargetProperty="Angle" To="60" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="HexHot" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                            <DoubleAnimation Storyboard.TargetName="BarTopMove" Storyboard.TargetProperty="Y" To="5" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="BarBotMove" Storyboard.TargetProperty="Y" To="-5" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="BarMidScale" Storyboard.TargetProperty="ScaleX" To="0.4" Duration="0:0:0.22" />
+                            <DoubleAnimation Storyboard.TargetName="BarTop" Storyboard.TargetProperty="Opacity" To="0" BeginTime="0:0:0.08" Duration="0:0:0.14" />
+                            <DoubleAnimation Storyboard.TargetName="BarMid" Storyboard.TargetProperty="Opacity" To="0" BeginTime="0:0:0.08" Duration="0:0:0.14" />
+                            <DoubleAnimation Storyboard.TargetName="BarBot" Storyboard.TargetProperty="Opacity" To="0" BeginTime="0:0:0.08" Duration="0:0:0.14" />
+                            <DoubleAnimation Storyboard.TargetName="Node" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.16" Duration="0:0:0.08" />
+                            <DoubleAnimation Storyboard.TargetName="NodeScale" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.16" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="NodeScale" Storyboard.TargetProperty="ScaleY" To="1" BeginTime="0:0:0.16" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="NodeRing" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.22" Duration="0:0:0.1" />
+                            <DoubleAnimation Storyboard.TargetName="RingScale" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.22" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RingScale" Storyboard.TargetProperty="ScaleY" To="1" BeginTime="0:0:0.22" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="HaloOpen" Storyboard.TargetProperty="Opacity" To="0.45" Duration="0:0:0.3" />
+                            <DoubleAnimation Storyboard.TargetName="HaloOpen" Storyboard.TargetProperty="Opacity" From="0.45" To="0.75" BeginTime="0:0:0.3" Duration="0:0:1.5" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="NodeScale" Storyboard.TargetProperty="ScaleX" From="1" To="1.14" BeginTime="0:0:0.5" Duration="0:0:1.5" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="NodeScale" Storyboard.TargetProperty="ScaleY" From="1" To="1.14" BeginTime="0:0:0.5" Duration="0:0:1.5" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HexTurn" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HexHot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BarTopMove" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.25" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BarBotMove" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.25" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BarMidScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.25" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BarTop" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BarMid" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BarBot" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Node" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="NodeScale" Storyboard.TargetProperty="ScaleX" To="0.2" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="NodeScale" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="NodeRing" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RingScale" Storyboard.TargetProperty="ScaleX" To="0.2" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RingScale" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HaloOpen" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.25" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style x:Key="HeadingTextBlock" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
         <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />

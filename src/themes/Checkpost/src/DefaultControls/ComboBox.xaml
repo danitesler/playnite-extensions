@@ -1,0 +1,221 @@
+<!--
+    Checkpost: ComboBox. The closed box is a form field: a LocalOliveDeepBrush fill in a 1px LocalMossDeepBrush border with 2px corners, the value in
+    TextBrush, and the IconDropDown pixel chevron (12px, LocalDimBrush) in its own 28px cell behind a hairline. 32px (ControlHeight). Hover turns
+    the border LocalDimBrush, keyboard focus and an open list turn it lime; while the list is open the chevron flips (one discrete step, lime).
+    No fades, no glow. The list is the shared board (LocalMenuBoardTemplate, ContextMenu.xaml) and drops in 4px over three frames on IsDropDownOpen;
+    ComboBoxItem rows are the menu rows of Menu.xaml: 30px, the lime paper slip with its punch dots steps in over three 35ms frames while the label nudges
+    8px right of the dots, ink text, and the chosen item carries the pixel check in lime (LocalMenuCheckTemplate). Recipe: docs/themes/menus.md.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource LocalOliveDeepBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LocalMossDeepBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,3,6,3" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ComboBox}">
+                    <Grid SnapsToDevicePixels="True">
+                        <!-- the field: fill and 1px border, 2px corners -->
+                        <Border x:Name="Field" IsHitTestVisible="False" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <ToggleButton x:Name="ToggleButton" Focusable="False" ClickMode="Press"
+                                      IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                    <Grid Background="Transparent">
+                                        <!-- chevron cell: 28px wide, a hairline on its left edge, the pixel chevron centred -->
+                                        <Grid Width="28" HorizontalAlignment="Right" IsHitTestVisible="False">
+                                            <Rectangle Width="1" Margin="0,6,0,6" HorizontalAlignment="Left" Fill="{DynamicResource LocalMossDeepBrush}" />
+                                            <ContentControl x:Name="Chevron" Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                            Focusable="False" IsTabStop="False" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"
+                                                            Foreground="{DynamicResource LocalDimBrush}"
+                                                            Content="{DynamicResource IconDropDown}" ContentTemplate="{DynamicResource IconTemplate}">
+                                                <ContentControl.RenderTransform>
+                                                    <RotateTransform x:Name="ChevronTurn" />
+                                                </ContentControl.RenderTransform>
+                                            </ContentControl>
+                                        </Grid>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter Property="Foreground" Value="{DynamicResource LocalLimeBrush}" TargetName="Chevron" />
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard x:Name="ChevronFlip">
+                                                    <Storyboard>
+                                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ChevronTurn" Storyboard.TargetProperty="Angle">
+                                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="180" />
+                                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.02" Value="180" />
+                                                        </DoubleAnimationUsingKeyFrames>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+                                            <Trigger.ExitActions>
+                                                <RemoveStoryboard BeginStoryboardName="ChevronFlip" />
+                                            </Trigger.ExitActions>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <!-- the value has its own column, the chevron cell the 28px beside it -->
+                        <Grid Margin="1" IsHitTestVisible="False">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="28" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter x:Name="ContentSite" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
+                        </Grid>
+                        <TextBox x:Name="PART_EditableTextBox" MinHeight="0" Visibility="Hidden" VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                                 Margin="1,1,29,1" Focusable="True" BorderThickness="0" Background="Transparent"
+                                 Style="{DynamicResource BareTextBox}" Padding="9,0,9,0"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" Foreground="{DynamicResource TextBrush}" CaretBrush="{DynamicResource LocalLimeBrush}" />
+                        <!-- the list: 4px of transparent room above the board for the drop, so the popup sits 2px under the field -->
+                        <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
+                               VerticalOffset="-2" Focusable="False" AllowsTransparency="True">
+                            <Grid x:Name="ListBoard" Margin="0,4,0,0" MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="ListDrop" />
+                                </Grid.RenderTransform>
+                                <Control Template="{DynamicResource LocalMenuBoardTemplate}" Focusable="False" IsTabStop="False" />
+                                <ScrollViewer Margin="6,6,9,9" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                                    <ItemsPresenter Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained"
+                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource LocalDimBrush}" TargetName="Field" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource LocalLimeBrush}" TargetName="Field" />
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource LocalLimeBrush}" TargetName="Field" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListDropIn">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListBoard" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.4" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.04" Value="0.75" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.08" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListDrop" Storyboard.TargetProperty="Y">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="-4" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.04" Value="-2" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.08" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="ListDropIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter Property="IsTabStop" Value="False" />
+                            <Setter Property="Visibility" Value="Visible" TargetName="PART_EditableTextBox" />
+                            <Setter Property="Visibility" Value="Hidden" TargetName="ContentSite" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- ComboBoxItem: the menu row (30px). Highlight (pointer and keyboard) is the lime slip; the chosen item keeps its own pixel check while another row is lit. -->
+    <Style TargetType="{x:Type ComboBoxItem}">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                    <Grid x:Name="ListRow" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Control x:Name="ListSlip" Template="{DynamicResource LocalSlipTemplate}" Margin="0,1,0,1" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False"
+                                 Focusable="False" IsTabStop="False" Background="{DynamicResource LocalLimeBrush}" BorderBrush="{DynamicResource LocalMossBrush}"
+                                 Foreground="{DynamicResource LocalVoidBrush}" />
+                        <Grid x:Name="ListNudge" Margin="9,1,6,3">
+                            <Grid.RenderTransform>
+                                <TranslateTransform x:Name="ListNudgeShift" />
+                            </Grid.RenderTransform>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- chosen: the pixel check in lime -->
+                            <Control x:Name="ListCheck" Template="{DynamicResource LocalMenuCheckTemplate}" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                     Visibility="Collapsed" Focusable="False" IsTabStop="False" Foreground="{DynamicResource LocalLimeBrush}" />
+                            <ContentPresenter x:Name="ListLabel" Grid.Column="1" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Visibility" Value="Visible" TargetName="ListCheck" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" TargetName="ListCheck" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ListSlipIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListSlip" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListSlip" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.4" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.035" Value="0.7" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.07" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListNudgeShift" Storyboard.TargetProperty="X">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="3" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.035" Value="6" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.07" Value="8" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ListSlipOut">
+                                    <Storyboard FillBehavior="Stop" Duration="0:0:0.07">
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ListSlip" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListSlip" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.6" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.035" Value="0.25" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ListNudgeShift" Storyboard.TargetProperty="X">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="5" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.035" Value="2" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" TargetName="ListRow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

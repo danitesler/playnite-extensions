@@ -1,0 +1,117 @@
+<!--
+    Checkpost: Expander (filter sections, grouped lists). The header is a DAY-tab row: the strip behind it is ExpanderBackgroundBrush, the olive tab (3px cut corners)
+    holds a 12px pixel arrow (dim when closed, lime when open) and the label in Pixelify Sans 17px, and a 1px moss-deep hairline fills the rest of the row. Hover steps
+    the tab to the lifted olive over two frames (100ms). Keeps the ShowBackgroundImageOnWindow trigger: with window art on the header strip is transparent so the
+    art shows through.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="ExpanderDownHeaderStyle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <Grid Background="Transparent">
+                        <Border Background="{TemplateBinding Background}" IsHitTestVisible="False" />
+                        <Border Padding="{TemplateBinding Padding}" Background="Transparent"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                    <Border x:Name="Tab" Background="{DynamicResource LocalOliveBrush}" CornerRadius="{DynamicResource CornerRadiusLarge}" IsHitTestVisible="False" />
+                                    <Border x:Name="HoverWash" Opacity="0" Background="{DynamicResource LocalOliveLitBrush}" CornerRadius="{DynamicResource CornerRadiusLarge}" IsHitTestVisible="False" />
+                                    <StackPanel Orientation="Horizontal" Margin="9,2,12,3" VerticalAlignment="Center">
+                                        <!-- ContentControls, not presenters: the icon templates take their fill from the nearest ContentControl's Foreground. -->
+                                        <ContentControl x:Name="CollapsedIcon" Width="12" Height="12" Margin="0,0,8,0"
+                                                        VerticalAlignment="Center" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                                        Foreground="{DynamicResource TextBrushDarker}"
+                                                        Content="{DynamicResource IconSubmenu}"
+                                                        ContentTemplate="{DynamicResource IconSmallTemplate}" />
+                                        <ContentControl x:Name="ExpandedIcon" Width="12" Height="12" Margin="0,0,8,0"
+                                                        VerticalAlignment="Center" Visibility="Collapsed" Focusable="False" IsTabStop="False" IsHitTestVisible="False"
+                                                        Foreground="{DynamicResource LocalLimeBrush}"
+                                                        Content="{DynamicResource IconDropDown}"
+                                                        ContentTemplate="{DynamicResource IconSmallTemplate}" />
+                                        <TextBlock Style="{DynamicResource HeadingTextBlock}" FontSize="17" VerticalAlignment="Center">
+                                            <ContentPresenter SnapsToDevicePixels="True" RecognizesAccessKey="True" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Grid.Column="1" Height="1" Margin="10,0,6,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                        Background="{DynamicResource LocalMossDeepBrush}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter Property="Visibility" TargetName="ExpandedIcon" Value="Visible" />
+                            <Setter Property="Visibility" TargetName="CollapsedIcon" Value="Collapsed" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Opacity" TargetName="HoverWash" Value="1" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="HeaderHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="HoverWash" Storyboard.TargetProperty="Opacity">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.5" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0.05" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="HeaderHoverIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type Expander}">
+        <Setter Property="Background" Value="{DynamicResource ExpanderBackgroundBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Expander}">
+                    <DockPanel>
+                        <ToggleButton BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                      Style="{DynamicResource ExpanderDownHeaderStyle}"
+                                      Padding="{TemplateBinding Padding}"
+                                      MinHeight="28" DockPanel.Dock="Top"
+                                      Background="{TemplateBinding Background}"
+                                      Content="{TemplateBinding Header}"
+                                      IsChecked="{Binding Path=IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                        <Border x:Name="Border" DockPanel.Dock="Top" Visibility="Collapsed"
+                                BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                            <ContentPresenter Focusable="False"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                    </DockPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="true">
+                            <Setter Property="Visibility" TargetName="Border" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <!-- Window art on: no header strip, so the art shows through group headers and filter sections. -->
+            <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                <Setter Property="Background" Value="Transparent" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>
