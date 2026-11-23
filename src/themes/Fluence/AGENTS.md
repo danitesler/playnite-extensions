@@ -34,7 +34,7 @@ Windows 11 layering: the window is the base layer (`colorNeutralBackground2`, st
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat base layer. |
 | `DerivedStyles/MainWindowStyle.xaml` | Windows 11 caption buttons (`MainWindowButton`): 46x32, square, flush with the top-right corner; subtle fill on hover, red for close. |
-| `Views/Sidebar.xaml` | NavigationView, LeftCompact, narrowed to the repo's 44px compact rail, no border; the pane toggle (`MainMenuButton`, `PART_ElemMainMenu`, a 32x32 plate with a 16px glyph) in the title-bar row; 44x40 items, no gutter. |
+| `Views/Sidebar.xaml` | NavigationView, LeftCompact, narrowed to the repo's 44px compact rail, no border; the pane toggle (`MainMenuButton`, `PART_ElemMainMenu`, a 32x32 plate with a 16px glyph) in the title-bar row; 44x40 items, no gutter. Main menu mark: `LocalFluenceMenuMarkTemplate`, a fan of three acrylic cards; hover opens the fan 9 degrees wider (BackEase 0.22s), open folds the outer cards onto the front one, which fills with the accent. |
 | `CustomControls/SidebarItem.xaml` | NavigationViewItem: 44x40 item with a 32x32 borderRadiusMedium plate, 16px icons, subtle hover fill; selected = subtle fill + 3x16 compound-brand pill on the plate's left edge; 2px brand progress bar along the plate's bottom. |
 | `Views/TopPanel.xaml` | 48px title-bar row: search (`TopPanelSearchBox`) centered, up to 468px; subtle 32px icon buttons on the right; brand CounterBadge for notifications. |
 | `CustomControls/TopPanelItem.xaml` | Button subtle, icon only: 32px; hover and checked = subtle fill + brand icon. |

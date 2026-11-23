@@ -45,3 +45,6 @@ After every change, validate with `pwsh scripts/validate-extension.ps1 -Extensio
   - **Never write `TextBlock.TextTrimming` or `TextBlock.TextWrapping` as attached attributes on `ContentPresenter`**: apply them via `<ContentPresenter.Resources><Style TargetType="TextBlock">...</Style></ContentPresenter.Resources>`.
   - **Verify live Playnite startup in `%APPDATA%\Playnite\playnite.log`** after `build-theme.ps1 -Extension <key> -Launch`: confirm `Application ... started` with zero `Unhandled exception occured` lines.
 
+## Main menu mark (required)
+
+Every theme draws its own animated main menu mark (hover plus menu-open animation, unique to the theme's motif and motion, one shared `Local<Name>MenuMarkTemplate` in `Common.xaml` used by `Sidebar.xaml` and `TopPanel.xaml`). Follow `docs/themes/menu-mark.md`, copy only the mechanics from Cloudbank, and verify hover and open live before calling the theme done.

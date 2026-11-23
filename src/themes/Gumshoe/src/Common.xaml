@@ -397,4 +397,73 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+
+    <!-- Main menu mark (Sidebar coin and TopPanel PART_ElemMainMenu): the detective's magnifying glass with a question mark in the lens, inked
+         in the host's Foreground, 20x20. The Control is not hit-testable: the nearest Border (the button) carries hover and the
+         open state. Hover (IsMouseOver of that Border): the glass gives a rubber-hose wobble about its handle, a damped swing
+         (-12, 9, -5, 2.5 degrees over 0.52s, SineEase) that ends at rest. Open (the menu's ContextMenu.IsOpen on the same Border,
+         which is PART_ElemMainMenu): the case is on: the question mark turns stamp red and the glass searches in a slow
+         Lissajous drift (1.6px across in 1.1s, 1.2px up and down in 0.7s) until the menu closes. The wobble turns the outer
+         canvas and the drift moves the inner one, so the two never fight. -->
+    <ControlTemplate x:Key="LocalGumshoeMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="False">
+            <Canvas Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Canvas Width="20" Height="20">
+                    <Canvas.RenderTransform><RotateTransform x:Name="Wobble" CenterX="15" CenterY="15" Angle="0" /></Canvas.RenderTransform>
+                    <Canvas Width="20" Height="20">
+                        <Canvas.RenderTransform><TranslateTransform x:Name="Drift" X="0" Y="0" /></Canvas.RenderTransform>
+                        <Ellipse Canvas.Left="2.5" Canvas.Top="2.5" Width="12" Height="12" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" />
+                        <Path Data="M13,13 L18,18" Stroke="{TemplateBinding Foreground}" StrokeThickness="2.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Path Data="M6.7,7 C6.7,5.2 10.3,5.2 10.3,7.2 C10.3,8.4 8.5,8.5 8.5,10 M8.5,11.6 V11.9" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Path x:Name="QRed" Data="M6.7,7 C6.7,5.2 10.3,5.2 10.3,7.2 C10.3,8.4 8.5,8.5 8.5,10 M8.5,11.6 V11.9" Stroke="{DynamicResource DangerBrush}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0" />
+                    </Canvas>
+                </Canvas>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Wobble" Storyboard.TargetProperty="Angle">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.1" Value="-12"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="9"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.34" Value="-5"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.44" Value="2.5"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.52" Value="0"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Wobble" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="QRed" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                            <DoubleAnimation Storyboard.TargetName="Drift" Storyboard.TargetProperty="X" From="-0.8" To="0.8" Duration="0:0:1.1" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Drift" Storyboard.TargetProperty="Y" From="-0.6" To="0.6" Duration="0:0:0.7" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="QRed" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Drift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Drift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.15" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

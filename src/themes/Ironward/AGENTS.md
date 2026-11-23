@@ -55,7 +55,7 @@ Main surfaces (`ShellBackgroundBrush`, `ContentBackgroundBrush`, `TopPanelBackgr
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px `iw-void` left rail, `PART_ElemMainMenu` saw-shield mark at top, 44x40 items with sea-steel hover wash and molten ember selected bar + 2px left edge; transparent when `ShowBackgroundImageOnWindow` is True |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px `iw-void` left rail, `PART_ElemMainMenu` holding `LocalIronwardMenuMarkTemplate` (Common.xaml, also the top bar button), a saw-toothed heater shield with inner rim and gash, at top (hover fires a jade parry ring that snaps in and closes on the shield; open lifts and swells the shield while its rim and gash burn ember and breathe until the menu closes), 44x40 items with sea-steel hover wash and molten ember selected bar + 2px left edge; transparent when `ShowBackgroundImageOnWindow` is True |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px `iw-chrome` bar closed by a spearhead-tipped silver-teal rule (`DividerTemplate`); search -> filter (8px gold diamond pip) -> sorting first -> icon-only view switches with ember V-notch chevrons -> notifications -> 12px `PART_ProgressGlobal`; 132px right caption clearance |
 | `Views/Library.xaml` | Full-strength `PART_ImageBackground` spanning behind top bar and rail with soft bottom gradient fade |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | Frameless 1px hairline window chrome, `40x32` main window buttons, `46x44` dialog caption buttons with `DangerBrush` close hover |

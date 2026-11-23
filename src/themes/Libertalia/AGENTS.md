@@ -28,7 +28,7 @@ Type: 12 / 14 / 16 / 19 / 33, title case, normal weight everywhere (the game's 1
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact column on the window black, the compass (main menu) in a 44x64 cell on top, 44x40 items; khaki glyphs, the current one ivory on a round smudge. Top/bottom docking: a 64px strip where views are title case entries. |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px compact column on the window black, the compass (main menu) in a 44x64 cell on top, 44x40 items; khaki glyphs, the current one ivory on a round smudge. Top/bottom docking: a 64px strip where views are title case entries. Main menu mark: `LocalLibertaliaMenuMarkTemplate`, a pirate spyglass; hover telescopes the tubes and lens lip out in a 30ms stagger, open pops a twinkling glint on the lens until the menu closes. |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 64px, no fill. Search at the left; icon view switches in the middle between the prompt bar's 1px "\|" rules (`Canvas` separators), current one ivory on the smudge; filter and notifications at the right, 150px kept clear for the caption buttons. |
 | `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `DerivedStyles/MainWindowStyle.xaml` | 44x32 caption buttons with thin glyphs, rust close hover, 64px caption height. |

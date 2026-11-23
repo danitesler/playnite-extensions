@@ -47,7 +47,7 @@ Captures, pixel samples, contrast verification and UI rules: [`RESEARCH.md`](RES
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px `gt-sumi` rail closed by 1px hairline; Guiding Wind *kamon* inside a dark Sayagata keycap seal (`BrandMarkTemplate`); active items fill with vertical washi gradient + top-left crimson corner triangle (`gt-crimson-lit`). Transparent background in window-art mode |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px `gt-sumi` rail closed by 1px hairline; Guiding Wind *kamon* inside a dark Sayagata keycap seal, animated by `LocalGuidingWindMenuMarkTemplate` (Common.xaml, also the top bar button: two white swirl arms round a gold diamond; hover runs a gold dash streak along each arm like a gust, open dims the arms and stretches the diamond into a compass needle that turns north-east and seeks until the menu closes); active items fill with vertical washi gradient + top-left crimson corner triangle (`gt-crimson-lit`). Transparent background in window-art mode |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px sumi-black top bar with subtle Sayagata lattice, search box, filter toggle with active 9px antique-gold diamond pip (`DataChangeNotifBrush`), 34x34 view/sort switches (active item fills in vertical washi gradient + top-left crimson triangle at uniform 34px plate height), 15px gold notifications badge, and 12px progress bar |
 | `CustomControls/SearchBox.xaml` | Dark Sayagata well with warm washi input, clear action and crimson hover/focus rim |
 | `DerivedStyles/MainWindowStyle.xaml` | Frameless window chrome, 40x32 caption buttons, full-window wallpaper scrim (`ScrimBrush` 0.65) |

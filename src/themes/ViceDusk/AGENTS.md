@@ -60,7 +60,7 @@ Palette tokens live in `src/tokens.css`, rendered into `src/Constants.xaml` via 
 | --- | --- |
 | `DerivedStyles/MainWindowStyle.xaml` | Smoked dark twilight framing and main caption controls |
 | `DerivedStyles/StandardWindowStyle.xaml` | 44px Vice sunset header band + `LocalSunsetBackdropTemplate` sunset magenta sky and dark coastal palms behind Settings, Add-ons, and dialogs |
-| `Views/Sidebar.xaml` | 46px smoked charcoal-plum Exploration rail closed right by hairline rule, crowned by a 36x36 main menu tile with palm sunset mark and `2px` top flamingo rule |
+| `Views/Sidebar.xaml` | 46px smoked charcoal-plum Exploration rail closed right by hairline rule, crowned by the main menu button, `LocalViceDuskMenuMarkTemplate` (Common.xaml, also the top bar's menu button): a retro sunset, the top half of the sun over three tapering water stripes in flamingo pink; hover shimmers the stripes sideways in alternating directions; while the menu is open the sun dips toward the horizon, a neon horizon line draws out from the middle and three gold dusk stars twinkle at different paces |
 | `CustomControls/SidebarItem.xaml` | 40px rail cell with Map-style stark white `34x32` selected plate, `3px` neon flamingo left bar, `5px` rotated Vice Gold diamond pip, and directional white right pointer |
 | `Views/TopPanel.xaml` & `TopPanelItem.xaml` | 48px smoked toolbar with top-left flamingo trace, white-slab active view switch (`L1`/`R1` mode switcher style), gold diamond filter pip, and 12px global progress bar |
 | `CustomControls/SearchBox.xaml` | Top-bar command search input with monospaced `Cascadia Mono` hotkey hint and neon flamingo focus border |

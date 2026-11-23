@@ -260,4 +260,74 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
+
+    <!-- Main menu mark (Sidebar hex cell and TopPanel PART_ElemMainMenu): a visor radar: a mint dial ring with four compass ticks, an inner
+         ring and a core dot (the core and inner ring in the host's Foreground, which the cell's own hover trigger lights to
+         HUD white), 24x24. Hover (IsMouseOver of the nearest Border, so the whole 44x62 button counts): the inner ring lights
+         and the core fires one ping, a ring that grows from the dot to the dial while it fades out (0.5s, CubicEase), the
+         visor's contact beep; it reverses on exit. Open (the menu's ContextMenu.IsOpen on the same Border, which is
+         PART_ElemMainMenu): the radar is live: a 60-degree sweep wedge with a bright leading edge circles the dial once every 2.4s
+         at constant speed until the menu closes. Hover animates the inner ring and the ping; open animates the sweep's
+         opacity and turn. -->
+    <ControlTemplate x:Key="LocalVisorlineMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="False">
+            <Canvas Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Ellipse Canvas.Left="3" Canvas.Top="3" Width="18" Height="18" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1.25" />
+                <Path Data="M12,0.8 V3.4 M23.2,12 H20.6 M12,23.2 V20.6 M0.8,12 H3.4" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1.25" />
+                <Ellipse Canvas.Left="7.5" Canvas.Top="7.5" Width="9" Height="9" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1" Opacity="0.55" />
+                <Ellipse x:Name="InnerHot" Canvas.Left="7.5" Canvas.Top="7.5" Width="9" Height="9" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.25" Opacity="0" />
+                <Canvas x:Name="Sweep" Width="24" Height="24" Opacity="0">
+                    <Canvas.RenderTransform><RotateTransform x:Name="SweepTurn" CenterX="12" CenterY="12" Angle="0" /></Canvas.RenderTransform>
+                    <Path Data="M12,12 L12,3 A9,9 0 0 1 19.79,7.5 Z" Fill="{DynamicResource GlyphBrush}" Opacity="0.3" />
+                    <Path Data="M12,12 L19.79,7.5" Stroke="{DynamicResource GlyphBrush}" StrokeThickness="1.25" />
+                </Canvas>
+                <Ellipse x:Name="Ping" Canvas.Left="3" Canvas.Top="3" Width="18" Height="18" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.2" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Ellipse.RenderTransform><ScaleTransform x:Name="PingScale" ScaleX="0.25" ScaleY="0.25" /></Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse Canvas.Left="10.2" Canvas.Top="10.2" Width="3.6" Height="3.6" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="InnerHot" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.15" />
+                            <DoubleAnimation Storyboard.TargetName="PingScale" Storyboard.TargetProperty="ScaleX" From="0.25" To="1" Duration="0:0:0.5"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="PingScale" Storyboard.TargetProperty="ScaleY" From="0.25" To="1" Duration="0:0:0.5"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Ping" Storyboard.TargetProperty="Opacity" From="0.9" To="0" Duration="0:0:0.5" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="InnerHot" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PingScale" Storyboard.TargetProperty="ScaleX" To="0.25" Duration="0:0:0.01" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PingScale" Storyboard.TargetProperty="ScaleY" To="0.25" Duration="0:0:0.01" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Ping" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.01" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Sweep" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                            <DoubleAnimation Storyboard.TargetName="SweepTurn" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:2.4" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Sweep" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SweepTurn" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.01" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

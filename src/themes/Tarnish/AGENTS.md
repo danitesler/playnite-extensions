@@ -52,7 +52,7 @@ Shared shapes, all without a desired size: `SelectionBarTemplate` (olive bar fad
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px rail in the void, 1px dim rule; main menu = pale gold glyph on the light streak |
+| `Views/Sidebar.xaml` | 44px rail in the void, 1px dim rule; main menu = `LocalTarnishMenuMarkTemplate` (Common.xaml, also the top bar button): the golden tree (trunk, two pairs of pale gold branches, three gold buds, a brass root line) on the light streak; hover opens the buds one after another (BackEase), open turns the branches gold, raises two rays either side of the trunk and spreads and gathers the crown slowly until the menu closes |
 | `CustomControls/SidebarItem.xaml` | 44x40, no plates; hover a faint patch of light (animated), current = pale gold glyph, gold glow, streak under it, gold diamond on the rail's left edge |
 | `Views/TopPanel.xaml` | 52px, hairline bright near the left end fading right; 32px frameless cells; filter mark = 8px gold diamond |
 | `CustomControls/TopPanelItem.xaml` | hover = soft patch; toggled = olive patch + parchment streak + bright glyph |

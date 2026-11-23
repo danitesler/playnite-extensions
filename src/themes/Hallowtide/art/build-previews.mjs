@@ -168,7 +168,7 @@ function detailsHtml() {
 </head>
 <body>
 <div class="rail" data-part="sidebar">
-  <div class="menu" data-part="PART_ElemMainMenu">${icon('MainMenu', 16, 2.2)}<span class="tick" style="left:8px"></span><span class="tick" style="left:12px"></span><span class="tick" style="left:15px"></span><span class="tick" style="left:19px"></span></div>
+  <div class="menu" data-part="PART_ElemMainMenu"><svg class="ic" style="left:3px;top:9px;fill:none" width="20" height="16" viewBox="0 0 20 16" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M1.5,3 L10,4.5 L10,14.5 L1.5,13 Z"/><path d="M10,4.5 L18.5,3 L18.5,13 L10,14.5 Z"/></svg><span class="tick" style="left:8px"></span><span class="tick" style="left:12px"></span><span class="tick" style="left:15px"></span><span class="tick" style="left:19px"></span></div>
   <div class="ritem cur" style="top:64px"><span class="glow mote"></span>${icon('Library', 16)}</div>
   <div class="ritem" style="top:104px">${icon('Statistics', 16)}</div>
   <div class="ritem" style="top:144px">${icon('Explorer', 16)}</div>

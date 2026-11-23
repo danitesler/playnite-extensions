@@ -1,0 +1,1214 @@
+<!doctype html>
+<!-- Silver 98: HTML replica of Playnite's Game Details view (1280x720).
+     Classic Microsoft Windows 95 and Windows 98 shell & Explorer 4.0 Web View.
+     All colors reference var(--w98-*) tokens from src/tokens.css. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Silver 98 — Game Details Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--w98-face);
+    color: var(--w98-text);
+    font-family: "Tahoma", "Segoe UI";
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+  }
+  svg { fill: currentColor; display: block; flex: none; shape-rendering: crispEdges; }
+
+  /* Reusable Win32 3D Border Mixins */
+  .bevel-raised {
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+  }
+  .bevel-sunken {
+    background: var(--w98-window);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-dark),
+      inset -2px -2px 0 var(--w98-bevel-light);
+  }
+  .bevel-thin-raised {
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-shadow);
+  }
+  .bevel-thin-sunken {
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight);
+  }
+
+  .app {
+    width: 1280px;
+    height: 720px;
+    display: flex;
+    background: var(--w98-face);
+    position: relative;
+  }
+
+  /* === LEFT QUICK LAUNCH / EXPLORER RAIL (44px var(--w98-face) Win32 Rebar) === */
+  .rail {
+    width: 44px;
+    height: 720px;
+    flex: none;
+    background: var(--w98-face);
+    border-right: 1px solid var(--w98-bevel-highlight);
+    box-shadow: inset -1px 0 0 var(--w98-bevel-shadow), inset 1px 1px 0 var(--w98-bevel-highlight);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4px;
+    position: relative;
+    z-index: 10;
+  }
+  /* Classic Raised 3D Start / Main Menu Button */
+  .rail-menu {
+    width: 38px;
+    height: 40px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--w98-text);
+    position: relative;
+    flex: none;
+  }
+  /* Rebar horizontal grip bar under Start button */
+  .rebar-grip-h {
+    width: 34px;
+    height: 6px;
+    margin: 5px 0 3px 0;
+    border-top: 1px solid var(--w98-bevel-highlight);
+    border-bottom: 1px solid var(--w98-bevel-shadow);
+    box-shadow: 0 -1px 0 var(--w98-bevel-shadow), 0 1px 0 var(--w98-bevel-highlight);
+  }
+  .rail-items {
+    width: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .rail-item {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--w98-text);
+    position: relative;
+  }
+  .rail-item svg { width: 16px; height: 16px; }
+  /* Checked toolbar button: sunken 3D well with dithered checkerboard background */
+  .rail-item.active {
+    background-color: var(--w98-dither-well);
+    background-image:
+      linear-gradient(45deg, var(--w98-bevel-highlight) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--w98-bevel-highlight) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--w98-bevel-highlight) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--w98-bevel-highlight) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0;
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-dark),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-shadow),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    color: var(--w98-navy);
+  }
+  .rail-item.hover {
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-shadow);
+  }
+
+  /* Bottom system tray clock / speaker plaque in rail */
+  .rail-tray {
+    margin-top: auto;
+    margin-bottom: 6px;
+    width: 36px;
+    height: 44px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-family: "Consolas";
+    font-size: 10px;
+    color: var(--w98-text);
+  }
+  .tray-led {
+    width: 8px;
+    height: 8px;
+    background: var(--w98-ico-lime);
+    border: 1px solid var(--w98-bevel-dark);
+  }
+
+  /* === MAIN COLUMN === */
+  .main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* === TOP BAR (48px Windows 98 Explorer Rebar; Search -> Filter -> Sort-first tools -> Notifications -> Segmented Progress) === */
+  .top-bar {
+    height: 48px;
+    flex: none;
+    background: var(--w98-face);
+    border-bottom: 1px solid var(--w98-bevel-shadow);
+    box-shadow: inset 0 1px 0 var(--w98-bevel-highlight), 0 1px 0 var(--w98-bevel-highlight);
+    display: flex;
+    align-items: center;
+    padding: 0 10px 0 8px;
+    gap: 6px;
+    position: relative;
+  }
+  .rebar-grip-v {
+    width: 6px;
+    height: 30px;
+    border-left: 1px solid var(--w98-bevel-highlight);
+    border-right: 1px solid var(--w98-bevel-shadow);
+    box-shadow: -1px 0 0 var(--w98-bevel-shadow), 1px 0 0 var(--w98-bevel-highlight);
+    margin-right: 2px;
+    flex: none;
+  }
+  /* Sunken 3D White Address/Search Box */
+  .search-box {
+    width: 244px;
+    height: 32px;
+    background: var(--w98-window);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-dark),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    display: flex;
+    align-items: center;
+    padding: 0 6px 0 8px;
+    gap: 7px;
+    color: var(--w98-text);
+    font-size: 13px;
+  }
+  .search-box svg { width: 16px; height: 16px; }
+  .search-box .query { color: var(--w98-text); flex: 1; }
+  .search-box .clear-btn {
+    width: 20px;
+    height: 20px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--w98-text);
+  }
+  .search-box .clear-btn svg { width: 12px; height: 12px; }
+
+  .tool-btn {
+    width: 32px;
+    height: 32px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--w98-text);
+    position: relative;
+  }
+  .tool-btn svg { width: 16px; height: 16px; }
+  .tool-btn.active {
+    background-color: var(--w98-dither-well);
+    background-image:
+      linear-gradient(45deg, var(--w98-bevel-highlight) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--w98-bevel-highlight) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--w98-bevel-highlight) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--w98-bevel-highlight) 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0;
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-dark),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-shadow),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    color: var(--w98-navy);
+  }
+  /* Active Filter Pip: 8x8 Classic Folder Yellow square pip with 1px black pixel outline */
+  .filter-pip {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background: var(--w98-yellow-pip);
+    border: 1px solid var(--w98-bevel-dark);
+    box-shadow: inset 1px 1px 0 var(--w98-bevel-highlight);
+  }
+  .notif-pip {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 13px;
+    height: 13px;
+    background: var(--w98-danger);
+    border: 1px solid var(--w98-bevel-dark);
+    color: var(--w98-text-invert);
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .main-items {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .tool-sep {
+    width: 2px;
+    height: 24px;
+    border-left: 1px solid var(--w98-bevel-shadow);
+    border-right: 1px solid var(--w98-bevel-highlight);
+    margin: 0 3px;
+  }
+  /* Classic msctls_progress32 Segmented Navy Block Progress Bar */
+  .global-progress {
+    margin-left: auto;
+    margin-right: 10px;
+    width: 184px;
+    height: 14px;
+    background: var(--w98-window);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-dark),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    display: flex;
+    align-items: center;
+    padding: 2px 3px;
+    gap: 2px;
+  }
+  .prog-chunk {
+    width: 8px;
+    height: 8px;
+    background: var(--w98-navy);
+    flex: none;
+  }
+
+  /* Classic Win95/98 Raised 3D Window Caption Buttons */
+  .caption-btns {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .cap-btn {
+    width: 26px;
+    height: 24px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--w98-text);
+  }
+  .cap-btn svg { width: 12px; height: 12px; }
+  .cap-btn.close { margin-left: 2px; }
+
+  /* === WORKSPACE BODY === */
+  .workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    padding: 4px;
+    gap: 4px;
+    background: var(--w98-face);
+  }
+
+  /* === DETAILS GAME LIST (Left Sunken 3D White Explorer Tree/List Well) === */
+  .game-list-frame {
+    width: 274px;
+    flex: none;
+    background: var(--w98-window);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-dark),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    display: flex;
+    flex-direction: column;
+    padding: 2px;
+    overflow: hidden;
+  }
+  /* Explorer Pane Column Header Bar */
+  .list-col-header {
+    height: 22px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    font-size: 11px;
+    color: var(--w98-text);
+    flex: none;
+  }
+  .game-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2px;
+    overflow: hidden;
+  }
+  .game-row {
+    height: 28px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--w98-text);
+    font-size: 13px;
+    position: relative;
+  }
+  .row-ico {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .game-row-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* Hovered row: hot-track pale blue wash + underline */
+  .game-row.hover {
+    background: var(--w98-row-hover);
+    color: var(--w98-navy);
+    text-decoration: underline;
+  }
+  .row-hover-play {
+    width: 14px;
+    height: 14px;
+    color: var(--w98-navy);
+  }
+  /* Selected row: Classic Windows 95/98 var(--w98-navy) Navy Selection Bar + 1px White Dotted Focus Box */
+  .game-row.selected {
+    background: var(--w98-navy);
+    color: var(--w98-text-invert);
+    outline: 1px dotted var(--w98-focus-cyan);
+    outline-offset: -2px;
+  }
+  /* Running row: Windows 95/98 Desktop Teal (#008080) frame + segmented foot + 3 pixel hourglass/LED blocks */
+  .game-row.running {
+    background: rgba(0, 128, 128, 0.16);
+    color: var(--w98-text);
+    font-weight: 700;
+  }
+  .game-row.running::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 2px solid var(--w98-teal);
+    pointer-events: none;
+  }
+  .running-foot {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 2px;
+    height: 2px;
+    background: repeating-linear-gradient(to right, var(--w98-teal) 0 6px, transparent 6px 8px);
+  }
+  .running-pips {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 4px;
+    background: var(--w98-face);
+    border: 1px solid var(--w98-bevel-dark);
+  }
+  .running-pips i {
+    width: 5px;
+    height: 7px;
+    background: var(--w98-teal);
+    display: block;
+  }
+  .running-pips i.hi { background: var(--w98-teal-hi); }
+
+  /* === GAME PAGE (Right Sunken 3D Explorer 4.0 Web View Document Pane) === */
+  .game-page {
+    flex: 1;
+    min-width: 0;
+    background: var(--w98-window);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-dark),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+
+  /* Hero Banner: Classic 90s PC Game Box / Setup Backlit Teaser fading into Explorer 4.0 Web View white page */
+  .hero-banner {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 2px;
+    height: 232px;
+    background:
+      linear-gradient(90deg, rgba(0, 0, 128, 0.76) 0%, rgba(16, 132, 208, 0.42) 55%, rgba(0, 128, 128, 0.65) 100%),
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.18) 0 2px, transparent 2px 4px),
+      linear-gradient(135deg, #001848 0%, #0A3C6E 48%, #004E4E 100%);
+    overflow: hidden;
+  }
+  /* Retro 90s wireframe grid horizon inside hero banner */
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(0, 255, 255, 0.14) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 255, 255, 0.14) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  /* Floating Windows 98 Setup / CD-ROM dialog card silhouette in banner */
+  .hero-cd-motif {
+    position: absolute;
+    right: 54px;
+    top: 22px;
+    width: 196px;
+    height: 112px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    padding: 3px;
+    opacity: 0.90;
+  }
+  .hero-cd-bar {
+    height: 16px;
+    background: linear-gradient(90deg, var(--w98-navy), var(--w98-title-blue));
+    color: var(--w98-text-invert);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hero-cd-body {
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10px;
+    color: var(--w98-text);
+  }
+  /* Smooth fade into white Explorer Web View document background */
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.00) 15%,
+      rgba(255, 255, 255, 0.18) 38%,
+      rgba(255, 255, 255, 0.62) 64%,
+      rgba(255, 255, 255, 0.92) 84%,
+      var(--w98-window) 98%
+    );
+  }
+
+  .page-content {
+    position: relative;
+    z-index: 2;
+    padding: 120px 22px 10px 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Game Header */
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 8px;
+    position: relative;
+  }
+  .title-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .game-emblem {
+    width: 44px;
+    height: 44px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  .game-emblem svg { width: 28px; height: 28px; }
+  .game-title-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .game-title {
+    font-family: "Pixelify Sans", "Tahoma", "Segoe UI";
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--w98-text);
+  }
+  .game-subtitle {
+    font-family: "Consolas";
+    font-size: 11px;
+    color: var(--w98-text-muted);
+  }
+
+  /* Explorer 4.0 Web View 4-Color Divider Bar (Red / Yellow / Green / Blue) */
+  .webview-4color-bar {
+    height: 3px;
+    display: flex;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .webview-4color-bar .c-red { width: 90px; background: var(--w98-web-red); }
+  .webview-4color-bar .c-yel { width: 90px; background: var(--w98-web-yellow); }
+  .webview-4color-bar .c-grn { width: 90px; background: var(--w98-web-green); }
+  .webview-4color-bar .c-blu { flex: 1; background: var(--w98-web-blue); }
+
+  /* Action Row: Hero Moment Win32 Default Command Push Button (Hovered end-state with dotted focus rect) + Raised 3D More & Edit */
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: none;
+  }
+  /* Win95/98 Yellow Info ToolTip hovering above Play Button */
+  .win98-tooltip {
+    position: absolute;
+    right: 96px;
+    top: -28px;
+    background: var(--w98-tooltip-bg);
+    border: 1px solid var(--w98-bevel-dark);
+    padding: 3px 7px;
+    font-size: 11px;
+    color: var(--w98-text);
+    white-space: nowrap;
+  }
+  .play-btn {
+    min-width: 158px;
+    height: 40px;
+    padding: 0 22px;
+    background: linear-gradient(90deg, var(--w98-navy-hover) 0%, var(--w98-title-blue) 100%);
+    border: 1px solid var(--w98-bevel-dark);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-focus-cyan),
+      inset -2px -2px 0 var(--w98-navy);
+    color: var(--w98-text-invert);
+    font-family: "Pixelify Sans", "Tahoma", "Segoe UI";
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    position: relative;
+  }
+  /* Classic 1px dotted inner Win32 focus rectangle (staged in hovered end-state) */
+  .play-btn::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px dotted var(--w98-bevel-highlight);
+    pointer-events: none;
+  }
+  .play-btn svg { width: 16px; height: 16px; }
+
+  .sec-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    color: var(--w98-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sec-btn svg { width: 16px; height: 16px; }
+
+  /* Body Columns */
+  .body-cols {
+    display: flex;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+  }
+  .left-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .screens-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-family: "Tahoma", "Segoe UI";
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--w98-text);
+  }
+  .screens-head-rule {
+    height: 2px;
+    display: flex;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .screens-head-rule .c1 { width: 48px; background: var(--w98-web-red); }
+  .screens-head-rule .c2 { width: 48px; background: var(--w98-web-yellow); }
+  .screens-head-rule .c3 { width: 48px; background: var(--w98-web-green); }
+  .screens-head-rule .c4 { flex: 1; background: var(--w98-web-blue); }
+
+  .screens-grid {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .shot {
+    flex: 1;
+    height: 98px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    padding: 3px;
+    display: flex;
+    flex-direction: column;
+  }
+  .shot-bar {
+    height: 14px;
+    background: linear-gradient(90deg, var(--w98-navy), var(--w98-title-blue));
+    color: var(--w98-text-invert);
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .shot-canvas {
+    flex: 1;
+    margin-top: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .shot.s1 .shot-canvas { background: linear-gradient(135deg, #003840 0%, var(--w98-teal) 100%); }
+  .shot.s1 .shot-canvas::after { content: ""; position: absolute; inset: 10px 26px; border: 2px solid var(--w98-ico-cyan); }
+  .shot.s2 .shot-canvas { background: linear-gradient(135deg, var(--w98-navy-press) 0%, var(--w98-title-blue) 100%); }
+  .shot.s2 .shot-canvas::after { content: ""; position: absolute; left: 22px; right: 22px; top: 18px; height: 34px; background: var(--w98-face); border: 1px solid var(--w98-bevel-dark); }
+  .shot.s3 .shot-canvas { background: linear-gradient(135deg, #242424 0%, var(--w98-text-muted) 100%); }
+  .shot.s3 .shot-canvas::after { content: "C:\\>"; position: absolute; left: 10px; top: 8px; font-family: "Consolas"; font-size: 13px; color: var(--w98-ico-lime); }
+
+  .desc-text {
+    color: var(--w98-text);
+    font-size: 13px;
+    line-height: 1.48;
+  }
+  .desc-sub {
+    margin-top: 7px;
+    color: var(--w98-text-muted);
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  /* === METADATA DOSSIER (Right, Win98 File Properties 3D Dialog Sheet, 300px inner width) === */
+  .meta-wrap {
+    width: 328px;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-self: flex-start;
+  }
+  .meta {
+    width: 328px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    padding: 3px;
+  }
+  /* Win98 Active Title Bar header on Properties Card */
+  .meta-head {
+    height: 22px;
+    background: linear-gradient(90deg, var(--w98-navy) 0%, var(--w98-title-blue) 100%);
+    padding: 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--w98-text-invert);
+  }
+  .meta-head svg { width: 14px; height: 14px; }
+  .meta-title-tag {
+    font-family: "Tahoma", "Segoe UI";
+    font-size: 12px;
+    font-weight: 700;
+    flex: 1;
+  }
+  .meta-head-btn {
+    width: 14px;
+    height: 14px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark);
+    color: var(--w98-text);
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .meta-body {
+    padding: 8px 11px 9px 11px;
+  }
+  .meta-group {
+    padding-top: 6px;
+    margin-top: 6px;
+    position: relative;
+  }
+  .meta-group:first-child {
+    padding-top: 0;
+    margin-top: 0;
+  }
+  /* Classic Win32 2px Etched Rule (#808080 over var(--w98-bevel-highlight)) */
+  .meta-break {
+    height: 2px;
+    border-top: 1px solid var(--w98-bevel-shadow);
+    border-bottom: 1px solid var(--w98-bevel-highlight);
+    margin-bottom: 6px;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0;
+    font-size: 12.5px;
+  }
+  .meta-label {
+    width: 94px;
+    flex: none;
+    font-size: 12px;
+    color: var(--w98-text-muted);
+  }
+  .meta-val {
+    flex: 1;
+    min-width: 0;
+    color: var(--w98-text);
+  }
+  .meta-link {
+    color: var(--w98-link);
+    text-decoration: underline;
+  }
+
+  /* Sunken 3D Score Readout Plaque (TextBlockGameScore) */
+  .score-plaque {
+    display: inline-flex;
+    align-items: center;
+    background: var(--w98-window);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight),
+      inset 2px 2px 0 var(--w98-bevel-dark),
+      inset -2px -2px 0 var(--w98-bevel-light);
+    padding: 1px 7px 1px 0;
+    font-family: "Consolas";
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--w98-text);
+    gap: 6px;
+  }
+  .score-plaque::before {
+    content: "";
+    width: 4px;
+    height: 15px;
+    background: var(--w98-green-pos);
+    margin-left: 2px;
+  }
+
+  /* Raised 3D Win32 Tag Chips (PropertyItemButton Tag="Chip") */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chip {
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-highlight),
+      inset -1px -1px 0 var(--w98-bevel-dark),
+      inset 2px 2px 0 var(--w98-bevel-light),
+      inset -2px -2px 0 var(--w98-bevel-shadow);
+    padding: 2px 7px;
+    font-size: 11.5px;
+    color: var(--w98-text);
+  }
+  .chip.active {
+    background: var(--w98-navy);
+    color: var(--w98-text-invert);
+  }
+
+  /* Sunken Win98 Explorer Status Bar at bottom of Game Page */
+  .status-bar {
+    margin-top: auto;
+    height: 22px;
+    display: flex;
+    gap: 4px;
+    padding-top: 2px;
+  }
+  .status-pane {
+    height: 20px;
+    background: var(--w98-face);
+    box-shadow:
+      inset 1px 1px 0 var(--w98-bevel-shadow),
+      inset -1px -1px 0 var(--w98-bevel-highlight);
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    color: var(--w98-text);
+  }
+  .status-pane.grow { flex: 1; }
+</style>
+</head>
+<body>
+<!-- Reusable 16x16 Classic Windows 95/98 Pixel Symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Classic Colored Yellow Folder -->
+    <symbol id="ico-folder" viewBox="0 0 16 16">
+      <path fill="var(--w98-bevel-dark)" d="M2,2 H7 V3 H14 V13 H1 V3 H2 Z"/>
+      <path fill="var(--w98-ico-yellow)" d="M2,3 H6 V4 H13 V12 H2 Z"/>
+      <path fill="var(--w98-bevel-highlight)" d="M2,4 H13 V5 H2 Z"/>
+      <path fill="var(--w98-amber-mix)" d="M3,6 H13 V12 H3 Z"/>
+    </symbol>
+    <!-- Classic Colored CRT Monitor (My Computer) -->
+    <symbol id="ico-computer" viewBox="0 0 16 16">
+      <path fill="var(--w98-bevel-dark)" d="M2,1 H14 V11 H10 V13 H13 V15 H3 V13 H6 V11 H2 Z"/>
+      <path fill="var(--w98-face)" d="M3,2 H13 V10 H3 Z M7,11 H9 V13 H7 Z M4,13 H12 V14 H4 Z"/>
+      <path fill="var(--w98-navy)" d="M4,3 H12 V8 H4 Z"/>
+      <path fill="var(--w98-ico-cyan)" d="M5,4 H9 V6 H5 Z"/>
+      <path fill="var(--w98-ico-lime)" d="M11,9 H12 V10 H11 Z"/>
+    </symbol>
+    <!-- Classic Colored Magnifier -->
+    <symbol id="ico-find" viewBox="0 0 16 16">
+      <path fill="var(--w98-bevel-dark)" d="M4,1 H9 V2 H11 V4 H12 V9 H11 V10 H12 V11 H14 V13 H15 V15 H13 V14 H11 V12 H10 V11 H9 V12 H4 V11 H2 V9 H1 V4 H2 V2 H4 Z"/>
+      <path fill="var(--w98-ico-cyan)" d="M4,3 H9 V4 H10 V9 H9 V10 H4 V9 H3 V4 H4 Z"/>
+      <path fill="var(--w98-bevel-highlight)" d="M4,4 H6 V6 H4 Z"/>
+      <path fill="var(--w98-amber-mix)" d="M11,11 H13 V14 H11 Z"/>
+    </symbol>
+    <!-- Classic Colored Gamepad / Program -->
+    <symbol id="ico-game" viewBox="0 0 16 16">
+      <path fill="var(--w98-bevel-dark)" d="M1,2 H15 V14 H1 Z"/>
+      <path fill="var(--w98-face)" d="M2,3 H14 V13 H2 Z"/>
+      <path fill="var(--w98-navy)" d="M2,3 H14 V5 H2 Z"/>
+      <path fill="var(--w98-ico-cyan)" d="M4,7 H7 V11 H4 Z"/>
+      <path fill="var(--w98-ico-red)" d="M10,7 H12 V9 H10 Z"/>
+      <path fill="var(--w98-ico-yellow)" d="M9,9 H11 V11 H9 Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+  <!-- Compact 44px Left Win98 Rebar Rail -->
+  <div class="rail" data-part="sidebar">
+    <div class="rail-menu" data-part="PART_ElemMainMenu" title="Start / Main Menu">
+      <svg width="26" height="26" viewBox="0 0 26 26" shape-rendering="crispEdges"><rect x="2.5" y="2.5" width="14" height="9" fill="var(--w98-window)" stroke="var(--w98-bevel-dark)"/><rect x="3" y="3" width="13" height="2.6" fill="var(--w98-navy)"/><rect x="5.5" y="7.0" width="14" height="9" fill="var(--w98-window)" stroke="var(--w98-bevel-dark)"/><rect x="6" y="7.5" width="13" height="2.6" fill="var(--w98-navy)"/><rect x="8.5" y="11.5" width="14" height="9" fill="var(--w98-window)" stroke="var(--w98-bevel-dark)"/><rect x="9" y="12" width="13" height="2.6" fill="var(--w98-navy)"/></svg>
+    </div>
+    <div class="rebar-grip-h"></div>
+    <div class="rail-items">
+      <div class="rail-item active" title="Library">
+        <svg viewBox="0 0 16 16"><path d="M2,1 H7 V2 H15 V12 H1 V2 H2 Z M2,4 V11 H14 V4 Z M5,6 H7 V10 H5 Z M4,7 H8 V9 H4 Z M10,6 H12 V8 H10 Z M12,8 H13 V10 H12 Z"/></svg>
+      </div>
+      <div class="rail-item hover" title="Statistics">
+        <svg viewBox="0 0 16 16"><path d="M1,1 H2 V13 H15 V14 H1 Z M3,8 H6 V12 H3 Z M7,5 H10 V12 H7 Z M11,2 H14 V12 H11 Z"/></svg>
+      </div>
+      <div class="rail-item" title="Extensions">
+        <svg viewBox="0 0 16 16"><path d="M5,1 H15 V11 H13 V5 H5 Z M1,5 H11 V15 H1 Z M3,7 V13 H9 V7 Z"/></svg>
+      </div>
+    </div>
+    <div class="rail-tray" title="System Tray">
+      <span class="tray-led"></span>
+      <span>98</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Top Panel: Search -> Filter -> Sort-first tools -> Notifications -> Segmented Navy Progress -->
+    <div class="top-bar" data-part="top-panel">
+      <div class="rebar-grip-v"></div>
+
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <svg viewBox="0 0 16 16"><use href="#ico-find"/></svg>
+        <span class="query">Midtown</span>
+        <span class="clear-btn"><svg viewBox="0 0 16 16"><path d="M3,3 H5 V4 H6 V5 H7 V6 H9 V5 H10 V4 H11 V3 H13 V5 H12 V6 H11 V7 H10 V9 H11 V10 H12 V11 H13 V13 H11 V12 H10 V11 H9 V10 H7 V11 H6 V12 H5 V13 H3 V11 H4 V10 H5 V9 H6 V7 H5 V6 H4 V5 H3 Z"/></svg></span>
+      </div>
+
+      <div class="tool-btn" data-part="PART_ToggleFilter" title="Filter">
+        <svg viewBox="0 0 16 16"><path d="M1,2 H15 V4 H13 V6 H11 V8 H9 V14 H7 V8 H5 V6 H3 V4 H1 Z"/></svg>
+        <span class="filter-pip"></span>
+      </div>
+
+      <div class="main-items" data-part="PART_PanelMainItems">
+        <div class="tool-btn" title="Sort"><svg viewBox="0 0 16 16"><path d="M1,2 H8 V4 H1 Z M1,6 H6 V8 H1 Z M1,10 H4 V12 H1 Z M11,1 H13 V10 H15 V12 H14 V13 H13 V14 H11 V13 H10 V12 H9 V10 H11 Z"/></svg></div>
+        <div class="tool-sep"></div>
+        <div class="tool-btn active" title="Details View"><svg viewBox="0 0 16 16"><path d="M1,1 H15 V13 H1 Z M2,3 V12 H6 V3 Z M7,3 V12 H14 V3 Z M8,4 H13 V6 H8 Z M8,7 H13 V9 H8 Z M8,10 H12 V11 H8 Z"/></svg></div>
+        <div class="tool-btn" title="Grid View"><svg viewBox="0 0 16 16"><path d="M1,1 H7 V7 H1 Z M9,1 H15 V7 H9 Z M1,9 H7 V15 H1 Z M9,9 H15 V15 H9 Z M2,3 V6 H6 V3 Z M10,3 V6 H14 V3 Z M2,11 V14 H6 V11 Z M10,11 V14 H14 V11 Z"/></svg></div>
+        <div class="tool-btn" title="List View"><svg viewBox="0 0 16 16"><path d="M1,2 H3 V4 H1 Z M5,2 H15 V4 H5 Z M1,6 H3 V8 H1 Z M5,6 H15 V8 H5 Z M1,10 H3 V12 H1 Z M5,10 H15 V12 H5 Z"/></svg></div>
+        <div class="tool-btn" title="Group"><svg viewBox="0 0 16 16"><path d="M5,1 H15 V10 H12 V7 H14 V3 H6 V4 H5 Z M1,5 H11 V14 H1 Z M2,7 V13 H10 V7 Z"/></svg></div>
+        <div class="tool-btn" title="View Settings"><svg viewBox="0 0 16 16"><path d="M1,2 H15 V4 H1 Z M9,1 H12 V5 H9 Z M1,7 H15 V9 H1 Z M4,6 H7 V10 H4 Z M1,12 H15 V14 H1 Z M8,11 H11 V15 H8 Z"/></svg></div>
+      </div>
+
+      <div class="tool-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg viewBox="0 0 16 16"><path d="M7,1 H9 V2 H11 V4 H12 V10 H14 V12 H2 V10 H4 V4 H5 V2 H7 Z M6,13 H10 V15 H6 Z"/></svg>
+        <span class="notif-pip">2</span>
+      </div>
+
+      <div class="global-progress" title="Copying Files...">
+        <span class="prog-chunk"></span><span class="prog-chunk"></span><span class="prog-chunk"></span>
+        <span class="prog-chunk"></span><span class="prog-chunk"></span><span class="prog-chunk"></span>
+        <span class="prog-chunk"></span><span class="prog-chunk"></span><span class="prog-chunk"></span>
+        <span class="prog-chunk"></span><span class="prog-chunk"></span><span class="prog-chunk"></span>
+      </div>
+
+      <div class="caption-btns">
+        <div class="cap-btn"><svg viewBox="0 0 16 16"><path d="M3,11 H13 V13 H3 Z"/></svg></div>
+        <div class="cap-btn"><svg viewBox="0 0 16 16"><path d="M2,2 H14 V13 H2 Z M3,5 V12 H13 V5 Z"/></svg></div>
+        <div class="cap-btn close"><svg viewBox="0 0 16 16"><path d="M3,3 H5 V4 H6 V5 H7 V6 H9 V5 H10 V4 H11 V3 H13 V5 H12 V6 H11 V7 H10 V9 H11 V10 H12 V11 H13 V13 H11 V12 H10 V11 H9 V10 H7 V11 H6 V12 H5 V13 H3 V11 H4 V10 H5 V9 H6 V7 H5 V6 H4 V5 H3 Z"/></svg></div>
+      </div>
+    </div>
+
+    <!-- Workspace: Sunken White Explorer List Left + Sunken White Explorer 4.0 Web View Right -->
+    <div class="workspace">
+      <div class="game-list-frame" data-part="game-list">
+        <div class="list-col-header">
+          <span>Name</span>
+          <span>▲</span>
+        </div>
+        <div class="game-list">
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">3D Pinball: Space Cadet</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">Age of Empires II: Gold</span></div>
+          <div class="game-row running">
+            <svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-computer"/></svg>
+            <span class="game-row-title">Chips Challenge 98</span>
+            <span class="running-pips"><i></i><i class="hi"></i><i></i></span>
+            <span class="running-foot"></span>
+          </div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">Command &amp; Conquer: Tiberian Sun</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">Crimson Skies</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">Descent: FreeSpace</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">Hover! 95</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">Jazz Jackrabbit 2</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">MechWarrior 3</span></div>
+          <div class="game-row selected">
+            <svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-computer"/></svg>
+            <span class="game-row-title">Midtown Madness 98</span>
+          </div>
+          <div class="game-row hover">
+            <svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg>
+            <span class="game-row-title">Monster Truck Madness 2</span>
+            <svg class="row-hover-play" viewBox="0 0 16 16"><path d="M3,2 H5 V3 H7 V4 H9 V5 H11 V6 H13 V9 H11 V10 H9 V11 H7 V12 H5 V13 H3 Z"/></svg>
+          </div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">Motocross Madness</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">RollerCoaster Tycoon</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">SimCity 3000</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">SkiFree 32-Bit</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">StarCraft: Brood War</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">System Shock 2</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">Theme Hospital</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-game"/></svg><span class="game-row-title">Unreal Gold (Direct3D)</span></div>
+          <div class="game-row"><svg class="row-ico" viewBox="0 0 16 16"><use href="#ico-folder"/></svg><span class="game-row-title">Worms Armageddon</span></div>
+        </div>
+      </div>
+
+      <div class="game-page" data-part="game-page">
+        <div class="hero-banner">
+          <div class="hero-grid"></div>
+          <div class="hero-cd-motif">
+            <div class="hero-cd-bar"><span>AutoRun.exe</span><span>×</span></div>
+            <div class="hero-cd-body">
+              <svg width="28" height="28" viewBox="0 0 16 16"><use href="#ico-computer"/></svg>
+              <div><b>DirectX 6.1 Ready</b><br/>CD-ROM Drive (D:)</div>
+            </div>
+          </div>
+          <div class="hero-scrim"></div>
+        </div>
+
+        <div class="page-content">
+          <div class="game-header">
+            <div class="title-block">
+              <div class="game-emblem">
+                <svg viewBox="0 0 16 16"><use href="#ico-computer"/></svg>
+              </div>
+              <div class="game-title-stack">
+                <div class="game-title">Midtown Madness 98</div>
+                <div class="game-subtitle">C:\Program Files\Midtown\midtown.exe · Direct3D Hardware Acceleration</div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <div class="win98-tooltip">Launches Midtown Madness 98 (DirectX 6.1)</div>
+              <div class="play-btn">
+                <svg viewBox="0 0 16 16"><path d="M3,2 H5 V3 H7 V4 H9 V5 H11 V6 H13 V9 H11 V10 H9 V11 H7 V12 H5 V13 H3 Z"/></svg>
+                <span>PLAY</span>
+              </div>
+              <div class="sec-btn" title="More"><svg viewBox="0 0 16 16"><path d="M1,6 H4 V10 H1 Z M6,6 H10 V10 H6 Z M12,6 H15 V10 H12 Z"/></svg></div>
+              <div class="sec-btn" title="Edit"><svg viewBox="0 0 16 16"><path d="M11,1 H14 V2 H15 V5 H14 V6 H13 V7 H12 V8 H11 V9 H10 V10 H9 V11 H8 V12 H7 V13 H5 V14 H2 V11 H3 V9 H4 V8 H5 V7 H6 V6 H7 V5 H8 V4 H9 V3 H10 V2 H11 Z"/></svg></div>
+            </div>
+          </div>
+
+          <!-- Classic Windows 98 Explorer 4.0 Web View 4-Color Divider Bar -->
+          <div class="webview-4color-bar">
+            <span class="c-red"></span><span class="c-yel"></span><span class="c-grn"></span><span class="c-blu"></span>
+          </div>
+
+          <div class="body-cols">
+            <div class="left-col">
+              <div class="screens-head">Screenshots</div>
+              <div class="screens-head-rule"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span></div>
+              <div class="screens-grid">
+                <div class="shot s1"><div class="shot-bar"><span>Capture01.bmp</span><span>□ ×</span></div><div class="shot-canvas"></div></div>
+                <div class="shot s2"><div class="shot-bar"><span>Capture02.bmp</span><span>□ ×</span></div><div class="shot-canvas"></div></div>
+                <div class="shot s3"><div class="shot-bar"><span>MS-DOS Prompt</span><span>□ ×</span></div><div class="shot-canvas"></div></div>
+              </div>
+
+              <div class="screens-head">Description</div>
+              <div class="screens-head-rule"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span></div>
+              <p class="desc-text">Race across open-world downtown Chicago traffic in Blitz, Checkpoint, and Cruise modes before the bridges lift. Built for Windows 98 Second Edition with 3dfx Voodoo2 and Direct3D hardware rendering, force-feedback steering wheel support, and TCP/IP DirectPlay multiplayer.</p>
+              <p class="desc-sub">System Requirements: Pentium II 266 MHz, 32 MB RAM, 4x CD-ROM drive, Sound Blaster 16 compatible audio card, and Microsoft Mouse.</p>
+            </div>
+
+            <div class="meta-wrap" data-part="metadata">
+              <div class="meta">
+                <div class="meta-head">
+                  <svg viewBox="0 0 16 16"><use href="#ico-folder"/></svg>
+                  <span class="meta-title-tag">Game Properties</span>
+                  <span class="meta-head-btn">?</span>
+                  <span class="meta-head-btn">×</span>
+                </div>
+                <div class="meta-body">
+                  <div class="meta-group">
+                    <div class="meta-row"><span class="meta-label">Completion</span><span class="meta-link">Completed</span></div>
+                    <div class="meta-row"><span class="meta-label">Play time</span><span class="meta-val">42h 15m</span></div>
+                    <div class="meta-row"><span class="meta-label">Last played</span><span class="meta-val">Yesterday</span></div>
+                  </div>
+
+                  <div class="meta-group">
+                    <div class="meta-break"></div>
+                    <div class="meta-row"><span class="meta-label">Critic score</span><span class="score-plaque">91</span></div>
+                    <div class="meta-row"><span class="meta-label">Community</span><span class="score-plaque">94</span></div>
+                  </div>
+
+                  <div class="meta-group">
+                    <div class="meta-break"></div>
+                    <div class="meta-row"><span class="meta-label">Developers</span><span class="meta-link">Angel Studios</span></div>
+                    <div class="meta-row"><span class="meta-label">Release date</span><span class="meta-link">1999-04-30</span></div>
+                    <div class="meta-row"><span class="meta-label">Series</span><span class="meta-link">Midtown Archive</span></div>
+                  </div>
+
+                  <div class="meta-group">
+                    <div class="meta-break"></div>
+                    <div class="meta-row">
+                      <span class="meta-label">Genres</span>
+                      <span class="chips"><span class="chip active">Racing</span><span class="chip">Open World</span><span class="chip">Arcade</span></span>
+                    </div>
+                    <div class="meta-row">
+                      <span class="meta-label">Features</span>
+                      <span class="chips"><span class="chip">DirectPlay LAN</span><span class="chip">Force Feedback</span></span>
+                    </div>
+                  </div>
+
+                  <div class="meta-group">
+                    <div class="meta-break"></div>
+                    <div class="meta-row"><span class="meta-label">Library</span><span class="meta-link">CD-ROM (D:)</span></div>
+                    <div class="meta-row"><span class="meta-label">Install size</span><span class="meta-val">385 MB (FAT32)</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-bar">
+            <div class="status-pane grow">1 object(s) selected · Silver 98 (Unofficial Windows 95/98-inspired theme; no Microsoft assets)</div>
+            <div class="status-pane">385 MB</div>
+            <div class="status-pane">My Computer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

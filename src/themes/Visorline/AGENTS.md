@@ -59,7 +59,7 @@ Edit constants come from the shared catalog (`scripts/data/theme-keys.json`); th
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px near-black rail over a faint honeycomb, closed by the HUD's rule (1px, burning mint at the top, cooling down the rail) with a ruler of ticks beside it. Main menu: the mark in a 32px hex cell; hover lights the cell and fades a bloom in |
+| `Views/Sidebar.xaml` | 44px near-black rail over a faint honeycomb, closed by the HUD's rule (1px, burning mint at the top, cooling down the rail) with a ruler of ticks beside it. Main menu: a 32px hex cell holding `LocalVisorlineMenuMarkTemplate` (Common.xaml, also the top bar button), a visor radar (dial ring with four compass ticks, inner ring, core dot); hover lights the cell, fades a bloom in, lights the inner ring and fires one ping from the core to the dial, open runs a 60-degree sweep wedge round the dial (2.4s a turn) until the menu closes |
 | `CustomControls/SidebarItem.xaml` | 44x40, 16px glyph. Hover: a plate fades in. Current: the grained band between two lit rules, sliding in from the edge in 200ms |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px bar closed by a mint rule fading at both ends, an angled bracket at each end. 34px cells: a plate on hover, the band when toggled. Filter active: an 8px yellow diamond. Notification count in a 16px yellow plate |
 | `CustomControls/SearchBox.xaml` | Left-cut plate; focus lights the edge mint and fades the ruler rule in under it |

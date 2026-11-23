@@ -51,4 +51,73 @@
     <!-- Banner darkening (ThemeModifier slider, 0 = none; above 0 the tint is 50% + 50% x the value): GameBannerTintBrush over the banner art, under the
          theme's own fade. Off while Playnite draws the art behind the window (the banner collapses then). -->
     <sys:Double x:Key="GameBannerDarken">0</sys:Double>
+
+    <!-- Main menu mark (Sidebar and TopPanel PART_ElemMainMenu): a Mann Co. supply crate seen from the front (lid, body, two straps),
+         24x24 centred on the tan 32px plate. It is drawn in the host's Foreground (TemplateBinding), so it is ink on the tan
+         plate and turns tan with the plate's rust hover. Hover (IsMouseOver): the lid cracks open 14 degrees on its left hinge
+         (CubicEase, 0.18s) and falls shut on exit. Open (the menu's ContextMenu.IsOpen on the nearest Border, which is
+         PART_ElemMainMenu): the lid swings up to 60 degrees and the crate coughs up its item, a RED over BLU team tab that
+         rises out of the mouth (BackEase) and bobs 2px every 1.2s until the menu closes. The lid carries two rotations (HoverTilt
+         and OpenTilt) so hover and open never animate the same property. -->
+    <ControlTemplate x:Key="LocalMannCoMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="True">
+            <Canvas Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Rectangle Canvas.Left="3.5" Canvas.Top="12.5" Width="17" Height="9" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.75" />
+                <Path Data="M9.5,12.5 V21.5 M14.5,12.5 V21.5" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.25" Opacity="0.7" />
+                <Canvas x:Name="Item" Width="24" Height="24" Opacity="0">
+                    <Canvas.RenderTransform><TranslateTransform x:Name="ItemMove" Y="0" /></Canvas.RenderTransform>
+                    <Rectangle Canvas.Left="15" Canvas.Top="13.5" Width="5" Height="2.5" Fill="{DynamicResource PrimaryButtonBackgroundBrush}" />
+                    <Rectangle Canvas.Left="15" Canvas.Top="16" Width="5" Height="2.5" Fill="{DynamicResource TopPanelRuleEndBrush}" />
+                </Canvas>
+                <Canvas x:Name="Lid" Width="24" Height="24">
+                    <Canvas.RenderTransform>
+                        <TransformGroup>
+                            <RotateTransform x:Name="HoverTilt" CenterX="3.5" CenterY="12" Angle="0" />
+                            <RotateTransform x:Name="OpenTilt" CenterX="3.5" CenterY="12" Angle="0" />
+                        </TransformGroup>
+                    </Canvas.RenderTransform>
+                    <Rectangle Canvas.Left="2.5" Canvas.Top="8.5" Width="19" Height="3.5" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.75" />
+                </Canvas>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="HoverTilt" Storyboard.TargetProperty="Angle" To="-14" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverTilt" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="OpenTilt" Storyboard.TargetProperty="Angle" To="-60" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Item" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.12" Duration="0:0:0.1" />
+                            <DoubleAnimation Storyboard.TargetName="ItemMove" Storyboard.TargetProperty="Y" To="-10" BeginTime="0:0:0.12" Duration="0:0:0.34"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="ItemMove" Storyboard.TargetProperty="Y" From="-10" To="-8" BeginTime="0:0:0.5" Duration="0:0:1.2" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OpenTilt" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Item" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.14" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ItemMove" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

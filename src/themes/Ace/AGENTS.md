@@ -51,7 +51,7 @@ Radii: the whole scale (`ControlCornerRadius`, `CornerRadiusSmall`..`Full`) is *
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px olive-dark rail, raised edge; 44x40 items with 16px glyphs (no `IconPadding`); current item a sunken plate with an amber glyph |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px olive-dark rail, raised edge; 44x40 items with 16px glyphs (no `IconPadding`); current item a sunken plate with an amber glyph Main menu mark: `LocalAceMenuMarkTemplate`, a C4 charge with a two digit display and an LED; hover sweeps a scan cursor across the display in stepped moves, open blinks the amber LED and ticks the second digit on a 1s loop until the menu closes (the bomb is planted). |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 40px olive strip, 28px bevelled buttons, 260x24 sunken search box; Default order, all left; 110px kept clear for window buttons |
 | `Views/MainWindow.xaml`, `DerivedStyles/MainWindowStyle.xaml` | black content layer; 26x22 bevelled caption buttons, close hover `DangerBrush` |
 | `DerivedStyles/StandardWindowStyle.xaml` | dialogs: 25px olive title band, black body, raised 1px frame |

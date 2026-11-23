@@ -52,7 +52,7 @@ Fonts: `HeadingFontFamily` Palatino Linotype, bold, with `Typography.Capitals="S
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px rail of dark cut stone with grain, closed by an iron line beside a black one. Main menu: 32px blood plate with the gilt petal, a four-point ornament under it; hover heats the plate and fades in a bloom |
+| `Views/Sidebar.xaml` | 44px rail of dark cut stone with grain, closed by an iron line beside a black one. Main menu: 32px blood plate carrying `LocalBloodpetalMenuMarkTemplate` (Common.xaml, also the top bar button), a gilt three-petal bud (solid middle petal, two outlined petals folded against it), a four-point ornament under it; hover heats the plate, fades in a bloom and unfurls the outer petals 14 degrees (BackEase), open blooms them a further 28 degrees and kindles a breathing blood gem in the middle petal |
 | `CustomControls/SidebarItem.xaml` | 44x40, 16px glyph. Hover: a 32px stone slab fades in. Current: blood plate, gilt glyph, 2px ember bar on the outer edge |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px dark stone band closed by the ember seam. 34px cells: stone slab on hover, blood plate when toggled. Filter active: 8px orange lozenge. Notification count in a round red gem |
 | `CustomControls/SearchBox.xaml` | Sunken well; focus gilds the edge and lights the seam along its bottom |

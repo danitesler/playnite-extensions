@@ -24,7 +24,7 @@ Segoe UI body, Segoe UI Black headings and window title, Semibold labels on plat
 32px forms, 28px filter controls and preset actions. Button padding 18,5; input padding 14,5. Sidebar 44px, 44×40 items, 16px icons. Toolbar 52px with 36px tools. Settings title band 44px; tree rows 30px, dialog tree 250px. Play 160×40, More/Edit 40×40.
 
 ## Shell
-Search → filter → sorting at the left. Sorting is explicitly ordered. Independent magnifier persists through focus, typing and blur. Caption buttons have full hit plates. Grid details width is capped by the viewport.
+Search → filter → sorting at the left. Sorting is explicitly ordered. Independent magnifier persists through focus, typing and blur. Caption buttons have full hit plates. Grid details width is capped by the viewport. Main menu mark (`LocalReverieMenuMarkTemplate` in Common.xaml, used by sidebar and top bar): the 30px capsule holding a gold dream spark inside a tilted orbit with a pink bead; hover twirls and swells the spark (BackEase), open turns the orbit pink and sails the bead round the ellipse (2.4s a lap) while two sparkles twinkle in turn.
 
 ## Components
 | Area | Treatment |

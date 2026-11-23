@@ -60,7 +60,7 @@ Edit constants come from the shared catalog (`scripts/data/theme-keys.json`); th
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px void rail with a 1px edge. Main menu: a 32px gunmetal plate with two cut corners holding the mark in cyan; hover turns the mark pale over a cyan bloom |
+| `Views/Sidebar.xaml` | 44px void rail with a 1px edge. Main menu: a 32px gunmetal plate with two cut corners holding `LocalHexfallMenuMarkTemplate` (Common.xaml, also the top bar button): three honeycomb tile outlines in cyan; hover turns the mark pale over a cyan bloom, lifts the tiles one after another with a cyan wash, and open drops each tile out of its cell and back in with one bounce (a 3.1s loop, staggered) until the menu closes |
 | `CustomControls/SidebarItem.xaml` | 44x40, 16px glyph. Hover: a navy plate fades in. Current: green plate in its edge, a cyan bar growing from the middle, an amber pointer |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px bar closed by the cap bar (strip, notch, three lamps), the notch hanging 4px over the content. 34px cells; toggled = olive tab. Filter active: a 9px orange hexagon on the icon's corner. Notification count in a 16px orange plate with two cut corners |
 | `CustomControls/SearchBox.xaml` | Navy well; focus lights the edge cyan and fades the lit rule in under it |

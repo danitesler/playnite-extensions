@@ -46,7 +46,7 @@ Radii are all 0: corners are stepped by `ChamferTemplate`. Fonts: `Bahnschrift` 
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px void rail; mint main menu glyph over a short ramp; items 44x40, 16px glyph, no `IconPadding`; current = black slot with a mint edge and three 2px counter squares |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px void rail; main menu = `LocalGlyphbitMenuMarkTemplate` (Common.xaml, also the top bar button): a Drifter diamond of eight 3px mint pixels with a dim core, over the short ramp; hover blows the ring open one pixel (BackEase) and ignites the core white, open dims the ring and runs a white head pixel with a magenta tail round it in hard one-pixel hops (0.88s a lap) while the core burns magenta; items 44x40, 16px glyph, no `IconPadding`; current = black slot with a mint edge and three 2px counter squares |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px void bar, 2px stepped ramp magenta to cyan to mint; icon-only 32px cells, current = white chip; Default order; 132px kept clear for the caption buttons |
 | `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `DerivedStyles/StandardWindowStyle.xaml` | dialogs as the settings screen: 2px magenta frame, magenta title with a pip, noise strips along two edges |

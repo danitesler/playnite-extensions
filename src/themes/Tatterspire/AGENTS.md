@@ -36,7 +36,7 @@ Radii: `ControlCornerRadius` 4, `CornerRadiusSmall` 3, `CornerRadiusLarge` 6. Ty
 | File | What it draws |
 |------|---------------|
 | `Views/TopPanel.xaml` | the HUD strip: a 44px slate bar with a torn lower lip (`torn-lip.png`, ink outline then slate), potion-capsule search, cyan-outlined toggles, a gold diamond filter mark |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px deep-slate rail, 2px ink edge, tower mark main menu; the current item sits on a red flag tab (`LocalFlagTemplate`) |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px deep-slate rail, 2px ink edge, main menu = `LocalTatterspireMenuMarkTemplate` (Common.xaml, also the top bar's menu button), a three-card fan (a gold card with an ink diamond between two torn-paper cards): hover fans the side cards wider and lifts the gold card (draw); while the menu is open the fan squares up, the side cards riffle in alternation (shuffle) and an energy-orb rim lights around the gold card; the current item sits on a red flag tab (`LocalFlagTemplate`) |
 | `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml` | 44px deep-slate title band, mark and gold title, the red flag as Close |
 | `DefaultControls/TreeView.xaml` | Settings list: gold swash and lit slate plate on the chosen section |
 

@@ -278,7 +278,7 @@ def details():
 </div>'''
     return (f'<!doctype html><html><head><meta charset="utf-8"><title>Visorline: details view</title><style>{CSS}{DETAILS_CSS}</style></head><body>'
             f'<div class="rail" data-part="sidebar"><i class="mesh" style="opacity:.05"></i><i class="rulev"></i><i class="rline"></i>'
-            f'<div class="menu" data-part="PART_ElemMainMenu"><div class="hexcell">{icon("MainMenu", 24)}</div></div>{nav}</div>'
+            f'<div class="menu" data-part="PART_ElemMainMenu"><div class="hexcell"><svg class="i" style="fill:none" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="var(--vs-rule)" stroke-width="1.25"/><path d="M12,0.8 V3.4 M23.2,12 H20.6 M12,23.2 V20.6 M0.8,12 H3.4" stroke="var(--vs-rule)" stroke-width="1.25"/><circle cx="12" cy="12" r="4.5" stroke="var(--vs-rule)" opacity=".55"/><circle cx="12" cy="12" r="1.8" style="fill:currentColor"/></svg></div></div>{nav}</div>'
             f'<div class="main">{topbar}<div class="list" data-part="game-list">{games()}</div>{page}</div></body></html>')
 
 

@@ -65,10 +65,14 @@ h2:before{content:"";width:8px;height:8px;background:var(--mw-amber)}
 """
 
 
+# Main menu mark at rest (LocalBlacklistMenuMarkTemplate): ranked rows inside open L brackets.
+MENU_MARK = '<svg width="24" height="22" viewBox="0 0 24 22" fill="none" style="transform:scale(1.2)"><path d="M0,4 V0 H4 M20,0 H24 V4 M24,18 V22 H20 M4,22 H0 V18" stroke="currentColor" stroke-width="1.5"/><g fill="currentColor"><rect x="4" y="3.5" width="3" height="3"/><rect x="9" y="3.5" width="11" height="3"/><rect x="4" y="9.5" width="3" height="3"/><rect x="9" y="9.5" width="7" height="3"/><rect x="4" y="15.5" width="3" height="3"/><rect x="9" y="15.5" width="11" height="3"/></g></svg>'
+
+
 def shell(items, library_on):
     rail = ('<div class="rail" data-part="sidebar"><div class="menu" data-part="PART_ElemMainMenu">%s</div><div class="band stripes"></div>'
             '<div class="si%s">%s%s</div><div class="si">%s</div></div>'
-            % (ic("MainMenu", 18), " cur" if library_on else "", ic("Library", 16), '<div class="br"><i></i></div>' if library_on else "",
+            % (MENU_MARK, " cur" if library_on else "", ic("Library", 16), '<div class="br"><i></i></div>' if library_on else "",
                ic("Statistics", 16)))
     cells = "".join('<div class="ti%s">%s%s</div>' % (" on" if on else "", ic(n, 18), '<div class="br"><i></i></div>' if on else "")
                     for n, on in items)

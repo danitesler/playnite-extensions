@@ -57,7 +57,7 @@ Per the previews (`art/preview-details.html`); files not written yet.
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px rail in `ShellBackgroundBrush` with `facets-rail.png` as a white mask; 32px disc items (`pl-disc`, white glyph), the current one a white disc with a blue glyph and a sky ring; main menu a white disc holding the green gem |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px rail in `ShellBackgroundBrush` with `facets-rail.png` as a white mask; 32px disc items (`pl-disc`, white glyph), the current one a white disc with a blue glyph and a sky ring; main menu a white disc holding `LocalPlumblineMenuMarkTemplate` (Common.xaml, also the top bar button): the plumb bob, a four-faced green gem on a short thread; hover twirls the gem once about its vertical axis (ScaleX 1 to -1 and back, 0.6s) with a small lift, open swings it like a pendulum from the thread (12 degrees either way, 1.4s) with a white glint at the end of each swing until the menu closes |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px white strip, hairline and soft shadow below; pill search well (mist, inset); 34px white gloss discs; toggled = green gloss with deep ink glyph; filter mark = orange lozenge on the icon's top-right corner |
 | `Views/Library.xaml` | Library layer `ContentBackgroundBrush`; window background art per the shared rules |
 | `DerivedStyles/MainWindowStyle.xaml` | 28px round window buttons on mist, close turns red |

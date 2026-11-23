@@ -57,7 +57,7 @@ New vocabulary entries this theme added to `scripts/data/theme-keys.json`: `UIFo
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px left rail on `ShellBackgroundBrush`. The main menu is the red barcode **bookmark ribbon** hanging from the top (`MainMenuButton`); the current item is the blue **bookmark tab** (slate plate, lantern edge, glow) that slides in |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px left rail on `ShellBackgroundBrush`. The main menu is the red barcode **bookmark ribbon** hanging from the top (`MainMenuButton`) carrying `LocalHallowtideMenuMarkTemplate` (Common.xaml, also the top bar plate): an open quest book of two inked pages in bone; hover opens the pages wider (7 degrees each, BackEase), open lays a loose leaf on the right page that turns over the spine and back in a 3s loop until the menu closes; the current item is the blue **bookmark tab** (slate plate, lantern edge, glow) that slides in |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 52px plum bar closed by the **thorn rule**; search, filter, sorting at the left; 36px ink plates, checked = parchment plate; filter-active mark is a red wax pin; the search is an ink well with a paper underline (`TopPanelSearchBox`) |
 | `DerivedStyles/MainWindowStyle.xaml` | Caption buttons `MainWindowButton` (close hover is the neon plate); `MainMenuButton`; `TopPanelSearchBox` |
 | `Views/Library.xaml`, `Views/LibraryGridView.xaml` | Library game art only while Playnite's window background setting is on, at full strength with Playnite's own darken and blur (repo rule "Window background"); grid width cap kept |

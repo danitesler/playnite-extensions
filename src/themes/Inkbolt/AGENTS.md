@@ -58,7 +58,7 @@ Keep the ThemeModifier Edit constants list focused on main backgrounds, button f
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px ink-black rail with grain and a splatter at its foot, 1px charcoal inner rule; the main menu is the brand mark on a 32px charcoal tile. The splatter sits on a size-less `Canvas`: as a plain 210px child it stretched the rail to ~140px |
+| `Views/Sidebar.xaml` | 44px ink-black rail with grain and a splatter at its foot, 1px charcoal inner rule; the main menu is the brand mark on a 32px charcoal tile, animated by `LocalInkboltMenuMarkTemplate` (Common.xaml, also the top bar button: the bolt inside the three karma arcs): hover crackles two jagged branches off the bolt in a hard five-frame flicker, open revolves the karma ring (4s a turn) while the bolt breathes until the menu closes. The splatter sits on a size-less `Canvas`: as a plain 210px child it stretched the rail to ~140px |
 | `CustomControls/SidebarItem.xaml` | 44x40 cell, smoke glyph; current item is the white arrowhead slab popping in from the rail edge (160 ms BackEase), ink glyph |
 | `Views/TopPanel.xaml` | 52px soot bar closed by a 2px charcoal rule with the lightning trace riding on it; toggled items are white slabs with ink glyphs; filter mark is a 9px ember bolt |
 | `CustomControls/TopPanelItem.xaml` | Bare 34px cell; hover lifts a charcoal plate; toggled = slab without its notch |

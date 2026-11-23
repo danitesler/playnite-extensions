@@ -170,7 +170,7 @@ def details():
 <body>
 <div class="rail" data-part="sidebar">
   <div class="grime"></div>
-  <div class="menu" data-part="PART_ElemMainMenu"><span class="seal"></span>{icon("MainMenu")}<u></u></div>
+  <div class="menu" data-part="PART_ElemMainMenu"><span class="seal"></span><svg class="i" style="left:12px;top:14px" width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" d="M8.29,2.59 L8.61,0.10 L11.39,0.10 L11.71,2.59 A7.6,7.6 0 0 1 14.03,3.55 L16.02,2.01 L17.99,3.98 L16.45,5.97 A7.6,7.6 0 0 1 16.45,14.03 L17.99,16.02 L16.02,17.99 L14.03,16.45 A7.6,7.6 0 0 1 11.71,17.41 L11.39,19.90 L8.61,19.90 L8.29,17.41 A7.6,7.6 0 0 1 5.97,16.45 L3.98,17.99 L2.01,16.02 L3.55,14.03 A7.6,7.6 0 0 1 2.59,11.71 L0.10,11.39 L0.10,8.61 L2.59,8.29 A7.6,7.6 0 0 1 3.55,5.97 L2.01,3.98 L3.98,2.01 L5.97,3.55 A7.6,7.6 0 0 1 8.29,2.59 Z M6,10 A4,4 0 1 0 14,10 A4,4 0 1 0 6,10 Z"/></svg><u></u></div>
   <div class="ri on">{icon("Library")}</div>
   <div class="ri">{icon("Statistics")}</div>
   <div class="ri">{icon("Download")}</div>

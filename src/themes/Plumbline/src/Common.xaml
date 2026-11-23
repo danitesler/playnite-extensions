@@ -71,4 +71,89 @@
     <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
     <HorizontalAlignment x:Key="GameDetailsPanePosition">Right</HorizontalAlignment> <!-- Details view metadata pane: Left, Center (centred above screenshots and description) or Right. Narrow pages stack it first for Left and Center, last for Right. ThemeModifier edits it. -->
     <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+
+    <!-- Main menu mark (Sidebar and TopPanel PART_ElemMainMenu, on the white disc): the theme's plumb bob, a four-faced green gem hanging from
+         a short thread, 16x22 (an original faceting, not a game asset). Rest: the gem hangs still, light facets to the left.
+         Hover (IsMouseOver): the gem twirls once about its vertical axis (ScaleX 1 to -1 and back, SineEase, 0.6s) with a 2px
+         lift at the half turn; it ends at rest, and leaving stops it. Open (the menu's ContextMenu.IsOpen on the nearest Border,
+         which is PART_ElemMainMenu): the bob swings like a pendulum from the thread's top, 12 degrees either way every 1.4s, and a
+         white sparkle glints on its upper facet at the end of each swing, until the menu closes. The swing turns the outer
+         canvas (thread and gem), the twirl scales the inner one (gem only), the sparkle is its own element. -->
+    <ControlTemplate x:Key="LocalPlumblineMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="False">
+            <Canvas Width="16" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Canvas Width="16" Height="22">
+                    <Canvas.RenderTransform><RotateTransform x:Name="Swing" CenterX="8" CenterY="0" Angle="0" /></Canvas.RenderTransform>
+                    <Path Data="M8,0 V3.6" Stroke="{DynamicResource MainMenuButtonForegroundBrush}" StrokeThickness="1" />
+                    <Canvas Width="16" Height="22">
+                        <Canvas.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform x:Name="Twirl" CenterX="8" CenterY="12" ScaleX="1" ScaleY="1" />
+                                <TranslateTransform x:Name="Lift" Y="0" />
+                            </TransformGroup>
+                        </Canvas.RenderTransform>
+                        <Path Data="M8,3.5 L1.5,10.5 L8,10.5 Z" Fill="{DynamicResource SelectedHoverBrush}" />
+                        <Path Data="M8,3.5 L14.5,10.5 L8,10.5 Z" Fill="{DynamicResource SelectedBrush}" />
+                        <Path Data="M1.5,10.5 L8,10.5 L8,21 Z" Fill="{DynamicResource SelectedBorderBrush}" />
+                        <Path Data="M14.5,10.5 L8,10.5 L8,21 Z" Fill="{DynamicResource ProgressBarTrackBrush}" />
+                        <Path Data="M8,3.5 L14.5,10.5 L8,21 L1.5,10.5 Z" Stroke="{DynamicResource MainMenuButtonForegroundBrush}" StrokeThickness="0.9" StrokeLineJoin="Miter" Opacity="0.55" />
+                        <Path x:Name="Glint" Data="M5.6,6.6 L6.1,8.1 L7.6,8.6 L6.1,9.1 L5.6,10.6 L5.1,9.1 L3.6,8.6 L5.1,8.1 Z" Fill="{DynamicResource MainMenuButtonBackgroundBrush}" Opacity="0" />
+                    </Canvas>
+                </Canvas>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Twirl" Storyboard.TargetProperty="ScaleX">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="-1"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="1"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="-2"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.6" Value="0"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseIn" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Twirl" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.1" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Lift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Swing" Storyboard.TargetProperty="Angle" To="-12" Duration="0:0:0.2" />
+                            <DoubleAnimation Storyboard.TargetName="Swing" Storyboard.TargetProperty="Angle" From="-12" To="12" BeginTime="0:0:0.2" Duration="0:0:1.4" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Glint" Storyboard.TargetProperty="Opacity" RepeatBehavior="Forever">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:1.15" Value="0" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:1.4" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:1.65" Value="0" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:2.8" Value="0" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Swing" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Glint" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

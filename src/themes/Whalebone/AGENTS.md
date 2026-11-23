@@ -55,7 +55,7 @@ Keep the ThemeModifier Edit constants list focused on main backgrounds, button f
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px pitch rail closed by a hairline; the main menu is a 32px ink medallion with the bone mark; hover fades in a ring of frost ticks and a frost bloom |
+| `Views/Sidebar.xaml` | 44px pitch rail closed by a hairline; the main menu is `LocalWhaleboneMenuMarkTemplate` (Common.xaml, shared with the top bar): a 28px ink medallion with three carved bone ribs (spindles); hover fades in a ring of frost ticks that turns a step while the ribs frost over one after another; while the menu is open the outer ribs slide into the middle, the middle rib turns upright into the bone spindle, a slit bar closes across it and a glass shard slips in from the ring and glints |
 | `CustomControls/SidebarItem.xaml` | 44x40 cell; hover lifts an ink plate; current item = the bone cursor stroke wiping in from the rail edge (0.2s) behind an ink glyph, plus a 2px frost tick |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px ink bar closed by the fracture rule (`GlowLineTemplate`); 34px cells, ink plate on hover, bone stroke + ink glyph when toggled; filter mark = 9px teal disc with a halo; notification count on a 15px teal disc; progress bar 12px with 12px label margins |
 | `CustomControls/SearchBox.xaml` | Violet value plate with pointed ends; frost rim and bloom on focus |

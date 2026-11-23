@@ -176,4 +176,88 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- Main menu mark (Sidebar and TopPanel PART_ElemMainMenu): a mass relay seen head-on: three lime arcs of the inner ring around a
+         spire and a node, inside a copper outer ring, 24x24 centred in the host (the slanted lime tick under it stays in the
+         rail). Hover (IsMouseOver): the arc ring turns 60 degrees, lining its gaps up with the spire's compass points
+         (CubicEase, 0.4s) and turns back on exit. Open (the menu's ContextMenu.IsOpen on the nearest Border, which is
+         PART_ElemMainMenu): the relay fires: a yellow beam runs out through the node from the middle to both edges, the
+         spire and node burn yellow, the inner ring draws in (scale 0.84) and the copper outer ring starts a slow dashed
+         turn (one lap in 7s) while the beam breathes, until the menu closes. Hover only turns the arc ring; open scales
+         the ring host inside it, fades the heat layer, grows the beam and turns the outer ring. -->
+    <ControlTemplate x:Key="LocalRelayMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="False">
+            <Canvas Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Canvas x:Name="OuterHost" Width="24" Height="24" RenderTransformOrigin="0.5,0.5">
+                    <Canvas.RenderTransform><RotateTransform x:Name="OuterTurn" Angle="0" /></Canvas.RenderTransform>
+                    <Ellipse Canvas.Left="1.25" Canvas.Top="1.25" Width="21.5" Height="21.5" Stroke="{DynamicResource FrameBrush}" StrokeThickness="1" StrokeDashArray="2.2 1.6" />
+                </Canvas>
+                <Canvas x:Name="InnerHost" Width="24" Height="24" RenderTransformOrigin="0.5,0.5">
+                    <Canvas.RenderTransform><ScaleTransform x:Name="InnerScale" ScaleX="1" ScaleY="1" /></Canvas.RenderTransform>
+                    <Canvas x:Name="ArcHost" Width="24" Height="24" RenderTransformOrigin="0.5,0.5">
+                        <Canvas.RenderTransform><RotateTransform x:Name="ArcTurn" Angle="0" /></Canvas.RenderTransform>
+                        <Path Data="M6.21,5.11 A9,9 0 0 1 17.79,5.11 M20.86,10.44 A9,9 0 0 1 15.08,20.46 M8.92,20.46 A9,9 0 0 1 3.14,10.44" Stroke="{DynamicResource MainMenuButtonForegroundBrush}" StrokeThickness="1.75" StrokeStartLineCap="Flat" StrokeEndLineCap="Flat" />
+                    </Canvas>
+                </Canvas>
+                <Path Data="M12,6.5 V17.5" Stroke="{DynamicResource MainMenuButtonForegroundBrush}" StrokeThickness="1.75" />
+                <Rectangle Canvas.Left="9.5" Canvas.Top="9.5" Width="5" Height="5" Fill="{DynamicResource MainMenuButtonForegroundBrush}" RenderTransformOrigin="0.5,0.5">
+                    <Rectangle.RenderTransform><RotateTransform Angle="45" /></Rectangle.RenderTransform>
+                </Rectangle>
+                <Canvas x:Name="Heat" Width="24" Height="24" Opacity="0">
+                    <Path Data="M12,6.5 V17.5" Stroke="{DynamicResource WarningBrush}" StrokeThickness="1.75" />
+                    <Rectangle Canvas.Left="9.5" Canvas.Top="9.5" Width="5" Height="5" Fill="{DynamicResource WarningBrush}" RenderTransformOrigin="0.5,0.5">
+                        <Rectangle.RenderTransform><RotateTransform Angle="45" /></Rectangle.RenderTransform>
+                    </Rectangle>
+                </Canvas>
+                <Rectangle x:Name="Beam" Canvas.Left="0" Canvas.Top="11.25" Width="24" Height="1.5" Fill="{DynamicResource WarningBrush}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Rectangle.RenderTransform><ScaleTransform x:Name="BeamScale" ScaleX="0.1" ScaleY="1" /></Rectangle.RenderTransform>
+                </Rectangle>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="ArcTurn" Storyboard.TargetProperty="Angle" To="60" Duration="0:0:0.4"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ArcTurn" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="InnerScale" Storyboard.TargetProperty="ScaleX" To="0.84" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="InnerScale" Storyboard.TargetProperty="ScaleY" To="0.84" Duration="0:0:0.3"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Heat" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.08" Duration="0:0:0.2" />
+                            <DoubleAnimation Storyboard.TargetName="BeamScale" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.1" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Beam" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.1" />
+                            <DoubleAnimation Storyboard.TargetName="Beam" Storyboard.TargetProperty="Opacity" From="1" To="0.55" BeginTime="0:0:0.4" Duration="0:0:1.4" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="OuterTurn" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:7" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="InnerScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.25" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="InnerScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.25" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Heat" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BeamScale" Storyboard.TargetProperty="ScaleX" To="0.1" Duration="0:0:0.2" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Beam" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.15" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OuterTurn" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.01" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

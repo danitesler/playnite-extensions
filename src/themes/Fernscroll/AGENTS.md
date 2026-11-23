@@ -51,7 +51,7 @@ Keep ThemeModifier's Edit constants list aligned with `scripts/data/theme-keys.j
 | `DerivedStyles/HighlightBorder.xaml` | Soft gold/ink highlight border for focus/hover wrappers |
 | `Views/MainWindow.xaml` | Root layout hosting background image, top panel, sidebar, library workspace, notification overlay |
 | `Views/TopPanel.xaml` | 40px top bar ordering filter button (with Crimson Quest Shield when active), SearchBox, grouping/sorting/view pickers, progress bar, notifications |
-| `Views/Sidebar.xaml` | Left navigation rail with Reed-Note `BrandMarkTemplate` badge and vertical item stack |
+| `Views/Sidebar.xaml` | Left navigation rail; the main menu is `LocalFernscrollMenuMarkTemplate` (Common.xaml, shared with the top bar), a harmonica of three reed bars with four slots each: hover inhales the stack and runs a gold breath dot along the middle bar; while the menu is open the top reed slides right and the bottom reed left, the middle bar goes out and a gold quaver rises in and bobs; vertical item stack |
 | `Views/Library.xaml`, `FilterPanelView.xaml`, `ExplorerPanel.xaml` | Library split panes (`Details`, `Grid`, `List`), filter drawers, close controls, explorer tree |
 | `CustomControls/SidebarItem.xaml`, `TopPanelItem.xaml`, `SearchBox.xaml` | Sidebar items with minimum `16x16` icon footprint, persistent search magnifier + full hit-target clear `X`, active filter Crimson Quest Shield indicator |
 

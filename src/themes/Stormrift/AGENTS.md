@@ -50,7 +50,7 @@ Captures, sampled values and rules: [`RESEARCH.md`](RESEARCH.md). Creative brief
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px `sr-void` rail closed by a 1px hairline. Main menu icon sits inside a double-bezel 36x38 / 30x32 pointy-top hex seal (`Seal`) over `GlowFrameTemplate`, turning bright with a cosmic cyan bloom on hover. Window-art mode makes the rail background transparent |
+| `Views/Sidebar.xaml` | 44px `sr-void` rail closed by a 1px hairline. Main menu mark (`LocalStormriftMenuMarkTemplate` in Common.xaml, also the top bar button: three storm shards pointing at a cyan core; hover pulls them outward one after another, open drives them inward like a shutting iris while the core burns and breathes) sits inside a double-bezel 36x38 / 30x32 pointy-top hex seal (`Seal`) over `GlowFrameTemplate`, turning bright with a cosmic cyan bloom on hover. Window-art mode makes the rail background transparent |
 | `CustomControls/SidebarItem.xaml` | 44x40 item cell; hover smoothly fades a cosmic plate; selected shows the magenta-violet dome selection fill, cyan left glow bar, and luminous rim |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | Top bar with faint hex-lattice wash and azure radial highlight behind navigation items, closed by an ice-periwinkle center-flared gradient rule (`GlowLineTemplate`); smooth hover/toggled fades (`TopPanelItem`); active filter places a quest-gold (`DataChangeNotifBrush`) mini hex pip at the icon corner (`Tag == True`); notifications badge sits in a quest-gold mini plate |
 | `CustomControls/SearchBox.xaml` | Recessed indigo well with clear action and focus highlight |

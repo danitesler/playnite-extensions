@@ -89,4 +89,88 @@
     <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double>
     <HorizontalAlignment x:Key="GameDetailsPanePosition">Right</HorizontalAlignment> <!-- Details view metadata pane: Left, Center (centred above screenshots and description) or Right. Narrow pages stack it first for Left and Center, last for Right. ThemeModifier edits it. -->
     <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double>
+
+    <!-- Main menu mark (Sidebar and TopPanel PART_ElemMainMenu): the Blacklist as three ranked rows (a rank pip and a bar each) in
+         the ink of the amber icon block, framed by the L brackets of the amber panels; 24x22 centred in the host. Rest: the
+         brackets stand open, one step outside the list. Hover (IsMouseOver): the brackets lock in (scale 1.2 to 1, BackEase,
+         0.2s) and reverse on exit. Open (the menu's ContextMenu.IsOpen on the nearest Border, which is PART_ElemMainMenu): the
+         list climbs a rank: the bottom row jumps to the top while the other two step down, and the top bar takes the hazard
+         stripe, whose diagonals scroll one pitch every 0.7s until the menu closes. Hover only animates the brackets; open
+         animates the rows, the stripe bar and its scroll, so they layer without fighting. -->
+    <ControlTemplate x:Key="LocalBlacklistMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="True">
+            <Canvas Width="24" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Canvas x:Name="Brackets" Width="24" Height="22" RenderTransformOrigin="0.5,0.5">
+                    <Canvas.RenderTransform><ScaleTransform x:Name="BracketScale" ScaleX="1.2" ScaleY="1.2" /></Canvas.RenderTransform>
+                    <Path Data="M0,4 V0 H4 M20,0 H24 V4 M24,18 V22 H20 M4,22 H0 V18" Stroke="{DynamicResource MainMenuButtonForegroundBrush}" StrokeThickness="1.5" StrokeLineJoin="Miter" />
+                </Canvas>
+                <Canvas x:Name="RowA" Width="24" Height="22">
+                    <Canvas.RenderTransform><TranslateTransform x:Name="RowAMove" Y="0" /></Canvas.RenderTransform>
+                    <Rectangle Canvas.Left="4" Canvas.Top="3.5" Width="3" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                    <Rectangle Canvas.Left="9" Canvas.Top="3.5" Width="11" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                </Canvas>
+                <Canvas x:Name="RowB" Width="24" Height="22">
+                    <Canvas.RenderTransform><TranslateTransform x:Name="RowBMove" Y="0" /></Canvas.RenderTransform>
+                    <Rectangle Canvas.Left="4" Canvas.Top="9.5" Width="3" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                    <Rectangle Canvas.Left="9" Canvas.Top="9.5" Width="7" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                </Canvas>
+                <Canvas x:Name="RowC" Width="24" Height="22">
+                    <Canvas.RenderTransform><TranslateTransform x:Name="RowCMove" Y="0" /></Canvas.RenderTransform>
+                    <Rectangle Canvas.Left="4" Canvas.Top="15.5" Width="3" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                    <Rectangle Canvas.Left="9" Canvas.Top="15.5" Width="11" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                </Canvas>
+                <Canvas x:Name="Hazard" Canvas.Left="9" Canvas.Top="3.5" Width="11" Height="3" ClipToBounds="True" Opacity="0">
+                    <Rectangle Width="11" Height="3" Fill="{DynamicResource MainMenuButtonForegroundBrush}" />
+                    <Canvas Width="11" Height="3">
+                        <Canvas.RenderTransform><TranslateTransform x:Name="StripeMove" X="0" /></Canvas.RenderTransform>
+                        <Path Data="M-4,3.5 L0,-0.5 M0,3.5 L4,-0.5 M4,3.5 L8,-0.5 M8,3.5 L12,-0.5 M12,3.5 L16,-0.5" Stroke="{DynamicResource MainMenuButtonBackgroundBrush}" StrokeThickness="1.4" />
+                    </Canvas>
+                </Canvas>
+            </Canvas>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="BracketScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="BracketScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BracketScale" Storyboard.TargetProperty="ScaleX" To="1.2" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BracketScale" Storyboard.TargetProperty="ScaleY" To="1.2" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="RowCMove" Storyboard.TargetProperty="Y" To="-12" Duration="0:0:0.34"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RowAMove" Storyboard.TargetProperty="Y" To="6" BeginTime="0:0:0.06" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="RowBMove" Storyboard.TargetProperty="Y" To="6" BeginTime="0:0:0.1" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Hazard" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.3" Duration="0:0:0.1" />
+                            <DoubleAnimation Storyboard.TargetName="StripeMove" Storyboard.TargetProperty="X" From="0" To="-4" BeginTime="0:0:0.3" Duration="0:0:0.7" RepeatBehavior="Forever" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RowCMove" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.26"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RowAMove" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.26"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="RowBMove" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.26"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Hazard" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="StripeMove" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 </ResourceDictionary>

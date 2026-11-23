@@ -41,7 +41,7 @@ Buttons 16,5 (face 28px over a 4px ledge = `ControlHeight` 32); inputs 10,5 (32p
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px slate rail with a 3px dark rim; a CRT scan band and the four suits fade up from its foot; the main menu is the card-and-jester-cap mark (orange ledged plate under it on hover); the current item an orange ledged plate popping in from 80%, the red tab pointer on the rail edge |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px slate rail with a 3px dark rim; a CRT scan band and the four suits fade up from its foot; the main menu is `LocalWildhandMenuMarkTemplate` (Common.xaml, also the top bar's menu button): a stack of three poker chips on hard ledges; hover rocks the stack on its base with an elastic wobble and pops the top chip up with a bounce, and while the menu is open the chips ripple up and down in a staggered wave and the top chip takes a lit orange rim; the current item an orange ledged plate popping in from 80%, the red tab pointer on the rail edge |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 50px slate strip closed by a 3px rim; recessed search well; the filter mark a 9px red tab pointer; the toggled view switch an orange ledged plate; notification count a red tag |
 | `DerivedStyles/MainWindowStyle.xaml` | bare 46x36 caption cells (lifted slate on hover), close a ledged red square; the sidebar-hidden main menu button as in the rail |
 | `Views/LibraryDetailsView.xaml` | game list on the felt, a 6px deep-felt gutter before the game page |

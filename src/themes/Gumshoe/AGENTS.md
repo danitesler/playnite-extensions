@@ -53,7 +53,7 @@ Keep the ThemeModifier Edit constants list focused on main backgrounds, button f
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px void rail with faint grain and a column of film-sprocket holes 4px from its inner edge; the main menu is a 30px paper coin (a grey button-prompt disc) holding the Gumshoe mark |
+| `Views/Sidebar.xaml` | 44px void rail with faint grain and a column of film-sprocket holes 4px from its inner edge; the main menu is a 30px paper coin (a grey button-prompt disc) holding `LocalGumshoeMenuMarkTemplate` (Common.xaml, also the top bar button): the detective's magnifying glass with a question mark in the lens; hover gives it a damped rubber-hose wobble about the handle (-12, 9, -5, 2.5 degrees), open turns the question mark stamp red and lets the glass search in a slow Lissajous drift until the menu closes |
 | `CustomControls/SidebarItem.xaml` | 44x40 cell; the current item is a paper bookmark (`BookmarkTemplate`, swallowtail foot) that drops in from above with a BackEase (200 ms) and nudges 3px down on hover |
 | `Views/TopPanel.xaml` | 52px felt bar closed by a 2px dashed rule over compass ticks (two dashed `Line`s, no height added); search, filter, sorting first, view switches icon-only; toggled cells are lit paper plates with ink glyphs; filter mark is an 8x10 lamp-amber teardrop; the notification count is a 16px amber coin; 142px clear on the right |
 | `CustomControls/TopPanelItem.xaml`, `SearchBox.xaml` | 34px cells (`ControlCornerRadius`, hover plate, toggled = lit paper); the search well is a void plate with a 2px rim that brightens on hover and focus |

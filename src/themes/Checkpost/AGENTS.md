@@ -40,7 +40,7 @@ Buttons 16,5 (a ghost word on a dotted line; 32px = `ControlHeight`); inputs 10,
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px booth-metal rail with a 2px lifted seam and three bolts at its foot; the main menu is the stamp mark on an olive ledged plate (a lime plate steps in on hover); the current item a lime key-cap plate with a red seal pip on the rail edge |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px booth-metal rail with a 2px lifted seam and three bolts at its foot; the main menu is `LocalCheckpostMenuMarkTemplate` (Common.xaml, also the top bar's menu button) on an olive ledged plate: a rubber stamp over three imprinted rows; hover slams the stamp down and it rebounds on leave, and while the menu is open the stamp lifts, a red seal ring imprints around the rows with a springy overshoot and an amber typewriter dot blinks; the current item a lime key-cap plate with a red seal pip on the rail edge |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `SearchBox.xaml` | 50px booth-metal strip closed by a 2px olive-deep rule with a bolt; void search well with a persistent magnifier; the filter mark a 9px red seal octagon; the toggled view switch a lime key-cap plate; notification count a red tag |
 | `DerivedStyles/MainWindowStyle.xaml` | bare 46x36 caption cells, close a red plate with a cream X on hover; the sidebar-hidden main menu button as in the rail |
 | `Views/LibraryDetailsView.xaml` | game list on the void, an 8px gutter carrying a one-pixel dotted rule before the game page |

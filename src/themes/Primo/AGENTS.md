@@ -36,7 +36,7 @@ GitHub's page layout: `bgColor-default` everywhere except one dark band (`bgColo
 |------|-----------------|
 | `Views/MainWindow.xaml` | Flat: sidebar and view on `bgColor-inset`, the same color as the header band. |
 | `DerivedStyles/MainWindowStyle.xaml` | Window buttons as invisible IconButtons (32px, `MainWindowButton`) on the band, 16px from the top; close takes the danger hover. |
-| `Views/Sidebar.xaml` | 44px compact navigation rail on the page color, no side gutter. Its top 64px is painted in the band color and holds the three-bars button (`MainMenuButton`, `PART_ElemMainMenu`). |
+| `Views/Sidebar.xaml` | 44px compact navigation rail on the page color, no side gutter. Its top 64px is painted in the band color and holds the three-bars button (`MainMenuButton`, `PART_ElemMainMenu`). Main menu mark: `LocalPrimoMenuMarkTemplate`, a Primer overlay panel holding an action list (dot and line rows); hover grows the lines to full width in a 40ms stagger, open selects the first row (accent bar springs up on the panel edge, the dot turns accent). |
 | `CustomControls/SidebarItem.xaml` | NavList item, icon only: 44x40 item with a 32px plate, 16px octicons in `fgColor-muted`; the current item gets the fill and NavList's 4x24 accent bar (2px radius) on the item's left edge, 2px outside the plate. |
 | `Views/TopPanel.xaml` | AppHeader: 64px band, 16px padding; search (`TopPanelSearchBox`, TextInput medium, 272px), then the view controls, filters and notifications as invisible IconButtons; notifications show GitHub's unread dot. |
 | `CustomControls/TopPanelItem.xaml` | Invisible IconButton, medium; toggled = `control-transparent-bgColor-selected`. |

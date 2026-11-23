@@ -62,7 +62,7 @@ Edit constants come from the shared catalog (`scripts/data/theme-keys.json`); th
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml` | 44px near-black rail with faint scratches and a hairline edge. Main menu: the 32px white slanted tab holding the mark in ink; hover turns the mark red over an ember bloom |
+| `Views/Sidebar.xaml` | 44px near-black rail with faint scratches and a hairline edge. Main menu: the 32px white slanted tab holding `LocalEmberlineMenuMarkTemplate` (Common.xaml, also the top bar button), a cog with a tooth broken off at three o'clock in ink; hover turns the mark red over an ember bloom and ratchets the cog one tooth (45 degrees, BackEase), open spins it up (one turn per 1.8s, constant speed) with an ember core lighting in the hub and a 0.5px shiver until the menu closes |
 | `CustomControls/SidebarItem.xaml` | 44x40, 16px glyph, no plate. Hover: a dim red glow from the outer edge. Current: red glyph over the red streak, which slides in |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 52px bar closed by the flare rule with a low trapezoid under the flare. 34px cells: a lifted plate on hover, a white key cap when toggled. Filter active: 8px orange square. Notification count in a 16px orange cap |
 | `CustomControls/SearchBox.xaml` | Black plate; focus lights the edge ember and fades the flare rule in under it |

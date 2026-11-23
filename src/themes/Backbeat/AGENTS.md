@@ -54,7 +54,7 @@ New vocabulary entries in `theme-keys.json`: `AngledCardTemplate`, `HalftoneTemp
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px ink rail, 3px white edge; main menu is an orange impact star; items 44x40 with a fixed 32x32 plate (no `IconPadding`); current = blue sticker, white line, yellow offset; halftone patch at the rail's foot |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px ink rail, 3px white edge; main menu is an orange impact star carrying `LocalBackbeatMenuMarkTemplate` (Common.xaml, also the top bar button): a four-bar level meter in ink, hover bounces the bars to new heights in a staggered BackEase, open puts it on beat (the burst thumps every 0.6s, a white beat ring snaps in and fades each beat, every bar dances on its own period); items 44x40 with a fixed 32x32 plate (no `IconPadding`); current = blue sticker, white line, yellow offset; halftone patch at the rail's foot |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml` | 56px night strip, 3px white rule, three slanted print-color tabs on its left end; 32px slanted stickers; current view is yellow with an ink glyph; Default order; 132px kept clear for caption buttons |
 | `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 | `DerivedStyles/MainWindowStyle.xaml`, `WindowBarButton.xaml` | 40x32 caption buttons with the theme's glyphs; hover blue, close hover red |

@@ -70,7 +70,7 @@ Keep the `ThemeModifier` **Edit constants** catalog centered on shell, panel, bu
 | `Views/MainWindow.xaml` | Default Playnite shell binding `WindowBackgroundBrush` (`ShowBackgroundImageOnWindow` aware) + `damask-tile.png` subtle shell ground |
 | `DerivedStyles/MainWindowStyle.xaml` | 1px gold/bronze framed host window & obsidian top bar |
 | `DerivedStyles/WindowBarButton.xaml` | Compact top window minimize/maximize/close glyphs (`DangerBrush` hover on Close) |
-| `Views/Sidebar.xaml` + `CustomControls/SidebarItem.xaml` | `void` (`#0e1017`) 44px left heraldic rail with right gold edge and diamond cursor |
+| `Views/Sidebar.xaml` + `CustomControls/SidebarItem.xaml` | `void` (`#0e1017`) 44px left heraldic rail with right gold edge and diamond cursor; the main menu seal holds `LocalWyldcrownMenuMarkTemplate` (Common.xaml, also the top bar button), a three-point crown with tip orbs and a spirit-cyan gem: hover lifts it and throws a four-point flare off the gem, open swells it while the tip orbs chase wyld green and the gem breathes gold until the menu closes |
 | `Views/TopPanel.xaml` + `TopPanelItem.xaml` + `SearchBox.xaml` | Single-row 32px dock: brand mark / menu, `PART_TextMainSearch`, `PART_ToggleFilter` (crimson wax diamond badge when active), `PART_PanelMainItems`, right-docked progress & notifications |
 | `Views/FilterPanelView.xaml` & `Views/ExplorerPanel.xaml` | Obsidian drawer panels with brass rules and diamond seam headers |
 | `Views/SettingsWindow.xaml` (in `DerivedStyles/StandardWindowStyle.xaml` + `DefaultControls/TreeView.xaml`) | `<◇ SETTINGS ◇>` centered carved header & bare Georgia 28px tree rows w/ left gold rule & diamond cursor |

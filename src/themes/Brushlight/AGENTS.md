@@ -41,7 +41,7 @@ Buttons 20,5 (trapezoid slant 7px each side); inputs 10,5 (32px); menu panel 6 u
 | File | What it draws |
 |------|---------------|
 | `Views/TopPanel.xaml` | 52px strip on the void closed by the Victory hairline (bronze rule, cream tick, fading right); plate search box; lozenge cells, the toggled one plum; the Chroma lozenge (7x10, ochre) as the filter mark |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px void rail, 1px bronze edge, bronze lattice rising from the foot; the brand mark as main menu (plum lozenge on hover); the current item on a plum lozenge that slides in from the edge |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px void rail, 1px bronze edge, bronze lattice rising from the foot; the main menu `LocalBrushlightMenuMarkTemplate` (Common.xaml, also the top bar's menu button): three cream brush swashes stacked like rows; hover peels a coral petal off each tip in turn (the Gommage), and while the menu is open an ochre lozenge blooms around them with a springy overshoot and breathes while the swashes sway sideways; the current item on a plum lozenge that slides in from the edge |
 | `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml` | 44px title band with the lattice fading right, the mark and the title in Cinzel, the Victory rule at its foot; Close shows a danger skill node on hover |
 | `DefaultControls/TreeView.xaml` | Settings list: plum arrow plate reaching 8px further left than hover, bright rim, a cream node at its point |
 

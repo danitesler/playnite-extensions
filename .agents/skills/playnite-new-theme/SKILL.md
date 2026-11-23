@@ -120,3 +120,7 @@ Implement all files listed in [src/themes/AGENTS.md](../../../src/themes/AGENTS.
    - Complete `src/themes/<Name>/AGENTS.md` (following `src/themes/AGENTS.md` -> Per-theme notes) and `info/danitesler_<key>.yaml`.
    - Add the theme's layout row to [src/themes/AGENTS.md](../../../src/themes/AGENTS.md), its menu signature row to [docs/themes/menus.md](../../../docs/themes/menus.md), and its table row to root [README.md](../../../README.md).
    - Run `python3 scripts/sort-readme-themes.py`, `node scripts/generate-readmes.mjs`, and `npm run check:readmes`.
+
+## Main menu mark (required)
+
+Every theme draws its own animated main menu mark (hover plus menu-open animation, unique to the theme's motif and motion, one shared `Local<Name>MenuMarkTemplate` in `Common.xaml` used by `Sidebar.xaml` and `TopPanel.xaml`). Follow `docs/themes/menu-mark.md`, copy only the mechanics from Cloudbank, and verify hover and open live before calling the theme done.
