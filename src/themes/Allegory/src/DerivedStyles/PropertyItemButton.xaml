@@ -1,0 +1,97 @@
+<!--
+    Allegory: PropertyItemButton. A value is a plain paper link (Gelasio) that turns lifted crimson and underlines on hover. In a chip list
+    (the owning ItemsControl has Tag Chip) it is the game's white tag plate (the Quest list's "Search" / "Hunt" tags, the Load list's weekday
+    plate): a 22px paper plate with a slanted left end (LocalSlantPlateTemplate, ControlCornerRadius 0), ink Gelasio 12px. Hover turns the plate
+    crimson (ink text stays) and slides it 2px to the right; press drops it to segment grey. Static setters only, nothing blurs.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style x:Key="PropertyItemButton" TargetType="Button">
+        <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
+        <Setter Property="Margin" Value="0,1,0,1" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <TextBlock x:Name="Value" FontSize="{TemplateBinding FontSize}"
+                               Foreground="{TemplateBinding Foreground}"
+                               Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}"
+                               TextWrapping="Wrap" />
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="TextDecorations" Value="Underline" TargetName="Value" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource LocalCrimsonLitBrush}" />
+                <Setter Property="Cursor" Value="Hand" />
+            </Trigger>
+            <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="Chip">
+                <Setter Property="FontSize" Value="{DynamicResource FontSizeSmall}" />
+                <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+                <Setter Property="Margin" Value="0,0,5,5" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="Plate" MinHeight="22" Background="Transparent" SnapsToDevicePixels="True">
+                                <Control x:Name="ChipFace" Template="{DynamicResource LocalSlantPlateTemplate}" Background="{DynamicResource LocalPaperBrush}"
+                                         Focusable="False" IsTabStop="False" IsHitTestVisible="False">
+                                    <Control.RenderTransform>
+                                        <TranslateTransform x:Name="ChipSlide" />
+                                    </Control.RenderTransform>
+                                </Control>
+                                <TextBlock x:Name="ChipText" Margin="13,2,9,3" FontSize="{TemplateBinding FontSize}"
+                                           Foreground="{TemplateBinding Foreground}"
+                                           Text="{TemplateBinding Content, Converter={StaticResource ObjectToStringConverter}}"
+                                           TextWrapping="Wrap" VerticalAlignment="Center" IsHitTestVisible="False">
+                                    <TextBlock.RenderTransform>
+                                        <TranslateTransform x:Name="ChipTextSlide" />
+                                    </TextBlock.RenderTransform>
+                                </TextBlock>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource SelectedBrush}" TargetName="ChipFace" />
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard x:Name="ChipHoverIn">
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="ChipSlide" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.12" />
+                                                <DoubleAnimation Storyboard.TargetName="ChipTextSlide" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.12" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard x:Name="ChipHoverOut">
+                                            <Storyboard FillBehavior="Stop">
+                                                <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipSlide" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.14" />
+                                                <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="ChipTextSlide" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.14" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource LocalSegBrush}" TargetName="ChipFace" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </DataTrigger>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="Chip" />
+                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+            </MultiDataTrigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

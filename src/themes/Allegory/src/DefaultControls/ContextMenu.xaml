@@ -1,0 +1,83 @@
+<!--
+    Overlay on Playnite Default/DefaultControls/ContextMenu.xaml. Every menu and dropdown list (the hamburger menu,
+    top bar dropdowns through TopPanelMenu, GameMenu, GameGroupMenu, TrayContextMenu, text box menus, ComboBox lists
+    and Playnite's multi-select boxes) is one board drawn from Metaphor: ReFantazio's System and Load menus.
+    Levers (docs/themes/menus.md):
+    - Panel: LocalAllegoryMenuBoardTemplate, an ink board (PopupBackgroundBrush) with no side frame, closed at the top by the doubled
+      hairline of the Load list (faint over strong) and at the foot by one strong hairline, split by a vertical hairline after the icon
+      column like the System menu's vertical rule. It fades in and drops 6px into place over 140ms from ControlTemplate triggers (here on
+      IsOpen; the submenu, ComboBox and multi-select popups do the same on their own open flag).
+    - Highlight: LocalMenuBandTemplate, a crimson dry-brush band (the short band mask) that sweeps in from the left; label and shortcut turn ink.
+    - Icons: LocalMenuCheckTemplate (checked rows, the chosen ComboBox item: a paper diamond, the rank pip) and LocalMenuArrowTemplate
+      (submenu mark: the settings rows' small triangle).
+    Shared by Menu.xaml, ComboBox.xaml, CustomControls/ComboBoxList.xaml and CustomControls/FilterSelectionBox.xaml.
+    Rows and group breaks: Menu.xaml. Recipe: docs/themes/menus.md.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- The board: ink body, doubled top hairline, strong foot hairline, the vertical rule 34px in (after the icon column). Rows start 6px under the top. -->
+    <ControlTemplate x:Key="LocalAllegoryMenuBoardTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Border Background="{DynamicResource PopupBackgroundBrush}" />
+            <Border Height="1" VerticalAlignment="Top" Background="{DynamicResource MenuSeparatorBrush}" />
+            <Border Height="1" Margin="0,3,0,0" VerticalAlignment="Top" Background="{DynamicResource PopupBorderBrush}" />
+            <Border Height="1" VerticalAlignment="Bottom" Background="{DynamicResource PopupBorderBrush}" />
+            <Border Width="1" Margin="34,10,0,8" HorizontalAlignment="Left" Background="{DynamicResource MenuSeparatorBrush}" />
+        </Grid>
+    </ControlTemplate>
+    <!-- The highlight: a dry-brush band in the Background brush, the short band mask, bleeding 3px above and below the row. -->
+    <ControlTemplate x:Key="LocalMenuBandTemplate" TargetType="{x:Type Control}">
+        <Rectangle Margin="-2,-3,-6,-3" IsHitTestVisible="False" Fill="{TemplateBinding Background}" OpacityMask="{DynamicResource LocalBrushBandShortMask}" />
+    </ControlTemplate>
+    <!-- Checked row and chosen ComboBox item: a 9px diamond, the quest rank pip, in the host's Foreground. -->
+    <ControlTemplate x:Key="LocalMenuCheckTemplate" TargetType="{x:Type Control}">
+        <Path Width="9" Height="9" Stretch="Fill" IsHitTestVisible="False" Data="M0.5,0 L1,0.5 L0.5,1 L0,0.5 Z" Fill="{TemplateBinding Foreground}" />
+    </ControlTemplate>
+    <!-- Submenu mark: the settings rows' small triangle, 5x8, in the host's Foreground. -->
+    <ControlTemplate x:Key="LocalMenuArrowTemplate" TargetType="{x:Type Control}">
+        <Path Width="5" Height="8" Stretch="Fill" IsHitTestVisible="False" Data="M0,0 L1,0.5 L0,1 Z" Fill="{TemplateBinding Foreground}" />
+    </ControlTemplate>
+    <Style TargetType="{x:Type ContextMenu}">
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource PopupBorderThickness}" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ContextMenu}">
+                    <Grid x:Name="MenuPanel" MinWidth="236" SnapsToDevicePixels="True" Grid.IsSharedSizeScope="True">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="MenuDrop" />
+                        </Grid.RenderTransform>
+                        <Control Template="{DynamicResource LocalAllegoryMenuBoardTemplate}" Focusable="False" IsTabStop="False" />
+                        <ScrollViewer Margin="0,6,0,5" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter Margin="0" KeyboardNavigation.DirectionalNavigation="Cycle" />
+                        </ScrollViewer>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsOpen" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="MenuDropIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="MenuPanel" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="MenuDrop" Storyboard.TargetProperty="Y" From="-6" To="0" Duration="0:0:0.14">
+                                            <DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="MenuDropIn" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

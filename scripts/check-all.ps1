@@ -118,6 +118,7 @@ if ($onWindows -and $themes.Count -gt 0 -and -not $failed.Contains("build themes
 
 # Whether an add-on counts as released comes from its <key>-v<version> tag: fetch tags first.
 Step "generated READMEs up to date" { node scripts/generate-readmes.mjs --check } -Native
+Step "every theme draws its own menu icons" { node scripts/render-menu-icons.mjs --check } -Native
 if (-not $Quick) {
     Step "preview tooling regressions" { node --test tests/PreviewToolsTests.mjs } -Native
     if ($themes.Count -gt 0) {

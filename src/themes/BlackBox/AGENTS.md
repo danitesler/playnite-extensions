@@ -86,7 +86,7 @@ Both game overview files include a designed empty state (`EmptyGameTemplate` + `
 ## Deviations
 
 - Game descriptions (`PART_HtmlDescription`) use `Segoe UI` because Playnite's `HtmlTextView` resolves installed system fonts.
-- Playnite's built-in menu icon glyphs (`ExitIcon`, `RemoveGameIcon`, `AddFavoritesIcon`) remain icofont glyphs recolored to theme brushes.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Yorha/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 
 ## Not verified yet
 

@@ -341,12 +341,28 @@ Both overview views honour ``GameDetailsPanePosition`` (ThemeModifier dropdown: 
 @"
 # $Name — research & sources
 
+## Visual captures inspected (saved in scratch)
+
+| Capture | Source URL / origin | What it shows (UI parts, states, lighting) |
+|---------|---------------------|--------------------------------------------|
+| Title / start screen | TODO | TODO |
+| Pause / settings / inventory menu | TODO | TODO |
+| HUD / dialog / tooltip | TODO | TODO |
+
+## Measured visual anatomy
+
+- **Value ladder & accent budget (pixel-sampled or spec hex):** lightest -> mid -> deep ground -> ink -> accent % of area: TODO
+- **Material & edge anatomy:** border weights, bevels, corner geometry, surface texture/grain/sheen/scanlines, shadows (or lack of): TODO
+- **Typography voice:** display vs body families (+ OFL stand-ins), case rules, tracking, weight contrast, tabular numerals: TODO
+- **Proportions & negative space:** density, padding rhythm, alignment: TODO
+- **Observed UI parts & state transitions (idle -> hover -> selected -> pressed):** TODO
+
 ## Sources
 
-| What | Where (package, version, file) |
-|------|--------------------------------|
-| Tokens | TODO |
-| Components | TODO |
+| What | Where (package, URL, version, license) |
+|------|----------------------------------------|
+| Tokens / palette | TODO |
+| Components / captures | TODO |
 | Icons | TODO (license file in ``info/``) |
 "@ | Set-Content -Path (Join-Path $themeRoot "RESEARCH.md") -Encoding utf8
 
@@ -354,17 +370,17 @@ Both overview views honour ``GameDetailsPanePosition`` (ThemeModifier dropdown: 
 @"
 # $Name — creative brief
 
-Mode: **$Ambition**. Short working notes (``docs/themes/creative-direction.md``); the reviewed previews are the real spec.
+Mode: **$Ambition**. Grounded directly in ``RESEARCH.md`` captures (``docs/themes/creative-direction.md``); the reviewed Pass 2 previews are the real spec.
 
-- Candidate lenses (3 -> pick 1: Diegetic/Artifact, HUD/Telemetry, Title/Pause Menu; contrast with last 5 themes in ``src/themes/AGENTS.md``): TODO
-- Source DNA (5 traits -> where each lands): TODO
-- Game element map (8+ source UI parts -> Playnite surfaces): TODO
-- Signature levers (hero transition, Play button, metadata container/group break, chip & score silhouette, row/cover selection mark, 28x28 close plate): TODO
-- Hero moment: TODO
-- Secondary moments (5+): TODO
-- Motion (durations, easing, entrance, stagger): TODO
-- Brand (name, mark, title band, empty page, ``GameBannerTintBrush``): TODO
-- Kept calm: TODO
+- **Candidate lenses (3 -> pick 1:** Diegetic/Artifact, HUD/Telemetry, Title/Pause Menu; contrast with last 5 themes in ``src/themes/AGENTS.md``): TODO
+- **Source DNA (5 measured traits -> capture -> Playnite surface):** TODO
+- **Focal hierarchy (1–2 unmistakable hero focal pieces):** TODO
+- **Observed UI translations (4–6 source UI parts -> Playnite surfaces, 3+ recognizable on sight):** TODO
+- **Material & FX plan (flat vector vs ``art/sprites.py`` white-mask textures/blooms built in Phase A):** TODO
+- **Signature levers (hero transition, Play button, metadata container/group break, chip & score silhouette, row/cover selection mark, 28x28 close plate):** TODO
+- **Interactive moments & motion (hero + cohesive secondary states; fast/base/slow durations, easing, entrance, stagger):** TODO
+- **Brand (original name, custom vector mark, title band, empty page, ``GameBannerTintBrush``):** TODO
+- **Restraint & anti-slop rules (what stays quiet + generic clichés forbidden for this source):** TODO
 "@ | Set-Content -Path (Join-Path $themeRoot "BRIEF.md") -Encoding utf8
 
 # Previews start from scripts/templates (generic placeholders: rewrite per docs/themes/previews.md).
@@ -372,6 +388,10 @@ foreach ($previewName in @("details", "settings")) {
     $previewHtml = (Get-Content -Raw -Path (Join-Path $PSScriptRoot "templates/preview-$previewName.html")).Replace("{{NAME}}", $Name)
     Set-Content -Path (Join-Path $repoRoot "$artRel/preview-$previewName.html") -Value $previewHtml -Encoding utf8
 }
+
+# Menu item icons start from a neutral recipe: restyle it from the theme's source, then render (docs/themes/menu-icons.md).
+$iconRecipe = (Get-Content -Raw -Path (Join-Path $PSScriptRoot "templates/menu-icons.json")).Replace("{{DIR}}", $dirName)
+Set-Content -Path (Join-Path $repoRoot "$artRel/menu-icons.json") -Value $iconRecipe -Encoding ascii
 
 # Shared control/grid defaults (ComboBoxList, FilterSelectionBox, NumericBoxes, PathSelectionBox, DatePicker,
 # Expander, LibraryGridView, SliderEx, GameMenu, GameGroupMenu, TrayContextMenu) are injected from
@@ -381,16 +401,16 @@ $index.extensions += $newProfile
 Save-ExtensionIndex -Index $index
 
 Write-Host "Created theme '$Name' at $themeRoot"
-Write-Host "Next steps (details: .agents/skills/playnite-theme-dev/SKILL.md):"
-Write-Host "  1. Fill RESEARCH.md: $DesignSystem's token package, component specs, icon set, interface parts and motion."
-Write-Host "     Then a short BRIEF.md ($Ambition; docs/themes/creative-direction.md)."
-Write-Host "  2. src/tokens.css: $DesignSystem's dark tokens under their own names."
-Write-Host "  3. Before any XAML: rewrite art/preview-details.html and art/preview-settings.html as the full design (var(--token) colors;"
-Write-Host "     they are generic placeholders), .\scripts\take-screenshots.ps1 -Extension $Key, then check them yourself against"
-Write-Host "     docs/themes/theme-preview-review.md. Fix blocking findings before implementing the XAML. Do not spawn a reviewer."
+Write-Host "Next steps (details: .agents/skills/playnite-new-theme/SKILL.md):"
+Write-Host "  1. Phase A — Visual research: collect & inspect 3-6 real UI captures in scratch, sample colors, fill RESEARCH.md and BRIEF.md ($Ambition; docs/themes/creative-direction.md)."
+Write-Host "  2. src/tokens.css (+ art/sprites.py masks if the source needs texture/grain/brushwork/glow): $DesignSystem's measured tokens under their own names."
+Write-Host "  3. Before any XAML: write art/preview-details.html and art/preview-settings.html from scratch (var(--token) colors), run .\scripts\take-screenshots.ps1 -Extension $Key,"
+Write-Host "     compare side-by-side against the captures per docs/themes/theme-preview-review.md, and run a Pass 2 visual revision to remove any generic/off-model tells. Do not spawn a reviewer."
 Write-Host "  4. src/Constants.template.xaml: replace every {{TODO}} with the token for that key's role."
 Write-Host "  5. Common.xaml, Media.xaml, the shell, then controls, each from Playnite's Default file at the tag in scripts/data/playnite-theme-api.json."
 Write-Host "     Keys come from scripts/data/theme-keys.json; the build lists required ones still missing."
+Write-Host "     Menu item icons: restyle art/menu-icons.json from the theme's own source (pure icon style, fill/finish, palette, metaphor variants; no background badges), then"
+Write-Host "     node scripts/render-menu-icons.mjs $dirName --sheet. No other theme may share the set (docs/themes/menu-icons.md; validate-extension.ps1 enforces it)."
 Write-Host "     In DefaultControls/Button.xaml add the ThemeModifier icon-button trigger: Width == 41 -> internal Height/MinWidth/MinHeight/MaxWidth/MaxHeight 41, Padding 0, content Center, FontSize 16, uniform LayoutTransform ScaleX/ScaleY 0.7804878048780488 (32/41) for 32x32 with proportional content (src/themes/AGENTS.md: Control corner radii and shapes; validate-extension.ps1 enforces it)."
 Write-Host "     Window background (src/themes/AGENTS.md): Views/Library.xaml shows PART_ImageBackground at full strength (no scrim, tint, mask, blur); a"
 Write-Host "     {Settings ShowBackgroundImageOnWindow} trigger turns the top bar, side panels and game pages see-through and collapses HeroArt;"

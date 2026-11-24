@@ -82,7 +82,7 @@ Generated via `art/gen-overviews.mjs` (`node src/themes/Vesperglass/art/gen-over
 ## Deviations
 
 - `HtmlTextView` (game descriptions) uses `Segoe UI` natively on Windows (consistent with the UI body font).
-- Playnite's built-in menu icon glyphs (`ExitIcon`, `RemoveGameIcon`, `AddFavoritesIcon`) remain icofont glyphs recolored onto theme brushes.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Aubergine/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 
 ## Not verified yet
 

@@ -90,7 +90,7 @@ Empty state: an open book with a lantern bloom and a wand spark that drifts and 
 
 ## Deviations
 
-- Menu icons Playnite copies (`AddGameIcon`, ...) keep Playnite's icofont glyphs; the rest of the icons are the theme's own inked strokes.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Hallow/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 - Popups cannot cast shadows (layered windows), so the dialogue box and the pinned note rely on their edge and plate shape.
 - The book's drip-edged place labels and the wooden "You are here" sign are not drawn: nothing in Playnite maps to them.
 - Motion is inferred from stills (RESEARCH.md, Motion); timings are this theme's own.

@@ -74,6 +74,12 @@ function Get-Icon([string]$name) {
     else {
         $r = $app.TryFindResource($name)
         if ($r -is [string]) { $file = Join-Path $Drop $r }
+        elseif ($r -is [Windows.Media.Imaging.BitmapImage]) {
+            # Like Playnite's MenuHelpers.GetIcon: the resource becomes the Source and lends the Image its scaling mode.
+            $img = [Windows.Controls.Image]::new(); $img.Width = 16; $img.Height = 16; $img.Source = $r
+            [Windows.Media.RenderOptions]::SetBitmapScalingMode($img, [Windows.Media.RenderOptions]::GetBitmapScalingMode($r))
+            return $img
+        }
         elseif ($r -is [Windows.Controls.TextBlock]) {
             $t = [Windows.Controls.TextBlock]::new(); $t.Text = $r.Text; $t.FontFamily = $r.FontFamily
             if ($r.ReadLocalValue([Windows.Controls.TextBlock]::ForegroundProperty) -ne [Windows.DependencyProperty]::UnsetValue) { $t.Foreground = $r.Foreground }

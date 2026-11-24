@@ -68,7 +68,7 @@ Interactive layer, all at shadcn's 150ms `cubic-bezier(0.4, 0, 0.2, 1)` (details
 - No borders on cards, the sidebar or the header, and no layout separators: surfaces and spacing carry the structure. Regular buttons are `secondary` (filled, borderless) rather than `outline`.
 - No shadows (`shadow-xs`, `shadow-md`): WPF popups are layered windows and Playnite's lists redraw often.
 - The logo tile dims to 90% on hover; the block has no hover state of its own there.
-- Menu icons Playnite copies stay icofont glyphs (Playnite rebuilds them from `Text`/`FontFamily`), recolored to muted-foreground.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Chip/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 - The notification count badge (`Views/TopPanel.xaml`) uses `ControlCornerRadius` (rounded-md, like shadcn's Badge) instead of a pill: its width grows with the count, and `CornerRadiusFull` on a non-square element draws an oval in WPF (AGENTS.md, Control Corner Radii). `CornerRadiusFull` stays defined in `Constants.template.xaml` for custom CSS palettes but nothing in the theme uses it.
 - The Details Card has no group titles: themes cannot ship localization, so groups are told apart by Separators and spacing.
 

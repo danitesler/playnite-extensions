@@ -1,0 +1,325 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <!--
+        Allegory shared pieces, drawn from Metaphor: ReFantazio's submenus (RESEARCH.md, BRIEF.md).
+        Nothing has a radius and nothing has a shadow: grounds are painted, lines are white hairlines, plates are flat paper
+        cut by a slanted left end, and the current item sits on a ragged dry-brush band.
+          Local*Mask            white alpha masks from art/sprites.py (src/Images/fx), coloured through OpacityMask
+          LocalSlantPlateTemplate  flat plate with a slanted left end (the MONEY plate, prompts, tags): Background fill
+          LocalStripTemplate    ink strip with a slanted left end and a 1px underline (the "Which item?" prompt, inputs):
+                                Background fill, BorderBrush underline
+          LocalRingsTemplate    two concentric hairline rings (the menus' compass rings): Foreground stroke
+          DividerTemplate       the doubled hairline between groups (Load slots): 4px tall
+          BrandMarkTemplate     the Allegory mark (rings, diagonal, nib): Foreground fill
+          LocalGameActionRing   More / Edit: a button prompt in two rings
+          LocalEmptyPageTemplate  empty game page: slowly turning compass rings around the mark
+          LocalAllegoryMenuMarkTemplate  the animated main menu mark (Sidebar and TopPanel)
+        Hosts are plain Controls behind the content (IsHitTestVisible False).
+    -->
+
+    <!-- Brush masks. Stretch Fill: each mask is drawn to the size of the element it colours. -->
+    <ImageBrush x:Key="LocalBrushBandMask" ImageSource="{ThemeFile 'Images/fx/brush-band.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalBrushBandShortMask" ImageSource="{ThemeFile 'Images/fx/brush-band-short.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalBrushDabMask" ImageSource="{ThemeFile 'Images/fx/brush-dab.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalBrushFlickMask" ImageSource="{ThemeFile 'Images/fx/brush-flick.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalSplatterMask" ImageSource="{ThemeFile 'Images/fx/splatter.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalTornEdgeMask" ImageSource="{ThemeFile 'Images/fx/torn-edge.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalBrushEdgeMask" ImageSource="{ThemeFile 'Images/fx/brush-edge.png'}" Stretch="Fill" />
+    <ImageBrush x:Key="LocalPaintGroundMask" ImageSource="{ThemeFile 'Images/fx/paint-ground.png'}" Stretch="Fill" />
+
+    <!-- Plate with a slanted left end, 10px run (the MONEY plate, Confirm / Back prompts, quest tags). Background fill. -->
+    <ControlTemplate x:Key="LocalSlantPlateTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Path Data="M1,0 L1,1 L0,1 Z" Stretch="Fill" Fill="{TemplateBinding Background}" />
+            <Border Grid.Column="1" Margin="-0.5,0,0,0" Background="{TemplateBinding Background}" />
+        </Grid>
+    </ControlTemplate>
+    <!-- Ink strip with a slanted left end and a 1px underline (search, text boxes, plain buttons). Background fill, BorderBrush underline. -->
+    <ControlTemplate x:Key="LocalStripTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Path Data="M1,0 L1,1 L0,1 Z" Stretch="Fill" Fill="{TemplateBinding Background}" />
+            <Border Grid.Column="1" Margin="-0.5,0,0,0" Background="{TemplateBinding Background}" />
+            <Border Grid.ColumnSpan="2" Height="1" VerticalAlignment="Bottom" Margin="1,0,0,0" Background="{TemplateBinding BorderBrush}" />
+        </Grid>
+    </ControlTemplate>
+    <!-- Two concentric hairline rings (button prompts, the Archetype ring). Square host; Foreground stroke. -->
+    <ControlTemplate x:Key="LocalRingsTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False">
+            <Ellipse Stroke="{TemplateBinding Foreground}" StrokeThickness="1" Opacity="0.35" />
+            <Ellipse Margin="3" Stroke="{TemplateBinding Foreground}" StrokeThickness="1" />
+        </Grid>
+    </ControlTemplate>
+    <!-- Group break: the doubled hairline around Load slots. 4px tall; a brush, no wide children. -->
+    <ControlTemplate x:Key="DividerTemplate" TargetType="Control">
+        <Grid Height="4" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Border Height="1" VerticalAlignment="Top" Background="{DynamicResource LocalRuleFaintBrush}" />
+            <Border Height="1" VerticalAlignment="Bottom" Background="{DynamicResource LocalRuleStrongBrush}" />
+        </Grid>
+    </ControlTemplate>
+    <!-- The Allegory mark: two compass rings crossed by a long diagonal, a quill-nib spire in the middle. Foreground fill. -->
+    <ControlTemplate x:Key="BrandMarkTemplate" TargetType="Control">
+        <Viewbox IsHitTestVisible="False" Stretch="Uniform">
+            <Canvas Width="48" Height="48">
+                <Path Data="{DynamicResource LocalAllegoryMarkGeometry}" Fill="{TemplateBinding Foreground}" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
+    <!-- Headings: Playfair Display SC Black; title case renders as caps with the enlarged initial. -->
+    <Style x:Key="HeadingTextBlock" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+        <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />
+        <Setter Property="Foreground" Value="{DynamicResource HeadingForegroundBrush}" />
+    </Style>
+    <!-- Keyboard focus: a 1px paper hairline frame 3px outside the control, no radius. -->
+    <Style x:Key="FocusVisual">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" IsHitTestVisible="False" BorderBrush="{DynamicResource FocusBrush}" BorderThickness="1" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Component spacing: 30px menu rows, 32px fields and buttons; the slanted left end eats 10px of left padding. -->
+    <Thickness x:Key="ButtonPadding">22,5,18,5</Thickness> <!-- Button: 10px slant + 12px text inset -->
+    <Thickness x:Key="InputPadding">16,5,10,5</Thickness> <!-- Text box, password box: text clears the slant; 32px with ControlHeight -->
+    <Thickness x:Key="MenuPadding">0,6,0,6</Thickness> <!-- Menu board: rows run edge to edge between the top and bottom hairlines -->
+    <Thickness x:Key="MenuItemPadding">8,5,12,5</Thickness> <!-- Menu item: 30px row -->
+    <Thickness x:Key="ComboBoxDropDownPadding">0,6,0,6</Thickness> <!-- Dropdown board -->
+    <Thickness x:Key="ComboBoxItemPadding">14,5,12,5</Thickness> <!-- Dropdown row -->
+    <Thickness x:Key="ListBoxItemPadding">12,5,10,5</Thickness> <!-- List box item -->
+    <Thickness x:Key="GroupBoxPadding">2,10,2,6</Thickness> <!-- Group body under its Didone heading and hairline -->
+    <Thickness x:Key="GroupBoxHeaderMargin">0,0,0,6</Thickness> <!-- Gap under the heading -->
+    <Thickness x:Key="TooltipPadding">12,7,18,8</Thickness> <!-- Paper card; the right side clears the torn edge -->
+    <!-- Every form field and button: one height across all themes (validate-extension.ps1, FormControlHeight). -->
+    <sys:Double x:Key="ControlHeight">32</sys:Double>
+    <sys:Double x:Key="IconSize">16</sys:Double> <!-- Top bar and sidebar icons -->
+    <sys:Double x:Key="GameBannerHeight">290</sys:Double>
+    <!-- Banner darkening (ThemeModifier slider, 0 = none; above 0 the tint is 50% + 50% x the value): GameBannerTintBrush over the banner art,
+         under the brush edge. Off while Playnite draws the art behind the window (the banner collapses then). -->
+    <sys:Double x:Key="GameBannerDarken">0</sys:Double>
+    <sys:Double x:Key="GameDetailsPaneWidth">300</sys:Double> <!-- Width of the Details column on the game page (details view). ThemeModifier edits it. -->
+    <HorizontalAlignment x:Key="GameDetailsPanePosition">Right</HorizontalAlignment> <!-- Both views start on the right. Center and Stretch flow above media. -->
+    <sys:Double x:Key="GridDetailsPaneWidth">300</sys:Double> <!-- Width of the Details column in the grid view side panel. ThemeModifier edits it. -->
+    <!-- Placeholder where the Steam Screenshots plugin control appears: a 16:9 frame over five 16:9 thumbnails, hairline frames on the
+         ground (the game's screenshot slots), pulsing while visible. Each Viewbox scales a fixed 1600px layout. -->
+    <ControlTemplate x:Key="SteamScreenshotsSkeletonTemplate" TargetType="{x:Type Control}">
+        <StackPanel x:Name="SkeletonRoot" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Viewbox Stretch="Uniform">
+                <Border Width="1600" Height="900" BorderBrush="{TemplateBinding Foreground}" BorderThickness="4" Background="{DynamicResource LocalWellBrush}" Opacity="0.5" />
+            </Viewbox>
+            <Viewbox Stretch="Uniform" Margin="0,6,0,0">
+                <Grid Width="1600" Height="173">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="16" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" BorderBrush="{TemplateBinding Foreground}" BorderThickness="4" Opacity="0.4" />
+                    <Border Grid.Column="2" BorderBrush="{TemplateBinding Foreground}" BorderThickness="4" Opacity="0.4" />
+                    <Border Grid.Column="4" BorderBrush="{TemplateBinding Foreground}" BorderThickness="4" Opacity="0.4" />
+                    <Border Grid.Column="6" BorderBrush="{TemplateBinding Foreground}" BorderThickness="4" Opacity="0.4" />
+                    <Border Grid.Column="8" BorderBrush="{TemplateBinding Foreground}" BorderThickness="4" Opacity="0.4" />
+                </Grid>
+            </Viewbox>
+        </StackPanel>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="SkeletonPulse">
+                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                            <DoubleAnimation Storyboard.TargetName="SkeletonRoot" Storyboard.TargetProperty="Opacity" From="1" To="0.45" Duration="0:0:0.9">
+                                <DoubleAnimation.EasingFunction>
+                                    <SineEase EasingMode="EaseInOut" />
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="SkeletonPulse" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+    <!-- More / Edit: a button prompt. A paper glyph inside two hairline rings; hover fills the inner ring with a paper disc (glyph turns ink)
+         and the outer ring swells out and fades, like the menu's compass ring; pressed the disc goes segment grey. -->
+    <Style x:Key="LocalGameActionRing" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource LocalPaperBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid x:Name="Root" Background="Transparent" SnapsToDevicePixels="True">
+                        <Ellipse x:Name="Outer" Stroke="{DynamicResource LocalPaperBrush}" StrokeThickness="1" Opacity="0.3" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform><ScaleTransform x:Name="OuterScale" /></Ellipse.RenderTransform>
+                        </Ellipse>
+                        <Ellipse x:Name="Disc" Margin="4" Fill="{DynamicResource LocalPaperBrush}" Opacity="0" IsHitTestVisible="False" />
+                        <Ellipse x:Name="Inner" Margin="4" Stroke="{DynamicResource LocalPaperBrush}" StrokeThickness="1" Opacity="0.85" IsHitTestVisible="False" />
+                        <ContentPresenter x:Name="Content" IsHitTestVisible="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" TextElement.Foreground="{TemplateBinding Foreground}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource LocalInkBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="RingHoverIn"><Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="Disc" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                                    <DoubleAnimation Storyboard.TargetName="OuterScale" Storyboard.TargetProperty="ScaleX" To="1.18" Duration="0:0:0.36"><DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="OuterScale" Storyboard.TargetProperty="ScaleY" To="1.18" Duration="0:0:0.36"><DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="Outer" Storyboard.TargetProperty="Opacity" To="0.6" Duration="0:0:0.2" />
+                                </Storyboard></BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="RingHoverOut"><Storyboard>
+                                    <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Disc" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                    <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OuterScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2" />
+                                    <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OuterScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2" />
+                                    <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Outer" Storyboard.TargetProperty="Opacity" To="0.3" Duration="0:0:0.2" />
+                                </Storyboard></BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Disc" Property="Fill" Value="{DynamicResource LocalSegBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Root" Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Empty game page: the Archetype ring. Two hairline compass rings with tick marks turn slowly in opposite directions around the
+         mark, crossed by a long diagonal. 220x220; the turn runs only while the host is visible and is removed on exit. -->
+    <ControlTemplate x:Key="LocalEmptyPageTemplate" TargetType="{x:Type Control}">
+        <Grid Width="220" Height="220" IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Ellipse Stroke="{DynamicResource LocalRuleStrongBrush}" StrokeThickness="1" RenderTransformOrigin="0.5,0.5" StrokeDashArray="1 5">
+                <Ellipse.RenderTransform><RotateTransform x:Name="OuterTurn" /></Ellipse.RenderTransform>
+            </Ellipse>
+            <Ellipse Margin="10" Stroke="{DynamicResource LocalRuleBrush}" StrokeThickness="1" />
+            <Ellipse Margin="44" Stroke="{DynamicResource LocalRuleStrongBrush}" StrokeThickness="1" StrokeDashArray="14 4" RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform><RotateTransform x:Name="InnerTurn" /></Ellipse.RenderTransform>
+            </Ellipse>
+            <Rectangle Width="1" Height="300" Fill="{DynamicResource LocalRuleBrush}" RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform><RotateTransform Angle="42" /></Rectangle.RenderTransform>
+            </Rectangle>
+            <Control Width="76" Height="76" Focusable="False" IsTabStop="False" Template="{DynamicResource BrandMarkTemplate}" Foreground="{DynamicResource LocalPaperBrush}" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsVisible" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="EmptyTurnStory">
+                        <Storyboard RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetName="OuterTurn" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:1:0" />
+                            <DoubleAnimation Storyboard.TargetName="InnerTurn" Storyboard.TargetProperty="Angle" From="0" To="-360" Duration="0:0:40" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="EmptyTurnStory" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+    <Style x:Key="PopupBorder" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PopupBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource PopupBorderThickness}" />
+        <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <!-- Main menu mark (Sidebar and TopPanel PART_ElemMainMenu): the Allegory mark in parts, 30x30. Hover: the long diagonal swings
+         a quarter turn like a compass needle (BackEase) and the nib rises 2px. Open (ContextMenu.IsOpen of the nearest Border): a crimson
+         dry-brush dab sweeps in behind the mark from the left, the mark turns ink on it, and the outer ring breathes until the menu closes.
+         Hover and open never animate the same element. -->
+    <ControlTemplate x:Key="LocalAllegoryMenuMarkTemplate" TargetType="Control">
+        <Grid x:Name="Root" Background="Transparent" UseLayoutRounding="True">
+            <Grid Width="40" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Viewbox Stretch="Fill" RenderTransformOrigin="0,0.5">
+                    <Viewbox.RenderTransform><ScaleTransform x:Name="DabScale" ScaleX="0.2" /></Viewbox.RenderTransform>
+                    <Canvas Width="40" Height="26">
+                        <Path x:Name="Dab" Data="{DynamicResource LocalDabGeometry}" Fill="{DynamicResource LocalCrimsonBrush}" Opacity="0" />
+                    </Canvas>
+                </Viewbox>
+            </Grid>
+            <Viewbox Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Canvas Width="48" Height="48">
+                    <Path x:Name="OuterRing" Data="{DynamicResource LocalMarkOuterRingGeometry}" Fill="{TemplateBinding Foreground}" />
+                    <Path x:Name="InnerRing" Data="{DynamicResource LocalMarkInnerRingGeometry}" Fill="{TemplateBinding Foreground}" />
+                    <Path x:Name="Diagonal" Data="{DynamicResource LocalMarkDiagonalGeometry}" Fill="{TemplateBinding Foreground}">
+                        <Path.RenderTransform><RotateTransform x:Name="DiagonalTurn" CenterX="24" CenterY="24" /></Path.RenderTransform>
+                    </Path>
+                    <Path x:Name="Nib" Data="{DynamicResource LocalMarkNibGeometry}" Fill="{TemplateBinding Foreground}">
+                        <Path.RenderTransform><TranslateTransform x:Name="NibRise" /></Path.RenderTransform>
+                    </Path>
+                </Canvas>
+            </Viewbox>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="DiagonalTurn" Storyboard.TargetProperty="Angle" To="-90" Duration="0:0:0.36"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.35" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="NibRise" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="DiagonalTurn" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="NibRise" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.16" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <Setter TargetName="OuterRing" Property="Fill" Value="{DynamicResource LocalInkBrush}" />
+                <Setter TargetName="InnerRing" Property="Fill" Value="{DynamicResource LocalInkBrush}" />
+                <Setter TargetName="Diagonal" Property="Fill" Value="{DynamicResource LocalInkBrush}" />
+                <Setter TargetName="Nib" Property="Fill" Value="{DynamicResource LocalInkBrush}" />
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Dab" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                            <DoubleAnimation Storyboard.TargetName="DabScale" Storyboard.TargetProperty="ScaleX" From="0.2" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="OuterRing" Storyboard.TargetProperty="Opacity" From="1" To="0.35" BeginTime="0:0:0.25" Duration="0:0:1.4" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Dab" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="DabScale" Storyboard.TargetProperty="ScaleX" To="0.2" Duration="0:0:0.16" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="OuterRing" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+</ResourceDictionary>

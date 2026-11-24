@@ -1235,11 +1235,18 @@ function Test-ThemeMenus {
 
     # Panel: the implicit ContextMenu style's template, which every menu inherits.
     $panel = $null
+    $rounded = $false
     if ($contextDoc) {
         foreach ($style in $contextDoc.SelectNodes("//*[local-name()='Style'][@TargetType='{x:Type ContextMenu}']")) {
             if ($style.GetAttribute("Key", $script:XamlNs)) { continue }
             $panel = $style.SelectSingleNode("./*[local-name()='Setter'][@Property='Template']//*[local-name()='ControlTemplate']")
+            $rounded = [bool]$style.SelectSingleNode("./*[local-name()='Setter'][@Property='UseLayoutRounding'][@Value='True']")
         }
+    }
+    # Layout rounding keeps 30px rows and the 16px icon PNGs on whole device pixels at 125%/175% scaling (otherwise every
+    # other row lands on half a pixel and its icon blurs). The setter inherits into submenus.
+    if ($contextDoc -and -not $rounded) {
+        $errors.Add("${contextWhere}: the implicit ContextMenu style needs <Setter Property=""UseLayoutRounding"" Value=""True"" /> so menu rows and icons sit on whole pixels at fractional display scaling (docs/themes/menu-icons.md).") | Out-Null
     }
     if (-not $panel) {
         $errors.Add("${contextWhere}: the implicit ContextMenu style sets no Template. It is the panel of every menu, designed per theme ($doc).") | Out-Null
@@ -1295,30 +1302,42 @@ function Test-ThemeMenus {
         }
     }
 
-    # Menu icon inheritance: Playnite's Default/Media.xaml sets local Foreground="{DynamicResource TextBrush}" on its
-    # icofont TextBlock menu icons, which blocks TextElement.Foreground inheritance on hover. Themes that use icofont
-    # menu icons (not PNG <sys:String> overrides) must define them in Media.xaml without a local Foreground attribute.
+    # Menu item icons: every theme draws its own set (the PNGs Playnite loads for the *Icon string keys), never Playnite's
+    # stock icofont glyphs. The eight core keys must be <sys:String> paths to PNGs that exist inside the theme.
+    # Cross-theme uniqueness (no two themes drawing the same set) is `node scripts/render-menu-icons.mjs --check`.
     $mediaPath = Join-Path $Directory "Media.xaml"
     $mediaWhere = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative "Media.xaml"
     $mediaDoc = if (Test-Path $mediaPath) { Read-XamlDocument $mediaPath } else { $null }
     if ($mediaDoc) {
-        $updateIcon = Get-XamlKeyedElement -Doc $mediaDoc -Key "UpdateDbIcon"
-        $usesPngMenuIcons = $updateIcon -and ($updateIcon.LocalName -eq "String")
-        if (-not $usesPngMenuIcons) {
-            $coreMenuIcons = @("AddGameIcon", "UpdateDbIcon", "SettingsIcon", "ExitIcon", "PlayIcon", "DiceIcon")
-            $missingIcons = [System.Collections.Generic.List[string]]::new()
-            $lockedIcons = [System.Collections.Generic.List[string]]::new()
-            foreach ($iconKey in $coreMenuIcons) {
-                $el = Get-XamlKeyedElement -Doc $mediaDoc -Key $iconKey
-                if (-not $el) { $missingIcons.Add($iconKey) | Out-Null }
-                elseif ($el.LocalName -eq "TextBlock" -and $el.HasAttribute("Foreground")) { $lockedIcons.Add($iconKey) | Out-Null }
+        $iconDoc = "docs/themes/menu-icons.md"
+        $coreMenuIcons = @("AddGameIcon", "UpdateDbIcon", "DiceIcon", "SettingsIcon", "AddonsIcon", "FullscreenModeIcon", "AboutPlayniteIcon", "ExitIcon")
+        $stockIcons = [System.Collections.Generic.List[string]]::new()
+        $brokenIcons = [System.Collections.Generic.List[string]]::new()
+        $smearedIcons = [System.Collections.Generic.List[string]]::new()
+        # $Directory is the build drop; the recipe sits beside the theme's source folder ($SourceRoot, repo-relative).
+        $recipeFile = if ($SourceRoot) { Join-Path (Split-Path (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) $SourceRoot) -Parent) "art/menu-icons.json" } else { $null }
+        $pixelRecipe = $recipeFile -and (Test-Path $recipeFile) -and ((Get-Content -Raw $recipeFile) -match '"pixel"\s*:\s*[1-9]')
+        foreach ($iconKey in $coreMenuIcons) {
+            $el = Get-XamlKeyedElement -Doc $mediaDoc -Key $iconKey
+            # A <sys:String> path (drawn HighQuality) or a BitmapImage with UriSource="{ThemeFile '...'}" (Playnite copies
+            # its RenderOptions.BitmapScalingMode onto the menu Image; pixel sets need NearestNeighbor).
+            if ($el -and $el.LocalName -eq "String") { $iconPath = $el.InnerText.Trim(); $scaling = "" }
+            elseif ($el -and $el.LocalName -eq "BitmapImage") {
+                $iconPath = if ($el.GetAttribute("UriSource") -match "^\{ThemeFile\s+'([^']+)'\}$") { $Matches[1] } else { $el.GetAttribute("UriSource") }
+                $scaling = $el.GetAttribute("RenderOptions.BitmapScalingMode")
             }
-            if ($missingIcons.Count -gt 0) {
-                $errors.Add("${mediaWhere}: icofont menu icons ($($missingIcons -join ', ')) must be defined in Media.xaml without Foreground so they inherit TextElement.Foreground on hover instead of Playnite Default's hardcoded TextBrush ($doc).") | Out-Null
-            }
-            if ($lockedIcons.Count -gt 0) {
-                $errors.Add("${mediaWhere}: menu icon TextBlocks ($($lockedIcons -join ', ')) must omit local Foreground so TextElement.Foreground can invert/recolor them on hover ($doc).") | Out-Null
-            }
+            else { $stockIcons.Add($iconKey) | Out-Null; continue }
+            if ($iconPath -notmatch "^Images/.+\.png$" -or -not (Test-Path (Join-Path $Directory $iconPath))) { $brokenIcons.Add("$iconKey -> $iconPath") | Out-Null }
+            if ($pixelRecipe -and $scaling -ne "NearestNeighbor") { $smearedIcons.Add($iconKey) | Out-Null }
+        }
+        if ($smearedIcons.Count -gt 0) {
+            $errors.Add("${mediaWhere}: art/menu-icons.json is a pixel recipe but $($smearedIcons -join ', ') are not BitmapImages with RenderOptions.BitmapScalingMode=NearestNeighbor, so Playnite smears them at 125%/175% scaling. Run node scripts/render-menu-icons.mjs <Theme> ($iconDoc).") | Out-Null
+        }
+        if ($stockIcons.Count -gt 0) {
+            $errors.Add("${mediaWhere}: menu icons ($($stockIcons -join ', ')) are still Playnite's stock icofont glyphs. Every theme draws its own set: write art/menu-icons.json and run node scripts/render-menu-icons.mjs <Theme> ($iconDoc).") | Out-Null
+        }
+        if ($brokenIcons.Count -gt 0) {
+            $errors.Add("${mediaWhere}: menu icon PNGs not found inside the theme: $($brokenIcons -join '; ') ($iconDoc).") | Out-Null
         }
     }
 

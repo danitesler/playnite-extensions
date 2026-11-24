@@ -102,7 +102,7 @@ Written from `RESEARCH.md`, colors as `var(--lf-*)`, sprites loaded from `../src
 - Fonts are named, not shipped, so most machines render Georgia Bold instead of a gothic display face.
 - WPF has no text-transform or stroke: the cut lettering is an offset black copy of the title.
 - Motion timings are chosen, not frame-measured (see `RESEARCH.md`).
-- Playnite's menu icons (`AddGameIcon`, ...) keep their icofont glyphs; only hardcoded colors moved to theme brushes.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Torch/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 - `FilterPanelView` and `ExplorerPanel` are Default templates recolored through the palette.
 
 ## Not verified yet

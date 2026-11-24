@@ -83,7 +83,7 @@ Tokens live in `src/tokens.css` under `--bs-*`; `src/Constants.template.xaml` ma
 ## Deviations
 
 - Game descriptions (`PART_HtmlDescription`) bind `{DynamicResource FontFamily}` (`Jost`), while Playnite's CEF/HTML view falls back to `Segoe UI` if bundled local TTFs are unavailable inside the embedded browser.
-- Playnite's built-in menu icon glyphs (`ExitIcon`, `RemoveGameIcon`, `AddFavoritesIcon`) remain icofont glyphs recolored onto theme brushes.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Porthole/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 
 ## Not verified yet
 

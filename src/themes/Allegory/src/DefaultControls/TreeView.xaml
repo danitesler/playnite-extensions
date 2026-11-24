@@ -1,0 +1,199 @@
+<!--
+    Allegory: TreeView, the Settings section list, drawn from the game's Settings menu. A bare column on the ground closed by a 1px hairline. Rows
+    are 30px lines in the body face (Gelasio 14, muted at rest, no plate). Hover fades a teal-lift wash in (110ms) and whitens the label. The chosen
+    section is the Settings menu's current row: a teal dry-brush band (the short band mask, bleeding a little past the row) sweeps in from the left,
+    the small ink triangle marker of the settings rows appears before the label, and the label turns bold ink. Expanders are tiny muted triangles
+    (IconSubmenu / IconDropDown); children align with their parent's label. Width triggers for WindowSettings / WindowExtensions keep the scroll
+    lane reserved.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <Style TargetType="{x:Type TreeView}" BasedOn="{StaticResource BaseStyle}">
+        <Style.Resources>
+            <!-- Section breaks in the Settings tree: tagged so the item style below can make them inert. -->
+            <Style TargetType="Separator" BasedOn="{StaticResource {x:Type Separator}}">
+                <Setter Property="Tag" Value="BrushNavigationDivider" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+            </Style>
+        </Style.Resources>
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="BorderThickness" Value="0,0,1,0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource LocalRuleBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeView}">
+                    <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}"
+                            Background="{TemplateBinding Background}">
+                        <ScrollViewer Focusable="False" Padding="6,10,4,10"
+                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Path=(AutomationProperties.AutomationId), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="WindowSettings">
+                <Setter Property="Width" Value="256" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding Path=(AutomationProperties.AutomationId), RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Value="WindowExtensions">
+                <Setter Property="Width" Value="280" />
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Visible" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrushDarker}" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
+        <Setter Property="FontWeight" Value="Normal" /> <!-- every item sets its own, so a bold selected parent does not make its children bold -->
+        <Setter Property="Padding" Value="10,0,10,2" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                    <StackPanel>
+                        <Grid x:Name="SelectionBorder" Background="Transparent" MinHeight="30">
+                            <Border x:Name="HoverPlate" Margin="0,1,0,1" Background="{DynamicResource ListItemHoverBrush}"
+                                    Opacity="0" IsHitTestVisible="False" />
+                            <Rectangle x:Name="SelectedPlate" Opacity="0" IsHitTestVisible="False" Margin="-4,-3,-10,-3" RenderTransformOrigin="0,0.5"
+                                       Fill="{DynamicResource LocalTealBrush}" OpacityMask="{DynamicResource LocalBrushBandShortMask}">
+                                <Rectangle.RenderTransform>
+                                    <ScaleTransform x:Name="BandScale" ScaleX="1" />
+                                </Rectangle.RenderTransform>
+                            </Rectangle>
+                            <Path x:Name="Marker" Width="5" Height="8" Margin="4,0,0,1" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="Fill"
+                                  Data="M0,0 L1,0.5 L0,1 Z" Fill="{DynamicResource LocalInkBrush}" Opacity="0" IsHitTestVisible="False" />
+                            <DockPanel Margin="{TemplateBinding Padding}" VerticalAlignment="Center">
+                                <ToggleButton x:Name="Expander" ClickMode="Press" DockPanel.Dock="Left" Width="18" Height="16" Margin="0"
+                                              IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ToggleButton.Style>
+                                        <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource BaseStyle}">
+                                            <Setter Property="Focusable" Value="False" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                        <Grid Background="Transparent">
+                                                            <ContentControl x:Name="Collapsed" Content="{DynamicResource IconSubmenu}" ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                                                            Foreground="{DynamicResource TextBrushDarker}" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                                            <ContentControl x:Name="Expanded" Content="{DynamicResource IconDropDown}" ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                                                            Foreground="{DynamicResource TextBrushDarker}" Width="10" Height="10" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="Collapsed" />
+                                                        </Grid>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsChecked" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" TargetName="Expanded" />
+                                                                <Setter Property="Visibility" Value="Collapsed" TargetName="Collapsed" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ToggleButton.Style>
+                                </ToggleButton>
+                                <ContentPresenter x:Name="PART_Header" ContentSource="Header" DockPanel.Dock="Left" VerticalAlignment="Center" RecognizesAccessKey="True">
+                                    <ContentPresenter.Resources>
+                                        <DataTemplate DataType="{x:Type sys:String}">
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" MaxWidth="190"
+                                                       FontFamily="{Binding FontFamily, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"
+                                                       FontSize="{Binding FontSize, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"
+                                                       FontWeight="{Binding FontWeight, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}"
+                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type TreeViewItem}}}" />
+                                        </DataTemplate>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </DockPanel>
+                        </Grid>
+                        <!-- Children line up under their parent's label; the arrow and the plate carry the hierarchy. -->
+                        <Border x:Name="ItemsHost" Margin="0">
+                            <ItemsPresenter />
+                        </Border>
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed" TargetName="ItemsHost" />
+                        </Trigger>
+                        <Trigger Property="HasItems" Value="False">
+                            <Setter Property="Visibility" Value="Hidden" TargetName="Expander" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True" SourceName="SelectionBorder">
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="RowHoverIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="RowHoverOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="HoverPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Opacity" Value="0" TargetName="HoverPlate" />
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="RowSelectIn">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.06" />
+                                        <DoubleAnimation Storyboard.TargetName="BandScale" Storyboard.TargetProperty="ScaleX" From="0.15" To="1" Duration="0:0:0.22">
+                                            <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.3" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="Marker" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18">
+                                            <DoubleAnimation.EasingFunction><QuadraticEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="RowSelectOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SelectedPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                        <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Marker" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <!-- TreeView wraps Separator objects in TreeViewItem containers; suppress interaction on that container too. -->
+            <DataTrigger Binding="{Binding Header.Tag, RelativeSource={RelativeSource Self}}" Value="BrushNavigationDivider">
+                <Setter Property="IsEnabled" Value="False" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+                <Setter Property="Focusable" Value="False" />
+                <Setter Property="IsTabStop" Value="False" />
+                <Setter Property="IsSelected" Value="False" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                            <ContentPresenter ContentSource="Header" Margin="14,6,14,6" IsHitTestVisible="False" />
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

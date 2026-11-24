@@ -108,7 +108,7 @@ Empty state (no game selected): the mark breathing (Opacity only, only while it 
 
 ## Deviations
 
-- Menu icons Playnite copies (`AddGameIcon`, ...) keep Playnite's icofont glyphs, recoloured by the palette; the rest of the icons are the theme's own hand-drawn strokes.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Wash/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 - Group dividers in the metadata card are solid 1px hairlines (the generator's group border), not the dotted pencil rule.
 - Popups cannot cast shadows or show sprites (layered windows), so menus and dropdowns are plain snow sheets with a pencil edge.
 - The game's painted icons (sword, wolf-head shield, boot, hourglass) have no Playnite counterpart and are not drawn.

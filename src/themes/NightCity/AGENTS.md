@@ -97,7 +97,7 @@ Empty state (no game selected): both overviews hide the page and show an empty c
 - Library art is dimmed, not feathered, for the same reason.
 - `TrayContextMenu`, `GameMenu` and `GameGroupMenu` are `BasedOn` the theme's ContextMenu; Default ships them as full templates.
 - Menu check mark and submenu arrow are drawn with `IconCheck` and `IconSubmenu` instead of Marlett glyphs.
-- Menu icons Playnite copies (`AddGameIcon`, ...) stay Playnite's Default icofont ones.
+- Menu item icons: the theme's own 24-icon PNG set (`art/menu-icons.json` rendered to `src/Images/Chrome/` by `scripts/render-menu-icons.mjs`; [docs/themes/menu-icons.md](../../../docs/themes/menu-icons.md)), never Playnite's stock glyphs.
 
 ## Not verified yet
 

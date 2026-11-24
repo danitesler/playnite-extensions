@@ -48,3 +48,7 @@ After every change, validate with `pwsh scripts/validate-extension.ps1 -Extensio
 ## Main menu mark (required)
 
 Every theme draws its own animated main menu mark (hover plus menu-open animation, unique to the theme's motif and motion, one shared `Local<Name>MenuMarkTemplate` in `Common.xaml` used by `Sidebar.xaml` and `TopPanel.xaml`). Follow `docs/themes/menu-mark.md`, copy only the mechanics from Cloudbank, and verify hover and open live before calling the theme done.
+
+## Menu item icons (required)
+
+Every theme draws its own 24 bare, full-frame menu item icons, never Playnite's stock icofont glyphs, never wrapped in a background badge/plate, and never another theme's set recoloured. Write `art/menu-icons.json` (pure icon style, fill/finish, contour contrast, palette and metaphor variants from the theme's source), run `node scripts/render-menu-icons.mjs <Theme> --sheet`, and review the sheet at the real 16px on both rest and hover plates. Rules, recipe fields and the glyph kit: `docs/themes/menu-icons.md`.
