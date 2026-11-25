@@ -1,0 +1,594 @@
+<!doctype html>
+<!-- Foldcraft: HTML replica of Playnite's Settings window (1280x720).
+     Inspired by Tearaway (Game UI Database id=1404).
+     Features 44px Self-Healing Cutting Mat title band with Origami Seal mark, 28px bare TreeView rows
+     with Seafoam-Mint bookmark selection, split Emerald/Crimson folded controls, Tangerine ComboBox
+     stepper chevron, and Ochre-Gold Save pill. Colors use var(--fc-*) from src/tokens.css. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Foldcraft - Settings Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--fc-mat-teal);
+    color: var(--fc-ink);
+    font-family: "Nunito", "Segoe UI", sans-serif;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  svg { fill: currentColor; display: block; }
+
+  .backdrop-grid {
+    position: absolute;
+    inset: 0;
+    background: var(--fc-mat-grid);
+    opacity: 0.14;
+    -webkit-mask-image: url("../src/Images/fx/cutting-mat-grid.png");
+    -webkit-mask-size: 64px 64px;
+    -webkit-mask-repeat: repeat;
+    pointer-events: none;
+  }
+
+  /* 920x698 Settings Window (fits 21 tree rows cleanly inside 1280x720) */
+  .window {
+    width: 920px;
+    height: 698px;
+    background: var(--fc-paper);
+    border: 2px solid var(--fc-charcoal);
+    border-radius: var(--fc-radius);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+    box-shadow: 6px 6px 0 var(--fc-charcoal);
+    overflow: hidden;
+  }
+
+  /* 44px Self-Healing Cutting Mat Title Band with Origami Seal mark */
+  .title-bar {
+    height: 44px;
+    flex: none;
+    background: var(--fc-mat-teal);
+    border-bottom: 2px solid var(--fc-cerulean);
+    display: flex;
+    align-items: center;
+    padding: 0 12px 0 14px;
+    gap: 10px;
+    color: var(--fc-paper-bright);
+    position: relative;
+    overflow: hidden;
+  }
+  .title-grid {
+    position: absolute;
+    inset: 0;
+    background: var(--fc-mat-grid);
+    opacity: 0.15;
+    -webkit-mask-image: url("../src/Images/fx/cutting-mat-grid.png");
+    -webkit-mask-size: 64px 64px;
+    -webkit-mask-repeat: repeat;
+    pointer-events: none;
+  }
+  .title-watermark {
+    position: absolute;
+    right: 60px;
+    top: -10px;
+    width: 68px;
+    height: 68px;
+    color: var(--fc-paper-bright);
+    opacity: 0.08;
+    pointer-events: none;
+  }
+  .title-mark {
+    width: 22px;
+    height: 22px;
+    color: var(--fc-ochre);
+    position: relative;
+    z-index: 1;
+  }
+  .title-text {
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 20px;
+    letter-spacing: 0.06em;
+    color: var(--fc-paper-bright);
+    position: relative;
+    z-index: 1;
+  }
+  .title-close {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--fc-cardstock-disc);
+    border: 1.5px solid var(--fc-cardstock-grey);
+    color: var(--fc-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .title-close svg { width: 13px; height: 13px; }
+
+  .body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
+
+  /* Section Tree (left, 250px, bare 28px rows in body font, reserved scroll lane) */
+  .tree {
+    width: 250px;
+    flex: none;
+    background: var(--fc-paper-card);
+    border-right: 1.5px solid var(--fc-paper-edge);
+    padding: 4px 14px 4px 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .tree > * { position: relative; z-index: 1; }
+  .tree-scroll-lane {
+    position: absolute;
+    top: 6px;
+    right: 3px;
+    bottom: 6px;
+    width: 6px;
+    border-radius: 3px;
+    background: var(--fc-paper-fold);
+  }
+  .tree-scroll-thumb {
+    width: 6px;
+    height: 180px;
+    border-radius: 3px;
+    background: var(--fc-cardstock-grey);
+  }
+  .node {
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px 0 12px;
+    font-size: 13.5px;
+    color: var(--fc-ink-muted);
+    position: relative;
+    margin-bottom: 0;
+    border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0;
+  }
+  .node.child { padding-left: 30px; }
+  .node.open::before { content: "\25BE"; margin-right: 6px; font-size: 11px; color: var(--fc-emerald); }
+  .node.hover {
+    background: var(--fc-mint-wash);
+    color: var(--fc-ink);
+  }
+  .node.sel {
+    background: var(--fc-mint-select);
+    color: var(--fc-ink-on-mint);
+    font-weight: 700;
+  }
+  .node.sel::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 3px;
+    background: var(--fc-emerald);
+  }
+
+  /* Section Page */
+  .page {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 30px;
+    overflow: hidden;
+    background: var(--fc-paper);
+    position: relative;
+  }
+  .page > * { position: relative; z-index: 1; }
+  .tex-fibers, .tex-blueprint, .tex-kraft {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .tex-fibers {
+    background: var(--fc-paper-shadow);
+    opacity: 0.15;
+    -webkit-mask-image: url("../src/Images/fx/paper-fibers.png");
+    -webkit-mask-size: 128px 128px;
+    -webkit-mask-repeat: repeat;
+  }
+  .tex-blueprint {
+    background: var(--fc-ink-muted);
+    opacity: 0.11;
+    -webkit-mask-image: url("../src/Images/fx/blueprint-folds.png");
+    -webkit-mask-size: 256px 256px;
+    -webkit-mask-repeat: repeat;
+  }
+  .tex-kraft {
+    background: var(--fc-paper-shadow);
+    opacity: 0.15;
+    -webkit-mask-image: url("../src/Images/fx/corrugated-kraft.png");
+    -webkit-mask-size: 64px 64px;
+    -webkit-mask-repeat: repeat;
+  }
+  .page-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--fc-magenta);
+    margin-bottom: 18px;
+  }
+  .page-pip {
+    width: 9px;
+    height: 9px;
+    background: var(--fc-magenta);
+    transform: rotate(45deg);
+  }
+  .section-title {
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.04em;
+    color: var(--fc-ink);
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 44px;
+    border-bottom: 1px solid var(--fc-paper-fold);
+    padding: 6px 0;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row > label {
+    width: 196px;
+    flex: none;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--fc-ink);
+  }
+  .input {
+    width: 268px;
+    height: 32px;
+    background: var(--fc-paper-bright);
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: var(--fc-radius);
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    font-size: 13.5px;
+    color: var(--fc-ink);
+    box-shadow: inset 0 1px 0 var(--fc-paper-card);
+  }
+  .combo {
+    padding-right: 0;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  /* COLOURED-IN Tangerine stepper cell on ComboBox right edge */
+  .combo-chevron {
+    width: 30px;
+    height: 100%;
+    background: var(--fc-tangerine);
+    color: var(--fc-paper-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-left: 1.5px solid var(--fc-paper-edge);
+  }
+  /* Split Emerald [✓] Folded Toggle Checkbox */
+  .check {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--fc-ink-muted);
+    border-radius: var(--fc-radius-sm);
+    background: var(--fc-paper-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .check.on {
+    background: var(--fc-emerald);
+    border-color: var(--fc-emerald-deep);
+    color: var(--fc-paper-bright);
+    box-shadow: 0 2px 0 var(--fc-emerald-deep);
+  }
+  .radio {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--fc-ink-muted);
+    border-radius: 50%;
+    background: var(--fc-paper-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .radio.on { border-color: var(--fc-emerald-deep); }
+  .radio.on::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--fc-emerald);
+  }
+  .radios {
+    display: flex;
+    gap: 22px;
+    align-items: center;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .radios span { display: flex; gap: 8px; align-items: center; }
+
+  .slider {
+    width: 268px;
+    height: 6px;
+    background: var(--fc-paper-shadow);
+    border-radius: 3px;
+    position: relative;
+  }
+  .slider i {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 62%;
+    background: var(--fc-tangerine);
+    border-radius: 3px;
+  }
+  .slider b {
+    position: absolute;
+    left: 62%;
+    top: -6px;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    border-radius: 50%;
+    background: var(--fc-paper-bright);
+    border: 2.5px solid var(--fc-tangerine);
+    box-shadow: 0 2px 0 var(--fc-paper-shadow);
+  }
+
+  .btn {
+    height: 32px;
+    padding: 0 18px;
+    background: var(--fc-paper-bright);
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: var(--fc-radius);
+    display: flex;
+    align-items: center;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--fc-ink);
+    box-shadow: 0 2px 0 var(--fc-paper-shadow);
+  }
+  .btn.primary {
+    background: var(--fc-ochre);
+    border-color: var(--fc-ochre-press);
+    color: var(--fc-ink);
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    box-shadow: 0 2px 0 var(--fc-ochre-press);
+  }
+
+  /* Bottom bar: restart note left, Save then Cancel right */
+  .bottom {
+    height: 54px;
+    flex: none;
+    background: var(--fc-paper-card);
+    border-top: 1.5px solid var(--fc-paper-edge);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .note {
+    margin-right: auto;
+    font-size: 12.5px;
+    color: var(--fc-ink-muted);
+    font-weight: 600;
+  }
+
+  /* Textured stitched-cardstock buttons, sunken paper-slot inputs, ribbon-tab dropdowns */
+  .input, .btn, .sub-btn, .search { position: relative; }
+  .input::before, .btn::before, .sub-btn::before, .search::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: var(--fc-paper-shadow); opacity: 0.3;
+    -webkit-mask-image: url("../src/Images/fx/paper-fibers.png");
+    -webkit-mask-size: 128px 128px; -webkit-mask-repeat: repeat;
+  }
+  .btn::after, .sub-btn::after {
+    content: ""; position: absolute; inset: 3px; pointer-events: none;
+    border: 1px dashed var(--fc-paper-edge); border-radius: 2px; opacity: 0.8;
+  }
+  .btn.primary::after { border-color: var(--fc-ochre-press); }
+  .input, .search {
+    box-shadow: inset 0 4px 5px -3px var(--fc-paper-shadow), inset 0 -2px 0 var(--fc-paper-card);
+  }
+  .combo-chevron { position: relative; border-left: 0; margin: 1.5px 0; height: calc(100% - 3px); }
+  .combo-chevron::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: var(--fc-paper-bright); opacity: 0.35;
+    -webkit-mask-image: url("../src/Images/fx/paper-fibers.png");
+    -webkit-mask-size: 128px 128px;
+  }
+  .combo-chevron::after {
+    content: ""; position: absolute; left: 2px; top: 3px; bottom: 3px;
+    border-left: 1px dashed var(--fc-paper-bright);
+  }
+  .title-ribbons {
+    position: absolute;
+    right: 48px;
+    top: -12px;
+    bottom: -12px;
+    width: 190px;
+    display: flex;
+    gap: 6px;
+    transform: skewX(-22deg);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .title-ribbons i {
+    display: block;
+    flex: 1;
+    opacity: 0.36;
+  }
+  .title-deckle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 8px;
+    background: var(--fc-mat-teal);
+    -webkit-mask-image: url("../src/Images/fx/deckle-edge-h.png");
+    -webkit-mask-size: 256px 9px;
+    -webkit-mask-repeat: repeat-x;
+    opacity: 0.92;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .page-tape {
+    position: absolute;
+    top: 6px;
+    right: -18px;
+    width: 82px;
+    height: 18px;
+    background: var(--fc-mint-select);
+    border: 1px solid var(--fc-paper-edge);
+    opacity: 0.78;
+    transform: rotate(32deg);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .page-collage {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 220px;
+    height: 170px;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .page-collage svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .tree-fan {
+    position: absolute;
+    left: 0;
+    bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .tree-fan i {
+    display: block;
+    height: 6px;
+    width: 24px;
+    border-radius: 0 2px 2px 0;
+    opacity: 0.85;
+  }
+  .bottom {
+    position: relative;
+    border-top: 1.5px dashed var(--fc-paper-edge);
+  }
+</style>
+</head>
+<body>
+<div class="backdrop-grid"></div>
+
+<div class="window" data-part="settings-window">
+  <div class="title-bar" style="overflow: visible;">
+    <div class="title-grid"></div>
+    <div class="title-ribbons">
+      <i style="background: var(--fc-mint-bright);"></i>
+      <i style="background: var(--fc-cerulean);"></i>
+      <i style="background: var(--fc-ochre);"></i>
+      <i style="background: var(--fc-magenta);"></i>
+    </div>
+    <svg class="title-watermark" viewBox="0 0 24 24"><path d="M12,1.5 L15.4,4.9 L20.2,3.8 L19.1,8.6 L22.5,12 L19.1,15.4 L20.2,20.2 L15.4,19.1 L12,22.5 L8.6,19.1 L3.8,20.2 L4.9,15.4 L1.5,12 L4.9,8.6 L3.8,3.8 L8.6,4.9 Z M12,5.8 L14.5,9.5 L18.2,12 L14.5,14.5 L12,18.2 L9.5,14.5 L5.8,12 L9.5,9.5 Z M12,9.2 L14.8,12 L12,14.8 L9.2,12 Z"/></svg>
+    <svg class="title-mark" viewBox="0 0 24 24"><path d="M12,1.5 L15.4,4.9 L20.2,3.8 L19.1,8.6 L22.5,12 L19.1,15.4 L20.2,20.2 L15.4,19.1 L12,22.5 L8.6,19.1 L3.8,20.2 L4.9,15.4 L1.5,12 L4.9,8.6 L3.8,3.8 L8.6,4.9 Z M12,5.8 L14.5,9.5 L18.2,12 L14.5,14.5 L12,18.2 L9.5,14.5 L5.8,12 L9.5,9.5 Z M12,9.2 L14.8,12 L12,14.8 L9.2,12 Z"/></svg>
+    <div class="title-text">SETTINGS</div>
+    <div class="title-close"><svg viewBox="0 0 24 24"><path d="M5.5,4 L12,10.5 L18.5,4 L20,5.5 L13.5,12 L20,18.5 L18.5,20 L12,13.5 L5.5,20 L4,18.5 L10.5,12 L4,5.5 Z"/></svg></div>
+    <div class="title-deckle"></div>
+  </div>
+
+  <div class="body">
+    <div class="tree" data-part="settings-nav">
+      <div class="tex-kraft"></div>
+      <div class="tex-fibers" style="opacity: 0.11;"></div>
+      <div class="tree-scroll-lane"><div class="tree-scroll-thumb"></div></div>
+      <div class="node">General</div>
+      <div class="node open">Appearance</div>
+      <div class="node child sel">General</div>
+      <div class="node child hover">Advanced</div>
+      <div class="node child">Details View</div>
+      <div class="node child">Grid View</div>
+      <div class="node child">List View</div>
+      <div class="node child">Layout</div>
+      <div class="node child">Top panel</div>
+      <div class="node">Search</div>
+      <div class="node">Updating</div>
+      <div class="node">Metadata</div>
+      <div class="node">Sorting</div>
+      <div class="node">Scripts</div>
+      <div class="node">Auto Close Clients</div>
+      <div class="node">Import Exclusion List</div>
+      <div class="node">Backup</div>
+      <div class="node">For developers</div>
+      <div class="node">Input</div>
+      <div class="node open">Advanced</div>
+      <div class="node child">Performance</div>
+    </div>
+
+    <div class="page" data-part="settings-content">
+      <div class="tex-fibers"></div>
+      <div class="tex-blueprint"></div>
+      <div class="page-tape"></div>
+      <div class="page-collage">
+        <svg viewBox="0 0 220 170" preserveAspectRatio="none">
+          <polygon points="220,170 220,18 68,170" fill="var(--fc-mint-select)" opacity="0.45"/>
+          <polygon points="220,170 220,52 102,170" fill="var(--fc-cerulean)" opacity="0.32"/>
+          <polygon points="220,170 220,88 138,170" fill="var(--fc-ochre)" opacity="0.42"/>
+          <polygon points="220,170 220,124 174,170" fill="var(--fc-magenta)" opacity="0.34"/>
+          <line x1="68" y1="170" x2="220" y2="18" stroke="var(--fc-paper-edge)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="102" y1="170" x2="220" y2="52" stroke="var(--fc-paper-bright)" stroke-width="1.5" opacity="0.65"/>
+        </svg>
+      </div>
+      <div class="page-head">
+        <span class="page-pip"></span>
+        <div class="section-title">APPEARANCE</div>
+      </div>
+      <div class="row"><label>Desktop theme</label><div class="input combo">Foldcraft<span class="combo-chevron">&#9662;</span></div></div>
+      <div class="row"><label>Font size</label><div class="slider"><i></i><b></b></div></div>
+      <div class="row"><label>Library folder</label><div class="input">D:\Games\Papercraft</div></div>
+      <div class="row"><label>Show notification panel</label><div class="check on">&#10003;</div></div>
+      <div class="row"><label>Show names under covers</label><div class="check"></div></div>
+      <div class="row"><label>Animations</label><div class="radios"><span><i class="radio on"></i>Standard</span><span><i class="radio"></i>Reduced motion</span></div></div>
+      <div class="row"><label>Backup</label><div class="btn">Browse...</div></div>
+    </div>
+  </div>
+
+  <div class="bottom" data-part="settings-buttons">
+    <div class="note">* Requires restart to apply &middot; Unofficial fan theme, not affiliated with Media Molecule</div>
+    <div class="btn primary">SAVE</div>
+    <div class="btn">Cancel</div>
+  </div>
+</div>
+</body>
+</html>

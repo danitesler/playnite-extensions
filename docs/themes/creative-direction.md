@@ -42,18 +42,24 @@ Never design from memory or text adjectives ("weathered parchment", "tactical cy
 7. **Brand:** own original name, one custom vector mark from the source's shapes (never its logo) reused in title band, empty page and tile; `GameBannerTintBrush` from the source's art tint or darkest branded surface.
 8. **Restraint & anti-slop commitment:** explicitly state what stays quiet (list rows, grid ground, metadata prose) and which generic clichés are forbidden for this source.
 
-## Shell & Game Page Levers
+## Shell, Texture & Component Levers
 
-Like [menus.md](menus.md) for popups, derive these six structural surfaces from the source's observed geometry instead of falling back to generic rectangles:
+Like [menus.md](menus.md) for popups, vary **every visible surface and control** from the source instead of falling back to generic flat rectangles or stock form boxes. Every new theme must declare a source-relevant design across backgrounds, side panels, dividers, navigation, menus, inputs, dropdowns, toggles, buttons, and icons:
 
 | Lever | Where it lives | Ways to vary from the source |
 |-------|----------------|------------------------------|
-| **Hero banner transition** | `Views/*ViewGameOverview.xaml` | Soft gradient fade, stepped/pixel dissolve, torn paper or brush mask, chamfered/clipped frame, or hard engraved rule + ornament |
-| **Play button architecture** | `DerivedStyles/PlayButton.xaml` | Chamfered plate, double-ruled crest, skewed parallelogram, stitched/riveted slab, inset bezel, or floating-underline trigger |
-| **Metadata container & group break** | `Views/*ViewGameOverview.xaml` | Borderless ledger with engraved rules, framed codex card, recessed telemetry cells, tabbed index dividers, or notched brackets |
-| **Chip & score silhouette** | `DerivedStyles/PropertyItemButton.xaml`, `TextBlockGameScore` | Cut-corner tags, stamped badges, bracketed tokens, pill/capsule stamps, framed numeric plaques, or ruled key-value ticks |
-| **Row & cover selection mark** | `DetailsViewItemStyle.xaml`, `GridViewItemStyle.xaml` | Edge rail bar, corner brackets, directional cursor/chevron, bevelled slot frame, tilted wash, or metallic sheen + clasp |
-| **Side-panel close plate** | `GridViewGameOverview.xaml` (`SidePanelCloseButton`) | Custom 28x28 template matching the source's close glyph and plate geometry (cut corner, diamond bezel, stamp, riveted square) — not a stock rectangle |
+| **Background & side-panel textures** | `Views/{Library,Sidebar,TopPanel,FilterPanelView,ExplorerPanel,*GameOverview}.xaml`, `StandardWindowStyle.xaml`, `TreeView.xaml` | Subtle tiled grain, comic ink crosshatch, brushed metal, parchment fiber, scanlines, circuit grid, or side-panel margin doodles + styled vertical seams (`src/Images/fx/*.png` white masks via `OpacityMask`). Always keep dense lists/covers legible and collapse under `ShowBackgroundImageOnWindow` |
+| **Layout & structural dividers** | `Common.xaml` (`DividerTemplate`), `Views/*`, `Menu.xaml` | Tapered rules with source crests, dashed conspiracy/stitch lines, segmented HUD rails, hazard bars, stud rows, or ragged hand-inked seams |
+| **Left-side menus & navigation** | `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml`, `DefaultControls/TreeView.xaml` | Source-shaped main-menu emblem tile, distinct rail edge seam & foot motif, custom active rail plate/bar, and calm 28–32px Settings/Add-ons tree rows with a source-specific hover wash and selection mark |
+| **Inputs & search** | `DefaultControls/{TextBox,PasswordBox}.xaml`, `CustomControls/SearchBox.xaml`, `DerivedStyles/HighlightBorder.xaml` | Sunken notebook/terminal wells, marker edge tabs, stitched leather pouches, chamfered slots, subtle inner texture/baseline rules, and chromatic/glowing focus edges (32px `ControlHeight`, 28px in FilterPanel) |
+| **Dropdowns & popup menus** | `DefaultControls/{ComboBox,ContextMenu,Menu}.xaml` | Split chevron cap or `<` `>` stepper cap, source-themed shared popup board (`Local*MenuBoardTemplate`), animated highlight, shortcut badge style, and Exit danger row |
+| **Checkboxes, radios & sliders** | `DefaultControls/{CheckBox,RadioButton,Slider,ProgressBar}.xaml` | Hand-inked comic squares, notched octagons, Skill-Node circular badges, toggle switches, vial/gauge sliders with themed end-caps, and source HUD progress bars |
+| **Buttons & bespoke icons** | `DefaultControls/{Button,ToggleButton}.xaml`, `DerivedStyles/PlayButton.xaml`, `Media.xaml` | Chamfered/taped/bevelled/sticker plates with distinct primary, secondary, and plain states + bespoke source-drawn `Icon<Role>` geometries (never stock icon packs in `Showcase`/`Hybrid`) |
+| **Hero banner transition** | `Views/*ViewGameOverview.xaml` | Soft gradient fade, stepped/pixel dissolve, torn paper or brush mask, chamfered/clipped frame, chromatic seam, or hard engraved rule + ornament |
+| **Metadata container & group break** | `Views/*ViewGameOverview.xaml` | Pinned torn notebook flyer, borderless ledger with engraved rules, framed codex card, recessed telemetry cells, tabbed index dividers, or notched brackets |
+| **Chip & score silhouette** | `DerivedStyles/PropertyItemButton.xaml`, `TextBlockGameScore.xaml` | Inked sticker tags, cut-corner tags, stamped graffiti rank plaques, bracketed tokens, pill/capsule stamps, or ruled key-value ticks |
+| **Row & cover selection mark** | `DetailsViewItemStyle.xaml`, `GridViewItemStyle.xaml`, `GridViewItemTemplate.xaml` | Edge rail bar, chromatic corner brackets, directional cursor/chevron, bevelled slot frame, tilted wash, or metallic sheen + `>=48x48` source-shaped `GridTileButton` hover controls |
+| **Side-panel close plate** | `GridViewGameOverview.xaml` (`SidePanelCloseButton`) | Custom 28x28 template matching the source's close glyph and plate geometry (cut corner, diamond bezel, comic sticker square, riveted square) — not a stock rectangle |
 
 ## Anti-slop red flags (Never)
 
@@ -64,6 +70,7 @@ Unless literally measured in the source's reference captures, never ship:
 - Generic tech corner-brackets (`[ ]`, L-ticks) pasted onto covers or panels when the source doesn't use tactical reticles.
 - Flat, plastic 8px SaaS cards with zero texture when the source has painted, printed, parchment, metallic, cloth, pixel, or glass craft (use `art/sprites.py` masks).
 - Re-skinning another Playnite theme's HTML preview or visual XAML with swapped tokens (copy only invisible behavioral wiring).
+- Generic Windows system fonts (`Georgia`, `Segoe UI`, `Impact`) for `Showcase`/`Hybrid` titles instead of a unique, free/open-licensed font found online that matches the game or movie (e.g., `Berkshire Swash` in Swallowtail).
 - One radius and one 200ms fade for everything; stock icon packs for `Icon<Role>` in `Showcase`/`Hybrid` themes; a plain coloured title bar; an empty page that is only grey text; decoration over content.
 
 ## Preview lock

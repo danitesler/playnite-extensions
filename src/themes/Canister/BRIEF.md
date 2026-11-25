@@ -1,0 +1,66 @@
+# Canister — Creative Brief (Showcase)
+
+Unofficial Playnite desktop theme inspired by *Teenage Mutant Ninja Turtles: Mutants Unleashed* (2024).
+
+## 1. Candidate Lenses (3 → Pick 1)
+
+Recent 5 themes in `src/themes/AGENTS.md`: **Swallowtail** (nocturnal harbor teal & gold ribbons — Title/Pause Menu), **Subspace** (true-black Star Trek LCARS tangerine/violet elbows — Diegetic/Artifact), **Dewfield** (light Stardew walnut wood & honey parchment — Diegetic/Artifact), **Counterfoil** (dark Disco Elysium 35mm film-strip & oil brush — Diegetic/Artifact), **Testbed** (light Portal cleanroom aluminum & carbon — HUD/Telemetry).
+
+- **(a) Diegetic / Artifact — Full Corkboard & Spiral Notebook Canvas (DROPPED):** Covering the whole shell in warm corkboard or graph paper would repeat the paper-led look of Dewfield and Cropmark and make dense cover grids visually noisy. Instead, we focus the **pinned torn spiral-notebook flyer** (`#F1EDE2` lined cream paper with spiral punches, pushpin, red string, and Golden Marker tape crown) onto the **Game Page Metadata Dossier** (mirroring *Mutants Unleashed*'s `41/53` `PUSH KICK` flyer pinned right of the dark board).
+- **(b) HUD / Telemetry — Mutagen Combat HUD & Alley-Tag Chrome [CHOSEN]:** Playnite's shell adopts the dark nocturnal sewer-chalk NYC alley backdrop (`#0D0F12` / `#13161A` / `#191D22`) energized by the game's unmistakable **dual Tag Crimson (`#EE2836`) + Acid Mutagen Green (`#44E61D`) chromatic-offset edge fringes**, **rough painted Masking-Tape headers** (`#F7DC28` Golden Marker & `#ED4F24` Vermilion), **sketchy white-outlined dark comic callout plates**, **tapered red-to-lime combat HP swoosh bars**, **Mutagen Ooze Vial sliders**, and the **pinned torn spiral-notebook flyer metadata dossier**. Completely fresh against all 5 recent themes in hue, energy, silhouette, and tactile urban teen-zine craft.
+- **(c) Title / Pause Menu — Bare Floating Yellow Text Stack (DROPPED):** Title screen `1/53` is too minimal to carry Playnite's sidebar, top bar, filter, and Settings controls alone; its **Golden Marker Yellow (`#F7DC28`) active selection text** and **`< VALUE >` hand-drawn chevron steppers** instead feed our Settings tree selection, ComboBox chevrons, and slider end-wedges.
+
+## 2. Source DNA (5 Traits → Playnite Surfaces)
+
+1. **Dual Tag Crimson & Acid Mutagen Green Chromatic Edge Fringes (`#EE2836` / `#44E61D`):** Offset backplates behind `PlayButton`, the pinned Metadata Dossier, `LocalCanisterMenuBoardTemplate` popups, `GridViewItemStyle` cover frames, and the `EmptyGameTemplate` sticker card.
+2. **Rough Painted Masking-Tape Strips (`tape-strip.png`, `#F7DC28` Golden Marker & `#ED4F24` Vermilion):** Crowns the Settings 44px title band (`StandardWindowStyle`), the Game Page Metadata Dossier header, popup menu boards, and Game Page section headers.
+3. **Pinned Torn Spiral-Notebook Flyer (`#F1EDE2` + `notebook-lines.png` + `spiral-holes.png` + `torn-bottom.png`):** Houses the Game Page Metadata Dossier (`300px` usable width) with a Cobalt Pushpin + Crimson conspiracy-string corner tie and crisp dark marker ink (`#17191D`).
+4. **Aerosol Spray Splatter & Sketchy White Double Outlines (`splatter-cloud.png`, `#E6E3DA`):** Grounds `EmptyGameTemplate`, `GridViewItemStyle` hover/selection locks, `DetailsViewItemStyle` selected comic callout rows, and Settings title-band accents.
+5. **Street-Poster Display + Hand-Printed Comic Lettering + Calm Body (`Anton` + `Patrick Hand` + `Barlow`):** Static SIL OFL TTFs bundled in `src/Typography/` — `Anton` italic/bold for tape banners, Play CTA, and score stamps; `Patrick Hand` for notebook captions, sticker chips, and pinned notes; `Barlow` for calm library rows, descriptions, and Settings trees.
+
+## 3. Game Element Map (11 Elements)
+
+| Source UI Element | Playnite Surface |
+| --- | --- |
+| `41/53` Pinned torn spiral-notebook flyer (`PUSH KICK`) + blue thumbtack + red string | Game Page Metadata Dossier (`ParchmentBrush` `#F1EDE2`, `notebook-lines.png`, `spiral-holes.png`, `torn-bottom.png`) |
+| `41/53` & `29/53` Rough painted Vermilion & Golden Marker masking-tape headers | `StandardWindowStyle` 44px Settings title band, Metadata Dossier crown, Game Page section headers, popup menu crown |
+| `13/53`, `23/53`, `41/53` Dual Red & Acid-Green chromatic edge aberration fringes | `PlayButton`, `LocalCanisterMenuBoardTemplate`, Metadata Dossier, `GridViewItemStyle` hover/select brackets, `EmptyGameTemplate` |
+| `44/53` & `51/53` Tapered Red→Orange→Yellow→Mutagen-Green combat HP swoosh bar | `DefaultControls/ProgressBar.xaml` & TopPanel `PART_ProgressGlobal` (`Height="12"`) |
+| `41/53` Tilted Mutagen Ooze Vial stat meters + `1/53` `< VALUE >` chevron steppers | `DefaultControls/Slider.xaml` (mutagen-filled glass tube, circular white-rimmed cap thumb, `<` `>` end-chevrons) |
+| `41/53` Dark comic pointer callout (`BUY UPGRADE (A)`) & `1/53` Golden Marker active text | `DetailsViewItemStyle.xaml` selected row & `Menu.xaml` highlighted popup row (`▸` pointer + Golden Marker text) |
+| `41/53` & `46/53` Circular hand-inked skill nodes & `(A)`/`(X)` gamepad badges | `GridTileButton` (`48×48` sketchy circular hover badges), `CheckBox.xaml` / `RadioButton.xaml`, and menu shortcut badges |
+| `27/53` Jagged comic-shard outlines & double sketchy white frames | `GridViewItemStyle.xaml` cover frames (chromatic brackets on hover, double white+mutagen frame + Vermilion tape tab on select) |
+| `12/53` & `13/53` Black/green aerosol spray-paint splatter clouds | `EmptyGameTemplate` halo, `StandardWindowStyle` title-band mist, and `PlayButton` hover diagonal `ooze-glint.png` slash |
+| `23/53` & `37/53` Red conspiracy string + 4-point comic ink stars | Metadata group breaks (`MetaProgress`..`MetaLinks`), `MenuItem.SeparatorStyleKey`, and `PART_ToggleFilter` `8×8` active star pip |
+| `37/53` & `44/53` Graffiti grade stamps (`A` / `B`) & taped sticker tags | `TextBlockGameScore` chamfered graffiti rank plaques & `PropertyItemButton` inked kraft-paper sticker chips |
+
+## 4. Shell & Game Page Levers (6 Structural Decisions)
+
+1. **Hero banner transition:** Full-bleed `PART_ImageBackground` + `GameBannerTintBrush` (`#112316`) darkening + smooth bottom fade into `PageRoot`, accented along its lower edge by a **dual chromatic-offset hairline** (`Tag Crimson` left + `Acid Mutagen Green` right) and subtle `10%` top-right aerosol mist (`splatter-cloud.png`).
+2. **Play button architecture:** **Golden Marker Masking-Tape & Chromatic Comic CTA** — `#F7DC28` plate (`ControlCornerRadius="3"`) with `1.5px` `#141619` bold ink border, **dual chromatic-offset outer shadow fringes** (`-2px` Tag Crimson top-left + `+2px` Acid Mutagen Green bottom-right), subtle crepe-tape grain (`tape-strip.png`), circular Mutagen Green play glyph disc, and `Anton` uppercase italic ink label. Hover lifts `-1.5px` (`BackEase`), flares fringes to `±3.5px`, and sweeps `ooze-glint.png` across the face; press snaps down to `#DFB517`.
+3. **Metadata container & group break:** **Pinned Torn Spiral-Notebook Flyer** (`ParchmentBrush` `#F1EDE2` over `300px` usable width) with faint `notebook-lines.png`, left-margin `spiral-holes.png`, dual Crimson/Mutagen chromatic backplates, Golden Marker masking-tape top strip, Cobalt pushpin + red string corner ornament, and `torn-bottom.png` ripped foot. Group breaks (`MetaProgress`..`MetaLinks`) are **10px dashed crimson-string rules centered on a 4-point comic star** (collapsed automatically in `Center`/`Stretch`).
+4. **Chip & score silhouette:** `PropertyItemButton` (`Tag="Chip"`) renders **inked kraft-paper sticker tags** (`#E4DFD0` fill, `1.5px` `#17191D` ink rim, `3px` Acid Mutagen left tick, `Patrick Hand` ink text) that pop `-1.5px` (`BackEase`) into `#F7DC28` Golden Marker with a Crimson offset shadow on hover. `TextBlockGameScore` draws **graffiti rank stamp plaques** (`Anton` bold inside an ink-bordered badge with Mutagen/Yellow/Crimson edge bars).
+5. **Row & cover selection mark:**
+   - *Details row:* Calm `#0D0F12` list at rest; hover fades in charcoal-chalk `#1E232A` (`110ms`) + slides a `6px` Acid Mutagen `▸` pointer; selected locks a `#1B2B1B` comic callout plate with `1.5px` `#E6E3DA` top/bottom sketch lines, a springing `3px` Acid Mutagen left bar flanked by a `1.5px` Tag Crimson sliver, and `#F7DC28` Golden Marker text.
+   - *Grid cover:* Rounded `4px` clip; hover scales (`1.025`, `BackEase`) and locks **dual chromatic corner brackets** (Tag Crimson top-left + Acid Mutagen bottom-right) + white outline; selected locks a **double sketchy white + Acid Mutagen frame** with Crimson offset shadow and a miniature top-center Vermilion masking-tape tab. Cover hover controls (`GridTileButton`) are `48×48` hand-inked circular comic badges (Golden Marker Play/Install + Dark Ink Info) with `50ms` staggered `BackEase` pop-in.
+6. **28×28 Side-panel close plate:** `28×28` hand-inked comic sticker square (`#191D22` fill, `1.5px` `#E6E3DA` rim, `2px` Acid Mutagen bottom-right offset tab, `14px` `IconWindowClose`); hover snaps to **Tag Crimson (`#EE2836`)** (`110ms`) with white glyph and Golden Marker offset rim.
+
+## 5. Menu & Running Game Signatures
+
+- **Unified Popup Menus (`ContextMenu`, `Menu`, `TopPanelMenu`, `ComboBox`):** Compact `30px` rows on `LocalCanisterMenuBoardTemplate` (`#171A1F` aerosol-zine board with `5%` `chalk-grain.png`, `1.5px` `#E6E3DA` sketchy white rim framed by `2.5px` Tag Crimson left/top and `2.5px` Acid Mutagen right/bottom chromatic fringes, crowned by a `7px` Vermilion masking-tape strip and centered crimson pushpin rising `3px`). Highlighted rows slide in (`ScaleX 0.92→1`, `110ms` `BackEase`) a `#1B2B1B` comic callout plate with `1.5px` Acid Mutagen top/bottom rails and a `3px` Golden Marker left bar, a Golden Marker `▸` comic pointer pops in, icon lights Golden Marker (`TextElement.Foreground`), and label shifts `+2px` right in Golden Marker (`11.2:1`). Group breaks are `10px` dashed crimson-string rules centered on an Acid Mutagen 4-point comic star; shortcuts sit in rounded circular-end **gamepad-prompt badges** (`#101317` well, `#383F48` rim, bold Acid Mutagen monospace flipping to dark ink on Golden Marker on highlight); Exit (`Alt+Q`) uses Tag Crimson text/badge at rest and flips to a solid Tag Crimson slab with Chalk White label/icon/badge (`4.65:1+`); checked rows show a circular Acid Mutagen `(✓)` disc with dark ink tick.
+- **Running / Launching Indicator:** **Leo Cobalt Blue (`#165DC4`, glint `#4CA3FF`)** with `#F4F1E8` Chalk White text (`5.85:1` bare, `7.4–10.8:1` under `RunningBreath` scrim) — distinct from Golden Marker Play, Acid Mutagen accent/selection, Vermilion filter star, and Tag Crimson danger.
+  - *Launching (`1.6s` loop):* Angled comic-slash comet sweep (`EndPoint="1,0.35"`, `RunningScan`) + **segmented 3-cell ooze-vial charge foot bar** (`RunningFill`) + **three staggered 4-point comic speed stars (`✦`)** springing up sequentially as the sweep lands (`0.85–1.3s`, `BackEase`).
+  - *Running (`3.2s` loop):* Calm breathing Cobalt frame (`0.72 → 1.0`), full foot bar, gentle alternating twinkle on the three comic stars; hovering the `RUNNING` Play button fades in `RunningHoverDim` + `Cancel` while keeping `PlayContent` `Visibility="Hidden"` (`PlayRoom` `0,0,34,0`).
+
+## 6. Moments & Motion Language
+
+- **Hero moment:** `PlayButton` hover — Golden Marker tape plate lifts `-1.5px` (`BackEase`), Crimson & Acid Mutagen chromatic fringes flare out to `±3.5px`, `ooze-glint.png` sweeps diagonally across the plate, and the circular Mutagen play disc brightens; press punches cleanly down to `#DFB517`.
+- **Secondary moments:** Details row charcoal wash + sliding Mutagen `▸` pointer & springing dual-chromatic selection bar; Grid cover chromatic corner-bracket lock + Vermilion tape select tab + staggered `48×48` circular badge pops; Sidebar white-outlined Mutagen active plate; TreeView bare-row wash + `2px` Mutagen bar; CheckBox circular-ink snap (`BackEase`); Slider Mutagen vial fill & `<` `>` chevron glow; TabControl Golden Marker tape bar.
+- **Durations & Easing:** Fast `110ms` (hovers, press, menu callouts), Base `180ms` (`BackEase` amplitude `0.3` for punchy sketchbook snaps, `CubicEase` Out for calm list/panel fades), Slow `340ms` (empty-state aura & fade-outs); stagger `50ms`. Entrance direction: snappy left-to-right comic slash.
+
+## 7. Brand & Restraint
+
+- **Name:** **Canister** — original unofficial fan theme inspired by *TMNT: Mutants Unleashed* (2024), evoking both mutagen canisters and street-art aerosol cans. Ships `info/NOTICE-Canister.txt` with zero trademarks or owner artwork.
+- **Brand Mark:** Original **Cracked Mutagen Canister** vector emblem (`art/mark.svg`, `BrandMarkTemplate`, `info/icon.png` rendered in standard `#FF7A1A`) — canted canister cylinder split by a jagged mutagen crack with three splash droplets.
+- **`GameBannerTintBrush`:** Solid Deep Sewer Green-Charcoal (`#112316`, no alpha).
+- **Restraint:** Library list (`#0D0F12`), cover grid ground (`#0D0F12`), and metadata notebook body (`#F1EDE2`) stay clean, crisp, and legible — `5%` chalk grain, `8%` notebook lines, and `10%` splatter mist live only in margins and sparse chrome, never obscuring game covers or copy.

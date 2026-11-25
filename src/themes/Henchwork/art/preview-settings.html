@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Henchwork — settings preview</title>
+<!-- Henchwork settings window. Unofficial Evil Genius 2-inspired fan theme; no game logos or assets.
+     Colours come from src/tokens.css (injected by scripts/render-theme-preview.mjs). -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; display: grid; place-items: center;
+         font-family: var(--hw-font-body); font-size: 15px; color: var(--hw-text);
+         background:
+           repeating-linear-gradient(0deg, transparent 0 39px, var(--hw-grid) 39px 40px),
+           repeating-linear-gradient(90deg, transparent 0 39px, var(--hw-grid) 39px 40px),
+           var(--hw-blueprint); }
+  svg { display: block; }
+  .ic { width: 16px; height: 16px; fill: currentColor; fill-rule: evenodd; }
+
+  .window { width: 920px; height: 700px; display: flex; flex-direction: column; background: var(--hw-blueprint);
+            border: 2px solid var(--hw-ink); border-radius: var(--hw-radius-large); box-shadow: 5px 5px 0 var(--hw-ink); overflow: hidden; }
+
+  /* Title band: HUD navy with blueprint grid, vault-eye mark tile, skewed mustard tape */
+  .title-bar { height: 44px; flex: none; position: relative; display: flex; align-items: center; gap: 12px; padding: 0 0 0 10px;
+               background:
+                 repeating-linear-gradient(0deg, transparent 0 11px, var(--hw-grid) 11px 12px),
+                 repeating-linear-gradient(90deg, transparent 0 11px, var(--hw-grid) 11px 12px),
+                 var(--hw-hud);
+               border-bottom: 2px solid var(--hw-ink); }
+  .mark { width: 28px; height: 28px; border-radius: var(--hw-radius); background: var(--hw-mustard); color: var(--hw-text-ink);
+          display: grid; place-items: center; box-shadow: 2px 2px 0 var(--hw-ink); }
+  .mark .ic { width: 22px; height: 22px; }
+  .tape { height: 26px; display: flex; align-items: center; padding: 0 14px 0 12px; background: var(--hw-mustard-tape); color: var(--hw-text-ink);
+          font-weight: 700; font-size: 17px; transform: rotate(-2deg); box-shadow: 0 3px 0 var(--hw-mustard-deep); }
+  .wbtns { margin-left: auto; display: flex; height: 100%; align-items: center; gap: 4px; padding-right: 8px; }
+  .wb { width: 30px; height: 28px; margin-top: 0; display: grid; place-items: center; border-radius: var(--hw-radius); color: var(--hw-text-muted); }
+  .wb.close { background: var(--hw-orange); color: var(--hw-text-ink); box-shadow: 2px 2px 0 var(--hw-ink); }
+
+  .body { flex: 1; display: flex; min-height: 0; }
+
+  /* Section tree */
+  .tree { width: 260px; flex: none; background: var(--hw-hud); border-right: 2px solid var(--hw-ink); padding: 6px 0; overflow: hidden; }
+  .node { height: 28px; display: flex; align-items: center; padding-left: 26px; position: relative; color: var(--hw-text-muted); font-size: 15px; }
+  .node.open::before { content: ""; position: absolute; left: 11px; top: 10px; border: 5px solid transparent; border-top: 6px solid var(--hw-mustard); }
+  .node.child { padding-left: 42px; }
+  .node.hover { background: var(--hw-slate); color: var(--hw-text); }
+  .node.sel { background: var(--hw-slate-hi); color: var(--hw-text); font-weight: 600; }
+  .node.sel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--hw-mustard); }
+  .node.sel::after { content: ""; position: absolute; left: 26px; top: 10px; width: 8px; height: 8px; background: var(--hw-mustard);
+                     transform: rotate(45deg); box-shadow: 1px 1px 0 var(--hw-ink); }
+
+  /* Section page */
+  .page { flex: 1; padding: 16px 24px; overflow: hidden; background: var(--hw-slate); }
+  .band { height: 28px; display: flex; align-items: center; padding: 0 10px; margin: 0 -8px 10px; background: var(--hw-hud);
+          font-weight: 700; font-size: 14px; color: var(--hw-text); }
+  .row { display: flex; align-items: center; min-height: 40px; gap: 16px; }
+  .row label { width: 210px; flex: none; color: var(--hw-text); }
+  .input { width: 280px; height: 32px; padding: 0 10px; display: flex; align-items: center; background: var(--hw-ink);
+           border: 1px solid var(--hw-slate-line); border-radius: var(--hw-radius); color: var(--hw-text); }
+  .input.focus { border-color: var(--hw-mustard); box-shadow: 0 0 0 1px var(--hw-mustard); }
+  .combo { justify-content: space-between; background: var(--hw-slate-hi); border-color: var(--hw-ink); box-shadow: 0 2px 0 var(--hw-ink); padding-right: 12px; }
+  .combo .chev { width: 0; height: 0; border: 6px solid transparent; border-top: 7px solid var(--hw-mustard); margin-top: 6px; }
+  .check { width: 20px; height: 20px; border-radius: var(--hw-radius-small); background: var(--hw-ink); border: 1px solid var(--hw-slate-line);
+           display: grid; place-items: center; }
+  .check.on { background: var(--hw-mustard); border-color: var(--hw-ink); box-shadow: 2px 2px 0 var(--hw-ink); }
+  .check.on svg { width: 14px; height: 14px; fill: var(--hw-text-ink); }
+  .radios { display: flex; gap: 22px; align-items: center; }
+  .radios span { display: flex; gap: 9px; align-items: center; }
+  .radio { width: 16px; height: 16px; transform: rotate(45deg); background: var(--hw-ink); border: 1px solid var(--hw-slate-line); display: grid; place-items: center; }
+  .radio.on { border-color: var(--hw-mustard); }
+  .radio.on::after { content: ""; width: 8px; height: 8px; background: var(--hw-mustard); }
+  .slider { width: 280px; height: 8px; background: var(--hw-ink); border-radius: var(--hw-radius-small); position: relative; }
+  .slider i { position: absolute; left: 0; top: 0; bottom: 0; width: 58%; background: var(--hw-mustard-deep); border-radius: var(--hw-radius-small); }
+  .slider b { position: absolute; left: 58%; top: -7px; width: 14px; height: 22px; margin-left: -7px; border-radius: var(--hw-radius-small);
+              background: var(--hw-mustard); box-shadow: 2px 2px 0 var(--hw-ink);
+              background-image: linear-gradient(var(--hw-mustard-deep), var(--hw-mustard-deep)); background-size: 6px 2px; background-repeat: no-repeat; background-position: center; }
+  .val { font-family: var(--hw-font-mono); font-size: 14px; color: var(--hw-lime); background: var(--hw-hud); padding: 2px 7px; border-radius: var(--hw-radius); }
+  .val .z { color: var(--hw-slate-line); }
+  .btn { height: 32px; padding: 0 18px; display: flex; align-items: center; border-radius: var(--hw-radius); font-weight: 700;
+         font-size: 15px; background: var(--hw-slate-hi); color: var(--hw-text); box-shadow: 0 2px 0 var(--hw-ink); }
+  .btn.primary { background: var(--hw-mustard); color: var(--hw-text-ink); box-shadow: 2px 2px 0 var(--hw-ink); }
+  .btn.hover { background: var(--hw-slate-line); }
+
+  .bottom { height: 50px; flex: none; border-top: 2px solid var(--hw-ink); display: flex; align-items: center; padding: 0 14px; gap: 10px; background: var(--hw-hud); }
+  .note { margin-right: auto; font-size: 14px; color: var(--hw-text-muted); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <path id="i-mark" d="M12 1.5a10.5 10.5 0 1 1 0 21 10.5 10.5 0 0 1 0-21zm0 2.5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zm0 2.3a1.7 1.7 0 0 0-.9 3.15L10.5 16h3l-.6-4.05A1.7 1.7 0 0 0 12 8.8z"/>
+    <path id="i-tick" d="M2.5 12.5l3-3 4 4 9-9 3 3-12 12z"/>
+    <path id="i-x" d="M5 3l7 7 7-7 2 2-7 7 7 7-2 2-7-7-7 7-2-2 7-7-7-7z"/>
+    <path id="i-gear" d="M10.5 2h3l.5 2.6 2 .9 2.2-1.5 2.1 2.1-1.5 2.2.9 2 2.6.5v3l-2.6.5-.9 2 1.5 2.2-2.1 2.1-2.2-1.5-2 .9-.5 2.6h-3l-.5-2.6-2-.9-2.2 1.5-2.1-2.1 1.5-2.2-.9-2L2 13.5v-3l2.6-.5.9-2L4 5.8l2.1-2.1 2.2 1.5 2-.9zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>
+  </defs>
+</svg>
+<div class="window" data-part="settings-window">
+  <div class="title-bar" data-grunge="--hw-slate,.5" data-sketch="--hw-ink" data-sides="b">
+    <div class="mark" data-grunge="--hw-mustard-deep,.4,96"><svg class="ic" viewBox="0 0 24 24"><use href="#i-mark"/></svg></div>
+    <div class="tape" data-torn data-grunge="--hw-mustard-deep,.35,96"><span>Settings</span></div>
+    <div class="wbtns">
+      <div class="wb">&#8211;</div><div class="wb">&#9633;</div>
+      <div class="wb close"><svg class="ic" viewBox="0 0 24 24" style="width:12px;height:12px"><use href="#i-x"/></svg></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="tree" data-part="settings-nav">
+      <div class="node">General</div>
+      <div class="node open">Appearance</div>
+      <div class="node child sel">General</div>
+      <div class="node child hover">Advanced</div>
+      <div class="node child">Details View</div>
+      <div class="node child">Grid View</div>
+      <div class="node child">List View</div>
+      <div class="node child">Layout</div>
+      <div class="node child">Top panel</div>
+      <div class="node">Search</div>
+      <div class="node">Updating</div>
+      <div class="node">Metadata</div>
+      <div class="node">Sorting</div>
+      <div class="node">Scripts</div>
+      <div class="node">Auto Close Clients</div>
+      <div class="node">Import Exclusion List</div>
+      <div class="node">Backup</div>
+      <div class="node">For developers</div>
+      <div class="node">Input</div>
+      <div class="node open">Advanced</div>
+      <div class="node child">Performance</div>
+    </div>
+    <div class="page" data-part="settings-content" data-contours="--hw-slate-line,.25" data-grunge="--hw-ink,.25">
+      <div class="band">Appearance</div>
+      <div class="row"><label>Desktop theme</label><div class="input combo">Henchwork<span class="chev"></span></div></div>
+      <div class="row"><label>Font size</label><div class="slider"><i></i><b></b></div><span class="val"><span class="z">0</span>15</span></div>
+      <div class="row"><label>Library folder</label><div class="input focus">D:\Games\Lair</div></div>
+      <div class="row"><label>Show notification panel</label><div class="check on"><svg viewBox="0 0 24 24"><use href="#i-tick"/></svg></div></div>
+      <div class="row"><label>Show names under covers</label><div class="check"></div></div>
+      <div class="row"><label>Animations</label><div class="radios"><span><i class="radio on"></i>Standard</span><span><i class="radio"></i>Reduced motion</span></div></div>
+      <div class="row"><label>Backup</label><div class="btn hover">Browse...</div></div>
+    </div>
+  </div>
+  <div class="bottom" data-part="settings-buttons">
+    <div class="note">* Requires restart to apply</div>
+    <div class="btn primary">Save</div>
+    <div class="btn">Cancel</div>
+  </div>
+</div>
+<style>
+  .fxl { position: absolute; display: block; pointer-events: none; }
+  :where([data-grunge], [data-contours], [data-hatch-band], [data-sketch], [data-stamp]) > :where(:not(.fxl)) { position: relative; }
+</style>
+<script>
+/* Henchwork sketch layer: mirrors the XAML texture layers (art/sprites.py masks). */
+(() => {
+  const FX = '../src/Images/fx/';
+  const add = (el, css, first = true) => {
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    const d = document.createElement('i'); d.className = 'fxl'; Object.assign(d.style, css);
+    first ? el.prepend(d) : el.append(d); return d;
+  };
+  const m = (file, size, rep = 'repeat') => ({ webkitMask: `url(${FX}${file}) 0 0 / ${size} ${rep}`, mask: `url(${FX}${file}) 0 0 / ${size} ${rep}` });
+  document.querySelectorAll('[data-grunge]').forEach(el => {
+    const [c, o, s] = el.dataset.grunge.split(',');
+    add(el, { inset: '0', background: `var(${c})`, opacity: o, borderRadius: 'inherit', ...m('grunge.png', `${s || 256}px ${s || 256}px`) });
+  });
+  document.querySelectorAll('[data-contours]').forEach(el => {
+    const [c, o] = el.dataset.contours.split(',');
+    add(el, { inset: '0', background: `var(${c})`, opacity: o || 1, ...m('map-contours.png', '512px 512px') });
+  });
+  document.querySelectorAll('[data-hatch-band]').forEach(el => {
+    const [c, o, top] = el.dataset.hatchBand.split(',');
+    add(el, { left: '0', right: '0', bottom: '0', top, background: `var(${c})`, opacity: o, ...m('hatch-pencil.png', '48px 48px') }, false);
+  });
+  document.querySelectorAll('[data-stamp]').forEach(el => {
+    const [c, o] = el.dataset.stamp.split(',');
+    add(el, { width: '96px', height: '96px', top: '-10px', right: '-8px', background: `var(${c})`, opacity: o, transform: 'rotate(-14deg)', ...m('stamp.png', '96px 96px', 'no-repeat') });
+  });
+  document.querySelectorAll('[data-sketch]').forEach(el => {
+    const c = `var(${el.dataset.sketch})`; const sides = (el.dataset.sides || 'tblr');
+    const h = m('sketch-h.png', '256px 6px', 'repeat-x'), v = m('sketch-v.png', '6px 256px', 'repeat-y');
+    if (sides.includes('t')) add(el, { left: '-2px', right: '-2px', top: '-3px', height: '6px', background: c, ...h }, false);
+    if (sides.includes('b')) add(el, { left: '-3px', right: '-1px', bottom: '-3px', height: '6px', background: c, ...h }, false);
+    if (sides.includes('l')) add(el, { top: '-2px', bottom: '-2px', left: '-3px', width: '6px', background: c, ...v }, false);
+    if (sides.includes('r')) add(el, { top: '-1px', bottom: '-3px', right: '-3px', width: '6px', background: c, ...v }, false);
+  });
+  document.querySelectorAll('[data-torn]').forEach(el => { Object.assign(el.style, m('tape-torn.png', '100% 100%', 'no-repeat')); });
+  document.querySelectorAll('[data-hatch-shadow]').forEach(el => {
+    const reach = el.dataset.hatchShadow || '8';
+    const sh = document.createElement('i'); sh.className = 'fxl';
+    const r = el.getBoundingClientRect(), p = el.offsetParent.getBoundingClientRect();
+    Object.assign(sh.style, { left: `${r.left - p.left + 5}px`, top: `${r.top - p.top + 5}px`, width: `${r.width + +reach - 5}px`, height: `${r.height + +reach - 5}px`,
+      background: 'var(--hw-slate-line)', zIndex: getComputedStyle(el).zIndex === 'auto' ? '0' : `${+getComputedStyle(el).zIndex - 1}`, ...m('hatch-pencil.png', '48px 48px') });
+    el.before(sh);
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+  });
+  document.querySelectorAll('[data-marker]').forEach(el => {
+    add(el, { left: '-4px', right: '-12px', bottom: '-1px', height: '13px', background: `var(${el.dataset.marker})`, opacity: '.85', ...m('marker.png', '100% 100%', 'no-repeat') });
+  });
+})();
+</script>
+</body>
+</html>

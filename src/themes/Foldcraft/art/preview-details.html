@@ -1,0 +1,967 @@
+<!doctype html>
+<!-- Foldcraft: HTML replica of Playnite's Game Details view (1280x720).
+     Inspired by Tearaway (Game UI Database id=1404).
+     Mirrors Foldcraft's Views/TopPanel.xaml order, Sidebar.xaml cutting mat, DetailsViewItemStyle bookmark rows,
+     Ochre-Gold Play CTA (hovered end state), and Accordion-Folded Ivory Cardstock metadata dossier.
+     Colors use var(--fc-*) from src/tokens.css. -->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Foldcraft - Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--fc-paper);
+    color: var(--fc-ink);
+    font-family: "Nunito", "Segoe UI", sans-serif;
+    font-size: 14px;
+    display: flex;
+    position: relative;
+  }
+  svg { fill: currentColor; display: block; }
+
+  /* Distinct layered Tearaway paper textures */
+  .paper-grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--fc-paper-shadow);
+    opacity: 0.16;
+    -webkit-mask-image: url("../src/Images/fx/paper-fibers.png");
+    -webkit-mask-size: 128px 128px;
+    -webkit-mask-repeat: repeat;
+    z-index: 0;
+  }
+  .paper-blueprint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--fc-ink-muted);
+    opacity: 0.11;
+    -webkit-mask-image: url("../src/Images/fx/blueprint-folds.png");
+    -webkit-mask-size: 256px 256px;
+    -webkit-mask-repeat: repeat;
+    z-index: 1;
+  }
+  .list-kraft {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--fc-paper-shadow);
+    opacity: 0.14;
+    -webkit-mask-image: url("../src/Images/fx/corrugated-kraft.png");
+    -webkit-mask-size: 64px 64px;
+    -webkit-mask-repeat: repeat;
+    z-index: 0;
+  }
+  .card-creases {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--fc-paper-shadow);
+    opacity: 0.18;
+    -webkit-mask-image: url("../src/Images/fx/accordion-creases.png");
+    -webkit-mask-size: 128px 128px;
+    -webkit-mask-repeat: repeat;
+    z-index: 0;
+  }
+
+  /* Sidebar: 44px compact left rail — Gridded Self-Healing Cutting Mat */
+  .rail {
+    width: 44px;
+    flex: none;
+    background: var(--fc-mat-teal);
+    border-right: 2px solid var(--fc-charcoal);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 20;
+    overflow: hidden;
+  }
+  .rail-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--fc-mat-grid);
+    opacity: 0.14;
+    -webkit-mask-image: url("../src/Images/fx/cutting-mat-grid.png");
+    -webkit-mask-size: 64px 64px;
+    -webkit-mask-repeat: repeat;
+  }
+  .rail-menu {
+    width: 42px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    background: var(--fc-paper-bright);
+    color: var(--fc-mat-teal);
+    border-bottom: 2px solid var(--fc-cerulean);
+    box-shadow: inset 0 -3px 0 var(--fc-paper-fold);
+  }
+  .rail-menu svg { width: 22px; height: 22px; }
+  .rail-item {
+    width: 42px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fc-rail-muted);
+    position: relative;
+    z-index: 2;
+    margin-top: 4px;
+  }
+  .rail-item svg { width: 16px; height: 16px; }
+  /* Active radial-inspired construction-paper bookmark tab on rail */
+  .rail-item.active {
+    background: var(--fc-mint-select);
+    color: var(--fc-ink);
+    border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0;
+    margin-right: 2px;
+    box-shadow: 0 2px 0 var(--fc-charcoal);
+  }
+  .rail-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 3px;
+    background: var(--fc-emerald);
+  }
+  .rail-bottom-tabs {
+    margin-top: auto;
+    padding: 8px 0 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+    z-index: 2;
+  }
+  .fan-strip {
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 0 2px 2px 0;
+    opacity: 0.9;
+  }
+
+  .main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Top panel: 50px HUD Torn Charcoal Strip with deckled scissor rim */
+  .top-bar {
+    height: 50px;
+    flex: none;
+    background: var(--fc-charcoal);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    position: relative;
+    z-index: 15;
+    border-bottom: 2px solid var(--fc-deckle-rim);
+  }
+  .top-deckle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -9px;
+    height: 9px;
+    background: var(--fc-charcoal);
+    -webkit-mask-image: url("../src/Images/fx/deckle-edge-h.png");
+    -webkit-mask-size: 256px 10px;
+    -webkit-mask-repeat: repeat-x;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+  .search {
+    width: 244px;
+    height: 32px;
+    background: var(--fc-paper-bright);
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: var(--fc-radius);
+    padding: 0 10px;
+    color: var(--fc-ink-muted);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 0 var(--fc-paper-shadow);
+  }
+  .search svg { width: 15px; height: 15px; color: var(--fc-ink-muted); flex: none; }
+  .tool {
+    width: 34px;
+    height: 32px;
+    border-radius: var(--fc-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fc-rail-muted);
+    position: relative;
+    flex: none;
+  }
+  .tool svg { width: 16px; height: 16px; }
+  /* Active view switch: Crisp white PAPERCRAFT tab with dark ink */
+  .tool.on {
+    background: var(--fc-paper-bright);
+    color: var(--fc-ink);
+    box-shadow: 0 2px 0 var(--fc-cerulean);
+  }
+  .filter-pip {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    background: var(--fc-magenta);
+    transform: rotate(45deg);
+    border: 1px solid var(--fc-paper-bright);
+  }
+  .items {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .top-divider {
+    width: 1.5px;
+    height: 18px;
+    background: var(--fc-deckle-rim);
+    opacity: 0.35;
+    margin: 0 3px;
+  }
+
+  /* Curled Sky-Blue Confetti Ribbon global progress indicator on right of top bar */
+  .progress-ribbon {
+    margin-left: auto;
+    margin-right: 12px;
+    width: 140px;
+    height: 12px;
+    background: var(--fc-charcoal-hi);
+    border: 1px solid var(--fc-deckle-rim);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .progress-fill {
+    width: 68%;
+    height: 100%;
+    background: var(--fc-sky-ribbon);
+    border-right: 2px solid var(--fc-gold-seal);
+  }
+  .win-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .win-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fc-rail-muted);
+  }
+  .win-btn.close {
+    background: var(--fc-cardstock-disc);
+    color: var(--fc-ink);
+  }
+  .win-btn svg { width: 12px; height: 12px; }
+
+  .view {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
+
+  /* Details view: Calm fibrous craft paper game list */
+  .game-list {
+    width: 272px;
+    flex: none;
+    border-right: 1.5px solid var(--fc-paper-edge);
+    background: var(--fc-paper);
+    overflow: hidden;
+    padding: 8px 6px 8px 0;
+    position: relative;
+    z-index: 2;
+  }
+  .group-header {
+    padding: 6px 12px 4px;
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--fc-ink-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .group-header::after {
+    content: "";
+    flex: 1;
+    height: 1.5px;
+    background: var(--fc-paper-shadow);
+  }
+  .game-row {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 10px 0 12px;
+    color: var(--fc-ink);
+    font-size: 13.5px;
+    position: relative;
+    border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0;
+    margin-bottom: 1px;
+  }
+  .game-row .gicon {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    flex: none;
+    border: 1px solid var(--fc-paper-edge);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fc-paper-bright);
+  }
+  /* Selected row: Seafoam-Mint Bookmark Strip with Deep Cutting-Mat Teal left fold bar */
+  .game-row.sel {
+    background: var(--fc-mint-select);
+    color: var(--fc-ink-on-mint);
+    font-weight: 700;
+    box-shadow: 0 2px 0 var(--fc-paper-shadow);
+  }
+  .game-row.sel::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--fc-mat-teal);
+  }
+  .row-pointer {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 6px solid var(--fc-mat-teal);
+    flex: none;
+  }
+  /* Running game row indicator: Confetti Electric Cobalt frame & diamond confetti */
+  .game-row.running {
+    border: 1.5px solid var(--fc-cobalt-run);
+    font-weight: 700;
+  }
+  .game-row.running::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--fc-cobalt-run);
+    opacity: 0.14;
+    pointer-events: none;
+  }
+  .run-dots {
+    margin-left: auto;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .run-dots span {
+    width: 6px;
+    height: 6px;
+    background: var(--fc-cobalt-run);
+    transform: rotate(45deg);
+    display: block;
+  }
+  .run-dots span:nth-child(2) { background: var(--fc-sky-ribbon); transform: rotate(22deg) translateY(-1px); }
+
+  /* Game Page */
+  .game-page {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    background: var(--fc-paper);
+  }
+  .hero-banner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 270px;
+    /* Layered papercraft hillside & craft sky placeholder art */
+    background:
+      radial-gradient(circle at 80% 28%, #FFE07D 0%, #FFE07D 34px, transparent 36px),
+      linear-gradient(168deg, transparent 52%, #7FC5A8 52.5%, #7FC5A8 68%, transparent 68.5%),
+      linear-gradient(190deg, transparent 58%, #2AA18A 58.5%, #2AA18A 78%, transparent 78.5%),
+      linear-gradient(175deg, transparent 70%, #0E6E68 70.5%),
+      linear-gradient(to bottom, #63C3DF 0%, #B8E7E3 68%, #EFECE4 100%);
+  }
+  .hero-wash {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 42%, var(--fc-paper) 96%);
+  }
+  .page-body {
+    position: relative;
+    padding: 132px 26px 0;
+    z-index: 2;
+  }
+  .header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .title-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .game-stamp {
+    width: 52px;
+    height: 52px;
+    flex: none;
+    background: var(--fc-paper-bright);
+    border: 2px dashed var(--fc-paper-edge);
+    border-radius: 3px;
+    padding: 4px;
+    box-shadow: 3px 3px 0 var(--fc-paper-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .game-stamp-inner {
+    width: 100%;
+    height: 100%;
+    background: var(--fc-mat-teal);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fc-ochre);
+  }
+  .game-stamp-inner svg { width: 26px; height: 26px; }
+  .game-title {
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    color: var(--fc-ink);
+    text-shadow: 2px 2px 0 var(--fc-paper-bright);
+  }
+  .action-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex: none;
+  }
+  /* HERO MOMENT staged in hovered end state: Ochre-Gold cutout paper pill */
+  .play-btn {
+    height: 42px;
+    min-width: 146px;
+    padding: 0 24px;
+    background: var(--fc-ochre-hi);
+    color: var(--fc-ink);
+    border: 1.5px solid var(--fc-ochre-press);
+    border-radius: var(--fc-radius);
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 var(--fc-ochre-press), 0 0 0 2px var(--fc-gold-seal);
+  }
+  .play-btn-sheen {
+    position: absolute;
+    inset: 0;
+    background: var(--fc-paper-bright);
+    opacity: 0.45;
+    -webkit-mask-image: url("../src/Images/fx/paper-sheen.png");
+    -webkit-mask-size: 160px 48px;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: 62% 0;
+    pointer-events: none;
+  }
+  .play-btn-corner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 11px 11px 0;
+    border-color: transparent var(--fc-paper-bright) transparent transparent;
+  }
+  .play-btn svg { width: 14px; height: 14px; position: relative; z-index: 1; }
+  .play-btn span { position: relative; z-index: 1; }
+  .sub-btn {
+    height: 40px;
+    width: 40px;
+    background: var(--fc-paper-bright);
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: var(--fc-radius);
+    color: var(--fc-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 0 var(--fc-paper-shadow);
+  }
+  .sub-btn svg { width: 17px; height: 17px; }
+
+  .columns {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+  }
+  .left-col {
+    flex: 1;
+    min-width: 0;
+  }
+  .screenshots-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .screen-thumb {
+    flex: 1;
+    height: 98px;
+    background: var(--fc-paper-bright);
+    padding: 4px;
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: 3px;
+    box-shadow: 2px 3px 0 var(--fc-paper-shadow);
+    position: relative;
+  }
+  .screen-thumb:nth-child(2) { transform: rotate(-0.8deg); }
+  .screen-thumb:nth-child(3) { transform: rotate(0.9deg); }
+  .screen-art {
+    width: 100%;
+    height: 100%;
+    border-radius: 2px;
+  }
+  .dog-ear {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 14px 14px 0;
+    border-color: transparent var(--fc-cerulean) transparent transparent;
+  }
+
+  .desc-card {
+    background: var(--fc-paper-bright);
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: var(--fc-radius);
+    padding: 14px 16px;
+    box-shadow: 2px 3px 0 var(--fc-paper-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .desc-card > * { position: relative; z-index: 1; }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .section-pip {
+    width: 8px;
+    height: 8px;
+    background: var(--fc-magenta);
+    transform: rotate(45deg);
+    flex: none;
+  }
+  .desc-heading {
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    color: var(--fc-ink);
+  }
+  .section-rule {
+    flex: 1;
+    height: 2px;
+    background: var(--fc-magenta);
+    opacity: 0.7;
+  }
+  .desc-text {
+    color: var(--fc-ink);
+    line-height: 1.55;
+    font-size: 13.5px;
+    margin-bottom: 8px;
+  }
+  .desc-text:last-child { margin-bottom: 0; }
+  .desc-highlight { color: var(--fc-cerulean-link); font-weight: 700; }
+
+  /* Metadata Pane: Accordion-Folded Ivory Cardstock Dossier */
+  .meta {
+    width: 320px;
+    flex: none;
+    background: var(--fc-paper-card);
+    border: 1.5px solid var(--fc-paper-edge);
+    border-radius: var(--fc-radius);
+    padding: 14px 16px;
+    position: relative;
+    box-shadow: 3px 3px 0 var(--fc-paper-shadow);
+    overflow: hidden;
+  }
+  /* Two vertical accordion fold crease seams across the ivory sheet */
+  .fold-seam-1, .fold-seam-2 {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    pointer-events: none;
+    background: linear-gradient(to right, rgba(196, 186, 159, 0.55), rgba(250, 248, 243, 0.45));
+  }
+  .fold-seam-1 { left: 33.3%; }
+  .fold-seam-2 { left: 66.6%; }
+
+  .meta-group {
+    padding: 8px 0;
+    border-top: 1.5px dashed var(--fc-paper-edge);
+    position: relative;
+    z-index: 1;
+  }
+  .meta-group:first-child { padding-top: 0; border-top: 0; }
+  .meta-group:last-child { padding-bottom: 0; }
+  .meta-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 2.5px 0;
+    font-size: 13px;
+  }
+  .meta-label {
+    width: 96px;
+    flex: none;
+    color: var(--fc-ink-muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .meta-val { color: var(--fc-ink); font-weight: 600; }
+  .meta-link { color: var(--fc-cerulean-link); font-weight: 700; }
+  .score-row { display: flex; gap: 10px; }
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--fc-paper-bright);
+    border: 1.5px solid var(--fc-emerald);
+    border-radius: var(--fc-radius-sm);
+    padding: 1px 7px;
+    font-family: "Oswald", "Barlow Condensed", sans-serif;
+    font-size: 14px;
+    color: var(--fc-emerald);
+  }
+  .score-badge.gold { border-color: var(--fc-ochre-press); color: var(--fc-tangerine); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  /* Unique Hand-Cut Swallowtail Ribbon Craft Tag with punched eyelet & fold crease */
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(120deg, var(--fc-paper-bright) 0%, var(--fc-paper-bright) 74%, var(--fc-paper-card) 75%);
+    border-top: 1.5px solid var(--fc-paper-edge);
+    border-bottom: 1.5px solid var(--fc-paper-edge);
+    border-left: 4px solid var(--fc-cerulean);
+    padding: 2px 13px 2px 18px;
+    font-size: 12px;
+    color: var(--fc-ink);
+    font-weight: 700;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%);
+    filter: drop-shadow(2px 2px 0 var(--fc-paper-shadow));
+  }
+  .chip::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin-top: -3px;
+    border-radius: 50%;
+    background: var(--fc-paper);
+    border: 1.2px solid var(--fc-paper-edge);
+  }
+  .chip.hot { border-left-color: var(--fc-magenta); }
+
+  /* Textured stitched-cardstock buttons, sunken paper-slot inputs, ribbon-tab dropdowns */
+  .input, .btn, .sub-btn, .search { position: relative; }
+  .input::before, .btn::before, .sub-btn::before, .search::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: var(--fc-paper-shadow); opacity: 0.3;
+    -webkit-mask-image: url("../src/Images/fx/paper-fibers.png");
+    -webkit-mask-size: 128px 128px; -webkit-mask-repeat: repeat;
+  }
+  .btn::after, .sub-btn::after {
+    content: ""; position: absolute; inset: 3px; pointer-events: none;
+    border: 1px dashed var(--fc-paper-edge); border-radius: 2px; opacity: 0.8;
+  }
+  .btn.primary::after { border-color: var(--fc-ochre-press); }
+  .input, .search {
+    box-shadow: inset 0 4px 5px -3px var(--fc-paper-shadow), inset 0 -2px 0 var(--fc-paper-card);
+  }
+  .combo-chevron { position: relative; border-left: 0; margin: 1.5px 0; height: calc(100% - 3px); }
+  .combo-chevron::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: var(--fc-paper-bright); opacity: 0.35;
+    -webkit-mask-image: url("../src/Images/fx/paper-fibers.png");
+    -webkit-mask-size: 128px 128px;
+  }
+  .combo-chevron::after {
+    content: ""; position: absolute; left: 2px; top: 3px; bottom: 3px;
+    border-left: 1px dashed var(--fc-paper-bright);
+  }
+  .page-collage {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 240px;
+    height: 185px;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .page-collage svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="paper-grain"></div>
+
+<!-- Left 44px Self-Healing Cutting Mat Rail -->
+<div class="rail" data-part="sidebar">
+  <div class="rail-grid"></div>
+  <div class="rail-menu" data-part="PART_ElemMainMenu" title="Main menu">
+    <svg viewBox="0 0 24 24"><path d="M12,1.5 L15.4,4.9 L20.2,3.8 L19.1,8.6 L22.5,12 L19.1,15.4 L20.2,20.2 L15.4,19.1 L12,22.5 L8.6,19.1 L3.8,20.2 L4.9,15.4 L1.5,12 L4.9,8.6 L3.8,3.8 L8.6,4.9 Z M12,5.8 L14.5,9.5 L18.2,12 L14.5,14.5 L12,18.2 L9.5,14.5 L5.8,12 L9.5,9.5 Z M12,9.2 L14.8,12 L12,14.8 L9.2,12 Z"/></svg>
+  </div>
+  <div class="rail-item active" title="Library">
+    <svg viewBox="0 0 24 24"><path d="M3,3 H10.5 V10.5 H3 Z M13.5,3 H21 V10.5 H13.5 Z M3,13.5 H10.5 V21 H3 Z M13.5,13.5 H21 V21 H13.5 Z"/></svg>
+  </div>
+  <div class="rail-item" title="Statistics">
+    <svg viewBox="0 0 24 24"><path d="M3,19 H21 V21.5 H3 Z M4.5,12 H8.5 V18 H4.5 Z M10,7 H14 V18 H10 Z M15.5,3.5 H19.5 V18 H15.5 Z"/></svg>
+  </div>
+  <div class="rail-item" title="Discover">
+    <svg viewBox="0 0 24 24"><path d="M12,2.5 L15.2,9 L22,12 L15.2,15 L12,21.5 L8.8,15 L2,12 L8.8,9 Z M12,8.5 L10,12 L12,15.5 L14,12 Z"/></svg>
+  </div>
+  <div class="rail-bottom-tabs">
+    <div class="fan-strip" style="background: var(--fc-mint-bright);"></div>
+    <div class="fan-strip" style="background: var(--fc-ochre);"></div>
+    <div class="fan-strip" style="background: var(--fc-cerulean);"></div>
+    <div class="fan-strip" style="background: var(--fc-magenta);"></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Top 50px HUD Torn Charcoal Strip -->
+  <div class="top-bar" data-part="top-panel">
+    <div class="top-deckle"></div>
+    <div class="search" data-part="PART_TextMainSearch">
+      <svg viewBox="0 0 24 24"><path d="M10.5,3 A7.5,7.5 0 1,0 10.5,18 A7.5,7.5 0 1,0 10.5,3 Z M10.5,5.6 A4.9,4.9 0 1,1 10.5,15.4 A4.9,4.9 0 1,1 10.5,5.6 Z M16.2,14.5 L21.5,19.8 L19.8,21.5 L14.5,16.2 Z"/></svg>
+      <span>Search library...</span>
+    </div>
+    <div class="tool" data-part="PART_ToggleFilter" title="Filter">
+      <svg viewBox="0 0 24 24"><path d="M3,4 H21 L14,12.5 V20.5 L10,18.2 V12.5 Z"/></svg>
+      <span class="filter-pip"></span>
+    </div>
+    <div class="top-divider"></div>
+    <!-- Sorting first, then icon-only view switches, group, and view settings -->
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool" title="Sort"><svg viewBox="0 0 24 24"><path d="M3,5.5 H14 V8 H3 Z M3,11 H11 V13.5 H3 Z M3,16.5 H8 V19 H3 Z M16.5,4.5 H19 V15.5 L21.5,13 L23,14.5 L17.75,20 L12.5,14.5 L14,13 L16.5,15.5 Z"/></svg></div>
+      <div class="tool on" title="Details view"><svg viewBox="0 0 24 24"><path d="M3,4 H9 V20 H3 Z M11,4 H21 V9.5 H11 Z M11,11.5 H21 V14.5 H11 Z M11,16.5 H18.5 V20 H11 Z"/></svg></div>
+      <div class="tool" title="Grid view"><svg viewBox="0 0 24 24"><path d="M3,3 H10.5 V10.5 H3 Z M13.5,3 H21 V10.5 H13.5 Z M3,13.5 H10.5 V21 H3 Z M13.5,13.5 H21 V21 H13.5 Z"/></svg></div>
+      <div class="tool" title="List view"><svg viewBox="0 0 24 24"><path d="M3,5 H21 V8 H3 Z M3,10.5 H21 V13.5 H3 Z M3,16 H21 V19 H3 Z"/></svg></div>
+      <div class="tool" title="Group"><svg viewBox="0 0 24 24"><path d="M3,4 H10.5 V10 H3 Z M12.5,5.5 H21 V8.5 H12.5 Z M3,14 H10.5 V20 H3 Z M12.5,15.5 H21 V18.5 H12.5 Z"/></svg></div>
+      <div class="tool" title="View settings"><svg viewBox="0 0 24 24"><path d="M3,5.5 H21 V7.5 H3 Z M6.5,3.5 H10 V9.5 H6.5 Z M3,11 H21 V13 H3 Z M14,9 H17.5 V15 H14 Z M3,16.5 H21 V18.5 H3 Z M8.5,14.5 H12 V20.5 H8.5 Z"/></svg></div>
+    </div>
+    <div class="tool" data-part="PART_ToggleNotifications" title="Notifications">
+      <svg viewBox="0 0 24 24"><path d="M12,3 C8.5,3 6,5.5 6,9 V14.5 L3.5,17 V18.5 H20.5 V17 L18,14.5 V9 C18,5.5 15.5,3 12,3 Z M9.5,19.8 H14.5 A2.5,2.5 0 0,1 9.5,19.8 Z"/></svg>
+    </div>
+    <div class="progress-ribbon" title="Scanning craft library">
+      <div class="progress-fill"></div>
+    </div>
+    <div class="win-controls">
+      <div class="win-btn"><svg viewBox="0 0 24 24"><path d="M4,11 H20 V13.5 H4 Z"/></svg></div>
+      <div class="win-btn"><svg viewBox="0 0 24 24"><path d="M4,4 H20 V20 H4 Z M6.5,6.5 V17.5 H17.5 V6.5 Z"/></svg></div>
+      <div class="win-btn close"><svg viewBox="0 0 24 24"><path d="M5.5,4 L12,10.5 L18.5,4 L20,5.5 L13.5,12 L20,18.5 L18.5,20 L12,13.5 L5.5,20 L4,18.5 L10.5,12 L4,5.5 Z"/></svg></div>
+    </div>
+  </div>
+
+  <div class="view">
+    <!-- Left Details Game List -->
+    <div class="game-list" data-part="game-list">
+      <div class="list-kraft"></div>
+      <div class="paper-grain" style="opacity: 0.11;"></div>
+      <div class="group-header" style="position: relative; z-index: 1;">INSTALLED (11)</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-tangerine);">A</span>Acorns in the Attic</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-emerald);">C</span>Cardstock Caravan</div>
+      <div class="game-row running"><span class="gicon" style="background: var(--fc-cobalt-run);">P</span>Paper Crown Quest<span class="run-dots"><span></span><span></span><span></span></span></div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-magenta);">O</span>Origami Express</div>
+      <div class="game-row sel"><span class="row-pointer"></span><span class="gicon" style="background: var(--fc-mat-teal);">V</span>Valley of Folds</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-ochre-press);">G</span>Gluepot Hollow</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-cerulean);">R</span>Ribbon Ridge</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-charcoal);">S</span>Scissors &amp; Twine</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-amber-mix);">T</span>Tassel Town</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-crimson);">C</span>Confetti Crossing</div>
+      <div class="game-row"><span class="gicon" style="background: var(--fc-mat-teal-hi);">B</span>Bookmark Harbor</div>
+      <div class="group-header" style="margin-top: 8px;">NOT INSTALLED (5)</div>
+      <div class="game-row" style="color: var(--fc-ink-muted);"><span class="gicon" style="background: var(--fc-cardstock-grey); color: var(--fc-ink);">D</span>Deckle Peak</div>
+      <div class="game-row" style="color: var(--fc-ink-muted);"><span class="gicon" style="background: var(--fc-cardstock-grey); color: var(--fc-ink);">P</span>Pulpwood Isle</div>
+      <div class="game-row" style="color: var(--fc-ink-muted);"><span class="gicon" style="background: var(--fc-cardstock-grey); color: var(--fc-ink);">S</span>Scrapbook Plains</div>
+      <div class="game-row" style="color: var(--fc-ink-muted);"><span class="gicon" style="background: var(--fc-cardstock-grey); color: var(--fc-ink);">V</span>Vellum Voyage</div>
+    </div>
+
+    <!-- Right Game Page -->
+    <div class="game-page" data-part="game-page">
+      <div class="paper-grain"></div>
+      <div class="paper-blueprint"></div>
+      <div class="page-collage">
+        <svg viewBox="0 0 240 185" preserveAspectRatio="none">
+          <polygon points="240,185 240,18 74,185" fill="var(--fc-mint-select)" opacity="0.45"/>
+          <polygon points="240,185 240,56 112,185" fill="var(--fc-cerulean)" opacity="0.32"/>
+          <polygon points="240,185 240,96 152,185" fill="var(--fc-ochre)" opacity="0.42"/>
+          <polygon points="240,185 240,134 190,185" fill="var(--fc-magenta)" opacity="0.34"/>
+          <line x1="74" y1="185" x2="240" y2="18" stroke="var(--fc-paper-edge)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="112" y1="185" x2="240" y2="56" stroke="var(--fc-paper-bright)" stroke-width="1.5" opacity="0.65"/>
+        </svg>
+      </div>
+      <div class="hero-banner"><div class="hero-wash"></div></div>
+      <div class="page-body">
+        <div class="header-row">
+          <div class="title-block">
+            <div class="game-stamp">
+              <div class="game-stamp-inner">
+                <svg viewBox="0 0 24 24"><path d="M12,2 L20,8 L17,20 H7 L4,8 Z M12,6 L8.5,11.5 L12,17 L15.5,11.5 Z"/></svg>
+              </div>
+            </div>
+            <div class="game-title">VALLEY OF FOLDS</div>
+          </div>
+          <div class="action-row">
+            <div class="play-btn">
+              <div class="play-btn-sheen"></div>
+              <div class="play-btn-corner"></div>
+              <svg viewBox="0 0 24 24"><path d="M6,4 L20,12 L6,20 Z"/></svg>
+              <span>PLAY</span>
+            </div>
+            <div class="sub-btn" title="More actions">
+              <svg viewBox="0 0 24 24"><path d="M4,10 H8 V14 H4 Z M10,10 H14 V14 H10 Z M16,10 H20 V14 H16 Z"/></svg>
+            </div>
+            <div class="sub-btn" title="Edit game">
+              <svg viewBox="0 0 24 24"><path d="M3.5,17 L15,5.5 L18.5,9 L7,20.5 H3.5 Z M16.4,4.1 L18.2,2.3 L21.7,5.8 L19.9,7.6 Z"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="columns">
+          <div class="left-col">
+            <div class="screenshots-row">
+              <div class="screen-thumb">
+                <div class="screen-art" style="background: linear-gradient(155deg, #28A7DF 0%, #8FD5C8 55%, #D99B26 56%, #B87E15 100%);"></div>
+                <div class="dog-ear"></div>
+              </div>
+              <div class="screen-thumb">
+                <div class="screen-art" style="background: radial-gradient(circle at 60% 35%, #FFE07D, #E91E78 55%, #0B5853 100%);"></div>
+              </div>
+              <div class="screen-thumb">
+                <div class="screen-art" style="background: linear-gradient(135deg, #0E6E68 0%, #5BC28E 52%, #EAE3D2 53%, #C4BA9F 100%);"></div>
+              </div>
+            </div>
+            <div class="desc-card">
+              <div class="paper-grain" style="opacity: 0.12;"></div>
+              <div class="section-head">
+                <span class="section-pip"></span>
+                <div class="desc-heading">DESCRIPTION</div>
+                <div class="section-rule"></div>
+              </div>
+              <p class="desc-text">Journey across a handmade papercraft world folded out of colorful cardstock, accordion valleys, and fluttering confetti bridges. Guide your paper messenger past mischievous <span class="desc-highlight">scraps</span> and unfold new craft patterns to print in the real world.</p>
+              <p class="desc-text">Collect golden star-seals across every chapter, snap tilted instant photos for your album, and decorate hills with custom cut-paper stickers.</p>
+            </div>
+          </div>
+
+          <!-- Accordion-Folded Ivory Cardstock Metadata Dossier -->
+          <div class="meta" data-part="metadata">
+            <div class="paper-grain" style="opacity: 0.12;"></div>
+            <div class="card-creases"></div>
+            <div class="fold-seam-1"></div>
+            <div class="fold-seam-2"></div>
+            <div class="meta-group">
+              <div class="meta-row"><span class="meta-label">Completion</span><span class="meta-val" style="color: var(--fc-emerald);">Completed</span></div>
+              <div class="meta-row"><span class="meta-label">Time Played</span><span class="meta-val" style="color: var(--fc-tangerine);">14h 35m</span></div>
+              <div class="meta-row"><span class="meta-label">Last Played</span><span class="meta-val">Yesterday</span></div>
+            </div>
+            <div class="meta-group">
+              <div class="meta-row">
+                <span class="meta-label">Scores</span>
+                <div class="score-row">
+                  <span class="score-badge">94</span>
+                  <span class="score-badge gold">89</span>
+                  <span class="score-badge">92</span>
+                </div>
+              </div>
+            </div>
+            <div class="meta-group">
+              <div class="meta-row"><span class="meta-label">Developers</span><span class="meta-link">Paperhouse Studio</span></div>
+              <div class="meta-row"><span class="meta-label">Release Date</span><span class="meta-val">22 Nov 2013</span></div>
+              <div class="meta-row"><span class="meta-label">Series</span><span class="meta-link">Foldcraft Stories</span></div>
+            </div>
+            <div class="meta-group">
+              <div class="meta-row">
+                <span class="meta-label">Genres</span>
+                <span class="chips">
+                  <span class="chip">Adventure</span>
+                  <span class="chip hot">Platformer</span>
+                </span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Tags</span>
+                <span class="chips">
+                  <span class="chip">Papercraft</span>
+                  <span class="chip">Cozy</span>
+                </span>
+              </div>
+            </div>
+            <div class="meta-group">
+              <div class="meta-row"><span class="meta-label">Library</span><span class="meta-link">Playnite Craft</span></div>
+              <div class="meta-row"><span class="meta-label">Install Size</span><span class="meta-val">1.42 GB</span></div>
+            </div>
+            <div class="meta-group">
+              <div class="meta-row"><span class="meta-label">Links</span><span class="meta-link">Craft Patterns</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

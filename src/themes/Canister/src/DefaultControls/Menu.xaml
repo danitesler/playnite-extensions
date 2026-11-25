@@ -1,0 +1,348 @@
+<!--
+    Canister: DefaultControls/Menu.xaml.
+    Compact 30px popup rows on LocalCanisterMenuBoardTemplate:
+    - Highlight: Dark mutagen-ink callout plate (#1B2B1B) framed by 1.5px Acid Mutagen top/bottom rails & 3px Golden Marker
+      left edge bar slides in (ScaleX 0.92->1, 110ms BackEase); Golden Marker comic pointer pops in; Icon & label light
+      Golden Marker (11.2:1) and nudge +2px right.
+    - Group break: 10px dashed crimson conspiracy-string rule centered on an Acid Mutagen 4-point star (DividerTemplate).
+    - Shortcuts: Rounded gamepad-prompt comic badges (Consolas Bold Acid Mutagen flipping to dark ink on Golden Marker).
+    - Submenu mark: Sharp hand-inked comic triangle; open submenu holds #1B2B1B + Mutagen left rail without flicker.
+    - Marked rows: Exit (Alt+Q) in Tag Crimson at rest -> solid Tag Crimson comic slab with Chalk White label/icon/badge
+      (>=4.65:1); Checked rows display a circular Acid Mutagen disc with dark ink check.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Group break (<=10px): dashed crimson conspiracy-string rule centered on a 4-point Acid Mutagen star -->
+    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="{x:Type Separator}">
+        <Setter Property="Height" Value="10" />
+        <Setter Property="Margin" Value="8,0,8,0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Separator}">
+                    <Control Template="{DynamicResource DividerTemplate}" VerticalAlignment="Center"
+                             Focusable="False" IsTabStop="False" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Plain popup row (SubmenuItemTemplateKey) -->
+    <ControlTemplate x:Key="{x:Static MenuItem.SubmenuItemTemplateKey}" TargetType="{x:Type MenuItem}">
+        <Grid Height="30" Background="Transparent" SnapsToDevicePixels="True">
+            <!-- Animated comic callout highlight plate -->
+            <Border x:Name="HighlightPlate" Background="{DynamicResource MenuItemHoverBrush}"
+                    BorderBrush="{DynamicResource GlyphBrush}" BorderThickness="0,1.5,0,1.5"
+                    CornerRadius="{DynamicResource CornerRadiusSmall}"
+                    RenderTransformOrigin="0,0.5" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False">
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="HiScaleX" ScaleX="0.92" />
+                </Border.RenderTransform>
+            </Border>
+            <Border x:Name="HighlightBar" Width="3" HorizontalAlignment="Left"
+                    Background="{DynamicResource GiltBrush}"
+                    Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+            <!-- Danger Exit highlight slab -->
+            <Border x:Name="ExitPlate" Background="{DynamicResource DangerBrush}"
+                    CornerRadius="{DynamicResource CornerRadiusSmall}"
+                    Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+            <Grid Margin="6,0,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuShortcutCol" />
+                    <ColumnDefinition Width="14" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Fixed 26px icon / check / pointer column -->
+                <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="22" Height="22">
+                    <!-- Comic pointer shown when highlighted & item has no icon/check -->
+                    <Path x:Name="RowPtr" Width="6" Height="8" HorizontalAlignment="Left" VerticalAlignment="Center"
+                          Margin="-2,0,0,0" Stretch="Uniform" Fill="{DynamicResource GiltBrush}"
+                          Data="M0,0 L8,5 L0,10 Z" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False">
+                        <Path.RenderTransform><TranslateTransform x:Name="PtrX" X="-4" /></Path.RenderTransform>
+                    </Path>
+
+                    <ContentPresenter x:Name="Icon" ContentSource="Icon" Width="16" Height="16"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      TextElement.Foreground="{DynamicResource TextBrushDarker}"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+
+                    <!-- Checked circular Acid Mutagen (checkmark) disc -->
+                    <Border x:Name="CheckDisc" Width="16" Height="16" Visibility="Collapsed"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            CornerRadius="{DynamicResource CornerRadiusFull}"
+                            Background="{DynamicResource GlyphBrush}"
+                            BorderBrush="{DynamicResource FrameBrush}" BorderThickness="1">
+                        <ContentControl Width="9" Height="9" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconTemplate}"
+                                        Foreground="{DynamicResource PrimaryButtonForegroundBrush}" />
+                    </Border>
+                </Grid>
+
+                <!-- Plain * label column (never SharedSizeGroup on *) -->
+                <Border Grid.Column="1" VerticalAlignment="Center" Margin="2,0,10,0">
+                    <Border.RenderTransform><TranslateTransform x:Name="LabelX" X="0" /></Border.RenderTransform>
+                    <ContentPresenter x:Name="HeaderHost" ContentSource="Header" RecognizesAccessKey="True"
+                                      VerticalAlignment="Center">
+                        <ContentPresenter.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                <Setter Property="TextWrapping" Value="NoWrap" />
+                            </Style>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                </Border>
+
+                <!-- Gamepad-prompt comic shortcut badge -->
+                <Border x:Name="ShortcutBadge" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"
+                        Padding="6,1,6,1" Margin="6,0,0,0"
+                        Background="{DynamicResource InputBackgroundBrush}"
+                        BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1"
+                        CornerRadius="8">
+                    <TextBlock x:Name="ShortcutText" Text="{TemplateBinding InputGestureText}"
+                               FontFamily="{DynamicResource MonospaceFontFamily}" FontSize="11" FontWeight="Bold"
+                               Foreground="{DynamicResource GlyphBrush}" VerticalAlignment="Center" />
+                </Border>
+            </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Icon" Value="{x:Null}">
+                <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="InputGestureText" Value="">
+                <Setter TargetName="ShortcutBadge" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="InputGestureText" Value="{x:Null}">
+                <Setter TargetName="ShortcutBadge" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="CheckDisc" Property="Visibility" Value="Visible" />
+                <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="InputGestureText" Value="Alt+Q">
+                <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="ShortcutText" Property="Foreground" Value="{DynamicResource DangerBrush}" />
+                <Setter TargetName="ShortcutBadge" Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="ShortcutBadge" Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+                <Setter TargetName="ShortcutBadge" Property="BorderBrush" Value="{DynamicResource PrimaryButtonBorderBrush}" />
+                <Setter TargetName="ShortcutText" Property="Foreground" Value="{DynamicResource PrimaryButtonForegroundBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="MenuHiIn">
+                        <Storyboard>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                            <DoubleAnimation Storyboard.TargetName="HiScaleX" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.13">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.3" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                            <DoubleAnimation Storyboard.TargetName="LabelX" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.11" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="MenuHiOut">
+                        <Storyboard FillBehavior="Stop">
+                            <DoubleAnimation Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="HiScaleX" Storyboard.TargetProperty="ScaleX" To="0.92" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="LabelX" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.16" />
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <!-- Show comic pointer only on highlighted rows without an icon or check mark -->
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsHighlighted" Value="True" />
+                    <Condition Property="Icon" Value="{x:Null}" />
+                    <Condition Property="IsChecked" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter TargetName="RowPtr" Property="Visibility" Value="Visible" />
+                <Setter TargetName="RowPtr" Property="Opacity" Value="1" />
+                <Setter TargetName="PtrX" Property="X" Value="2" />
+            </MultiTrigger>
+            <!-- Exit (Alt+Q) highlighted: Tag Crimson slab with Chalk White text/icon/shortcut (>=4.65:1) -->
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsHighlighted" Value="True" />
+                    <Condition Property="InputGestureText" Value="Alt+Q" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+                <Setter TargetName="RowPtr" Property="Fill" Value="{DynamicResource DangerForegroundBrush}" />
+                <Setter TargetName="HighlightPlate" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="HighlightBar" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="ExitPlate" Property="Visibility" Value="Visible" />
+                <Setter TargetName="ExitPlate" Property="Opacity" Value="1" />
+                <Setter TargetName="ShortcutBadge" Property="Background" Value="{DynamicResource LocalCrimsonDeepBrush}" />
+                <Setter TargetName="ShortcutBadge" Property="BorderBrush" Value="{DynamicResource DangerForegroundBrush}" />
+                <Setter TargetName="ShortcutText" Property="Foreground" Value="{DynamicResource DangerForegroundBrush}" />
+            </MultiTrigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Submenu header row (SubmenuHeaderTemplateKey) + child Popup repeating LocalCanisterMenuBoardTemplate -->
+    <ControlTemplate x:Key="{x:Static MenuItem.SubmenuHeaderTemplateKey}" TargetType="{x:Type MenuItem}">
+        <Grid Height="30" Background="Transparent" SnapsToDevicePixels="True">
+            <!-- Held plate when submenu is open (no flicker) -->
+            <Border x:Name="OpenPlate" Background="{DynamicResource MenuItemHoverBrush}"
+                    BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="0,1,0,1"
+                    CornerRadius="{DynamicResource CornerRadiusSmall}"
+                    Visibility="Collapsed" IsHitTestVisible="False" />
+            <Border x:Name="OpenBar" Width="3" HorizontalAlignment="Left"
+                    Background="{DynamicResource GlyphBrush}" Visibility="Collapsed" IsHitTestVisible="False" />
+
+            <!-- Animated highlight plate -->
+            <Border x:Name="HighlightPlate" Background="{DynamicResource MenuItemHoverBrush}"
+                    BorderBrush="{DynamicResource GlyphBrush}" BorderThickness="0,1.5,0,1.5"
+                    CornerRadius="{DynamicResource CornerRadiusSmall}"
+                    RenderTransformOrigin="0,0.5" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False">
+                <Border.RenderTransform>
+                    <ScaleTransform x:Name="HiScaleX" ScaleX="0.92" />
+                </Border.RenderTransform>
+            </Border>
+            <Border x:Name="HighlightBar" Width="3" HorizontalAlignment="Left"
+                    Background="{DynamicResource GiltBrush}"
+                    Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" />
+
+            <Grid Margin="6,0,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="MenuShortcutCol" />
+                    <ColumnDefinition Width="14" />
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Width="22" Height="22">
+                    <ContentPresenter x:Name="Icon" ContentSource="Icon" Width="16" Height="16"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      TextElement.Foreground="{DynamicResource TextBrushDarker}"
+                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                </Grid>
+
+                <Border Grid.Column="1" VerticalAlignment="Center" Margin="2,0,10,0">
+                    <Border.RenderTransform><TranslateTransform x:Name="LabelX" X="0" /></Border.RenderTransform>
+                    <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center">
+                        <ContentPresenter.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                <Setter Property="TextWrapping" Value="NoWrap" />
+                            </Style>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
+                </Border>
+
+                <ContentControl x:Name="SubArrow" Grid.Column="3" Width="10" Height="10"
+                                HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False"
+                                Content="{DynamicResource IconSubmenu}" ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                Foreground="{DynamicResource TextBrushDarker}" />
+            </Grid>
+
+            <Popup x:Name="PART_Popup" AllowsTransparency="True" Focusable="False"
+                   IsOpen="{TemplateBinding IsSubmenuOpen}"
+                   Placement="Right" HorizontalOffset="-4" VerticalOffset="-12"
+                   PopupAnimation="Fade">
+                <Grid Grid.IsSharedSizeScope="True" MinWidth="204">
+                    <Control Template="{DynamicResource LocalCanisterMenuBoardTemplate}"
+                             Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    <ScrollViewer CanContentScroll="True" Margin="7,12,7,7"
+                                  HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </ScrollViewer>
+                </Grid>
+            </Popup>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="Icon" Value="{x:Null}">
+                <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+            </Trigger>
+            <Trigger Property="IsSubmenuOpen" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="SubArrow" Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+                <Setter TargetName="OpenPlate" Property="Visibility" Value="Visible" />
+                <Setter TargetName="OpenBar" Property="Visibility" Value="Visible" />
+            </Trigger>
+            <Trigger Property="IsHighlighted" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="Icon" Property="TextElement.Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Setter TargetName="SubArrow" Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="SubHiIn">
+                        <Storyboard>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                            <DoubleAnimation Storyboard.TargetName="HiScaleX" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.13">
+                                <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.3" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                            <DoubleAnimation Storyboard.TargetName="LabelX" Storyboard.TargetProperty="X" To="2" Duration="0:0:0.11" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="SubHiOut">
+                        <Storyboard FillBehavior="Stop">
+                            <DoubleAnimation Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="HiScaleX" Storyboard.TargetProperty="ScaleX" To="0.92" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="LabelX" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.16" />
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightBar" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type MenuItem}">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontFamily}" />
+        <Setter Property="FontSize" Value="{DynamicResource FontSize}" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="Role" Value="SubmenuItem">
+                <Setter Property="Template" Value="{StaticResource {x:Static MenuItem.SubmenuItemTemplateKey}}" />
+            </Trigger>
+            <Trigger Property="Role" Value="SubmenuHeader">
+                <Setter Property="Template" Value="{StaticResource {x:Static MenuItem.SubmenuHeaderTemplateKey}}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Henchwork — details preview</title>
+<!-- Henchwork: Evil Genius 2-inspired lair console. Unofficial fan theme; no game logos or assets.
+     Colours come from src/tokens.css (injected by scripts/render-theme-preview.mjs). -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1280px; height: 720px; overflow: hidden; display: flex; background: var(--hw-blueprint);
+         color: var(--hw-text); font-family: var(--hw-font-body); font-size: 15px; }
+  svg { display: block; }
+  .ic { width: 16px; height: 16px; fill: currentColor; fill-rule: evenodd; }
+
+  /* Sidebar: 44px rail of pictogram tiles */
+  .rail { width: 44px; flex: none; background: var(--hw-hud); border-right: 2px solid var(--hw-ink);
+          display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+  .rail-item { width: 44px; height: 40px; display: grid; place-items: center; position: relative; }
+  .tile { width: 30px; height: 30px; border-radius: var(--hw-radius); display: grid; place-items: center;
+          background: var(--hw-mustard); color: var(--hw-text-ink); box-shadow: 0 2px 0 var(--hw-mustard-deep); }
+  .rail-item.sel .tile { width: 32px; height: 32px; background: var(--hw-cream); box-shadow: 3px 3px 0 var(--hw-ink); transform: translate(-1px,-1px); }
+  .rail-item.menu .tile { background: var(--hw-mustard); box-shadow: 2px 2px 0 var(--hw-ink); }
+  .rail-item.idle .tile { background: var(--hw-slate); color: var(--hw-text-muted); box-shadow: 0 2px 0 var(--hw-ink); }
+  .rail-sep { width: 24px; height: 2px; background: var(--hw-slate); margin: 4px 0; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* Top panel */
+  .top { height: 48px; flex: none; background: var(--hw-hud); border-bottom: 2px solid var(--hw-ink);
+         display: flex; align-items: center; gap: 6px; padding: 0 8px; }
+  .search { width: 244px; height: 32px; background: var(--hw-ink); border: 1px solid var(--hw-slate-line);
+            border-radius: var(--hw-radius); display: flex; align-items: center; gap: 8px; padding: 0 9px;
+            color: var(--hw-text-dim); font-size: 15px; }
+  .search .ic { color: var(--hw-mustard); }
+  .tool { width: 34px; height: 32px; border-radius: var(--hw-radius); display: grid; place-items: center;
+          background: var(--hw-slate); color: var(--hw-text); position: relative; box-shadow: 0 2px 0 var(--hw-ink); }
+  .badge { position: absolute; top: 3px; right: 4px; width: 9px; height: 9px; border-radius: 50%;
+           background: var(--hw-badge); border: 1.5px solid var(--hw-hud); }
+  .items { display: flex; align-items: center; gap: 4px; }
+  .tool.on { background: var(--hw-cream); color: var(--hw-text-ink); }
+  .spacer { flex: 1; }
+  .win { display: flex; gap: 2px; margin-left: 4px; }
+  .win span { width: 38px; height: 30px; display: grid; place-items: center; color: var(--hw-text-muted); }
+
+  .view { flex: 1; display: flex; min-height: 0; }
+
+  /* Game list */
+  .list { width: 262px; flex: none; background: var(--hw-blueprint); border-right: 2px solid var(--hw-ink); padding: 6px 0; }
+  .row { height: 30px; display: flex; align-items: center; gap: 9px; padding: 0 10px 0 22px; position: relative;
+         font-size: 15px; color: var(--hw-text); white-space: nowrap; }
+  .row i { width: 20px; height: 20px; border-radius: var(--hw-radius-small); flex: none; }
+  .row.hover { background: var(--hw-slate); }
+  .row.sel { background: var(--hw-slate-hi); font-weight: 600; }
+  .row.sel::before { content: ""; position: absolute; left: 7px; top: 11px; width: 8px; height: 8px;
+                     background: var(--hw-mustard); transform: rotate(45deg); box-shadow: 1px 1px 0 var(--hw-ink); }
+  .row.sel::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--hw-mustard); }
+  .row .run { margin-left: auto; width: 18px; height: 18px; border-radius: 50%; background: var(--hw-purple);
+              box-shadow: 0 0 0 3px var(--hw-blueprint), 0 0 0 4px var(--hw-lilac); }
+
+  /* Game page */
+  .page { flex: 1; position: relative; overflow: hidden; background: var(--hw-page); }
+  .banner { position: absolute; left: 0; right: 0; top: 0; height: 196px;
+            background:
+              radial-gradient(ellipse at 72% 38%, rgba(255,214,140,.55), transparent 42%),
+              linear-gradient(160deg, #3d6c86 0%, #2a5a5c 38%, #6b5a3a 62%, #24323d 100%); }
+  .banner::after { content: ""; position: absolute; inset: 0;
+                   background: linear-gradient(to bottom, rgba(11,16,22,0) 35%, rgba(11,16,22,.82) 100%); }
+  .banner-rule { position: absolute; left: 0; right: 0; top: 196px; height: 4px; background: var(--hw-ink); }
+  .pin { position: absolute; right: 26px; top: 184px; width: 64px; height: 24px; display: flex; align-items: center; justify-content: center;
+         background: var(--hw-mustard-tape); color: var(--hw-text-ink); font-weight: 700; font-size: 15px;
+         transform: rotate(-2deg); box-shadow: 0 3px 0 var(--hw-mustard-deep); z-index: 2; }
+  .body { position: absolute; left: 0; right: 0; top: 120px; padding: 0 22px; z-index: 1; }
+  .head { display: flex; align-items: flex-end; gap: 14px; }
+  .gicon { width: 64px; height: 64px; border-radius: var(--hw-radius); flex: none; border: 2px solid var(--hw-ink);
+           background: linear-gradient(135deg, var(--hw-purple), var(--hw-purple-deep)); box-shadow: 3px 3px 0 var(--hw-ink);
+           display: grid; place-items: center; }
+  .title { font-weight: 700; font-size: 34px; line-height: 1; padding-bottom: 8px; }
+  .actions { display: flex; align-items: center; gap: 10px; margin-top: 30px; }
+  /* Play: green slab + cream pictogram tile, hovered end state (lifted off its ink plate) */
+  .play-wrap { position: relative; width: 174px; height: 40px; }
+  .play-plate { position: absolute; left: 3px; top: 3px; right: -3px; bottom: -3px; background: var(--hw-ink); border-radius: var(--hw-radius); }
+  .play { position: absolute; inset: 0; transform: translate(-2px,-2px); background: var(--hw-green-hi); border-radius: var(--hw-radius);
+          display: flex; align-items: center; color: var(--hw-text-ink); font-weight: 700; font-size: 20px; }
+  .play .cap { width: 30px; height: 30px; margin: 0 12px 0 5px; background: var(--hw-cream); border-radius: var(--hw-radius);
+               display: grid; place-items: center; transform: scale(1.12); box-shadow: 0 2px 0 var(--hw-green-deep); }
+  .play .cap svg { width: 16px; height: 16px; fill: var(--hw-text-ink); transform: translateX(2px); }
+  .sq { width: 40px; height: 40px; border-radius: var(--hw-radius); background: var(--hw-slate); color: var(--hw-text);
+        display: grid; place-items: center; box-shadow: 0 2px 0 var(--hw-ink); }
+
+  .cols { display: flex; gap: 20px; margin-top: 30px; }
+  .left { flex: 1; min-width: 0; }
+  .shots { display: flex; gap: 10px; }
+  .shot { flex: 1; height: 92px; border: 2px solid var(--hw-ink); border-radius: var(--hw-radius); box-shadow: 2px 2px 0 var(--hw-ink); }
+  .tape { display: inline-flex; align-items: center; height: 22px; padding: 0 12px 0 10px; margin: 18px 0 12px 0;
+          background: var(--hw-mustard-tape); color: var(--hw-text-ink); font-weight: 700; font-size: 13px;
+          transform: rotate(-1.5deg); box-shadow: 0 2px 0 var(--hw-mustard-deep); }
+  .desc { color: var(--hw-text); line-height: 1.42; font-size: 15px; }
+  .desc b { color: var(--hw-mustard); font-weight: 600; }
+
+  /* Metadata: ring-bound dossier card */
+  .dossier { width: 318px; flex: none; position: relative; background: var(--hw-paper); color: var(--hw-text-ink);
+             border-radius: var(--hw-radius); padding: 10px 12px 10px 30px; box-shadow: 3px 3px 0 var(--hw-ink); margin-top: -6px; }
+  .rings { position: absolute; left: -7px; top: 14px; bottom: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+  .rings span { width: 22px; height: 11px; border: 3px solid var(--hw-text-muted); border-radius: 50%; background: transparent;
+                box-shadow: inset 0 0 0 1px var(--hw-ink); }
+  .holes { position: absolute; left: 10px; top: 17px; bottom: 17px; display: flex; flex-direction: column; justify-content: space-between; }
+  .holes span { width: 6px; height: 6px; border-radius: 50%; background: var(--hw-blueprint); }
+  .strip { height: 5px; background: var(--hw-purple); margin: 7px -12px 7px 0; position: relative; }
+  .strip::before { content: ""; position: absolute; left: -9px; top: -2px; width: 8px; height: 8px; background: var(--hw-orange); transform: rotate(45deg); }
+  .mr { display: flex; gap: 10px; padding: 3px 0; font-size: 14px; align-items: center; min-height: 24px; }
+  .ml { width: 112px; flex: none; color: var(--hw-purple); font-weight: 600; font-size: 13px; }
+  .odo { display: inline-flex; height: 22px; align-items: center; padding: 0 7px; background: var(--hw-hud); border-radius: var(--hw-radius);
+         font-family: var(--hw-font-mono); font-size: 14px; box-shadow: inset 0 -2px 0 var(--hw-ink); }
+  .odo .z { color: var(--hw-slate-line); } .odo .d { color: var(--hw-lime); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip { height: 22px; display: inline-flex; align-items: center; padding: 0 8px; border-radius: var(--hw-radius-small);
+          background: var(--hw-steel); color: var(--hw-text-ink); font-size: 13px; font-weight: 600; box-shadow: 0 2px 0 var(--hw-slate-line); }
+  .val-link { color: var(--hw-text-ink); text-decoration: underline; text-decoration-color: var(--hw-mustard-deep); text-underline-offset: 2px; }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .status i { width: 10px; height: 10px; background: var(--hw-green); transform: rotate(45deg); }
+
+  .note { position: absolute; right: 12px; bottom: 6px; font-size: 11px; color: var(--hw-text-dim); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <path id="i-lib" d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/>
+    <path id="i-search" d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 2.1-2.1-5.4-5.4A8 8 0 0 0 10 2zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/>
+    <path id="i-filter" d="M2 3h20l-8 9.5V20l-4 2v-9.5z"/>
+    <path id="i-details" d="M3 4h18v6H3zM3 14h18v6H3z"/>
+    <path id="i-grid" d="M3 3h5v5H3zM9.5 3h5v5h-5zM16 3h5v5h-5zM3 9.5h5v5H3zM9.5 9.5h5v5h-5zM16 9.5h5v5h-5zM3 16h5v5H3zM9.5 16h5v5h-5zM16 16h5v5h-5z"/>
+    <path id="i-list" d="M3 4h4v4H3zM9 4h12v4H9zM3 10h4v4H3zM9 10h12v4H9zM3 16h4v4H3zM9 16h12v4H9z"/>
+    <path id="i-group" d="M2 5a1 1 0 0 1 1-1h6l2 2.5h10a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+    <path id="i-sort" d="M3 5h18v3H3zM3 10.5h12v3H3zM3 16h6v3H3z"/>
+    <path id="i-bell" d="M12 2a2 2 0 0 1 2 2v.6A6.5 6.5 0 0 1 18.5 11v4l2.5 3v1H3v-1l2.5-3v-4A6.5 6.5 0 0 1 10 4.6V4a2 2 0 0 1 2-2zM9.5 20h5a2.5 2.5 0 0 1-5 0z"/>
+    <path id="i-play" d="M6 3.5v17L20.5 12z"/>
+    <path id="i-more" d="M3.5 10h4v4h-4zM10 10h4v4h-4zM16.5 10h4v4h-4z"/>
+    <path id="i-edit" d="M14.8 2.8l6.4 6.4L9.4 21H3v-6.4zM5.5 15.6V18.5h2.9z"/>
+    <path id="i-gear" d="M10.5 2h3l.5 2.6 2 .9 2.2-1.5 2.1 2.1-1.5 2.2.9 2 2.6.5v3l-2.6.5-.9 2 1.5 2.2-2.1 2.1-2.2-1.5-2 .9-.5 2.6h-3l-.5-2.6-2-.9-2.2 1.5-2.1-2.1 1.5-2.2-.9-2L2 13.5v-3l2.6-.5.9-2L4 5.8l2.1-2.1 2.2 1.5 2-.9zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/>
+    <path id="i-stats" d="M3 20h18v2H3zM4 12h4v7H4zM10 6h4v13h-4zM16 9h4v10h-4z"/>
+    <path id="i-gold" d="M4 15h7l1.5 5h-10zM12.5 15h7l1.5 5H11zM8 9h7l1.5 5h-10z"/>
+    <path id="i-mark" d="M12 1.5a10.5 10.5 0 1 1 0 21 10.5 10.5 0 0 1 0-21zm0 2.5a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zm0 2.3a1.7 1.7 0 0 0-.9 3.15L10.5 16h3l-.6-4.05A1.7 1.7 0 0 0 12 8.8z"/>
+  </defs>
+</svg>
+
+<div class="rail" data-part="sidebar" data-grunge="--hw-slate,.55" data-sketch="--hw-ink" data-sides="r">
+  <div class="rail-item menu" data-part="PART_ElemMainMenu"><div class="tile" data-grunge="--hw-mustard-deep,.4,96"><svg class="ic" viewBox="0 0 24 24" style="width:20px;height:20px"><use href="#i-mark"/></svg></div></div>
+  <div class="rail-sep"></div>
+  <div class="rail-item sel"><div class="tile" data-grunge="--hw-mustard-deep,.4,96"><svg class="ic" viewBox="0 0 24 24"><use href="#i-lib"/></svg></div></div>
+  <div class="rail-item"><div class="tile" data-grunge="--hw-mustard-deep,.4,96"><svg class="ic" viewBox="0 0 24 24"><use href="#i-stats"/></svg></div></div>
+  <div class="rail-item"><div class="tile" data-grunge="--hw-mustard-deep,.4,96"><svg class="ic" viewBox="0 0 24 24"><use href="#i-gear"/></svg></div></div>
+</div>
+
+<div class="main">
+  <div class="top" data-part="top-panel" data-grunge="--hw-slate,.5" data-contours="--hw-slate-line,.22" data-sketch="--hw-ink" data-sides="b">
+    <div class="search" data-part="PART_TextMainSearch"><svg class="ic" viewBox="0 0 24 24"><use href="#i-search"/></svg>Search library</div>
+    <div class="tool" data-part="PART_ToggleFilter" title="Filter"><svg class="ic" viewBox="0 0 24 24"><use href="#i-filter"/></svg><span class="badge"></span></div>
+    <div class="items" data-part="PART_PanelMainItems">
+      <div class="tool" title="Sort"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sort"/></svg></div>
+      <div class="tool on" title="Details view"><svg class="ic" viewBox="0 0 24 24"><use href="#i-details"/></svg></div>
+      <div class="tool" title="Grid view"><svg class="ic" viewBox="0 0 24 24"><use href="#i-grid"/></svg></div>
+      <div class="tool" title="List view"><svg class="ic" viewBox="0 0 24 24"><use href="#i-list"/></svg></div>
+      <div class="tool" title="Group"><svg class="ic" viewBox="0 0 24 24"><use href="#i-group"/></svg></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="tool" data-part="PART_ToggleNotifications" title="Notifications"><svg class="ic" viewBox="0 0 24 24"><use href="#i-bell"/></svg></div>
+    <div class="win"><span>&#8211;</span><span>&#9633;</span><span>&#10005;</span></div>
+  </div>
+
+  <div class="view">
+    <div class="list" data-part="game-list" data-contours="--hw-grid,1" data-grunge="--hw-ink,.35">
+      <div class="row"><i style="background:#3c6f8c"></i>Ashfall Protocol</div>
+      <div class="row"><i style="background:#8a5a2b"></i>Baron of the Undersea</div>
+      <div class="row"><i style="background:var(--hw-green-deep)"></i>Cobalt Heist</div>
+      <div class="row hover"><i style="background:var(--hw-orange-deep)"></i>Doomsday Clockwork</div>
+      <div class="row sel"><i style="background:var(--hw-purple)"></i>Gilded Volcano</div>
+      <div class="row"><i style="background:var(--hw-slate)"></i>Henchman Academy<span class="run"></span></div>
+      <div class="row"><i style="background:var(--hw-mustard-deep)"></i>Island of Many Levers</div>
+      <div class="row"><i style="background:#3a6a6a"></i>Monorail Mayhem</div>
+      <div class="row"><i style="background:#6e3c5a"></i>Moonbase Monopoly</div>
+      <div class="row"><i style="background:var(--hw-badge)"></i>Orbital Laser Club</div>
+      <div class="row"><i style="background:var(--hw-slate-line)"></i>Piranha Pool Party</div>
+      <div class="row"><i style="background:#4b6b2a"></i>Secret Volcano Sim</div>
+      <div class="row"><i style="background:#b08c3d"></i>Shark Tank Tycoon</div>
+      <div class="row"><i style="background:var(--hw-slate-hi)"></i>Submarine Silo</div>
+      <div class="row"><i style="background:#7b4a2a"></i>The Golden Gauntlet</div>
+      <div class="row"><i style="background:var(--hw-purple-deep)"></i>Underground Express</div>
+      <div class="row"><i style="background:#2a5a5c"></i>Weather Machine</div>
+      <div class="row"><i style="background:#5a6c2a"></i>Zeppelin Command</div>
+      <div class="row"><i style="background:#8a3a2a"></i>Zero Hour Gambit</div>
+      <div class="row"><i style="background:#3c5a8c"></i>Zodiac Vault</div>
+    </div>
+
+    <div class="page" data-part="game-page" data-contours="--hw-grid,.6" data-grunge="--hw-blueprint,.5">
+      <div class="banner" data-hatch-band="--hw-ink,.45,60%"></div>
+      <div class="banner-rule" data-sketch="--hw-ink" data-sides="b"></div>
+      <div class="pin" data-torn data-grunge="--hw-mustard-deep,.35,96"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:var(--hw-text-ink);fill-rule:evenodd"><use href="#i-mark"/></svg></div>
+      <div class="body">
+        <div class="head">
+          <div class="gicon" data-hatch-shadow="8"><svg viewBox="0 0 24 24" style="width:34px;height:34px;fill:var(--hw-cream);fill-rule:evenodd"><use href="#i-gold"/></svg></div>
+          <div class="title" data-marker="--hw-mustard"><span>Gilded Volcano</span></div>
+        </div>
+        <div class="actions">
+          <div class="play-wrap" data-hatch-shadow="8"><div class="play-plate"></div>
+            <div class="play" data-grunge="--hw-green-deep,.4,96" data-sketch="--hw-ink"><span class="cap"><svg viewBox="0 0 24 24"><use href="#i-play"/></svg></span><span>Play</span></div></div>
+          <div class="sq" title="More"><svg class="ic" viewBox="0 0 24 24"><use href="#i-more"/></svg></div>
+          <div class="sq" title="Edit"><svg class="ic" viewBox="0 0 24 24"><use href="#i-edit"/></svg></div>
+        </div>
+        <div class="cols">
+          <div class="left">
+            <div class="shots">
+              <div class="shot" style="background: radial-gradient(circle at 30% 40%, #e0b25a 0 14%, transparent 15%), linear-gradient(135deg, #2a5a5c, var(--hw-banner-tint));"></div>
+              <div class="shot" style="background: repeating-linear-gradient(0deg, transparent 0 13px, rgba(172,189,192,.25) 13px 14px), linear-gradient(160deg, var(--hw-slate-hi), var(--hw-hud));"></div>
+              <div class="shot" style="background: radial-gradient(circle at 60% 60%, var(--hw-orange) 0 18%, var(--hw-orange-deep) 19% 30%, transparent 31%), linear-gradient(120deg, var(--hw-purple-deep), var(--hw-banner-tint));"></div>
+            </div>
+            <div class="tape" data-torn data-grunge="--hw-mustard-deep,.35,96"><span>Description</span></div>
+            <p class="desc">Hollow out a dormant volcano, hire minions by the dozen and keep the Forces of Justice guessing. Every room you dig is another <b>scheme</b> funded, another agent distracted, another island closer to your gold reserve. Build the vault, train the guards, then point the laser at the moon.</p>
+          </div>
+          <div class="dossier" data-part="metadata" data-hatch-shadow="10" data-sketch="--hw-ink" data-stamp="--hw-purple,.2" data-grunge="--hw-paper-shade,.6">
+            <div class="holes"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="rings"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="mr"><span class="ml">Completion Status</span><span class="status"><i></i>Playing</span></div>
+            <div class="mr"><span class="ml">Time Played</span>41h 12m</div>
+            <div class="mr"><span class="ml">Last Played</span>Yesterday</div>
+            <div class="strip"></div>
+            <div class="mr"><span class="ml">Critic Score</span><span class="odo"><span class="z">0</span><span class="d">87</span></span></div>
+            <div class="mr"><span class="ml">User Score</span><span class="odo"><span class="z">0</span><span class="d">92</span></span></div>
+            <div class="strip"></div>
+            <div class="mr"><span class="ml">Developer</span><span class="val-link">Lair Industries</span></div>
+            <div class="mr"><span class="ml">Release Date</span>14 Jan 2021</div>
+            <div class="strip"></div>
+            <div class="mr"><span class="ml">Genres</span><span class="chips"><span class="chip">Strategy</span><span class="chip">Management</span><span class="chip">Spy</span></span></div>
+            <div class="mr"><span class="ml">Platform</span><span class="chips"><span class="chip">PC (Windows)</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="note">Henchwork · unofficial fan theme · no game assets</div>
+    </div>
+  </div>
+</div>
+<style>
+  .fxl { position: absolute; display: block; pointer-events: none; }
+  :where([data-grunge], [data-contours], [data-hatch-band], [data-sketch], [data-stamp]) > :where(:not(.fxl)) { position: relative; }
+</style>
+<script>
+/* Henchwork sketch layer: mirrors the XAML texture layers (art/sprites.py masks). */
+(() => {
+  const FX = '../src/Images/fx/';
+  const add = (el, css, first = true) => {
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    const d = document.createElement('i'); d.className = 'fxl'; Object.assign(d.style, css);
+    first ? el.prepend(d) : el.append(d); return d;
+  };
+  const m = (file, size, rep = 'repeat') => ({ webkitMask: `url(${FX}${file}) 0 0 / ${size} ${rep}`, mask: `url(${FX}${file}) 0 0 / ${size} ${rep}` });
+  document.querySelectorAll('[data-grunge]').forEach(el => {
+    const [c, o, s] = el.dataset.grunge.split(',');
+    add(el, { inset: '0', background: `var(${c})`, opacity: o, borderRadius: 'inherit', ...m('grunge.png', `${s || 256}px ${s || 256}px`) });
+  });
+  document.querySelectorAll('[data-contours]').forEach(el => {
+    const [c, o] = el.dataset.contours.split(',');
+    add(el, { inset: '0', background: `var(${c})`, opacity: o || 1, ...m('map-contours.png', '512px 512px') });
+  });
+  document.querySelectorAll('[data-hatch-band]').forEach(el => {
+    const [c, o, top] = el.dataset.hatchBand.split(',');
+    add(el, { left: '0', right: '0', bottom: '0', top, background: `var(${c})`, opacity: o, ...m('hatch-pencil.png', '48px 48px') }, false);
+  });
+  document.querySelectorAll('[data-stamp]').forEach(el => {
+    const [c, o] = el.dataset.stamp.split(',');
+    add(el, { width: '96px', height: '96px', top: '-10px', right: '-8px', background: `var(${c})`, opacity: o, transform: 'rotate(-14deg)', ...m('stamp.png', '96px 96px', 'no-repeat') });
+  });
+  document.querySelectorAll('[data-sketch]').forEach(el => {
+    const c = `var(${el.dataset.sketch})`; const sides = (el.dataset.sides || 'tblr');
+    const h = m('sketch-h.png', '256px 6px', 'repeat-x'), v = m('sketch-v.png', '6px 256px', 'repeat-y');
+    if (sides.includes('t')) add(el, { left: '-2px', right: '-2px', top: '-3px', height: '6px', background: c, ...h }, false);
+    if (sides.includes('b')) add(el, { left: '-3px', right: '-1px', bottom: '-3px', height: '6px', background: c, ...h }, false);
+    if (sides.includes('l')) add(el, { top: '-2px', bottom: '-2px', left: '-3px', width: '6px', background: c, ...v }, false);
+    if (sides.includes('r')) add(el, { top: '-1px', bottom: '-3px', right: '-3px', width: '6px', background: c, ...v }, false);
+  });
+  document.querySelectorAll('[data-torn]').forEach(el => { Object.assign(el.style, m('tape-torn.png', '100% 100%', 'no-repeat')); });
+  document.querySelectorAll('[data-hatch-shadow]').forEach(el => {
+    const reach = el.dataset.hatchShadow || '8';
+    const sh = document.createElement('i'); sh.className = 'fxl';
+    const r = el.getBoundingClientRect(), p = el.offsetParent.getBoundingClientRect();
+    Object.assign(sh.style, { left: `${r.left - p.left + 5}px`, top: `${r.top - p.top + 5}px`, width: `${r.width + +reach - 5}px`, height: `${r.height + +reach - 5}px`,
+      background: 'var(--hw-slate-line)', zIndex: getComputedStyle(el).zIndex === 'auto' ? '0' : `${+getComputedStyle(el).zIndex - 1}`, ...m('hatch-pencil.png', '48px 48px') });
+    el.before(sh);
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+  });
+  document.querySelectorAll('[data-marker]').forEach(el => {
+    add(el, { left: '-4px', right: '-12px', bottom: '-1px', height: '13px', background: `var(${el.dataset.marker})`, opacity: '.85', ...m('marker.png', '100% 100%', 'no-repeat') });
+  });
+})();
+</script>
+</body>
+</html>
