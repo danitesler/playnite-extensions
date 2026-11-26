@@ -85,7 +85,7 @@ Empty state (no game selected): content hidden; a blank speech balloon on a cyan
 |---------------|-----------|
 | `Button`, `ToggleButton` | Slanted sticker, 2px white line, ink offset; hover blue; `IsDefault` orange with ink label; Width=41 ThemeModifier detection, uniformly scaled to 32x32 with proportional content. `RepeatButton` stays square because a slant crowds small spin buttons |
 | `PlayButton` | Orange sticker, 3px ink. Hover animates both ways: yellow plate fades in, cyan impact star pops out (BackEase), speed lines crawl, and the button thumps every 0.46s. Pressed fades in a hot-orange plate and shoves 2px into its shadow |
-| `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox`, `DatePicker` | Ink field, lilac line, white hover, yellow focus; SearchBox is slanted; ComboBox reserves 32px for its chevron |
+| `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox`, `DatePicker` | Ink field, lilac line; `LocalBeatFieldTemplate` overlay: halftone dot patch fading into the bottom-right (lilac, paper on hover, yellow on focus) and a yellow ink-outlined sticker that slaps onto the top-right on keyboard focus (0.2s). SearchBox is slanted; ComboBox reserves 24px plus its 8px padding for the chevron (`docs/themes/fields.md`) |
 | `CheckBox`, `RadioButton` | Marker-stroke yellow tick overshooting the box; yellow impact star in a ring |
 | `Slider`, `ProgressBar` | Guitar-pick thumb on an ink track; slanted yellow beat segments |
 | `GroupBox`, `TabControl`, `TreeView`, `ListBox`, `ToolTip` | Comic panel with sticker header; yellow sticker tabs; blue selection with a 4px yellow bar |

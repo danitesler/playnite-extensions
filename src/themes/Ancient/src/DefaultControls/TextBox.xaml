@@ -7,6 +7,47 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalPanoramaFieldTemplate: a Panorama dashboard input. The well is sunk with a 2px shadow along its top inner edge
+        and a 1px lit lip at its foot, like the bevelled buttons turned inward. Hover: the lip brightens. Keyboard focus: the
+        pale-teal of the tick boxes runs along the foot as a 2px bar that fades out to the right (Panorama's gradient
+        highlight bars) and a 2px teal edge lights the left side (0.18s). State is read from the nearest Control above.
+    -->
+    <ControlTemplate x:Key="LocalPanoramaFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle Height="2" VerticalAlignment="Top" Margin="1,1,1,0" Fill="#66000000" />
+            <Rectangle x:Name="Lip" Height="1" VerticalAlignment="Bottom" Margin="1,0,1,1" Fill="{DynamicResource TextBrushDarker}" Opacity="0.3" />
+            <Grid x:Name="Lit" Opacity="0">
+                <Rectangle Height="2" VerticalAlignment="Bottom" Margin="1,0,1,1" Fill="{DynamicResource FocusBrush}">
+                    <Rectangle.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Offset="0" Color="#FFFFFFFF" />
+                            <GradientStop Offset="1" Color="#10FFFFFF" />
+                        </LinearGradientBrush>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+                <Rectangle Width="2" HorizontalAlignment="Left" Margin="1" Fill="{DynamicResource FocusBrush}" />
+            </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Lip" Property="Opacity" Value="0.7" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="LitIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Lit" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.18" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="LitIn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="AllowDrop" Value="True" />
@@ -23,19 +64,23 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" SnapsToDevicePixels="True"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" SnapsToDevicePixels="True"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalPanoramaFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

@@ -7,6 +7,51 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalCodexEntryFieldTemplate: a codex entry line. A hollow gold diamond sits on the field's bottom edge, 8px in,
+        like the masthead rule's diamond. Hover: the diamond fills deep gold. Keyboard focus: it fills gold, a gold rule
+        draws out of it to the right along the bottom edge (0.22s) and an Animus blade flashes through it once.
+        State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalCodexEntryFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Rule" Height="1" VerticalAlignment="Bottom" Margin="12,0,1,0" Fill="{DynamicResource FocusBrush}" RenderTransformOrigin="0,0.5">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform x:Name="RuleScale" ScaleX="0" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle x:Name="Blade" Width="1" Height="13" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11.5,0,0,-6"
+                       Fill="{DynamicResource RunningIndicatorBrush}" Opacity="0" />
+            <Path x:Name="Diamond" Width="9" Height="9" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="7.5,0,0,-4"
+                  Data="M4.5,0.5 L8.5,4.5 L4.5,8.5 L0.5,4.5 Z" StrokeThickness="1"
+                  Stroke="{DynamicResource FocusBrush}" Fill="{DynamicResource InputBackgroundBrush}" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Diamond" Property="Fill" Value="{DynamicResource InputHoverBorderBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Diamond" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="Entry">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="RuleScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Blade" Storyboard.TargetProperty="Opacity">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.06" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="0" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="Entry" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="AllowDrop" Value="True" />
@@ -23,20 +68,24 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" SnapsToDevicePixels="True"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" SnapsToDevicePixels="True"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalCodexEntryFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

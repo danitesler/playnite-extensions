@@ -51,6 +51,7 @@ Standard control mapping follows `../AGENTS.md`; see `src/DefaultControls/` and 
 | `GridViewItemTemplate` (+ `GridTileButton`) | Cover hover controls as 44px rounded squares: Play blue, Info on the card fill, Phosphor-style glyphs `IconPlay` / `IconInfo` / `IconDownload` (uninstalled) in `Media.xaml`. Entrance: shade fades in, buttons rise 10px and scale 0.86 to 1, Info 60ms later; hover lightens the plate and grows the glyph to 1.08 |
 | Empty game page (`DetailsViewGameOverview`, `GridViewGameOverview`) | With no game selected the content hides and a Library glyph in a card square breathes (3s) above `LOCErrorNoGameSelected`; the loop runs only while it shows |
 | `ContextMenu`, `Menu`, `ComboBox` | Menus, submenus (`TopPanelMenu` plain `BasedOn`), ComboBox and multi-select lists wear the launcher flyout (`LocalLauncherMenuTemplate`: 3px blue-grey card, 2px launcher-blue top bar); 30px rows with active-card fill + center-out growing 2px blue underline, 9px blue-led rules, dark hotkey chips, solid red Exit row, blue rounded-square check badges |
+| `TextBox`, `PasswordBox`, closed `ComboBox` | `LocalLauncherFieldTemplate` overlay: 1px top sheen and a 16px launcher-blue underline stub centred on the bottom; hover widens the stub to 44px and adds a faint outer ring; keyboard focus fades in a 2px blue ring with a 3px blue halo (0.16s). Value room: 36 = 14 arrow + 10 margin + 12 inset. See `docs/themes/fields.md`. |
 
 ## Deviations from the Battle.net app it is inspired by
 

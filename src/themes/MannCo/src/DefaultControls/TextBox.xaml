@@ -11,6 +11,50 @@
                     xmlns:sys="clr-namespace:System;assembly=mscorlib"
                     mc:Ignorable="d">
 
+    <!--
+        LocalTeamRuleFieldTemplate: the top bar's RED and BLU rule on a tan paper field. A 2px rule runs along the bottom,
+        RED on the left half and BLU on the right, dimmed at rest. Hover: the rule lights fully. Keyboard focus: the rule
+        thickens to 3px and the top-right corner folds down as a tan paper dog-ear (0.16s).
+        State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalTeamRuleFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Grid x:Name="Rule" Height="2" VerticalAlignment="Bottom" Margin="1,0,1,1" Opacity="0.55">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Rectangle Fill="{DynamicResource PrimaryButtonBackgroundBrush}" />
+                <Rectangle Grid.Column="1" Fill="{DynamicResource TopPanelRuleEndBrush}" />
+            </Grid>
+            <Path x:Name="DogEar" Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,1,1,0"
+                  Data="M0,0 L9,9 L0,9 Z" Fill="{DynamicResource FocusBrush}" RenderTransformOrigin="1,0" Opacity="0">
+                <Path.RenderTransform><ScaleTransform x:Name="EarScale" ScaleX="0" ScaleY="0" /></Path.RenderTransform>
+            </Path>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Rule" Property="Opacity" Value="1" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Rule" Property="Opacity" Value="1" />
+                <Setter TargetName="Rule" Property="Height" Value="3" />
+                <Setter TargetName="DogEar" Property="Opacity" Value="1" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="Fold">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="EarScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="EarScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="Fold" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -25,13 +69,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
-                            Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
-                            BorderBrush="{TemplateBinding BorderBrush}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
+                                BorderBrush="{TemplateBinding BorderBrush}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalTeamRuleFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

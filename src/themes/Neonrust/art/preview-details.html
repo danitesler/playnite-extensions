@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Neonrust — Game Details Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--nr-ground);
+    color: var(--nr-ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Reusable continuous-border chamfer wrapper (outer border polygon + inner fill polygon, 1:1 with WPF Path) */
+  .chamfer-box {
+    position: relative;
+    background: var(--nr-teal-dim);
+    padding: 1px;
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  }
+  .chamfer-box > .chamfer-in {
+    width: 100%;
+    height: 100%;
+    background: var(--nr-void);
+    clip-path: polygon(6.5px 0, 100% 0, 100% calc(100% - 6.5px), calc(100% - 6.5px) 100%, 0 100%, 0 6.5px);
+  }
+
+  /* Full-shell grid: 44px sidebar rail + right workspace */
+  .shell {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    grid-template-rows: 50px 1fr;
+    width: 1280px;
+    height: 720px;
+    background: var(--nr-ground);
+  }
+
+  /* Perforated metal-net rough texture across canvas (256x256 seamless tile) */
+  .shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-teal);
+    opacity: 0.13;
+    -webkit-mask-image: url("../src/Images/fx/datapad-mesh.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 256px 256px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Large-scale mottled grunge stains & oxidation clouds across canvas */
+  .shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-tab-metal);
+    opacity: 0.20;
+    -webkit-mask-image: url("../src/Images/fx/bg-stains.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 512px 512px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Authentic RAGE 2 bottom-left magenta & bottom-center/right teal ambient edge glows */
+  .ambient-glow-left {
+    position: absolute;
+    left: -32px;
+    bottom: -44px;
+    width: 440px;
+    height: 152px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.36;
+    -webkit-mask-image: url("../src/Images/fx/spray-halo.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .ambient-glow-right {
+    position: absolute;
+    right: 120px;
+    bottom: -44px;
+    width: 520px;
+    height: 136px;
+    background: var(--nr-teal);
+    opacity: 0.24;
+    -webkit-mask-image: url("../src/Images/fx/spray-halo.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* === SIDEBAR (44px compact rail) === */
+  .sidebar {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    position: relative;
+    z-index: 4;
+    background: var(--nr-surface);
+    border-right: 1px solid var(--nr-teal-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Main Menu Button (PART_ElemMainMenu) with custom 3-Blade Wingstick rotor */
+  .main-menu-btn {
+    width: 44px;
+    height: 50px;
+    background: var(--nr-void);
+    border-bottom: 2px solid var(--nr-magenta-neon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .main-menu-btn::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 7px;
+    right: 7px;
+    height: 2px;
+    background: var(--nr-yellow);
+    opacity: 0.65;
+  }
+
+  .rail-items {
+    display: flex;
+    flex-direction: column;
+    width: 44px;
+    padding-top: 8px;
+    gap: 4px;
+  }
+
+  .rail-item {
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: var(--nr-ink-muted);
+  }
+
+  /* Active sidebar item: yellow spray aura + stencil-painted Solar Yellow chamfered plate + left magenta bar */
+  .rail-item.active {
+    color: var(--nr-ink-dark);
+  }
+  .rail-item.active::after {
+    content: "";
+    position: absolute;
+    inset: -3px -1px;
+    background: var(--nr-yellow);
+    opacity: 0.62;
+    -webkit-mask-image: url("../src/Images/fx/item-glow.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .rail-item.active .rail-plate {
+    position: relative;
+    z-index: 1;
+    width: 32px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rail-item.active .rail-plate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-yellow);
+    -webkit-mask-image: url("../src/Images/fx/yellow-slab.png");
+    -webkit-mask-size: 100% 100%;
+    z-index: -1;
+  }
+  .rail-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: var(--nr-magenta-neon);
+    z-index: 2;
+  }
+
+  /* Left-rail vertical chamfered tier ticks at foot (06-skills / 07-codex motif) */
+  .rail-foot {
+    margin-top: auto;
+    padding-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .rail-pip-wrap {
+    width: 10px;
+    height: 18px;
+    background: var(--nr-teal-dim);
+    padding: 1px;
+    clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+  }
+  .rail-pip-in {
+    width: 100%;
+    height: 100%;
+    background: var(--nr-void);
+    clip-path: polygon(2.5px 0, 100% 0, 100% calc(100% - 2.5px), calc(100% - 2.5px) 100%, 0 100%, 0 2.5px);
+  }
+  .rail-pip-wrap.lit {
+    background: var(--nr-yellow);
+  }
+  .rail-pip-wrap.lit .rail-pip-in {
+    background: var(--nr-yellow);
+  }
+  .rail-pip-mag {
+    width: 10px;
+    height: 5px;
+    background: var(--nr-magenta-neon);
+  }
+
+  /* === TOP PANEL (50px weathered brushed gunmetal Ranger bumper bar) === */
+  .top-panel {
+    grid-column: 2;
+    grid-row: 1;
+    position: relative;
+    z-index: 4;
+    height: 50px;
+    background: var(--nr-top-bar);
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 12px;
+    gap: 8px;
+  }
+  .top-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-tab-metal);
+    opacity: 0.42;
+    -webkit-mask-image: url("../src/Images/fx/grunge-header.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .top-panel > * {
+    position: relative;
+    z-index: 2;
+  }
+  .top-panel::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--nr-magenta-neon) 0%, var(--nr-yellow) 16%, var(--nr-teal) 42%, var(--nr-teal-dim) 100%);
+    -webkit-mask-image: url("../src/Images/fx/rough-edge-h.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* Search box (PART_TextMainSearch): sunken void well + left teal stub + stepped ticks */
+  .search-box {
+    width: 238px;
+    height: 32px;
+    background: var(--nr-void);
+    border: 1px solid var(--nr-teal-dim);
+    display: flex;
+    align-items: center;
+    padding: 0 8px 0 11px;
+    gap: 8px;
+    position: relative;
+  }
+  .search-box::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    background: var(--nr-teal);
+  }
+  .search-box .search-ticks {
+    position: absolute;
+    left: 10px;
+    bottom: 1px;
+    display: flex;
+    gap: 3px;
+  }
+  .search-box .search-ticks i {
+    display: block;
+    width: 10px;
+    height: 2px;
+    background: var(--nr-teal-subtle);
+  }
+  .search-box .search-ticks i.lit {
+    background: var(--nr-magenta-neon);
+  }
+  .search-text {
+    font-size: 13px;
+    color: var(--nr-ink-muted);
+    flex: 1;
+  }
+
+  /* Toolbar buttons: 32px height, weathered metal sockets with rough-etched edges */
+  .tb-btn {
+    width: 34px;
+    height: 32px;
+    background: var(--nr-surface-hi);
+    border: 1px solid rgba(76, 199, 173, 0.28);
+    color: var(--nr-ink-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Filter active mark: rotated 8x8 Hot Magenta diamond pip (no text label) */
+  .filter-pip {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 8px;
+    height: 8px;
+    background: var(--nr-magenta-neon);
+    transform: rotate(45deg);
+    border: 1px solid var(--nr-void);
+    box-shadow: 0 0 8px rgba(255, 0, 174, 0.75);
+  }
+
+  .panel-main-items {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tb-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--nr-teal-dim);
+    margin: 0 2px;
+  }
+
+  /* Active view switch: RAGE 2 LOG-style incandescent inner bottom burn that does NOT touch borders */
+  .tb-btn.active {
+    background: var(--nr-surface-hi);
+    border-color: rgba(76, 199, 173, 0.52);
+    color: var(--nr-ink-dark);
+    z-index: 3;
+  }
+  .tb-btn.active::before {
+    content: "";
+    position: absolute;
+    left: -18px;
+    right: -18px;
+    top: -6px;
+    bottom: -14px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.90;
+    -webkit-mask-image: url("../src/Images/fx/tab-burn-halo.png");
+    -webkit-mask-size: 100% 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .tb-btn.active::after {
+    content: "";
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 3px;
+    bottom: 1px;
+    background: radial-gradient(ellipse 76% 68% at 50% 76%, var(--nr-yellow-bright) 0%, var(--nr-yellow) 44%, rgba(245, 166, 35, 0.85) 72%, rgba(255, 0, 174, 0.45) 100%);
+    -webkit-mask-image: url("../src/Images/fx/tab-burn-core.png");
+    -webkit-mask-size: 100% 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .tb-btn.active svg {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Global Progress Bar (12px tall, segmented teal meter) */
+  .top-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 50px;
+  }
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 4px;
+  }
+  .progress-label {
+    font-family: var(--font-heading);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--nr-ink-muted);
+  }
+  .progress-track {
+    width: 118px;
+    height: 12px;
+    background: var(--nr-void);
+    border: 1px solid var(--nr-teal-dim);
+    padding: 2px;
+    position: relative;
+  }
+  .progress-fill {
+    width: 68%;
+    height: 100%;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--nr-teal) 0px,
+      var(--nr-teal) 8px,
+      var(--nr-void) 8px,
+      var(--nr-void) 10px
+    );
+  }
+
+  /* Window Caption Buttons */
+  .win-btns {
+    display: flex;
+    height: 50px;
+    border-left: 1px solid var(--nr-teal-subtle);
+  }
+  .win-btn {
+    width: 44px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nr-ink-muted);
+  }
+  .win-btn.close {
+    color: var(--nr-ink);
+  }
+
+  /* === WORKSPACE: GAME LIST + GAME PAGE === */
+  .workspace {
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    height: 670px;
+    overflow: hidden;
+  }
+
+  /* === GAME LIST (rough-etched chamfered wireframes -> Solar Yellow spray-painted selected slab!) === */
+  .game-list {
+    background: rgba(16, 28, 27, 0.72);
+    border-right: 1px solid rgba(76, 199, 173, 0.34);
+    padding: 10px 10px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .list-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 2px 5px 2px;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--nr-teal);
+    position: relative;
+  }
+  .list-group-hdr::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: var(--nr-magenta-neon);
+    transform: rotate(45deg);
+    box-shadow: 0 0 8px rgba(255, 0, 174, 0.75);
+    position: relative;
+    z-index: 1;
+  }
+  .list-group-hdr::after {
+    content: "";
+    flex: 1;
+    height: 4px;
+    background: var(--nr-teal);
+    opacity: 0.58;
+    -webkit-mask-image: url("../src/Images/fx/rough-edge-h.png");
+    -webkit-mask-size: 100% 100%;
+  }
+
+  .game-row-wrap {
+    height: 36px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  /* RAGE 2 selected yellow button spray-paint aura radiating behind the button (CROSS / MISSIONS) */
+  .game-row-wrap.selected-wrap::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    right: -14px;
+    top: -9px;
+    bottom: -9px;
+    background: var(--nr-yellow);
+    opacity: 0.74;
+    -webkit-mask-image: url("../src/Images/fx/yellow-spray.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .game-row {
+    height: 36px;
+    position: relative;
+    z-index: 1;
+  }
+  /* Rough-etched weathered teal border on left-side buttons */
+  .game-row::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-teal);
+    opacity: 0.58;
+    -webkit-mask-image: url("../src/Images/fx/rough-border-row.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .game-row-in {
+    width: 100%;
+    height: 100%;
+    padding: 0 11px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--nr-ink);
+    font-size: 13px;
+    position: relative;
+    z-index: 1;
+  }
+  .game-row-in::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 19, 19, 0.80);
+    -webkit-mask-image: url("../src/Images/fx/yellow-slab.png");
+    -webkit-mask-size: 100% 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .g-ico {
+    width: 20px;
+    height: 20px;
+    background: var(--nr-surface-hi);
+    border: 1px solid var(--nr-teal-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--nr-teal);
+    flex-shrink: 0;
+  }
+  .g-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  /* Hovered row: teal spray glow + bright rough-etched outline + hover play icon */
+  .game-row.hovered::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    top: -6px;
+    bottom: -6px;
+    background: var(--nr-teal);
+    opacity: 0.28;
+    -webkit-mask-image: url("../src/Images/fx/yellow-spray.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .game-row.hovered::after {
+    opacity: 1;
+  }
+  .game-row.hovered .game-row-in {
+    color: var(--nr-white);
+  }
+  .game-row.hovered .game-row-in::after {
+    background: var(--nr-teal-wash);
+  }
+  .row-hover-play {
+    color: var(--nr-teal);
+    display: flex;
+    align-items: center;
+  }
+
+  /* Selected row: stencil-painted BLAZING SOLAR ACID YELLOW slab + pitch black ink */
+  .game-row.selected::after {
+    display: none;
+  }
+  .game-row.selected .game-row-in {
+    color: var(--nr-ink-dark);
+    font-weight: 700;
+  }
+  .game-row.selected .game-row-in::after {
+    background: linear-gradient(180deg, var(--nr-yellow-bright) 0%, var(--nr-yellow) 52%, var(--nr-yellow) 100%);
+  }
+  .game-row.selected .g-ico {
+    background: var(--nr-ink-dark);
+    border-color: var(--nr-ink-dark);
+    color: var(--nr-yellow);
+  }
+  .game-row.selected .game-row-in::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 7px;
+    bottom: 3px;
+    width: 3px;
+    background: var(--nr-magenta-neon);
+    z-index: 2;
+  }
+
+  /* Running game row: Feltrite Electric Blue rough-etched frame + foot bar + 3 staggered diamonds */
+  .game-row.running::after {
+    background: var(--nr-feltrite);
+    opacity: 1;
+  }
+  .game-row.running .game-row-in {
+    color: var(--nr-white);
+    padding-right: 36px;
+  }
+  .game-row.running .game-row-in::after {
+    background: #10243C;
+  }
+  .game-row.running .game-row-in::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 10px;
+    bottom: 3px;
+    height: 2px;
+    background: var(--nr-feltrite);
+    z-index: 2;
+  }
+  .run-diamonds {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 3px;
+  }
+  .run-diamonds i {
+    width: 5px;
+    height: 5px;
+    background: var(--nr-feltrite);
+    transform: rotate(45deg);
+    display: block;
+  }
+  .run-diamonds i:nth-child(2) { background: var(--nr-white); }
+
+  .list-footer {
+    margin-top: auto;
+    padding-top: 6px;
+    border-top: 1px solid var(--nr-teal-dim);
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--nr-ink-muted);
+  }
+  .list-footer .count { color: var(--nr-yellow); }
+
+  /* === GAME PAGE === */
+  .game-page {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+  }
+
+  /* Hero Banner: Wasteland Dusk horizon + 1px teal line with hot-magenta optical flare */
+  .hero-banner {
+    position: relative;
+    height: 214px;
+    width: 100%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 68% 82% at 72% 28%, rgba(255, 0, 174, 0.36), transparent 68%),
+      radial-gradient(ellipse 55% 70% at 24% 40%, rgba(76, 199, 173, 0.24), transparent 66%),
+      linear-gradient(155deg, #2D1727 0%, #1C262C 44%, #132826 76%, var(--nr-ground) 100%);
+  }
+  .hero-art-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.78;
+  }
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(16, 28, 27, 0.06) 0%, rgba(16, 28, 27, 0.48) 58%, var(--nr-ground) 100%);
+  }
+  .hero-horizon {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 0;
+    height: 1px;
+    background: var(--nr-teal-dim);
+  }
+  .hero-horizon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -1px;
+    width: 240px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--nr-magenta-neon) 0%, var(--nr-yellow) 45%, transparent 100%);
+  }
+
+  /* Game Header sitting cleanly over banner bottom (no artificial AI kicker!) */
+  .game-header {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 3;
+  }
+  .title-cluster {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    position: relative;
+  }
+  .game-icon-wrap {
+    width: 48px;
+    height: 48px;
+    background: var(--nr-teal);
+    padding: 1.5px;
+    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 10px rgba(76, 199, 173, 0.52));
+  }
+  .game-icon-box {
+    width: 100%;
+    height: 100%;
+    background: var(--nr-void);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .game-title {
+    position: relative;
+    font-family: var(--font-heading);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--nr-yellow);
+    text-shadow: 0 0 18px rgba(255, 0, 174, 0.42), 0 0 28px rgba(255, 214, 0, 0.22);
+    padding: 2px 14px 4px 4px;
+  }
+  /* Rising magenta luminescence behind the main game title (like CROSS / WASTELAND CELEBRITY) */
+  .game-title::before {
+    content: "";
+    position: absolute;
+    left: -10px;
+    right: -18px;
+    top: -10px;
+    bottom: -6px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.44;
+    -webkit-mask-image: url("../src/Images/fx/title-glow.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* === HERO FOCAL PIECE: Hot Punk Magenta Dry-Brush PLAY CTA (staged in HOVERED end state!) === */
+  .action-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .play-btn-wrap {
+    position: relative;
+    width: 178px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .play-btn-halo {
+    position: absolute;
+    left: -18px;
+    right: -18px;
+    top: -10px;
+    bottom: -10px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.54;
+    -webkit-mask-image: url("../src/Images/fx/spray-halo.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .play-btn-brush {
+    position: absolute;
+    inset: 0;
+    background: var(--nr-magenta-hover);
+    -webkit-mask-image: url("../src/Images/fx/brush-bar.png");
+    -webkit-mask-size: 100% 100%;
+  }
+  .play-btn-glint {
+    position: absolute;
+    inset: 2px 8px;
+    background: var(--nr-yellow);
+    opacity: 0.34;
+    -webkit-mask-image: url("../src/Images/fx/paint-glint.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .play-btn-tick-l, .play-btn-tick-r {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--nr-yellow);
+    border-style: solid;
+    pointer-events: none;
+  }
+  .play-btn-tick-l { left: 2px; top: 1px; border-width: 2px 0 0 2px; }
+  .play-btn-tick-r { right: 6px; bottom: 1px; border-width: 0 2px 2px 0; }
+
+  .play-btn-label {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--nr-white);
+  }
+
+  /* Secondary icon-only More & Edit buttons (equal 40x40 continuous chamfered squares) */
+  .sec-btn-wrap {
+    width: 40px;
+    height: 40px;
+    background: var(--nr-teal-dim);
+    padding: 1px;
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  }
+  .sec-btn {
+    width: 100%;
+    height: 100%;
+    background: var(--nr-surface-hi);
+    clip-path: polygon(6.5px 0, 100% 0, 100% calc(100% - 6.5px), calc(100% - 6.5px) 100%, 0 100%, 0 6.5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nr-teal);
+  }
+
+  /* === GAME PAGE BODY: Left Screenshots+Description, Right 300px Metadata Dossier === */
+  .page-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 330px;
+    gap: 22px;
+    padding: 14px 24px 12px 24px;
+    overflow: hidden;
+  }
+
+  .main-col {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    min-width: 0;
+  }
+
+  /* Section heading with RAGE 2 WASTELAND CELEBRITY / LEVEL rising background glow + rough-etched underline */
+  .sec-heading {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--nr-teal);
+    margin-bottom: 9px;
+    padding: 6px 0 5px 0;
+  }
+  .sec-heading::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    bottom: 0;
+    width: 280px;
+    height: 36px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.44;
+    -webkit-mask-image: url("../src/Images/fx/title-glow.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .sec-heading > * {
+    position: relative;
+    z-index: 1;
+  }
+  .sec-heading .stub {
+    width: 4px;
+    height: 13px;
+    background: var(--nr-magenta-neon);
+    box-shadow: 0 0 8px rgba(255, 0, 174, 0.72);
+  }
+  .sec-heading .rule {
+    flex: 1;
+    height: 4px;
+    background: linear-gradient(90deg, var(--nr-magenta-neon) 0%, var(--nr-teal) 45%, var(--nr-teal-dim) 100%);
+    -webkit-mask-image: url("../src/Images/fx/rough-edge-h.png");
+    -webkit-mask-size: 100% 100%;
+  }
+
+  /* Screenshots strip with Ranger + registration crosshairs & stylized wasteland vector art */
+  .shots-grid {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 10px;
+    height: 174px;
+  }
+  .shot-card {
+    position: relative;
+    border: 1px solid var(--nr-teal-dim);
+    background: var(--nr-void);
+    overflow: hidden;
+  }
+  .shot-card.main {
+    background:
+      radial-gradient(circle at 74% 30%, rgba(255, 0, 174, 0.38), transparent 56%),
+      linear-gradient(135deg, #1E2E2B 0%, #3E2232 54%, #131E1E 100%);
+  }
+  .shot-stack {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+  }
+  .shot-card.sub1 {
+    background:
+      radial-gradient(circle at 30% 48%, rgba(255, 214, 0, 0.28), transparent 62%),
+      linear-gradient(140deg, #1A2F2C 0%, #35202E 100%);
+  }
+  .shot-card.sub2 {
+    background:
+      radial-gradient(circle at 65% 42%, rgba(27, 114, 232, 0.36), transparent 60%),
+      linear-gradient(140deg, #12222B 0%, #1F3531 100%);
+  }
+  .crosshair {
+    position: absolute;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    color: var(--nr-teal);
+    opacity: 0.78;
+    z-index: 2;
+  }
+  .crosshair.tl { left: 6px; top: 4px; }
+  .crosshair.tr { right: 6px; top: 4px; }
+  .crosshair.bl { left: 6px; bottom: 4px; }
+  .crosshair.br { right: 6px; bottom: 4px; }
+
+  .desc-prose {
+    font-size: 13.5px;
+    line-height: 1.56;
+    color: var(--nr-ink);
+  }
+  .desc-prose p + p {
+    margin-top: 8px;
+    color: var(--nr-ink-muted);
+  }
+
+  /* === METADATA PANE (WINGSTICK / CROSS rough-etched Ranger Teal Dossier + PROJECT DAGGER Glow Cap) === */
+  .metadata-pane {
+    background: rgba(21, 36, 35, 0.84);
+    border: 1px solid rgba(76, 199, 173, 0.48);
+    box-shadow: 0 0 18px rgba(76, 199, 173, 0.10);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+  .metadata-pane::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-teal);
+    opacity: 0.10;
+    -webkit-mask-image: url("../src/Images/fx/datapad-mesh.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 256px 256px;
+    pointer-events: none;
+  }
+  /* Bruised magenta-plum scratched header band with PROJECT DAGGER rising glow */
+  .meta-cap {
+    position: relative;
+    height: 32px;
+    flex-shrink: 0;
+    background: var(--nr-magenta-wash);
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .meta-cap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-magenta-neon);
+    opacity: 0.42;
+    -webkit-mask-image: url("../src/Images/fx/grunge-header.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .meta-cap::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 4px;
+    background: var(--nr-teal);
+    opacity: 0.72;
+    -webkit-mask-image: url("../src/Images/fx/rough-edge-h.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .meta-cap-title {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--nr-yellow);
+  }
+  .meta-cap-tag {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--nr-teal);
+  }
+
+  .meta-body {
+    padding: 9px 14px 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5.5px;
+    width: 328px;
+    flex: 1;
+  }
+
+  .meta-row {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 10px;
+    align-items: baseline;
+    font-size: 12.5px;
+    line-height: 1.32;
+  }
+  .meta-k {
+    color: var(--nr-ink-muted);
+  }
+  .meta-v {
+    color: var(--nr-ink);
+  }
+  .meta-v.link {
+    color: var(--nr-teal);
+  }
+
+  /* Group divider: rough-etched teal rule anchored by a 5px Solar Yellow diamond notch */
+  .meta-divider {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0;
+  }
+  .meta-divider i {
+    width: 5px;
+    height: 5px;
+    background: var(--nr-yellow);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(255, 214, 0, 0.55);
+  }
+  .meta-divider span {
+    flex: 1;
+    height: 4px;
+    background: var(--nr-teal);
+    opacity: 0.58;
+    -webkit-mask-image: url("../src/Images/fx/rough-edge-h.png");
+    -webkit-mask-size: 100% 100%;
+  }
+
+  /* Score plaques (continuous chamfered border + subtle neon item glow) */
+  .scores-row {
+    display: flex;
+    gap: 8px;
+  }
+  .score-wrap {
+    padding: 1px;
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  }
+  .score-wrap.pos { background: var(--nr-emerald); filter: drop-shadow(0 0 6px rgba(46, 212, 122, 0.45)); }
+  .score-wrap.mix { background: var(--nr-amber); filter: drop-shadow(0 0 6px rgba(245, 166, 35, 0.45)); }
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    background: var(--nr-void);
+    clip-path: polygon(4.5px 0, 100% 0, 100% calc(100% - 4.5px), calc(100% - 4.5px) 100%, 0 100%, 0 4.5px);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .score-wrap.pos .score-badge { color: var(--nr-emerald); }
+  .score-wrap.mix .score-badge { color: var(--nr-amber); }
+
+  /* Chamfered metadata tag chips (hot chip gets yellow spray-paint glow) */
+  .chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .chip-out {
+    padding: 1px;
+    background: var(--nr-teal-dim);
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+  }
+  .chip-out.hot {
+    background: var(--nr-yellow-bright);
+    filter: drop-shadow(0 0 8px rgba(255, 214, 0, 0.55));
+  }
+  .chip {
+    display: block;
+    padding: 1px 8px;
+    background: var(--nr-surface-hi);
+    clip-path: polygon(4.5px 0, 100% 0, 100% calc(100% - 4.5px), calc(100% - 4.5px) 100%, 0 100%, 0 4.5px);
+    font-size: 11.5px;
+    color: var(--nr-teal);
+  }
+  .chip-out.hot .chip {
+    background: var(--nr-yellow);
+    color: var(--nr-ink-dark);
+    font-weight: 700;
+  }
+
+  .unofficial-note {
+    margin-top: auto;
+    padding-top: 4px;
+    font-size: 10px;
+    color: var(--nr-ink-muted);
+    opacity: 0.72;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="ambient-glow-left"></div>
+  <div class="ambient-glow-right"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" data-part="sidebar">
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <!-- True 3-Blade Wingstick Rotor mark -->
+      <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
+        <path d="M 15 9 L 49 9 L 55 15 L 55 26 L 50 26 L 50 17.5 L 46.5 14 L 17.5 14 L 14 17.5 L 14 26 L 9 26 L 9 15 Z" fill="var(--nr-teal-dim)"/>
+        <path d="M 9 38 L 14 38 L 14 46.5 L 17.5 50 L 46.5 50 L 50 46.5 L 50 38 L 55 38 L 55 49 L 49 55 L 15 55 L 9 49 Z" fill="var(--nr-teal-dim)"/>
+        <path fill-rule="evenodd" d="M 32 14 L 37.5 19.5 L 35.5 29.5 L 46.5 34.5 L 49 41.5 L 42 44.5 L 33.5 37.5 L 25.5 46 L 18 45 L 17.5 37.5 L 27.5 32.5 L 27.5 19.5 Z M 32 28.5 A 3.5 3.5 0 1 0 32 35.5 A 3.5 3.5 0 1 0 32 28.5 Z" fill="var(--nr-teal)"/>
+        <circle cx="32" cy="32" r="2.6" fill="var(--nr-magenta-neon)"/>
+      </svg>
+    </div>
+
+    <div class="rail-items">
+      <div class="rail-item active">
+        <div class="rail-plate">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 3h7l2 2v6H3V5l1-2zm10 0h7v8h-8V5l1-2zM3 13h8v8H5l-2-2v-6zm10 0h8v6l-2 2h-6v-8z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="rail-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 13h4v8H4v-8zm6-6h4v14h-4V7zm6-4h4v18h-4V3z"/>
+        </svg>
+      </div>
+      <div class="rail-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L4 6v12l8 4 8-4V6l-8-4zm0 3.2L17 7.7v8.6l-5 2.5-5-2.5V7.7l5-2.5z"/>
+        </svg>
+      </div>
+      <div class="rail-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5 3h14l2 2v14l-2 2H5l-2-2V5l2-2zm2 4v3h3V7H7zm7 7v3h3v-3h-3zm-3.5-3.5v3h3v-3h-3z"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="rail-foot">
+      <div class="rail-pip-wrap"><div class="rail-pip-in"></div></div>
+      <div class="rail-pip-wrap lit"><div class="rail-pip-in"></div></div>
+      <div class="rail-pip-wrap"><div class="rail-pip-in"></div></div>
+      <div class="rail-pip-mag"></div>
+    </div>
+  </aside>
+
+  <!-- TOP PANEL: search -> filter -> PART_PanelMainItems (sort first, icon-only views) -->
+  <header class="top-panel" data-part="top-panel">
+    <div class="search-box" data-part="PART_TextMainSearch">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--nr-teal)" stroke-width="2.2">
+        <polygon points="10,3 17,3 20,6 20,13 17,16 10,16 7,13 7,6"/>
+        <line x1="17" y1="16" x2="22" y2="21"/>
+      </svg>
+      <span class="search-text">Search library...</span>
+      <span class="search-ticks"><i></i><i class="lit"></i><i></i></span>
+    </div>
+
+    <div class="tb-btn" data-part="PART_ToggleFilter" title="Filter Panel">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 4h18l-7 8.5V20l-4-2v-5.5L3 4z"/>
+      </svg>
+      <span class="filter-pip"></span>
+    </div>
+
+    <div class="panel-main-items" data-part="PART_PanelMainItems">
+      <div class="tb-btn" title="Sorting">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 6h14v2.5H3V6zm0 5h10v2.5H3V11zm0 5h6v2.5H3V16zm14-3h2.5v6H22l-3.75 4L14.5 19H17v-6z"/>
+        </svg>
+      </div>
+      <div class="tb-btn" title="Grouping">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 4h8v7H3V4zm10 0h8v7h-8V4zM3 13h8v7H3v-7zm10 0h8v7h-8v-7z"/>
+        </svg>
+      </div>
+      <div class="tb-sep"></div>
+      <div class="tb-btn active" title="Details View">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 4h7v16H3V4zm9 0h9v7h-9V4zm0 9h9v7h-9v-7z"/>
+        </svg>
+      </div>
+      <div class="tb-btn" title="Grid View">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 3h5v5H3V3zm6.5 0h5v5h-5V3zM16 3h5v5h-5V3zM3 9.5h5v5H3v-5zm6.5 0h5v5h-5v-5zm6.5 0h5v5h-5v-5zM3 16h5v5H3v-5zm6.5 0h5v5h-5v-5zm6.5 0h5v5h-5v-5z"/>
+        </svg>
+      </div>
+      <div class="tb-btn" title="List View">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 5h18v3H3V5zm0 5.5h18v3H3v-3zM3 16h18v3H3v-3z"/>
+        </svg>
+      </div>
+      <div class="tb-sep"></div>
+      <div class="tb-btn" title="View Settings">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 6h16v2.2H4V6zm0 5h16v2.2H4V11zm0 5h16v2.2H4V16zm4-11h3v4.2H8V5zm7 5h3v4.2h-3V10zm-5 5h3v4.2h-3V15z"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="top-right">
+      <div class="progress-wrap">
+        <span class="progress-label">SYNC</span>
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="tb-btn" data-part="PART_ToggleNotifications" title="Notifications">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 3l6 4v7l2 3H4l2-3V7l6-4zm-2 16h4a2 2 0 0 1-4 0z"/>
+        </svg>
+      </div>
+
+      <div class="win-btns">
+        <div class="win-btn">
+          <svg width="11" height="11" viewBox="0 0 12 12"><rect x="1" y="6" width="10" height="1.5" fill="currentColor"/></svg>
+        </div>
+        <div class="win-btn">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="3,1 11,1 11,9 9,11 1,11 1,3" stroke="currentColor" stroke-width="1.3"/></svg>
+        </div>
+        <div class="win-btn close">
+          <svg width="11" height="11" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="workspace">
+    <!-- GAME LIST -->
+    <section class="game-list" data-part="game-list">
+      <div class="list-group-hdr">INSTALLED (14)</div>
+
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">AO</span><span class="g-name">Apex Overdrive</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">AZ</span><span class="g-name">Authority Zero</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row running"><div class="game-row-in"><span class="g-ico">FP</span><span class="g-name">Feltrite Protocol</span><span class="run-diamonds"><i></i><i></i><i></i></span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row hovered"><div class="game-row-in"><span class="g-ico">GS</span><span class="g-name">Gunbarrel Syndicate</span><span class="row-hover-play"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><polygon points="3,2 14,8 3,14"/></svg></span></div></div></div>
+      <div class="game-row-wrap selected-wrap"><div class="game-row selected"><div class="game-row-in"><span class="g-ico">TP</span><span class="g-name">Torn Plains: Overdrive</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">DB</span><span class="g-name">Dune Breaker</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">IW</span><span class="g-name">Iron Wingstick</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">NK</span><span class="g-name">Nanotrite Drift</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">SE</span><span class="g-name">Stanley Express Run</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">VV</span><span class="g-name">Vandal Villas</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">WR</span><span class="g-name">Wasteland Runners</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">CR</span><span class="g-name">Crossline Sector 04</span></div></div></div>
+      <div class="game-row-wrap"><div class="game-row"><div class="game-row-in"><span class="g-ico">MR</span><span class="g-name">Mutant Bash Arena</span></div></div></div>
+
+      <div class="list-footer">
+        <span>RANGER DATAPAD</span>
+        <span class="count">14 / 86</span>
+      </div>
+    </section>
+
+    <!-- GAME PAGE -->
+    <main class="game-page" data-part="game-page">
+      <div class="hero-banner">
+        <svg class="hero-art-svg" viewBox="0 0 990 214" preserveAspectRatio="none">
+          <polygon points="0,214 0,136 140,118 230,144 380,90 510,122 650,70 790,112 990,74 990,214" fill="#0E1919"/>
+          <polygon points="588,120 622,44 656,120" fill="#1C2C2A"/>
+          <line x1="622" y1="18" x2="622" y2="120" stroke="#FF00AE" stroke-width="2" opacity="0.68"/>
+          <circle cx="622" cy="18" r="5" fill="#FFD600" opacity="0.92"/>
+          <polygon points="210,144 265,108 320,144" fill="#182625"/>
+          <line x1="0" y1="176" x2="990" y2="176" stroke="#4CC7AD" stroke-width="1" opacity="0.2"/>
+        </svg>
+        <div class="hero-scrim"></div>
+        <div class="hero-horizon"></div>
+
+        <div class="game-header">
+          <div class="title-cluster">
+            <div class="game-icon-wrap">
+              <div class="game-icon-box">
+                <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
+                  <path fill-rule="evenodd" d="M 32 10 L 38 17 L 36 29 L 49 35 L 52 43 L 44 47 L 34 38 L 25 49 L 16 48 L 15.5 39 L 27 33 L 27 17 Z M 32 28 A 4 4 0 1 0 32 36 A 4 4 0 1 0 32 28 Z" fill="var(--nr-yellow)"/>
+                  <circle cx="32" cy="32" r="3" fill="var(--nr-magenta-neon)"/>
+                </svg>
+              </div>
+            </div>
+            <h1 class="game-title">Torn Plains: Overdrive</h1>
+          </div>
+
+          <div class="action-bar">
+            <div class="play-btn-wrap">
+              <div class="play-btn-halo"></div>
+              <div class="play-btn-brush"></div>
+              <div class="play-btn-glint"></div>
+              <span class="play-btn-tick-l"></span>
+              <span class="play-btn-tick-r"></span>
+              <span class="play-btn-label">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><polygon points="2,1 15,8 2,15"/></svg>
+                PLAY
+              </span>
+            </div>
+            <div class="sec-btn-wrap" title="More">
+              <div class="sec-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="4,10 8,10 8,14 4,14"/><polygon points="10,10 14,10 14,14 10,14"/><polygon points="16,10 20,10 20,14 16,14"/>
+                </svg>
+              </div>
+            </div>
+            <div class="sec-btn-wrap" title="Edit">
+              <div class="sec-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16.5 3.5l4 4L8.5 19.5H4.5v-4L16.5 3.5z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="page-body">
+        <div class="main-col">
+          <div>
+            <div class="sec-heading"><span class="stub"></span>SCREENSHOTS<span class="rule"></span></div>
+            <div class="shots-grid">
+              <div class="shot-card main">
+                <span class="crosshair tl">+</span><span class="crosshair tr">+</span>
+                <span class="crosshair bl">+</span><span class="crosshair br">+</span>
+                <svg width="100%" height="100%" viewBox="0 0 360 174" preserveAspectRatio="none">
+                  <polygon points="0,174 0,114 95,88 180,110 265,62 360,94 360,174" fill="#0F1C1B" opacity="0.92"/>
+                  <polygon points="148,96 184,52 220,96" fill="#FFD600" opacity="0.22"/>
+                  <polygon points="172,112 184,80 196,112" fill="#FF00AE" opacity="0.55"/>
+                  <line x1="18" y1="144" x2="342" y2="144" stroke="#FF00AE" stroke-width="2" opacity="0.65"/>
+                </svg>
+              </div>
+              <div class="shot-stack">
+                <div class="shot-card sub1">
+                  <span class="crosshair tl">+</span><span class="crosshair br">+</span>
+                  <svg width="100%" height="100%" viewBox="0 0 220 82" preserveAspectRatio="none">
+                    <polygon points="0,82 0,50 62,36 135,54 220,28 220,82" fill="#101C1B" opacity="0.88"/>
+                    <circle cx="58" cy="30" r="14" fill="#FFD600" opacity="0.26"/>
+                    <line x1="14" y1="64" x2="206" y2="64" stroke="#FFD600" stroke-width="1.5" opacity="0.55"/>
+                  </svg>
+                </div>
+                <div class="shot-card sub2">
+                  <span class="crosshair tl">+</span><span class="crosshair br">+</span>
+                  <svg width="100%" height="100%" viewBox="0 0 220 82" preserveAspectRatio="none">
+                    <polygon points="0,82 0,46 84,26 146,48 220,22 220,82" fill="#0D1920" opacity="0.9"/>
+                    <polygon points="122,46 144,18 166,46" fill="#1B72E8" opacity="0.48"/>
+                    <line x1="14" y1="64" x2="206" y2="64" stroke="#4CC7AD" stroke-width="1.5" opacity="0.55"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="sec-heading"><span class="stub"></span>DESCRIPTION<span class="rule"></span></div>
+            <div class="desc-prose">
+              <p>Tear across a sun-bleached wasteland of rusted radar rigs, neon-tagged bandit strongholds, and buried Ark vaults. Chain kinetic Nanotrite abilities with overdrive gunplay and high-speed convoy ambushes across five seamless biomes.</p>
+              <p>Upgrade your Ranger chassis, tune armored interceptors, and track sector intel directly from your wrist datapad. Every outpost cleared feeds faction project tiers and unlocks experimental ordnance.</p>
+            </div>
+          </div>
+
+          <div class="unofficial-note">Neonrust — unofficial community theme inspired by RAGE 2. No official logos or game assets included.</div>
+        </div>
+
+        <!-- METADATA PANE (Bruised Magenta Scratched Cap + All 6 Groups Visible) -->
+        <aside class="metadata-pane" data-part="metadata">
+          <div class="meta-cap">
+            <span class="meta-cap-title">INFORMATION</span>
+            <span class="meta-cap-tag">+ DATAPAD</span>
+          </div>
+          <div class="meta-body">
+            <!-- Group 1: Progress -->
+            <div class="meta-row"><span class="meta-k">Completion</span><span class="meta-v">Playing</span></div>
+            <div class="meta-row"><span class="meta-k">Time Played</span><span class="meta-v">42h 18m</span></div>
+            <div class="meta-row"><span class="meta-k">Last Played</span><span class="meta-v">Today</span></div>
+
+            <div class="meta-divider"><i></i><span></span></div>
+
+            <!-- Group 2: Scores -->
+            <div class="meta-row">
+              <span class="meta-k">Scores</span>
+              <div class="scores-row">
+                <span class="score-wrap pos"><span class="score-badge">84</span></span>
+                <span class="score-wrap mix"><span class="score-badge">73</span></span>
+              </div>
+            </div>
+
+            <div class="meta-divider"><i></i><span></span></div>
+
+            <!-- Group 3: About -->
+            <div class="meta-row"><span class="meta-k">Developer</span><span class="meta-v link">Valkyrie Forge</span></div>
+            <div class="meta-row"><span class="meta-k">Publisher</span><span class="meta-v link">Redline Works</span></div>
+            <div class="meta-row"><span class="meta-k">Release Date</span><span class="meta-v">May 14, 2019</span></div>
+
+            <div class="meta-divider"><i></i><span></span></div>
+
+            <!-- Group 4: Tags (continuous chamfered chips) -->
+            <div class="meta-row">
+              <span class="meta-k">Genres</span>
+              <div class="chip-wrap">
+                <span class="chip-out hot"><span class="chip">Shooter</span></span>
+                <span class="chip-out"><span class="chip">Open World</span></span>
+                <span class="chip-out"><span class="chip">Action</span></span>
+              </div>
+            </div>
+            <div class="meta-row">
+              <span class="meta-k">Platform</span>
+              <div class="chip-wrap">
+                <span class="chip-out"><span class="chip">PC (Windows)</span></span>
+              </div>
+            </div>
+
+            <div class="meta-divider"><i></i><span></span></div>
+
+            <!-- Group 5: Library -->
+            <div class="meta-row"><span class="meta-k">Library</span><span class="meta-v link">Steam</span></div>
+            <div class="meta-row"><span class="meta-k">Install Size</span><span class="meta-v">44.8 GB</span></div>
+
+            <div class="meta-divider"><i></i><span></span></div>
+
+            <!-- Group 6: Links -->
+            <div class="meta-row"><span class="meta-k">Links</span><span class="meta-v link">Store · Wiki · Guides</span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

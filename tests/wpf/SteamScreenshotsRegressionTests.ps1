@@ -2,7 +2,7 @@
 # Exercise the actual theme eligibility styles in WPF, including stale plugin state
 # and a child Visibility animation that outlives the selected game.
 param([string[]]$Keys = @())
-if ($Keys.Count -and 'coldseat' -notin ($Keys -split ',')) { return }
+$keyList = @($Keys -split ',' | Where-Object { $_ })
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationFramework
 if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') { throw 'Run this test with pwsh -STA.' }
@@ -28,9 +28,13 @@ function Pump-Dispatcher([int]$Milliseconds) {
     [Windows.Threading.Dispatcher]::PushFrame($frame)
 }
 $count = 0
-foreach ($theme in $index.extensions | Where-Object kind -eq 'theme') {
+$failures = [System.Collections.Generic.List[string]]::new()
+foreach ($theme in $index.extensions | Where-Object { $_.kind -eq 'theme' -and (-not $keyList.Count -or $_.key -in $keyList) }) {
     foreach ($view in 'DetailsViewGameOverview', 'GridViewGameOverview') {
+      # One broken or half-built theme must not hide the results of the others.
+      try {
         $path = Join-Path $root "$($theme.dir)/src/Views/$view.xaml"
+        if (-not (Test-Path -LiteralPath $path)) { throw "missing $($theme.dir)/src/Views/$view.xaml" }
         [xml]$xml = Get-Content $path -Raw
         $scope = $xml.SelectSingleNode('//*[@*[local-name()="Name"]="SteamScreenshotsGameScope"]')
         # Before the fix, exercise the original section style to demonstrate the leak.
@@ -67,9 +71,18 @@ foreach ($theme in $index.extensions | Where-Object kind -eq 'theme') {
         Set-Game $element $steam 'Steam'
         Assert-Visibility $element Visible 'Selection restored after view change'
         $count++
+      } catch {
+        $failures.Add("$($theme.key)/${view}: $($_.Exception.Message)") | Out-Null
+      }
     }
 }
+if ($failures.Count) {
+    $failures | ForEach-Object { Write-Host "FAIL: $_" }
+    throw "$($failures.Count) theme view(s) failed; $count passed."
+}
 Write-Host "PASS: $count theme views reject stale screenshot visibility across game/view changes."
+
+if ($keyList.Count -and 'coldseat' -notin $keyList) { return }
 
 # ColdSeat also renders a localized empty result after its per-game timeout.
 foreach ($view in 'DetailsViewGameOverview', 'GridViewGameOverview') {

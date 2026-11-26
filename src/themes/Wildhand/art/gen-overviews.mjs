@@ -81,6 +81,30 @@ const scanBrush = `<DrawingBrush TileMode="Tile" Viewport="0,0,4,4" ViewportUnit
         </GeometryDrawing>
     </DrawingBrush.Drawing>
 </DrawingBrush>`;
+const pageBackdrop = `<Control Template="{DynamicResource LocalFeltBackdropTemplate}" IsHitTestVisible="False" Focusable="False">
+    <Control.Style>
+        <Style TargetType="Control">
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Control.Style>
+</Control>
+<Control Template="{DynamicResource LocalFeltCornerMarksTemplate}" Foreground="{DynamicResource NormalBorderBrush}" Margin="10" IsHitTestVisible="False" Focusable="False">
+    <Control.Style>
+        <Style TargetType="Control">
+            <Setter Property="Opacity" Value="0.28" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Control.Style>
+</Control>`;
+
 const hero = `<Grid x:Name="HeroArt" VerticalAlignment="Top" IsHitTestVisible="False" ClipToBounds="True">
 ${indent(heroVisibilityStyle(), 4)}
     <FadeImage x:Name="PART_ImageBackground" Stretch="UniformToFill" />
@@ -190,6 +214,7 @@ const details = `<!--
                     <ScrollViewer x:Name="PART_ScrollViewHost" Visibility="Visible" Style="{DynamicResource DetailsScrollViewer}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <Grid x:Name="PageRoot" UseLayoutRounding="True">
 ${indent(pageRootStyle(), 28)}
+${indent(pageBackdrop, 28)}
 ${indent(hero, 28)}
                             <StackPanel Margin="28,0,28,28">
 ${indent(hideWhenEmpty, 32)}
@@ -290,6 +315,7 @@ const grid = `<!--
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid x:Name="PageRoot" UseLayoutRounding="True">
 ${indent(pageRootStyle(), 36)}
+${indent(pageBackdrop, 36)}
 ${indent(hero, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="22,0,22,24">
 ${indent(hideWhenEmpty, 40)}

@@ -1,10 +1,48 @@
 <!--
     Subspace: DefaultControls/TextBox.xaml.
-    32px (ControlHeight) LCARS pill-left console input trough with a 6px Periwinkle leading stub (lights Gold on focus).
+    32px (ControlHeight) LCARS pill-left console input trough with a 6px Periwinkle leading stub (LocalLcarsFieldTemplate below; tangerine on focus).
     Padding is applied once on TextBox and inherited by PART_ContentHost (never doubled).
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        LocalLcarsFieldTemplate: an LCARS readout. The 6px pill-left lead stub fills the field's left end in periwinkle at
+        rest (it replaces the per-template LeadStub, so the closed ComboBox has it too). Hover: it turns lavender. Keyboard focus: it turns tangerine and a segmented telemetry bar (18, 8 and 30px
+        segments in gold, tangerine and cyan) lights along the bottom one segment after another (0, 50, 100ms).
+        State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalLcarsFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Border x:Name="Cap" Width="6" HorizontalAlignment="Left" Margin="1" CornerRadius="8,0,0,8" Background="{DynamicResource InputHoverBorderBrush}"
+                    BorderBrush="{DynamicResource ShellBackgroundBrush}" BorderThickness="0,0,2,0" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="11,0,0,2">
+                <Rectangle x:Name="Seg1" Width="18" Height="2" Margin="0,0,3,0" Fill="{DynamicResource WarningBrush}" Opacity="0" />
+                <Rectangle x:Name="Seg2" Width="8" Height="2" Margin="0,0,3,0" Fill="{DynamicResource PrimaryButtonBackgroundBrush}" Opacity="0" />
+                <Rectangle x:Name="Seg3" Width="30" Height="2" Fill="{DynamicResource FocusBrush}" Opacity="0" />
+            </StackPanel>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Cap" Property="Background" Value="{DynamicResource SelectedBorderBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Cap" Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="Telemetry">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Seg1" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0" />
+                            <DoubleAnimation Storyboard.TargetName="Seg2" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.05" Duration="0:0:0" />
+                            <DoubleAnimation Storyboard.TargetName="Seg3" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="Telemetry" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
 
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -23,29 +61,29 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="10,6,6,10">
-                        <Grid ClipToBounds="True">
-                            <Border x:Name="LeadStub" Width="6" HorizontalAlignment="Left"
-                                    CornerRadius="8,0,0,8"
-                                    Background="{DynamicResource LocalPeriwinkleBrush}"
-                                    BorderBrush="{DynamicResource ShellBackgroundBrush}" BorderThickness="0,0,2,0"
-                                    IsHitTestVisible="False" />
-                            <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Stretch" />
-                        </Grid>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10,6,6,10">
+                            <Grid ClipToBounds="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Stretch" />
+                            </Grid>
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalLcarsFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
                         </Trigger>
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
-                            <Setter TargetName="LeadStub" Property="Background" Value="{DynamicResource LocalGoldBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

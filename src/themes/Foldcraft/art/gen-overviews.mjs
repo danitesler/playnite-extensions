@@ -147,7 +147,11 @@ const sectionHeading = (loc) => `<DockPanel Margin="0,0,0,10">
           Data="M 4,0 L 8,4 L 4,8 L 0,4 Z" Fill="{DynamicResource LocalMagentaBrush}" IsHitTestVisible="False" />
     <TextBlock DockPanel.Dock="Left" Text="{DynamicResource ${loc}}" Margin="0,0,10,0">
         <TextBlock.Style>
-            <Style TargetType="TextBlock" BasedOn="{StaticResource HeadingTextBlock}">
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{DynamicResource HeadingFontFamily}" />
+                <Setter Property="FontSize" Value="{DynamicResource FontSizeLarge}" />
+                <Setter Property="Foreground" Value="{DynamicResource HeadingForegroundBrush}" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
                 <Style.Triggers>
                     <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
                         <Setter Property="Foreground" Value="{DynamicResource WindowArtForegroundBrush}" />

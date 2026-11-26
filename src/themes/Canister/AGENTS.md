@@ -15,7 +15,8 @@ Reference notes, measured colors, inspected Game UI Database (`id=2358`) screens
 | Token (`src/tokens.css`) | Key | Used for |
 | --- | --- | --- |
 | `--cn-void` (`#0D0F12`) | `ContentBackgroundBrush` | Library list & cover grid ground |
-| `--cn-asphalt` (`#13161A`) | `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `WindowTitleBackgroundBrush` | 44px rail, 50px top bar, 44px dialog title band |
+| `--cn-pitch` (`#07080A`) | `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `WindowTitleBackgroundBrush` | 44px rail, 50px top bar, 44px dialog title band, Settings section list; darker than the void (`#0D0F12`) and the list rows |
+| `--cn-asphalt` (`#13161A`) | other asphalt chrome | |
 | `--cn-ink-panel` (`#191D22`) | `WindowBackgourndBrush`, `GameOverviewBackgroundBrush`, `PopupBackgroundBrush` | Game page ground, Settings window, popup menus |
 | `--cn-ink-raised` (`#22272E`) | `NormalBrush`, `ButtonBackgroundBrush`, `SecondaryButtonBackgroundBrush`, `ListItemHoverBrush` | Buttons, More/Edit plates, hover wash |
 | `--cn-ink-sunk` (`#101317`) | `InputBackgroundBrush`, `SliderTrackBrush`, `ProgressBarTrackBrush`, `TooltipBackgroundBrush` | Inputs, search well, vial tracks, shortcut badges |
@@ -50,7 +51,7 @@ Fonts (bundled static SIL OFL TTFs in `src/Typography/`): `FontFamily` = `./Typo
 
 | File | What it draws |
 | --- | --- |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px alley-asphalt rail with chalk grain and Mutagen top edge streak; 44×50 Canister emblem main-menu tile with Vermilion tape foot; white-outlined Mutagen-wash selected rail plates (`3px` bar + Golden Marker glyph); 4 subtle identity beads at rail foot |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px alley-asphalt rail flat `cn-pitch` (no grain) with margin doodles and a Mutagen top edge streak; 44×50 main-menu tile with Vermilion tape foot holding the manhole mark (`LocalCanisterMenuMarkTemplate`, shared with `TopPanel.xaml`: hover pops and tilts the lid over a Mutagen glow; while the menu is open the lid slides off and a Vermilion-masked pair of eyes rises in the hole and blinks every 3s); white-outlined Mutagen-wash selected rail plates (`3px` bar + Golden Marker glyph); 4 subtle identity beads at rail foot |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 50px asphalt bar closed by a 2px ink seam with 260px Mutagen lead slash; 244px sunken search well with persistent magnifier; 34×34 filter toggle with 9×9 Vermilion 4-point comic star pip; sorting-first `PART_PanelMainItems` with icon-only view switches (active = white-rimmed plate + Mutagen offset); 12px tapered HP swoosh `PART_ProgressGlobal`; Crimson notification badge |
 | `Views/Library.xaml` | Full-strength `PART_ImageBackground` spanning TopPanel and reaching under the rail (`-44`/`-56`), fading cleanly into `WindowArtSwatch` |
 | `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`, `DefaultControls/TreeView.xaml` | 44px Settings/dialog title band with Vermilion masking-tape plaque + Cracked Canister mark + `Anton` title (`WindowSettings` sets `LOCSettingsLabel`) + ghosted aerosol mist; bare 28px `Barlow` tree rows with Mutagen wash + `2.5px` bar + reserved scrollbar lane |

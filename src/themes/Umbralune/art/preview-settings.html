@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Umbralune — Settings Window Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--umb-abyss);
+    color: var(--umb-ink);
+    font-family: var(--umb-font-body);
+    font-size: 14px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .backdrop {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    background: radial-gradient(ellipse at 50% 42%, var(--umb-sanctuary) 0%, var(--umb-abyss) 82%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .backdrop-nebula {
+    position: absolute;
+    inset: 0;
+    background: var(--umb-sapphire);
+    opacity: 0.22;
+    -webkit-mask-image: url('../src/Images/fx/nebula-smoke.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  /* Centered Playnite Settings Window (920 x 668 inside 1280x720) */
+  .settings-window {
+    position: relative;
+    z-index: 2;
+    width: 920px;
+    height: 668px;
+    background: var(--umb-night);
+    border: 1px solid var(--umb-rim);
+    border-radius: var(--umb-radius-md);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  /* Subtle corner antique-gold filigree accents on window */
+  .settings-window::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--umb-sapphire);
+    opacity: 0.22;
+    -webkit-mask-image: url('../src/Images/fx/nebula-smoke.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  /* Centered ghostly Umbran Watch watermark behind settings body (matching options.png!) */
+  .win-watch-wm {
+    position: absolute;
+    left: 268px;
+    top: 112px;
+    width: 452px;
+    height: 452px;
+    background: var(--umb-cyan);
+    opacity: 0.11;
+    -webkit-mask-image: url('../src/Images/fx/watch-watermark.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ================= 44px TITLE BAND (StandardWindowStyle) ================= */
+  .title-band {
+    position: relative;
+    z-index: 3;
+    height: 44px;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, var(--umb-abyss) 0%, var(--umb-sanctuary) 52%, var(--umb-abyss) 100%);
+    border-bottom: 1px solid var(--umb-rim);
+    display: flex;
+    align-items: center;
+    padding-left: 16px;
+    overflow: hidden;
+  }
+  /* Ghosted brand watch graphic tucked into right end of title band */
+  .band-wm {
+    position: absolute;
+    right: 92px;
+    top: -42px;
+    width: 128px;
+    height: 128px;
+    background: var(--umb-cyan);
+    opacity: 0.14;
+    -webkit-mask-image: url('../src/Images/fx/watch-watermark.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  /* OPTIONS-style cyan optical flare sweeping across title & lower seam */
+  .band-flare {
+    position: absolute;
+    left: 2px;
+    bottom: -4px;
+    width: 340px;
+    height: 18px;
+    background: var(--umb-cyan-bright);
+    opacity: 0.92;
+    -webkit-mask-image: url('../src/Images/fx/flare-beam.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .band-title-glow {
+    position: absolute;
+    left: 14px;
+    top: 8px;
+    width: 240px;
+    height: 28px;
+    background: var(--umb-cyan);
+    opacity: 0.28;
+    -webkit-mask-image: url('../src/Images/fx/rune-band.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  .band-mark {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  .band-title {
+    font-family: var(--umb-font-display);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--umb-ink);
+  }
+
+  .band-controls {
+    margin-left: auto;
+    display: flex;
+    height: 44px;
+  }
+  .band-btn {
+    width: 46px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--umb-ink-muted);
+  }
+  .band-btn.close-hover {
+    background: var(--umb-ruby);
+    color: #FFFFFF;
+  }
+
+  /* ================= MIDDLE SPLIT: TREEVIEW + SETTINGS PAGE ================= */
+  .settings-body {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Left TreeView (252px, bare 28px Jost rows, reserved scroll lane) */
+  .settings-nav {
+    position: relative;
+    width: 252px;
+    flex-shrink: 0;
+    background: rgba(3, 9, 24, 0.52);
+    border-right: 1px solid var(--umb-rim-soft);
+    display: flex;
+  }
+  .tree-list {
+    flex: 1;
+    padding: 8px 6px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    overflow: hidden;
+  }
+  .tree-scroll-lane {
+    width: 10px;
+    flex-shrink: 0;
+    padding: 8px 3px;
+    display: flex;
+    justify-content: center;
+  }
+  .tree-scroll-thumb {
+    width: 4px;
+    height: 150px;
+    border-radius: 2px;
+    background: var(--umb-rim);
+    opacity: 0.6;
+  }
+
+  .tree-row {
+    position: relative;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 6px;
+    font-family: var(--umb-font-body);
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--umb-ink-muted);
+    border-radius: var(--umb-radius-sm);
+    overflow: hidden;
+  }
+  .tree-row.child {
+    padding-left: 28px;
+  }
+  .tree-row.child::before {
+    content: "";
+    position: absolute;
+    left: 16px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--umb-rim-soft);
+    opacity: 0.7;
+  }
+  .tree-row.child.selected::before {
+    left: 0;
+    top: 3px;
+    bottom: 3px;
+    width: 2px;
+    background: var(--umb-cyan-bright);
+    opacity: 1;
+    z-index: 2;
+  }
+  .tree-exp {
+    width: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--umb-cyan);
+    flex-shrink: 0;
+  }
+  .tree-exp.hidden { visibility: hidden; }
+
+  /* Hover state: soft sapphire wash only (distinct from selected) */
+  .tree-row.hovered {
+    background: rgba(22, 51, 112, 0.56);
+    color: var(--umb-ink);
+  }
+  /* Selected state: 2px electric cyan left bar + OPTIONS rune-beam wash + Starlight text */
+  .tree-row.selected {
+    background: linear-gradient(90deg, var(--umb-cyan-beam) 0%, var(--umb-cyan-wash) 72%, transparent 100%);
+    color: var(--umb-ink);
+  }
+  .tree-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 3px;
+    bottom: 3px;
+    width: 2px;
+    background: var(--umb-cyan-bright);
+    z-index: 2;
+  }
+  .tree-row.selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--umb-cyan-bright);
+    opacity: 0.36;
+    -webkit-mask-image: url('../src/Images/fx/rune-band.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .tree-row span { position: relative; z-index: 2; }
+
+  /* ================= RIGHT SETTINGS CONTENT PAGE ================= */
+  .settings-content {
+    flex: 1;
+    min-width: 0;
+    padding: 18px 24px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    overflow: hidden;
+  }
+
+  .page-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--umb-rim-soft);
+  }
+  .page-section-head h2 {
+    font-family: var(--umb-font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--umb-gold-bright);
+  }
+  .page-section-head .head-dia {
+    width: 6px;
+    height: 6px;
+    background: var(--umb-cyan);
+    transform: rotate(45deg);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 205px 1fr;
+    align-items: center;
+    row-gap: 12px;
+    column-gap: 16px;
+  }
+  .field-label {
+    font-size: 13.5px;
+    color: var(--umb-ink-muted);
+  }
+
+  /* ===== LocalUmbraluneFieldTemplate (32px height, gold ticks, cyan focus flare) ===== */
+  .umb-field {
+    position: relative;
+    height: 32px;
+    background: var(--umb-abyss);
+    border: 1px solid var(--umb-rim);
+    border-radius: var(--umb-radius-md);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    color: var(--umb-ink);
+    font-size: 13.5px;
+  }
+  .umb-field .tick-l, .umb-field .tick-r {
+    position: absolute;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    background: var(--umb-gold-rim);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .umb-field .tick-l { left: -3px; }
+  .umb-field .tick-r { right: -3px; }
+
+  /* Focused TextBox: cyan optical flare beam along bottom + glowing cyan ticks */
+  .umb-field.focused {
+    border-color: var(--umb-cyan);
+    background: rgba(6, 17, 42, 0.96);
+  }
+  .umb-field.focused .tick-l, .umb-field.focused .tick-r {
+    background: var(--umb-cyan-bright);
+  }
+  .umb-field.focused::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: -4px;
+    height: 9px;
+    background: var(--umb-cyan-bright);
+    opacity: 0.92;
+    -webkit-mask-image: url('../src/Images/fx/flare-beam.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .caret {
+    display: inline-block;
+    width: 1.5px;
+    height: 15px;
+    background: var(--umb-cyan-bright);
+    margin-left: 1px;
+  }
+
+  /* ComboBox: dedicated 28px sapphire-chrome right cap + 38px right clearance */
+  .umb-combo {
+    padding-right: 38px; /* 28px cap + 10px left inset */
+  }
+  .combo-cap {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 28px;
+    background: linear-gradient(180deg, var(--umb-indigo), var(--umb-sanctuary));
+    border-left: 1px solid var(--umb-gold-rim);
+    border-radius: 0 3px 3px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--umb-cyan);
+  }
+
+  /* ===== Bayonetta 2 OPTIONS Silver-Chrome Diamond-Gem Slider ===== */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .umb-slider {
+    position: relative;
+    flex: 1;
+    height: 28px;
+    display: flex;
+    align-items: center;
+  }
+  /* Antique bronze-gold grooved metallic rail (options.png!) */
+  .slider-track {
+    position: relative;
+    width: 100%;
+    height: 7px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #2A2318, #5C4E35 45%, #3B3121);
+    border: 1px solid var(--umb-gold-rail);
+  }
+  .slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 64%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--umb-gold-deep), var(--umb-gold) 70%, var(--umb-cyan-bright));
+  }
+  /* Tall vertical faceted Silver-Chrome Diamond Thumb inset with a glowing Sapphire Gem! */
+  .slider-thumb {
+    position: absolute;
+    left: 64%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .slider-val {
+    width: 44px;
+    text-align: right;
+    font-size: 13px;
+    color: var(--umb-gold-bright);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ===== Faceted Diamond-Bezel CheckBoxes & Crescent-Ring RadioButtons ===== */
+  .check-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--umb-ink);
+  }
+  .cb-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--umb-abyss);
+    border: 1.5px solid var(--umb-rim);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .cb-box.checked {
+    background: var(--umb-cyan-wash);
+    border-color: var(--umb-cyan-bright);
+  }
+  .cb-box.checked svg { width: 12px; height: 12px; color: var(--umb-cyan-bright); }
+
+  .radio-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .rb-ring {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--umb-abyss);
+    border: 1.5px solid var(--umb-rim);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .rb-ring.checked {
+    border-color: var(--umb-cyan-bright);
+    background: var(--umb-cyan-wash);
+  }
+  .rb-core {
+    width: 7px;
+    height: 7px;
+    background: var(--umb-cyan-bright);
+    transform: rotate(45deg);
+  }
+
+  /* Group Box (subtle Umbran tarot section divider) */
+  .group-box {
+    position: relative;
+    background: rgba(9, 24, 58, 0.56);
+    border: 1px solid var(--umb-rim-soft);
+    border-radius: var(--umb-radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .group-box-title {
+    font-family: var(--umb-font-display);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--umb-cyan-bright);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .group-box-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--umb-rim), transparent);
+  }
+
+  /* Inline Action Buttons Showcase */
+  .inline-btns {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+  }
+  .btn {
+    position: relative;
+    height: 32px;
+    padding: 0 16px;
+    border-radius: var(--umb-radius-md);
+    font-family: var(--umb-font-body);
+    font-size: 13.5px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    overflow: hidden;
+  }
+  .btn-plain {
+    background: var(--umb-indigo);
+    border: 1px solid var(--umb-rim);
+    color: var(--umb-ink);
+  }
+  .btn-plain.hover {
+    background: var(--umb-royal);
+    border-color: var(--umb-cyan);
+    color: var(--umb-cyan-bright);
+  }
+  .btn-primary {
+    background: linear-gradient(180deg, var(--umb-gold-bright) 0%, var(--umb-gold) 55%, var(--umb-gold-deep) 100%);
+    border: 1px solid var(--umb-gold-bright);
+    color: var(--umb-ink-dark);
+    font-weight: 600;
+  }
+  .btn-primary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #FFFFFF;
+    opacity: 0.28;
+    -webkit-mask-image: url('../src/Images/fx/gold-sheen.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  /* ================= BOTTOM BAR (settings-buttons) ================= */
+  .settings-footer {
+    position: relative;
+    z-index: 3;
+    height: 52px;
+    flex-shrink: 0;
+    background: var(--umb-abyss);
+    border-top: 1px solid var(--umb-rim-soft);
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .restart-note {
+    font-size: 12.5px;
+    color: var(--umb-ink-muted);
+  }
+  .footer-btns {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .footer-btns .btn { min-width: 88px; }
+</style>
+</head>
+<body>
+<div class="backdrop">
+  <div class="backdrop-nebula"></div>
+
+  <div class="settings-window" data-part="settings-window">
+    <div class="win-watch-wm"></div>
+
+    <!-- 44px Title Band with Umbran Watch mark & OPTIONS cyan flare -->
+    <header class="title-band">
+      <div class="band-wm"></div>
+      <div class="band-title-glow"></div>
+      <div class="band-flare"></div>
+
+      <svg class="band-mark" viewBox="0 0 64 64" fill="none">
+        <circle cx="33" cy="32" r="24" stroke="var(--umb-cyan)" stroke-width="2.4" stroke-dasharray="116 34" transform="rotate(-38 33 32)" />
+        <path d="M36 9.5A22.5 22.5 0 1 0 36 54.5A17.8 17.8 0 1 1 36 9.5Z" fill="var(--umb-cyan-bright)" />
+        <path d="M34 15L37.6 28.4L47 32L37.6 35.6L34 49L30.4 35.6L21 32L30.4 28.4Z" fill="var(--umb-gold)" />
+      </svg>
+      <span class="band-title">Settings</span>
+
+      <div class="band-controls">
+        <div class="band-btn">
+          <svg width="11" height="11" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.4"><path d="M2 6H10" /></svg>
+        </div>
+        <div class="band-btn">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="2.5" width="7" height="7" /></svg>
+        </div>
+        <div class="band-btn close-hover">
+          <svg width="11" height="11" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.5"><path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" /></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Body -->
+    <div class="settings-body">
+      <!-- Left Section TreeView -->
+      <aside class="settings-nav" data-part="settings-nav">
+        <div class="tree-list">
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>General</span></div>
+          <div class="tree-row"><span class="tree-exp">▾</span><span>Appearance</span></div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span><span>General</span></div>
+          <div class="tree-row child hovered"><span class="tree-exp hidden">▸</span><span>Advanced</span></div>
+          <div class="tree-row child selected"><span class="tree-exp hidden">▸</span><span>Details View</span></div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span><span>Grid View</span></div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span><span>List View</span></div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span><span>Layout</span></div>
+          <div class="tree-row child"><span class="tree-exp hidden">▸</span><span>Top panel</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Search</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Updating</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Metadata</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Sorting</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Scripts</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Auto Close Clients</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Import Exclusion List</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Backup</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>For developers</span></div>
+          <div class="tree-row"><span class="tree-exp hidden">▸</span><span>Input</span></div>
+          <div class="tree-row"><span class="tree-exp">▸</span><span>Advanced</span></div>
+        </div>
+        <div class="tree-scroll-lane">
+          <div class="tree-scroll-thumb"></div>
+        </div>
+      </aside>
+
+      <!-- Right Settings Controls Showcase -->
+      <section class="settings-content" data-part="settings-content">
+        <div class="page-section-head">
+          <span class="head-dia"></span>
+          <h2>Appearance · Details View</h2>
+        </div>
+
+        <div class="form-grid">
+          <label class="field-label">Language *</label>
+          <div class="umb-field umb-combo">
+            <span class="tick-l"></span>
+            <span class="tick-r"></span>
+            <span>English</span>
+            <span class="combo-cap">
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 4.2L6 8.2L9.5 4.2" stroke="currentColor" stroke-width="1.6" />
+                <path d="M6 1.5L7.4 3L6 4.5L4.6 3Z" fill="var(--umb-gold)" />
+              </svg>
+            </span>
+          </div>
+
+          <label class="field-label">Library path *</label>
+          <div class="umb-field focused">
+            <span class="tick-l"></span>
+            <span class="tick-r"></span>
+            <span>D:\Games\Playnite\Library</span><span class="caret"></span>
+          </div>
+
+          <label class="field-label">Game list item height</label>
+          <div class="slider-row">
+            <div class="umb-slider">
+              <div class="slider-track">
+                <div class="slider-fill"></div>
+              </div>
+              <!-- Bayonetta 2 OPTIONS Silver-Chrome Diamond Thumb with Sapphire Gem -->
+              <div class="slider-thumb">
+                <svg width="16" height="24" viewBox="0 0 16 24" fill="none">
+                  <path d="M8 1L15 12L8 23L1 12Z" fill="var(--umb-chrome)" stroke="var(--umb-abyss)" stroke-width="1.2" />
+                  <path d="M8 3.5L12.5 12L8 20.5L3.5 12Z" fill="var(--umb-sanctuary)" />
+                  <path d="M8 6L11 12L8 18L5 12Z" fill="var(--umb-cyan)" />
+                  <path d="M8 7.5L9.5 12L8 13.5L6.5 12Z" fill="#FFFFFF" fill-opacity="0.7" />
+                </svg>
+              </div>
+            </div>
+            <span class="slider-val">36 px</span>
+          </div>
+
+          <label class="field-label">Banner darken level</label>
+          <div class="slider-row">
+            <div class="umb-slider">
+              <div class="slider-track">
+                <div class="slider-fill" style="width:32%;"></div>
+              </div>
+              <div class="slider-thumb" style="left:32%;">
+                <svg width="16" height="24" viewBox="0 0 16 24" fill="none">
+                  <path d="M8 1L15 12L8 23L1 12Z" fill="var(--umb-chrome)" stroke="var(--umb-abyss)" stroke-width="1.2" />
+                  <path d="M8 3.5L12.5 12L8 20.5L3.5 12Z" fill="var(--umb-sanctuary)" />
+                  <path d="M8 6L11 12L8 18L5 12Z" fill="var(--umb-cyan)" />
+                </svg>
+              </div>
+            </div>
+            <span class="slider-val">32 %</span>
+          </div>
+        </div>
+
+        <div class="group-box">
+          <div class="group-box-title">Display Options</div>
+          <div class="check-stack">
+            <div class="check-item">
+              <span class="cb-box checked">
+                <svg viewBox="0 0 14 14" fill="none">
+                  <path d="M2.5 7.2L5.8 10.4L11.5 3.6" stroke="currentColor" stroke-width="2" />
+                </svg>
+              </span>
+              <span>Show game icons on details list</span>
+            </div>
+            <div class="check-item">
+              <span class="cb-box"></span>
+              <span>Use game background image as window background</span>
+            </div>
+          </div>
+
+          <div class="radio-row" style="margin-top:4px;">
+            <div class="check-item">
+              <span class="rb-ring checked"><span class="rb-core"></span></span>
+              <span>Show cover art on details view</span>
+            </div>
+            <div class="check-item">
+              <span class="rb-ring"></span>
+              <span>Hide cover art</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-box">
+          <div class="group-box-title">Theme &amp; Metadata Actions</div>
+          <div class="inline-btns">
+            <span class="btn btn-primary">Apply Defaults</span>
+            <span class="btn btn-plain hover">Browse Themes…</span>
+            <span class="btn btn-plain">Reset Layout</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Bottom Bar (Save then Cancel right-most) -->
+    <footer class="settings-footer" data-part="settings-buttons">
+      <span class="restart-note">* Requires restart to apply</span>
+      <div class="footer-btns">
+        <span class="btn btn-primary">Save</span>
+        <span class="btn btn-plain">Cancel</span>
+      </div>
+    </footer>
+  </div>
+</div>
+</body>
+</html>

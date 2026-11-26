@@ -1,16 +1,20 @@
 <!--
     Joyride: Play, the mission slab. Structure: Playnite Default 10.60 (PlayButton); every Default state is kept.
-    Brushes: Background (the slab, PrimaryButtonBackgroundBrush = mission yellow), BorderBrush (the triangle in the key cap),
-    Foreground (the label, black ink), LocalGutterBrush (rim, key cap, hard offset), LocalMissionBrush (the corona),
-    LocalPureBrush (the press flash, the lit triangle), LocalGoldBrush (the pressed slab), RunningIndicatorBrush, ScrimBrush.
+    Brushes: Background (the slab, PrimaryButtonBackgroundBrush = mission yellow), BorderBrush (the triangle and tyre hub in the key cap),
+    Foreground (the label, black ink), LocalGutterBrush (rim, key cap, hard offset), CheckMarkBrush (the star),
+    LocalPureBrush (the press flash, pistol, tyre, siren base), LocalGoldBrush (the pressed slab), RunningIndicatorBrush (siren blue),
+    LocalWastedBrush (siren red, the glow), ScrimBrush.
     Rest: a mission-yellow slab with a 2px black rim on a 4px hard black offset (a sticker on the box art); a black instructional
     key cap holds the play triangle; PLAY in Impact.
-    Hover (hero, both ways): the mission marker corona (corona.png as OpacityMask, mission yellow) blooms behind the slab from 80%
-    with a punch (BackEase), the slab lifts 2px up-left off its shadow, the triangle lights white. The hit area never moves.
+    Hover (hero, both ways): the slab lifts 2px up-left off its shadow and the key cap cycles its glyph while the pointer stays:
+    play triangle -> wanted star -> pistol -> police siren (blue and red flicker) -> triangle, 3.6s loop, each glyph pops in with
+    a spin (BackEase) and shrinks out. Behind the slab a police car's roof lamps blip (a siren-blue lamp at the left end, a red one at the right end, each
+    double-flashing in turn, 1.2s loop), fading in on hover and out on leave. The hit area never moves.
     Press, its own layers: the slab slams onto its shadow (90ms), darkens to gold, and a white flash band sweeps across it
     (the MISSION PASSED bar); release recovers in 0.18s.
     Running and launching: the slab fills with RunningIndicatorBrush (police siren blue) with black ink; the corona, flash and hover
-    layers drop out. Launching: a dark band sweeps the slab. Running: a light scrim breathes over it. The RUNNING label shows
+    layers drop out. The key cap shows a tyre instead of the triangle: launching spins it fast (0.4s a turn), running slow (2.6s).
+    Launching: a dark band sweeps the slab and a blue then red light bar sweeps behind it, left to right (1.2s). Running: a light scrim breathes over it. The RUNNING label shows
     Cancel only while the button itself is hovered (RelativeSource Self), and the hover layers stay off while it runs.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -113,13 +117,49 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Grid x:Name="Root" Background="Transparent" SnapsToDevicePixels="True">
-                        <!-- The mission marker corona behind the slab: only on hover. -->
-                        <Rectangle x:Name="Corona" Margin="-58,-36,-58,-36" Fill="{DynamicResource LocalMissionBrush}" OpacityMask="{DynamicResource LocalCoronaMask}"
-                                   Opacity="0" Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
-                            <Rectangle.RenderTransform>
-                                <ScaleTransform x:Name="CoronaScale" ScaleX="0.8" ScaleY="0.8" />
-                            </Rectangle.RenderTransform>
-                        </Rectangle>
+                        <!-- Launching: a police light bar behind the slab, a blurred siren-blue band and then a red one sweeping across it from left to right. -->
+                        <Grid x:Name="SweepHost" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Grid x:Name="SweepBlue" Margin="-26,-20,-26,-20" Opacity="0.9" IsHitTestVisible="False">
+                                <Grid.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="SweepBlueA" Color="#00000000" Offset="-0.75" />
+                                        <GradientStop x:Name="SweepBlueB" Color="#FF000000" Offset="-0.45" />
+                                        <GradientStop x:Name="SweepBlueC" Color="#00000000" Offset="-0.15" />
+                                    </LinearGradientBrush>
+                                </Grid.OpacityMask>
+                                <Border Margin="22,17,22,17" Background="{DynamicResource RunningIndicatorBrush}" CornerRadius="{DynamicResource ControlCornerRadius}">
+                                    <Border.Effect><BlurEffect Radius="16" KernelType="Gaussian" /></Border.Effect>
+                                </Border>
+                            </Grid>
+                            <Grid x:Name="SweepRed" Margin="-26,-20,-26,-20" Opacity="0.9" IsHitTestVisible="False">
+                                <Grid.OpacityMask>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop x:Name="SweepRedA" Color="#00000000" Offset="-0.75" />
+                                        <GradientStop x:Name="SweepRedB" Color="#FF000000" Offset="-0.45" />
+                                        <GradientStop x:Name="SweepRedC" Color="#00000000" Offset="-0.15" />
+                                    </LinearGradientBrush>
+                                </Grid.OpacityMask>
+                                <Border Margin="22,17,22,17" Background="{DynamicResource LocalWastedBrush}" CornerRadius="{DynamicResource ControlCornerRadius}">
+                                    <Border.Effect><BlurEffect Radius="16" KernelType="Gaussian" /></Border.Effect>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                        <!-- Police car roof lamps behind the hovered slab: a siren-blue lamp blips at the left end, a red one at the right end, taking turns. Only while hovered. -->
+                        <Grid x:Name="BlipHost" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Grid Margin="-4,-3,-4,-3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="0.42*" />
+                                    <ColumnDefinition Width="0.16*" />
+                                    <ColumnDefinition Width="0.42*" />
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="BlipBlue" Grid.Column="0" Background="{DynamicResource RunningIndicatorBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0">
+                                    <Border.Effect><BlurEffect Radius="16" KernelType="Gaussian" /></Border.Effect>
+                                </Border>
+                                <Border x:Name="BlipRed" Grid.Column="2" Background="{DynamicResource LocalWastedBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0">
+                                    <Border.Effect><BlurEffect Radius="16" KernelType="Gaussian" /></Border.Effect>
+                                </Border>
+                            </Grid>
+                        </Grid>
                         <!-- The hard black offset the slab stands on. -->
                         <Border x:Name="Shadow" Margin="4,4,-4,-4" Background="{DynamicResource LocalGutterBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" IsHitTestVisible="False" />
                         <Grid x:Name="Face">
@@ -155,9 +195,55 @@
                                     Background="{DynamicResource LocalGutterBrush}" CornerRadius="{DynamicResource ControlCornerRadius}">
                                 <Grid>
                                     <Path x:Name="PlayGlyph" Data="M0,0 L10,6 L0,12 Z" Width="10" Height="12" Margin="2,0,0,0" Fill="{TemplateBinding BorderBrush}"
-                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    <Path x:Name="PlayGlyphHover" Data="M0,0 L10,6 L0,12 Z" Width="10" Height="12" Margin="2,0,0,0" Fill="{DynamicResource LocalPureBrush}" Opacity="0"
-                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                        <Path.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform x:Name="PlayScale" ScaleX="1" ScaleY="1" />
+                                                <RotateTransform x:Name="PlaySpin" Angle="0" />
+                                            </TransformGroup>
+                                        </Path.RenderTransform>
+                                    </Path>
+                                    <!-- Hover glyphs: scale 0 at rest, cycled by PlayGlyphLoop. -->
+                                    <Grid x:Name="StarLayer" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                                        <Grid.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform x:Name="StarScale" ScaleX="0" ScaleY="0" />
+                                                <RotateTransform x:Name="StarSpin" Angle="0" />
+                                            </TransformGroup>
+                                        </Grid.RenderTransform>
+                                        <Path Data="M8,0.6 L9.95,5.7 L15.4,6 L11.15,9.4 L12.55,14.7 L8,11.75 L3.45,14.7 L4.85,9.4 L0.6,6 L6.05,5.7 Z" Fill="{DynamicResource CheckMarkBrush}" />
+                                    </Grid>
+                                    <Grid x:Name="PistolLayer" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                                        <Grid.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform x:Name="PistolScale" ScaleX="0" ScaleY="0" />
+                                                <RotateTransform x:Name="PistolSpin" Angle="0" />
+                                            </TransformGroup>
+                                        </Grid.RenderTransform>
+                                        <Path Data="M0.5,3 L15.5,3 L15.5,7 L11.8,7 L13.2,14 L9.3,14 L7.6,9.6 L5.4,9.6 L4.6,7 L0.5,7 Z" Fill="{DynamicResource LocalPureBrush}" />
+                                    </Grid>
+                                    <Grid x:Name="SirenLayer" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                                        <Grid.RenderTransform>
+                                            <TransformGroup>
+                                                <ScaleTransform x:Name="SirenScale" ScaleX="0" ScaleY="0" />
+                                                <RotateTransform x:Name="SirenSpin" Angle="0" />
+                                            </TransformGroup>
+                                        </Grid.RenderTransform>
+                                        <Path Data="M3,12.8 L13,12.8 L13,14.6 L3,14.6 Z" Fill="{DynamicResource LocalPureBrush}" />
+                                        <Path Data="M4,12.2 L4,8.6 A4,4.6 0 0 1 12,8.6 L12,12.2 Z" Fill="{DynamicResource RunningIndicatorBrush}" />
+                                        <Path x:Name="SirenRed" Data="M4,12.2 L4,8.6 A4,4.6 0 0 1 12,8.6 L12,12.2 Z" Fill="{DynamicResource LocalWastedBrush}" Opacity="0" />
+                                        <Path Data="M8,0.8 L8,2.6 M2,2.8 L3.3,4.2 M14,2.8 L12.7,4.2" Stroke="{DynamicResource LocalPureBrush}" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                    </Grid>
+                                    <!-- Running and launching: the tyre. Spun by PlayFillLaunching (fast) and PlayFillRunning (slow). -->
+                                    <Grid x:Name="Tyre" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" Visibility="Collapsed" IsHitTestVisible="False">
+                                        <Grid.RenderTransform>
+                                            <RotateTransform x:Name="TyreSpin" Angle="0" />
+                                        </Grid.RenderTransform>
+                                        <Ellipse Width="20" Height="20" Stroke="{DynamicResource LocalPureBrush}" StrokeThickness="3.5" StrokeDashArray="1 0.85" />
+                                        <Ellipse Width="11" Height="11" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1.6" />
+                                        <Path Data="M10,10 L10,5.6 M10,10 L14.2,8.6 M10,10 L11.6,14.3 M10,10 L8.4,14.3 M10,10 L5.8,8.6" Stroke="{TemplateBinding BorderBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                        <Ellipse Width="3.4" Height="3.4" Fill="{TemplateBinding BorderBrush}" />
+                                    </Grid>
                                 </Grid>
                             </Border>
                             <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}">
@@ -193,38 +279,180 @@
                             <MultiDataTrigger.EnterActions>
                                 <BeginStoryboard Name="PlayHoverIn">
                                     <Storyboard>
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Corona" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <DoubleAnimation Storyboard.TargetName="Corona" Storyboard.TargetProperty="Opacity" To="0.75" Duration="0:0:0.18" />
-                                        <DoubleAnimation Storyboard.TargetName="CoronaScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.3">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="CoronaScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.3">
-                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
                                         <DoubleAnimation Storyboard.TargetName="FaceShift" Storyboard.TargetProperty="X" To="-2" Duration="0:0:0.12">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
                                         <DoubleAnimation Storyboard.TargetName="FaceShift" Storyboard.TargetProperty="Y" To="-2" Duration="0:0:0.12">
                                             <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
                                         </DoubleAnimation>
-                                        <DoubleAnimation Storyboard.TargetName="PlayGlyphHover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="PlayGlyphLoop">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:2.9" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:2.9" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlaySpin" Storyboard.TargetProperty="Angle" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="90" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="-120" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:2.9" Value="0"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="StarScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.85" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="StarScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.85" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="StarSpin" Storyboard.TargetProperty="Angle" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-120" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.1" Value="-120" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="0"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.85" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="90" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="90" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PistolScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:1.15" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.7" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PistolScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:1.15" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.7" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PistolSpin" Storyboard.TargetProperty="Angle" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-120" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.95" Value="-120" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:1.15" Value="0"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.7" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="90" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="90" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SirenScale" Storyboard.TargetProperty="ScaleX" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:2" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.6" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SirenScale" Storyboard.TargetProperty="ScaleY" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="0" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:2" Value="1"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.6" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SirenSpin" Storyboard.TargetProperty="Angle" Duration="0:0:3.6">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="-120" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.8" Value="-120" />
+                                            <EasingDoubleKeyFrame KeyTime="0:0:2" Value="0"><EasingDoubleKeyFrame.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.6" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="90" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:3.6" Value="90" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SirenRed" Storyboard.TargetProperty="Opacity" Duration="0:0:3.6">
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:2" Value="0" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:2.1" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:2.25" Value="0" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:2.4" Value="1" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:2.55" Value="0" />
+                                            <DiscreteDoubleKeyFrame KeyTime="0:0:3.6" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="PlayBlipFadeIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="PlayBlipLoop">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BlipBlue" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.03" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.13" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.16" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.27" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.37" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BlipRed" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.63" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.73" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.76" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.84" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.87" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.97" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </MultiDataTrigger.EnterActions>
                             <MultiDataTrigger.ExitActions>
                                 <BeginStoryboard Name="PlayHoverOut">
                                     <Storyboard FillBehavior="Stop">
-                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Corona" Storyboard.TargetProperty="Visibility">
-                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
-                                        </ObjectAnimationUsingKeyFrames>
-                                        <DoubleAnimation Storyboard.TargetName="Corona" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
-                                        <DoubleAnimation Storyboard.TargetName="CoronaScale" Storyboard.TargetProperty="ScaleX" To="0.8" Duration="0:0:0.2" />
-                                        <DoubleAnimation Storyboard.TargetName="CoronaScale" Storyboard.TargetProperty="ScaleY" To="0.8" Duration="0:0:0.2" />
                                         <DoubleAnimation Storyboard.TargetName="FaceShift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18" />
                                         <DoubleAnimation Storyboard.TargetName="FaceShift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18" />
-                                        <DoubleAnimation Storyboard.TargetName="PlayGlyphHover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <RemoveStoryboard BeginStoryboardName="PlayGlyphLoop" />
+                                <BeginStoryboard Name="PlayBlipFadeOut">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="PlayGlyphReturn">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleX" From="0" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation Storyboard.TargetName="PlayScale" Storyboard.TargetProperty="ScaleY" From="0" To="1" Duration="0:0:0.2">
+                                            <DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </MultiDataTrigger.ExitActions>
@@ -260,14 +488,54 @@
                         </MultiDataTrigger>
                         <DataTrigger Binding="{Binding IsLaunching}" Value="True">
                             <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="Corona" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="PressFlash" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="PlayGlyphHover" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Tyre" Property="Visibility" Value="Visible" />
                             <Setter TargetName="RunningScan" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="SweepHost" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="SweepHost" Property="Opacity" Value="1" />
                             <Setter TargetName="RunningBreath" Property="Opacity" Value="0.1" />
                             <DataTrigger.EnterActions>
+                                <BeginStoryboard Name="PlayLaunchSweep">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SweepBlueA" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.75" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.55" Value="1.15" KeySpline="0.35,0 0.65,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1.15" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SweepBlueB" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.55" Value="1.45" KeySpline="0.35,0 0.65,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1.45" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SweepBlueC" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.55" Value="1.75" KeySpline="0.35,0 0.65,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1.75" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SweepRedA" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.75" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="-0.75" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.15" KeySpline="0.35,0 0.65,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1.15" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SweepRedB" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="-0.45" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.45" KeySpline="0.35,0 0.65,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1.45" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SweepRedC" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:0.6" Value="-0.15" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.15" Value="1.75" KeySpline="0.35,0 0.65,1" />
+                                            <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="1.75" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
                                 <BeginStoryboard Name="PlayFillLaunching">
                                     <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="TyreSpin" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:0.4" RepeatBehavior="Forever" />
                                         <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningScanTail" Storyboard.TargetProperty="Offset" Duration="0:0:1.2">
                                             <SplineDoubleKeyFrame KeyTime="0:0:0" Value="-0.4" />
                                             <SplineDoubleKeyFrame KeyTime="0:0:0.9" Value="1" KeySpline="0.45,0 0.25,1" />
@@ -288,16 +556,18 @@
                             </DataTrigger.EnterActions>
                             <DataTrigger.ExitActions>
                                 <RemoveStoryboard BeginStoryboardName="PlayFillLaunching" />
+                                <RemoveStoryboard BeginStoryboardName="PlayLaunchSweep" />
                             </DataTrigger.ExitActions>
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
                             <Setter TargetName="PressedPlate" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="Corona" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="PressFlash" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="PlayGlyphHover" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="Tyre" Property="Visibility" Value="Visible" />
                             <DataTrigger.EnterActions>
                                 <BeginStoryboard Name="PlayFillRunning">
                                     <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="TyreSpin" Storyboard.TargetProperty="Angle" From="0" To="360" Duration="0:0:2.6" RepeatBehavior="Forever" />
                                         <DoubleAnimationUsingKeyFrames Storyboard.TargetName="RunningBreath" Storyboard.TargetProperty="Opacity" Duration="0:0:2.4">
                                             <SplineDoubleKeyFrame KeyTime="0:0:0" Value="0.04" />
                                             <SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="0.14" KeySpline="0.4,0 0.6,1" />
@@ -318,7 +588,6 @@
                             </MultiDataTrigger.Conditions>
                             <Setter TargetName="CancelLabel" Property="Visibility" Value="Visible" />
                             <Setter TargetName="PlayContent" Property="Visibility" Value="Hidden" />
-                            <Setter TargetName="PlayGlyph" Property="Visibility" Value="Hidden" />
                             <MultiDataTrigger.EnterActions>
                                 <BeginStoryboard Name="RunningCancelIn">
                                     <Storyboard>

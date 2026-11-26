@@ -9,7 +9,6 @@ Compared against the last 5 themes in `src/themes/AGENTS.md` and `src/extensions
 - `Runeskald` (dark frost-slate Norse equipment tablet — Diegetic)
 - `Rimeweld` (dark black/silver equipment tray — Diegetic)
 - `Vesperglass` (dark twilight aubergine glass & astrolabe — Diegetic)
-- `Bathysphere` (dark submerged verdigris Art Deco brass — Diegetic)
 - `Cogplate` (dark phosphor green ordnance CRT visor — HUD/Telemetry)
 
 All 5 recent themes are dark metallic/glass/CRT themes, and our only two recent light themes (`Slipstream`, `Rumpus`) are rounded pastel capsule/pill systems.

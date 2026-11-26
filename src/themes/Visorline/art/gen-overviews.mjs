@@ -61,9 +61,38 @@ ${indent(META_GROUPS.map(g => metadataGroup(g, layout, { fieldOptions: { scoreRe
             </Grid>
         </StackPanel>
     </Border>
+    <Rectangle Margin="1" IsHitTestVisible="False" Fill="{DynamicResource GlyphBrush}" Opacity="0.03">
+        <Rectangle.OpacityMask>
+            <ImageBrush ImageSource="{ThemeFile 'Images/fx/hex.png'}" TileMode="Tile" Stretch="None" Viewport="0,0,24,42" ViewportUnits="Absolute" />
+        </Rectangle.OpacityMask>
+    </Rectangle>
     <Control Template="{DynamicResource FramedPlateTemplate}" Foreground="{DynamicResource FrameBrush}" Focusable="False" />
 </Grid>`;
 }
+
+const pageBackdrop = `<Control Template="{DynamicResource LocalVisorBackdropTemplate}" IsHitTestVisible="False" Focusable="False">
+    <Control.Style>
+        <Style TargetType="Control">
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Control.Style>
+</Control>
+<Control Template="{DynamicResource BracketFrameTemplate}" Foreground="{DynamicResource FrameInnerBrush}" Margin="10" IsHitTestVisible="False" Focusable="False">
+    <Control.Style>
+        <Style TargetType="Control">
+            <Setter Property="Opacity" Value="0.45" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Settings ShowBackgroundImageOnWindow}" Value="True">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Control.Style>
+</Control>`;
 
 // No OpacityMask on the banner: masked art repainted in part behind the animated Play button leaves dark seams on scaled
 // displays. The fade is a plain gradient to the page color; a second gradient darkens the head. No wash: the source shows its art clean.
@@ -230,6 +259,7 @@ const details = `<!--
                     <ScrollViewer x:Name="PART_ScrollViewHost" Visibility="Visible" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                         <Grid x:Name="PageRoot" UseLayoutRounding="True">
 ${indent(pageRootStyle(), 28)}
+${indent(pageBackdrop, 28)}
 ${indent(heroArt, 28)}
                             <StackPanel Margin="30,0,30,30">
 ${indent(hideWhenEmpty, 32)}
@@ -291,6 +321,7 @@ const gridView = `<!--
                             <ScrollViewer CanContentScroll="False" x:Name="PART_ScrollViewHost" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                                 <Grid x:Name="PageRoot" UseLayoutRounding="True">
 ${indent(pageRootStyle(), 36)}
+${indent(pageBackdrop, 36)}
 ${indent(heroArt, 36)}
                                     <StackPanel Panel.ZIndex="2" Margin="24,0,24,26">
 ${indent(hideWhenEmpty, 40)}

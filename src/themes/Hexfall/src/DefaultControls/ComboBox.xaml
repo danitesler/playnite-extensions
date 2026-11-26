@@ -25,6 +25,7 @@
                     <Grid SnapsToDevicePixels="True">
                         <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalLockOnFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                         <ToggleButton x:Name="ToggleButton" Focusable="False" ClickMode="Press"
                                       IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                             <ToggleButton.Template>
@@ -35,6 +36,11 @@
                                                       IsHitTestVisible="False" Focusable="False" IsChecked="True"
                                                       Style="{DynamicResource ExpanderDownHeaderStyle}" />
                                         <Grid x:Name="FilterOriginalArrow" DockPanel.Dock="Right" Width="24" Height="24" Margin="0,0,4,0" VerticalAlignment="Center">
+                                            <!-- The dropdown is a hex cell (flat sides, pointy top and foot): a plate outline that lights cyan on
+                                                 hover and takes the olive tab fill while the list is open. -->
+                                            <Polygon x:Name="Hex" Points="11,0.5 21.5,6.2 21.5,17.8 11,23.5 0.5,17.8 0.5,6.2" Width="22" Height="24"
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                     Fill="{DynamicResource ButtonBackgroundBrush}" Stroke="{DynamicResource NormalBorderBrush}" StrokeThickness="1" />
                                             <ContentControl x:Name="Arrow" Content="{DynamicResource IconDropDown}" ContentTemplate="{DynamicResource IconSmallTemplate}"
                                                             Foreground="{DynamicResource HeadingMarkerBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="False" />
                                         </Grid>
@@ -42,6 +48,12 @@
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="Arrow" Property="Foreground" Value="{DynamicResource CapLampBrush}" />
+                                            <Setter TargetName="Hex" Property="Stroke" Value="{DynamicResource GlyphBrush}" />
+                                            <Setter TargetName="Hex" Property="Fill" Value="{DynamicResource ButtonHoverBackgroundBrush}" />
+                                        </Trigger>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Hex" Property="Stroke" Value="{DynamicResource TabItemIndicatorBrush}" />
+                                            <Setter TargetName="Hex" Property="Fill" Value="{DynamicResource ToggleButtonCheckedBackgroundBrush}" />
                                         </Trigger>
                                         <DataTrigger Binding="{Binding IsVisible, RelativeSource={RelativeSource AncestorType={x:Type FilterPanel}}, FallbackValue=False}" Value="True">
                                             <Setter TargetName="FilterOriginalArrow" Property="Visibility" Value="Collapsed" />
@@ -77,12 +89,18 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
-                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
-                        </Trigger>
                         <Trigger Property="IsDropDownOpen" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                         </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEditable" Value="True" />
+                                <Condition Property="IsKeyboardFocusWithin" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
+                        </MultiTrigger>
                         <Trigger Property="IsEditable" Value="True">
                             <Setter Property="IsTabStop" Value="False" />
                             <Setter Property="Visibility" Value="Visible" TargetName="PART_EditableTextBox" />

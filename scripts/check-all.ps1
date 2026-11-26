@@ -15,7 +15,9 @@ param(
     [switch]$Quick,
     [string]$Configuration = "Release",
     [string[]]$Keys = @(),
-    [string]$PlaynitePath
+    [string]$PlaynitePath,
+    # How many WPF regression suites run at once (0 = half the CPU cores, at most 8).
+    [int]$WpfThrottle = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,18 +44,24 @@ $skipped = @()
 function Step([string]$Name, [scriptblock]$Body, [switch]$Native) {
     Write-Host ""
     Write-Host "━━ $Name"
+    $watch = [System.Diagnostics.Stopwatch]::StartNew()
     try {
         $global:LASTEXITCODE = 0
         & $Body
         if ($Native -and $LASTEXITCODE -ne 0) { throw "exit code $LASTEXITCODE" }
-        Write-Host "✓ $Name"
+        Write-Host "✓ $Name ($(Format-Elapsed $watch.Elapsed))"
     }
     catch {
         Write-Host "  $($_.Exception.Message)"
-        Write-Host "✗ $Name"
+        Write-Host "✗ $Name ($(Format-Elapsed $watch.Elapsed))"
         $failed.Add($Name) | Out-Null
     }
 }
+function Format-Elapsed([TimeSpan]$Span) {
+    if ($Span.TotalMinutes -ge 1) { return "{0}m {1:00}s" -f [int][Math]::Floor($Span.TotalMinutes), $Span.Seconds }
+    return "{0:0.0}s" -f $Span.TotalSeconds
+}
+$gateWatch = [System.Diagnostics.Stopwatch]::StartNew()
 
 $plugins = @($extensions | Where-Object kind -eq plugin)
 foreach ($plugin in $plugins) {
@@ -95,18 +103,67 @@ if ($onWindows -and $themes.Count -gt 0 -and -not $failed.Contains("build themes
         'GridDetailsPanelWidthRegressionTests.ps1'
         'GridOverviewLayoutRegressionTests.ps1'
         'SidePanelCloseButtonRegressionTests.ps1'
+        'ThemeLoadRegressionTests.ps1'
     )
     $hasConverter = $PlaynitePath -and (Test-Path -LiteralPath (Join-Path $PlaynitePath 'MathConverter.dll') -PathType Leaf)
-    foreach ($test in Get-ChildItem -LiteralPath (Join-Path $repoRoot "tests/wpf") -Filter '*RegressionTests.ps1' -File | Sort-Object Name) {
-        $wpfArgs = @('-Keys', ($themes.key -join ','))
+    # Suites that sample animations in real time (~40s per theme) are split into shards of themes, one process each.
+    $shards = @{ 'RunningLabelOverlapRegressionTests.ps1' = 6; 'RunningIndicatorRegressionTests.ps1' = 2 }
+    $wpfRuns = foreach ($test in Get-ChildItem -LiteralPath (Join-Path $repoRoot "tests/wpf") -Filter '*RegressionTests.ps1' -File | Sort-Object Name) {
+        $extraArgs = @()
         if ($test.Name -in $requiresPlaynite) {
             if (-not $hasConverter) {
                 $skipped += $test.Name
                 continue
             }
-            $wpfArgs += @('-PlaynitePath', $PlaynitePath)
+            $extraArgs = @('-PlaynitePath', $PlaynitePath)
         }
-        Step "$($test.BaseName) (WPF)" { pwsh -NoProfile -STA -File $test.FullName @wpfArgs } -Native
+        $count = [Math]::Max(1, [Math]::Min([int]$shards[$test.Name], $themes.Count))
+        for ($shard = 0; $shard -lt $count; $shard++) {
+            $shardKeys = @(for ($i = $shard; $i -lt $themes.Count; $i += $count) { $themes[$i].key })
+            $label = if ($count -gt 1) { "$($test.BaseName) (WPF, part $($shard + 1)/$count)" } else { "$($test.BaseName) (WPF)" }
+            [pscustomobject]@{ Name = $label; File = $test.FullName; Args = @('-Keys', ($shardKeys -join ',')) + $extraArgs }
+        }
+    }
+    # The suites only read the build drops, each in its own process, so they run side by side.
+    # Output is printed per suite as it finishes; -WpfThrottle 1 restores the old serial order.
+    $throttle = if ($WpfThrottle -gt 0) { $WpfThrottle } else { [Math]::Max(1, [Math]::Min(8, [int]([Environment]::ProcessorCount / 2))) }
+    Write-Host ""
+    Write-Host "━━ $(@($wpfRuns).Count) WPF regression suites, $throttle at a time"
+    $runSuite = {
+        param($Run)
+        $watch = [System.Diagnostics.Stopwatch]::StartNew()
+        $output = & pwsh -NoProfile -STA -File $Run.File @($Run.Args) 2>&1 | Out-String
+        [pscustomobject]@{ Name = $Run.Name; ExitCode = $LASTEXITCODE; Output = $output; Elapsed = $watch.Elapsed }
+    }
+    $jobs = @(foreach ($run in $wpfRuns) {
+        if (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue) {
+            Start-ThreadJob -ScriptBlock $runSuite -ArgumentList $run -ThrottleLimit $throttle
+        } else {
+            Start-Job -ScriptBlock $runSuite -ArgumentList $run
+        }
+    })
+    $pending = [System.Collections.Generic.List[object]]::new()
+    $jobs | ForEach-Object { $pending.Add($_) }
+    while ($pending.Count -gt 0) {
+        $job = Wait-Job -Job $pending.ToArray() -Any
+        $pending.Remove($job) | Out-Null
+        $result = Receive-Job -Job $job
+        Remove-Job -Job $job
+        Write-Host ""
+        if (-not $result) {
+            Write-Host "✗ WPF suite job $($job.Name) returned nothing"
+            $failed.Add("WPF suite job $($job.Name)") | Out-Null
+            continue
+        }
+        Write-Host "━━ $($result.Name)"
+        Write-Host ($result.Output.TrimEnd())
+        if ($result.ExitCode -ne 0) {
+            Write-Host "  exit code $($result.ExitCode)"
+            Write-Host "✗ $($result.Name) ($(Format-Elapsed $result.Elapsed))"
+            $failed.Add($result.Name) | Out-Null
+        } else {
+            Write-Host "✓ $($result.Name) ($(Format-Elapsed $result.Elapsed))"
+        }
     }
     if ($skipped.Count -gt 0) {
         Write-Warning "Skipped WPF tests requiring MathConverter.dll: $($skipped -join ', '). Pass -PlaynitePath to run them."
@@ -128,6 +185,7 @@ if (-not $Quick) {
 }
 
 Write-Host ""
+Write-Host "Total time: $(Format-Elapsed $gateWatch.Elapsed)"
 if ($failed.Count -gt 0) {
     Write-Host "Failed: $($failed -join ', ')"
     exit 1

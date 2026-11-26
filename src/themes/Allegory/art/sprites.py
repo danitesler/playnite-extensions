@@ -11,6 +11,8 @@ Shapes are measured from the Metaphor: ReFantazio captures listed in RESEARCH.md
   splatter     a droplet cluster (Play hover tail, title splats).
   torn-edge    the brushed right edge of the description card (tooltips), stretched vertically.
   brush-edge   banner foot: solid above, a ragged dragged-brush edge below.
+  brush-wash   page ground: one continuous painted wash (clouds, dry-brush swipes, grain) behind every page.
+  splash-drops the flung droplets of a splash only (Play hover), scaled outward from the centre.
   paint-ground a soft mottled ink wash (settings band, empty page; never behind lists).
 
 Run: python3 src/themes/Allegory/art/sprites.py [--sheet <png>]
@@ -175,15 +177,116 @@ def make_flick():
 
 
 def make_splatter():
+    """A spit of paint hitting the floor: a ragged central pool with radial spikes (the crown), elongated drops flung
+    outward and thinning with distance, and a spray of fine specks. Centre of the image is the impact point."""
     rng = np.random.default_rng(53)
     W = H = 256 * SS
-    a = np.zeros((H, W))
-    droplets(a, rng, 1, (0.42 * W, 0.42 * H, 0.5 * W, 0.5 * H), 22 * SS, 26 * SS)
-    droplets(a, rng, 2, (0.6 * W, 0.25 * H, 0.75 * W, 0.7 * H), 8 * SS, 13 * SS)
-    droplets(a, rng, 34, (0.1 * W, 0.1 * H, 0.9 * W, 0.9 * H), 2 * SS, 9 * SS)
-    droplets(a, rng, 40, (0.02 * W, 0.02 * H, 0.98 * W, 0.98 * H), 0.8 * SS, 3 * SS)
+    cx, cy = W / 2, H / 2
+    yy, xx = np.mgrid[0:H, 0:W]
+    ang = np.arctan2(yy - cy, xx - cx)
+    dist = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2)
+    # pool: radius varies with angle, with sharp spikes at random angles
+    ths = np.linspace(-np.pi, np.pi, 720)
+    rad = 30 * SS * (1 + 0.28 * np.sin(3 * ths + 1.0) + 0.18 * np.sin(5 * ths + 2.0) + 0.1 * np.sin(9 * ths))
+    for _ in range(14):
+        t0 = rng.uniform(-np.pi, np.pi)
+        sp = rng.uniform(14, 40) * SS
+        wd = rng.uniform(0.05, 0.12)
+        dth = np.angle(np.exp(1j * (ths - t0)))
+        rad = rad + sp * np.exp(-(dth / wd) ** 2)
+    r_at = np.interp(ang, ths, rad)
+    a = np.clip((r_at - dist) / (1.3 * SS), 0, 1)
+    # flung drops: elongated along the radial direction, smaller and sparser the further they land
+    for _ in range(46):
+        t = rng.uniform(-np.pi, np.pi)
+        f = rng.uniform(0.0, 1.0) ** 0.8
+        d0 = (52 + f * 66) * SS
+        r = max(0.9, (9.5 - 8 * f)) * rng.uniform(0.7, 1.15) * SS
+        length = r * rng.uniform(1.4, 3.4)
+        px, py = cx + np.cos(t) * d0, cy + np.sin(t) * d0
+        # distance to a short radial segment (capsule) pointing back toward the impact
+        ux, uy = np.cos(t), np.sin(t)
+        s = np.clip(((xx - px) * -ux + (yy - py) * -uy), 0, length)
+        qx, qy = px - ux * s, py - uy * s
+        taper = r * (1 - 0.55 * s / length)
+        d = np.sqrt((xx - qx) ** 2 + (yy - qy) ** 2)
+        a = np.maximum(a, np.clip((taper - d) / (1.0 * SS), 0, 1))
+    droplets(a, rng, 60, (0.04 * W, 0.04 * H, 0.96 * W, 0.96 * H), 0.8 * SS, 2.4 * SS)
     return save(a, "splatter")
 
+def make_brush_wash():
+    """Page ground for every main page (details, grid, game page, Settings, menus): one continuous painted wash, so nothing
+    tiles and nothing reads as a square. Layers: soft mottled clouds (multi-scale noise, covering the whole sheet), broad
+    feathered dry-brush swipes at a slight slant with bristle streaks, and a fine grain. It is used stretched (Fill) as a dark ink tint (about 70%) over the page ground, so it is built to cover everything evenly, with no edges, borders or vignette."""
+    from PIL import ImageFilter
+    rng = np.random.default_rng(1970)
+    W, H = 1600 * SS, 1000 * SS
+
+    def cloud(gw, gh):
+        g = Image.fromarray((rng.uniform(0, 1, (gh, gw)) * 255).astype(np.uint8))
+        return np.asarray(g.resize((W, H), Image.BICUBIC), dtype=np.float64) / 255.0
+
+    clouds = 0.5 * cloud(5, 3) + 0.3 * cloud(11, 7) + 0.2 * cloud(26, 16)
+    clouds = (clouds - clouds.min()) / (np.ptp(clouds) or 1.0)
+
+    sw = np.zeros((H, W))
+    yy = np.arange(H)[:, None]
+    for _ in range(46):
+        y0 = rng.uniform(-0.05, 1.05) * H
+        th = rng.uniform(26, 120) * SS
+        x0 = rng.uniform(-0.4, 0.8) * W
+        ln = rng.uniform(0.45, 1.2) * W
+        slope = rng.uniform(-0.06, 0.03)
+        x1 = int(max(0, x0)); x2 = int(min(W, x0 + ln))
+        if x2 - x1 < 8:
+            continue
+        xs = np.arange(x1, x2)
+        t = (xs - x0) / ln
+        cy = y0 + slope * (xs - x0) + smooth_noise(len(xs), 7, rng, 8 * SS)
+        half = th / 2 * (0.8 + 0.2 * np.sin(np.pi * np.clip(t, 0, 1))) * (1 - 0.3 * t)
+        d = (yy - cy[None, :]) / half[None, :]
+        body = np.clip(1.5 - np.abs(d) * 1.5, 0, 1) ** 1.3                      # feathered across
+        bristle = np.clip(0.6 + 0.4 * smooth_noise(H, int(th / SS) + 10, rng)[:, None], 0, 1)
+        dry = np.clip((1 - t) * 1.8 + 0.2, 0, 1)[None, :]                        # the tail runs dry
+        grain = (rng.uniform(0, 1, (H, len(xs))) < (0.4 + 0.6 * dry)).astype(float)
+        head = np.clip(t / 0.18, 0, 1)[None, :] ** 0.8                           # soft start
+        s = body * bristle * grain * head * np.clip(dry + 0.2, 0, 1) * rng.uniform(0.35, 0.8)
+        sw[:, x1:x2] = np.maximum(sw[:, x1:x2], s)
+    swimg = Image.fromarray((np.clip(sw, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.2 * SS))
+    sw = np.asarray(swimg, dtype=np.float64) / 255.0
+
+    fine = rng.normal(0, 1, (H, W))
+    fine = np.asarray(Image.fromarray(((fine * 40) + 128).clip(0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8 * SS)), dtype=np.float64) / 255.0 - 0.5
+    # chalkboard weave: two fine crossing diagonals, strongest where the clouds are heavy (the old canvas tooth)
+    yy2, xx2 = np.mgrid[0:H, 0:W]
+    weave = 0.5 * (np.sin((xx2 + yy2) * 2 * np.pi / (5.5 * SS)) + np.sin((xx2 - yy2) * 2 * np.pi / (7.5 * SS)))
+    a = 0.14 + 0.5 * clouds ** 1.2 + 0.6 * sw + 0.4 * fine + 0.1 * weave * (0.4 + clouds)
+    return save(np.clip(a, 0.04, 1.0), "brush-wash")
+
+def make_splash_drops():
+    """The droplets of a splash and nothing else: drops flung radially from the centre (an empty middle, where the pool
+    sits), elongated along their flight with a tail pointing back, large near the middle and fine at the rim, plus a
+    mist of specks. XAML scales it up from the impact point so the drops visibly fly outward, then fades it."""
+    rng = np.random.default_rng(88)
+    W = H = 256 * SS
+    cx, cy = W / 2, H / 2
+    yy, xx = np.mgrid[0:H, 0:W]
+    a = np.zeros((H, W))
+    for _ in range(64):
+        t = rng.uniform(-np.pi, np.pi)
+        f = rng.uniform(0, 1) ** 0.9
+        d0 = (30 + f * 92) * SS
+        r = max(0.8, 6.5 - 5.6 * f) * rng.uniform(0.7, 1.2) * SS
+        length = r * rng.uniform(2.0, 5.5)
+        px, py = cx + np.cos(t) * d0, cy + np.sin(t) * d0
+        ux, uy = np.cos(t), np.sin(t)
+        s = np.clip(((xx - px) * -ux + (yy - py) * -uy), 0, length)
+        qx, qy = px - ux * s, py - uy * s
+        taper = r * (1 - 0.7 * s / length)
+        d = np.sqrt((xx - qx) ** 2 + (yy - qy) ** 2)
+        a = np.maximum(a, np.clip((taper - d) / (1.0 * SS), 0, 1))
+    droplets(a, rng, 90, (0.03 * W, 0.03 * H, 0.97 * W, 0.97 * H), 0.7 * SS, 2.0 * SS, alpha=(0.5, 0.95))
+    return save(a, "splash-drops")
 
 def make_torn_edge():
     rng = np.random.default_rng(61)
@@ -260,7 +363,7 @@ def main():
     ap.add_argument("--sheet", help="write a tinted contact sheet to this path (scratch)")
     args = ap.parse_args()
     imgs = [make_band(), make_band_short(), make_dab(), make_flick(), make_splatter(), make_torn_edge(),
-            make_brush_edge(), make_paint_ground()]
+            make_brush_edge(), make_paint_ground(), make_brush_wash(), make_splash_drops()]
     if args.sheet:
         contact_sheet(imgs, args.sheet)
     print("wrote", len(imgs), "masks to", OUT)

@@ -6,6 +6,41 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalLunaFieldTemplate: Luna's own cues. At rest a faint sunken line inside the top edge in the input-border blue.
+        Hover: the XP hot-track, a light-orange line inside the top edge and a deeper orange line inside the bottom, as on
+        Luna buttons. Keyboard focus: the classic dotted focus rectangle, 3px inside the edge, fades in (0.12s).
+        State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalLunaFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Sunken" Height="1" VerticalAlignment="Top" Margin="1,1,1,0" Fill="{DynamicResource InputBorderBrush}" Opacity="0.35" />
+            <Rectangle x:Name="HotTop" Height="2" VerticalAlignment="Top" Margin="1,1,1,0" Fill="{DynamicResource LocalXpOrangeLightBrush}" Visibility="Collapsed" />
+            <Rectangle x:Name="HotBottom" Height="2" VerticalAlignment="Bottom" Margin="1,0,1,1" Fill="{DynamicResource LocalXpOrangeBrush}" Visibility="Collapsed" />
+            <Rectangle x:Name="FocusRect" Margin="3" StrokeThickness="1" StrokeDashArray="1 1" Stroke="{DynamicResource TextBrush}" Opacity="0"
+                       RenderOptions.EdgeMode="Aliased" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Sunken" Property="Visibility" Value="Collapsed" />
+                <Setter TargetName="HotTop" Property="Visibility" Value="Visible" />
+                <Setter TargetName="HotBottom" Property="Visibility" Value="Visible" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="DotsIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="FocusRect" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="DotsIn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -20,18 +55,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
-                                      HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalLunaFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">

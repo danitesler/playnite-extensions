@@ -9,6 +9,29 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalPencilFieldTemplate: the dotted pencil rule under every serif title, on a field. A row of round graphite dots runs
+        under the text (8px in from each side, 5px up), in the theme's muted slate. Hover: the dots darken. Keyboard focus: they
+        turn the orange of the menu's values and thicken, as if gone over twice. Dots are a dashed Line (a Line has no intrinsic
+        width at Stretch Fill), so no desired size. State is read from the nearest Control above.
+    -->
+    <ControlTemplate x:Key="LocalPencilFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="False">
+            <Line x:Name="Dots" X1="0" X2="1" Stretch="Fill" Margin="10,0,10,5" VerticalAlignment="Bottom" StrokeThickness="2"
+                  Stroke="{DynamicResource TextBrushDarker}" StrokeDashArray="0.01 1.5" StrokeDashCap="Round" Opacity="0.5" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Dots" Property="Opacity" Value="0.9" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Dots" Property="Stroke" Value="{DynamicResource GlyphBrush}" />
+                <Setter TargetName="Dots" Property="StrokeThickness" Value="3" />
+                <Setter TargetName="Dots" Property="Opacity" Value="1" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -26,13 +49,16 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
                     <Grid>
-                        <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
-                                Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
-                                BorderBrush="{TemplateBinding BorderBrush}">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
-                        </Border>
+                        <Grid>
+                            <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
+                                    Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
+                                    BorderBrush="{TemplateBinding BorderBrush}">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                              HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
+                            </Border>
+                            <Control x:Name="FieldOverlay" Template="{DynamicResource LocalPencilFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                        </Grid>
                         <Border x:Name="FocusRing" Visibility="Collapsed" IsHitTestVisible="False"
                                 BorderThickness="2" BorderBrush="{DynamicResource FocusBrush}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" />
@@ -42,6 +68,7 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="Transparent" TargetName="Border" />
                             <Setter Property="Visibility" Value="Visible" TargetName="FocusRing" />
                         </Trigger>

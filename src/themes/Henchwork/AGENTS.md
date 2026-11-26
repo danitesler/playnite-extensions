@@ -15,7 +15,7 @@ Reference notes, sampled colours and contrast ratios: [`RESEARCH.md`](RESEARCH.m
 | Token | Key | Used for |
 |-------|-----|----------|
 | `--hw-blueprint` `#131D27` | `WindowBackgourndBrush`, `ContentBackgroundBrush`, `ScrimBrush`, `BackgroundToneColor` | Map-ocean navy library layer |
-| `--hw-page` `#0B1016` | `GameOverviewBackgroundBrush` | Darker game page so it separates from the game list (text 16.6:1, muted 10.5:1, dim 6.0:1) |
+| `--hw-page` `#070B10` | `GameOverviewBackgroundBrush` | Darker game page so it separates from the game list (text 16.6:1, muted 10.5:1, dim 6.0:1) |
 | `--hw-hud` `#1B2733` | `MainColorDark`, `ShellBackgroundBrush`, `TopPanelBackgroundBrush`, `WindowTitleBackgroundBrush`, `ScrollBarTrackBrush`, `TabControlHeaderBackgroundBrush` | HUD tray: rail, top bar, title band, settings tree, header bands, odometer strip |
 | `--hw-ink` `#0E151D` | `PopupBorderColor`, `PanelSeparatorColor`, `InputBackgroundBrush`, `TooltipBackgroundBrush`, `CheckBoxCheckMarkBkBrush`, `ButtonBorderBrush`, `LocalInkBrush` | Hard offset plates, 2px edges, recessed wells |
 | `--hw-slate` / `--hw-slate-hi` / `--hw-slate-line` | `MainColor`, `PopupBackgroundColor`, `ExpanderBackgroundBrush` / `HoverColor`, `ButtonBackgroundBrush`, `SelectedBrush` / `NormalBorderBrush`, `ButtonHoverBackgroundBrush` | Console panels, keys, selection wash, rims |
@@ -54,7 +54,7 @@ Generated from `scripts/data/theme-keys.json` at build time. `GameBannerTintBrus
 
 | File | What it draws |
 |------|---------------|
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px HUD rail with a 2px ink edge; main menu is the vault-eye on a mustard tile (pops on hover); items are 30x30 mustard pictogram tiles with ink glyphs (fixed `14,12` padding, no `IconPadding`); selected tile flips cream on a 3px ink offset |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px HUD rail with a 2px ink edge; main menu is the vault-door mark on a mustard tile (`LocalHenchworkMenuMarkTemplate`, shared with `TopPanel.xaml`: hover pops the tile and clicks the combination dial left, right, left; while the menu is open the door swings open on its hinge onto a red alarm lamp that pulses with a sonar ring); items are 30x30 mustard pictogram tiles with ink glyphs (fixed `14,12` padding, no `IconPadding`); selected tile flips cream on a 3px ink offset |
 | `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 48px HUD bar closed by a 2px ink rule; 244px ink search well; filter key with a 9px red badge disc (`TextFilter`); sorting-first icon-only 34x32 slate keys on ink feet, current view cream; lime odometer progress bar; notifications key with a red count badge |
 | `Views/Library.xaml` | Blueprint-navy layer; full-strength window art layer with bottom fade |
 | `DerivedStyles/MainWindowStyle.xaml` | Bare caption glyphs, slate on hover, close turns into the orange Quit tile |

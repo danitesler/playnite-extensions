@@ -26,8 +26,13 @@
                                     <ToggleButton.Template>
                                         <ControlTemplate TargetType="{x:Type ToggleButton}">
                                             <Grid Background="Transparent">
+                                                <!-- The prompt keycap that holds the arrow: grey key on the box, a 2px rule on its left;
+                                                     lit on hover, maroon (like the pressed prompt) while the list is open. -->
+                                                <Border x:Name="Cap" Width="32" HorizontalAlignment="Right" Margin="0,0,0,2" IsHitTestVisible="False"
+                                                        Background="{DynamicResource ButtonBackgroundBrush}"
+                                                        BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="2,0,0,0" />
                                                 <ContentPresenter x:Name="Chevron" Width="12" Height="12" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                                  Margin="0,0,10,0" IsHitTestVisible="False"
+                                                                  Margin="0,0,10,0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"
                                                                   TextElement.Foreground="{DynamicResource TextBrushDarker}"
                                                                   Content="{DynamicResource IconDropDown}"
                                                                   ContentTemplate="{DynamicResource IconTemplate}" />
@@ -43,16 +48,23 @@
                                                 </DataTrigger>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter Property="TextElement.Foreground" Value="{DynamicResource SelectedForegroundBrush}" TargetName="Chevron" />
+                                                    <Setter Property="Background" Value="{DynamicResource ButtonHoverBackgroundBrush}" TargetName="Cap" />
                                                 </Trigger>
                                                 <Trigger Property="IsChecked" Value="True">
                                                     <Setter Property="TextElement.Foreground" Value="{DynamicResource SelectedForegroundBrush}" TargetName="Chevron" />
+                                                    <Setter Property="Background" Value="{DynamicResource PrimaryButtonBackgroundBrush}" TargetName="Cap" />
+                                                    <Setter Property="RenderTransform" TargetName="Chevron">
+                                                        <Setter.Value>
+                                                            <RotateTransform Angle="180" />
+                                                        </Setter.Value>
+                                                    </Setter>
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </ToggleButton.Template>
                                 </ToggleButton>
-                                <!-- ComboBox-chevron-room: the value never runs under the chevron (12px + 10px margin + 8px gap = 30px kept clear). -->
-                                <Border Margin="0,0,30,0" IsHitTestVisible="False">
+                                <!-- ComboBox-chevron-room: the value never runs under the keycap (32px cap + 8px gap = 40px kept clear). -->
+                                <Border Margin="0,0,40,0" IsHitTestVisible="False">
                                     <ContentPresenter x:Name="ContentSite" HorizontalAlignment="Left" VerticalAlignment="Center"
                                                       Margin="{TemplateBinding Padding}" IsHitTestVisible="False"
                                                       Content="{TemplateBinding SelectionBoxItem}"
@@ -61,12 +73,13 @@
                                 </Border>
                                 <TextBox MinHeight="0" x:Name="PART_EditableTextBox" Style="{DynamicResource BareTextBox}" Visibility="Hidden"
                                          VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                                         Margin="8,0,30,0" Focusable="True"
+                                         Margin="8,0,40,0" Focusable="True"
                                          IsReadOnly="{TemplateBinding IsReadOnly}" />
                             </Grid>
                         </Border>
                         <Border x:Name="Rule" Height="2" VerticalAlignment="Bottom" IsHitTestVisible="False" SnapsToDevicePixels="True"
                                 Background="{DynamicResource InputUnderlineBrush}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalFieldPaintTemplate}" VerticalAlignment="Bottom" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                         <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}"
                                Placement="Bottom" VerticalOffset="2" Focusable="False" AllowsTransparency="True">
                             <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}"
@@ -86,10 +99,16 @@
                         </Trigger>
                         <Trigger Property="IsDropDownOpen" Value="True">
                             <Setter Property="Background" Value="{DynamicResource FocusBrush}" TargetName="Rule" />
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                         </Trigger>
-                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEditable" Value="True" />
+                                <Condition Property="IsKeyboardFocusWithin" Value="True" />
+                            </MultiTrigger.Conditions>
                             <Setter Property="Background" Value="{DynamicResource FocusBrush}" TargetName="Rule" />
-                        </Trigger>
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
+                        </MultiTrigger>
                         <Trigger Property="IsEditable" Value="True">
                             <Setter Property="IsTabStop" Value="False" />
                             <Setter Property="Visibility" Value="Visible" TargetName="PART_EditableTextBox" />

@@ -7,6 +7,60 @@
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        LocalDeskLampFieldTemplate: a case note under the desk lamp. A wobbly hand-inked chalk line runs under the text in
+        paper grey at rest. Hover: the line brightens to paper. Keyboard focus: the desk lamp clicks on, a warm cone of
+        light fades down from the top edge (0.2s) and the line takes the lamp colour.
+        State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalDeskLampFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Cone" Margin="1" Fill="{DynamicResource FocusBrush}" Opacity="0">
+                <Rectangle.OpacityMask>
+                    <RadialGradientBrush Center="0.5,0" GradientOrigin="0.5,0" RadiusX="0.6" RadiusY="1.1">
+                        <GradientStop Offset="0" Color="#40FFFFFF" />
+                        <GradientStop Offset="1" Color="#00FFFFFF" />
+                    </RadialGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="Ink" Height="3" VerticalAlignment="Bottom" Margin="8,0,8,2" Fill="{DynamicResource SelectedBorderBrush}" Opacity="0.45">
+                <Rectangle.OpacityMask>
+                    <DrawingBrush Stretch="Fill">
+                        <DrawingBrush.Drawing>
+                            <DrawingGroup>
+                                <GeometryDrawing Brush="#00000000" Geometry="M0,0 H100 V3 H0 Z" />
+                                <GeometryDrawing Brush="#FF000000" Geometry="M0,1.6 C8,0.6 15,2.4 24,1.4 C33,0.5 41,2.3 52,1.5 C62,0.8 70,2.4 80,1.3 C88,0.6 94,1.8 100,1.2 L100,2.2 C94,2.8 88,1.6 80,2.4 C70,3 62,1.8 52,2.5 C41,3 33,1.5 24,2.4 C15,3 8,1.6 0,2.6 Z" />
+                            </DrawingGroup>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Ink" Property="Opacity" Value="1" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Ink" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="Ink" Property="Opacity" Value="1" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="LampOn">
+                        <Storyboard>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Cone" Storyboard.TargetProperty="Opacity">
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.5" />
+                                <DiscreteDoubleKeyFrame KeyTime="0:0:0.05" Value="0.15" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.2" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="LampOn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -26,6 +80,7 @@
                     <Grid SnapsToDevicePixels="True">
                         <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" BorderBrush="{TemplateBinding BorderBrush}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalDeskLampFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                         <ScrollViewer x:Name="PART_ContentHost"
                                       VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
                                       HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
@@ -35,6 +90,7 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource TextBrushDarker}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

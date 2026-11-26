@@ -87,7 +87,7 @@ Follows the skeleton in `../AGENTS.md`. Details view: 340 banner (`HeroArt`) fad
 | Playnite file | Mann Co |
 |---------------|---------|
 | `DefaultControls/Button`, `ToggleButton`, `RepeatButton`, `DerivedStyles/PlayButton` | Main menu button: tan-dark plate, ink edge, bold Trebuchet; rust hover; tan flash with ink text while pressed. On = tan paper. Play is RED. |
-| `DefaultControls/TextBox`, `PasswordBox`, `ComboBox`, `CustomControls/SearchBox` | TF2 text entry: black-washed box, tan-dark edge that turns tan on hover and keyboard focus (`IsKeyboardFocusWithin`). Combo arrow is a solid triangle; popup dark with a tan-dark edge. |
+| `DefaultControls/TextBox`, `PasswordBox`, `ComboBox`, `CustomControls/SearchBox` | TF2 text entry: black-washed box, tan-dark edge that turns tan on hover and keyboard focus (`IsKeyboardFocusWithin`). Combo arrow is a solid triangle; popup dark with a tan-dark edge. `LocalTeamRuleFieldTemplate` overlay: a 2px RED/BLU split rule along the bottom (dim at rest, full on hover, 3px on focus) and a tan paper dog-ear that folds down at the top-right on keyboard focus. Editable dropdown now uses `BareTextBox`; value room 30 = 16 arrow + 6 margin + 8 inset. See `docs/themes/fields.md`. |
 | `DefaultControls/CheckBox`, `RadioButton` | S1 CheckButton: 18px TransparentBlack box, Yellow edge and check; orange edge on hover. |
 | `DefaultControls/Slider`, `CustomControls/SliderEx`, `ProgressBar` | S1 Slider: 6px near-black track, 4px rust fill, grey 10 x 16 knob that gets a tan edge. Progress: black wash with a rust fill. |
 | `DefaultControls/ScrollViewer`, `Thumb` | 12px black-wash rail, flat 8px tan-dark thumb, tan when hot. |

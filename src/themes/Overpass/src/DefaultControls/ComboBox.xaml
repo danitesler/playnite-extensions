@@ -1,0 +1,186 @@
+<!--
+    Overpass: DefaultControls/ComboBox.xaml.
+    Fields & Menus contract:
+      - Closed ComboBox hosts LocalOverpassFieldTemplate (driven ONLY by IsDropDownOpen + editable IsKeyboardFocusWithin
+        inside ComboBox's own ControlTemplate.Triggers — never on unconditional IsKeyboardFocusWithin!).
+      - Dedicated 30px separated right chevron cap; ContentSite and PART_EditableTextBox reserve 40px right room (30 + 10 inset).
+      - Popup hosts LocalOverpassMenuBoardTemplate; ComboBoxItem is a 30px row matching Menu.xaml with amber check mark.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTemplate x:Key="LocalComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
+        <Grid Background="Transparent" SnapsToDevicePixels="True">
+            <Border x:Name="Border"
+                    Background="{DynamicResource InputBackgroundBrush}"
+                    BorderBrush="{DynamicResource InputBorderBrush}"
+                    BorderThickness="{DynamicResource ControlBorderThickness}"
+                    CornerRadius="{DynamicResource ControlCornerRadius}" />
+            <!-- Dedicated 30px separated right chevron cap -->
+            <Border x:Name="ArrowCap" Width="30" HorizontalAlignment="Right"
+                    Background="{DynamicResource LocalZebraBrush}"
+                    BorderBrush="{DynamicResource InputBorderBrush}"
+                    BorderThickness="1,0,0,0" Margin="0,1,1,1">
+                <ContentControl x:Name="Arrow" Content="{DynamicResource IconDropDown}"
+                                ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                Foreground="{DynamicResource LocalMapHighwayBrush}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                RenderTransformOrigin="0.5,0.5" />
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Border" Property="Background" Value="{DynamicResource InputHoverBackgroundBrush}" />
+                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                <Setter TargetName="ArrowCap" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                <Setter TargetName="Arrow" Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                <Setter TargetName="ArrowCap" Property="Background" Value="{DynamicResource GlyphBrush}" />
+                <Setter TargetName="ArrowCap" Property="BorderBrush" Value="{DynamicResource GlyphBrush}" />
+                <Setter TargetName="Arrow" Property="Foreground" Value="{DynamicResource TextBrushDark}" />
+                <Setter TargetName="Arrow" Property="RenderTransform">
+                    <Setter.Value>
+                        <RotateTransform Angle="180" />
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                    <Grid x:Name="RowRoot" Height="30" Background="Transparent" SnapsToDevicePixels="True">
+                        <Grid x:Name="HighlightPlate" Visibility="Collapsed" Opacity="0" IsHitTestVisible="False" RenderTransformOrigin="0,0.5">
+                            <Grid.RenderTransform>
+                                <ScaleTransform x:Name="HighlightScale" ScaleX="0.90" />
+                            </Grid.RenderTransform>
+                            <Border Background="{DynamicResource MenuItemHoverBrush}"
+                                    BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="0,1,0,1" />
+                            <Rectangle Width="3" HorizontalAlignment="Left" Fill="{DynamicResource GlyphBrush}" />
+                        </Grid>
+                        <Grid Margin="10,0,10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0" VerticalAlignment="Center"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                            <ContentControl x:Name="SelectedTick" Grid.Column="1" Visibility="Collapsed" Margin="8,0,0,0"
+                                            Content="{DynamicResource IconCheck}" ContentTemplate="{DynamicResource IconSmallTemplate}"
+                                            Foreground="{DynamicResource GlyphBrush}" VerticalAlignment="Center" />
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="SelectedTick" Property="Visibility" Value="Visible" />
+                            <Setter Property="Foreground" Value="{DynamicResource GlyphBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource SelectedForegroundBrush}" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="ComboItemHiIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.11" />
+                                        <DoubleAnimation Storyboard.TargetName="HighlightScale" Storyboard.TargetProperty="ScaleX" From="0.90" To="1" Duration="0:0:0.11">
+                                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard x:Name="ComboItemHiOut">
+                                    <Storyboard FillBehavior="Stop">
+                                        <DoubleAnimation Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HighlightPlate" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.16" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="OverridesDefaultStyle" Value="True" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
+        <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource InputPadding}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{DynamicResource FocusVisual}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ComboBox}">
+                    <Grid>
+                        <ToggleButton x:Name="ToggleButton" Template="{StaticResource LocalComboBoxToggleButton}"
+                                      Focusable="False" ClickMode="Press"
+                                      IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" />
+                        <!-- Reserve 40px right room (30px cap + 10px left inset) so short values never touch the arrow cap -->
+                        <Border Margin="10,0,40,0" IsHitTestVisible="False">
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              VerticalAlignment="Center" HorizontalAlignment="Left" />
+                        </Border>
+                        <TextBox x:Name="PART_EditableTextBox" Style="{DynamicResource BareTextBox}"
+                                 MinHeight="0" Margin="10,0,40,0"
+                                 VerticalAlignment="Center" Visibility="Hidden"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalOverpassFieldTemplate}"
+                                 Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+
+                        <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="2"
+                               IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"
+                               Focusable="False" PopupAnimation="Fade">
+                            <Grid x:Name="DropDown" SnapsToDevicePixels="True"
+                                  MinWidth="{TemplateBinding ActualWidth}"
+                                  MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                <Control Template="{DynamicResource LocalOverpassMenuBoardTemplate}"
+                                         Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                                <ScrollViewer Margin="4,10,4,5" SnapsToDevicePixels="True">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                </ScrollViewer>
+                            </Grid>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter Property="IsTabStop" Value="False" />
+                            <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="ContentSite" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                        <!-- Active state ONLY while open, or editable + focused (never unconditional IsKeyboardFocusWithin!) -->
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
+                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEditable" Value="True" />
+                                <Condition Property="IsKeyboardFocusWithin" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
+                        </MultiTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

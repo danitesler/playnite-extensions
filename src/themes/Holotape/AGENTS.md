@@ -74,7 +74,7 @@ Empty state (no game selected): both overviews hide the page and show a RobCo te
 | Playnite file | Fallout element |
 |---------------|-----------------|
 | Button, ToggleButton, RepeatButton | Pip-Boy row: hairline edge; hover = green edge and green type; default button and Play = lit terminal key (green edge, wash, green type), solid green when pressed |
-| TextBox, PasswordBox, SearchBox, ComboBox | RobCo field: recessed well, hairline edge, green caret, green edge on focus |
+| TextBox, PasswordBox, SearchBox, ComboBox | RobCo field: recessed well, hairline edge, green caret, green edge on focus. `LocalPhosphorFieldTemplate` overlay on TextBox, PasswordBox and the closed ComboBox: faint green scanlines (1px every 3px), stronger on hover; keyboard focus lights a soft phosphor inner edge and sweeps a 2px green line along the bottom like a CRT refresh (0.18s). ComboBox value room: 22 reserve + 10 padding. See `docs/themes/fields.md`. |
 | CheckBox | The "equipped" marker: 16px outline, checked = solid 8px green square |
 | RadioButton | Ring with a green dot |
 | Slider | 2px gauge line, green fill, 4 x 14 green needle |

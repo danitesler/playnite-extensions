@@ -110,16 +110,14 @@ namespace Autogrid
         /// Finds the visible LibraryGridView's PART_ListGames and returns its ScrollViewer's content
         /// (the ItemsPresenter in the stock ListBox template).
         /// </summary>
-        public static FrameworkElement FindGamesListContent(DependencyObject root)
+        public static FrameworkElement FindGamesListContent(DependencyObject root) =>
+            FindGamesScrollViewer(root)?.Content as FrameworkElement;
+
+        /// <summary>The visible LibraryGridView's games ScrollViewer, or null outside Grid view.</summary>
+        public static ScrollViewer FindGamesScrollViewer(DependencyObject root)
         {
             var list = FindGamesList(root);
-            if (list == null)
-            {
-                return null;
-            }
-
-            var scrollViewer = FindVisible(list, d => d is ScrollViewer) as ScrollViewer;
-            return scrollViewer?.Content as FrameworkElement;
+            return list == null ? null : FindVisible(list, d => d is ScrollViewer) as ScrollViewer;
         }
 
         /// <summary>The visible LibraryGridView's PART_ListGames, or null outside Grid view.</summary>

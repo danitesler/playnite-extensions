@@ -84,7 +84,7 @@ Skeleton and metadata pane as in `../AGENTS.md`. Differences: the page is butter
 | `CheckBox` | The game's ON / OFF toggle: a 36x20 tan capsule, cream 16px knob over a short shadow; on = green capsule with a green-deep rim, the knob slides right with an overshoot |
 | `RadioButton` | 18px cream disc, 2px tan ring, orange dot |
 | `Slider`, `ProgressBar` | The audio slider: 10px tan capsule, orange fill, 20px cream knob over an orange-deep lip; the level bar: 12px tan capsule with a green fill |
-| `TextBox`, `PasswordBox`, `ComboBox` | Sunk cream wells (1px sides, 3px top rim), radius 20 (a capsule at 32px), blue focus ring |
+| `TextBox`, `PasswordBox`, `ComboBox` | Sunk cream wells (1px sides, 3px top rim), radius 20 (a capsule at 32px), blue focus ring. `LocalBoneFieldTemplate` overlay: a 3px butter lip under the capsule (orange on hover, yellow on focus) and a cream `BoneGeometry` bone that pops onto the top-left corner with a squash-and-stretch bounce on keyboard focus. See `docs/themes/fields.md`. |
 | `TabControl` | Cream pills over a lip; selected = yellow over a yellow-deep lip |
 | `GroupBox` | Cream card over a 4px lip, Black heading plus a 4px rounded rule (content-sized: the rule is a star column) |
 | `Expander` (+ group headers) | A cream pill over a 2px lip with the group chevron |

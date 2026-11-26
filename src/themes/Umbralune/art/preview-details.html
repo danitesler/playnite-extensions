@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Umbralune — Details View Preview</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--umb-abyss);
+    color: var(--umb-ink);
+    font-family: var(--umb-font-body);
+    font-size: 14px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-shell {
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    display: flex;
+    background: var(--umb-night);
+    border: 1px solid var(--umb-rim-soft);
+    overflow: hidden;
+  }
+
+  /* Subtle ambient astral mist across library & page */
+  .shell-nebula {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--umb-sapphire);
+    opacity: 0.11;
+    -webkit-mask-image: url('../src/Images/fx/nebula-smoke.png');
+    -webkit-mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+  }
+
+  /* ================= SIDEBAR (44px compact rail) ================= */
+  .sidebar {
+    position: relative;
+    z-index: 5;
+    width: 44px;
+    height: 100%;
+    flex-shrink: 0;
+    background: var(--umb-abyss);
+    border-right: 1px solid var(--umb-rim-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .sidebar::after {
+    content: "";
+    position: absolute;
+    top: 48px;
+    right: -1px;
+    width: 1px;
+    height: 120px;
+    background: linear-gradient(180deg, var(--umb-gold-rim), transparent);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .main-menu-btn {
+    position: relative;
+    width: 44px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, var(--umb-sanctuary), var(--umb-abyss));
+    border-bottom: 1px solid var(--umb-rim-soft);
+  }
+  .main-menu-btn::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 6px;
+    right: 6px;
+    height: 2px;
+    background: var(--umb-cyan);
+    opacity: 0.8;
+  }
+  .menu-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .rail-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 6px;
+    gap: 2px;
+    width: 100%;
+  }
+  .rail-item {
+    position: relative;
+    width: 44px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--umb-ink-muted);
+  }
+  .rail-item svg { width: 16px; height: 16px; }
+  .rail-item.active {
+    color: var(--umb-cyan-bright);
+    background: linear-gradient(90deg, var(--umb-cyan-wash), transparent);
+  }
+  .rail-item.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 3px;
+    background: var(--umb-cyan);
+  }
+  .rail-item.active::after {
+    content: "";
+    position: absolute;
+    inset: 2px 3px;
+    background: var(--umb-cyan);
+    opacity: 0.25;
+    -webkit-mask-image: url('../src/Images/fx/rune-band.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .rail-foot {
+    margin-top: auto;
+    padding-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.72;
+  }
+  .rail-foot-line {
+    width: 1px;
+    height: 26px;
+    background: linear-gradient(180deg, transparent, var(--umb-gold-rim));
+  }
+
+  /* ================= MAIN COLUMN ================= */
+  .main-col {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  /* ================= TOP PANEL (50px) ================= */
+  .top-panel {
+    position: relative;
+    height: 50px;
+    flex-shrink: 0;
+    background: var(--umb-sanctuary);
+    border-bottom: 1px solid var(--umb-rim-soft);
+    display: flex;
+    align-items: center;
+    padding: 0 12px 0 12px;
+    gap: 6px;
+  }
+  /* Cyan optical flare streak closing the top bar */
+  .top-flare {
+    position: absolute;
+    left: 20px;
+    bottom: -7px;
+    width: 340px;
+    height: 14px;
+    background: var(--umb-cyan-bright);
+    opacity: 0.7;
+    -webkit-mask-image: url('../src/Images/fx/flare-beam.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 9;
+  }
+
+  /* Search box (first at top-left, 32px tall, persistent magnifier) */
+  .search-box {
+    position: relative;
+    width: 244px;
+    height: 32px;
+    background: var(--umb-abyss);
+    border: 1px solid var(--umb-rim);
+    border-radius: var(--umb-radius-md);
+    display: flex;
+    align-items: center;
+    padding: 0 8px 0 10px;
+    gap: 8px;
+  }
+  .search-box .tick-l, .search-box .tick-r {
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    background: var(--umb-gold-rim);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .search-box .tick-l { left: -2px; }
+  .search-box .tick-r { right: -2px; }
+  .search-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--umb-cyan);
+    flex-shrink: 0;
+  }
+  .search-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--umb-ink);
+  }
+  .search-clear {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--umb-ink-muted);
+  }
+
+  /* Toolbar buttons (uniform 32px height) */
+  .tb-btn {
+    position: relative;
+    width: 34px;
+    height: 32px;
+    border-radius: var(--umb-radius-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--umb-ink-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tb-btn svg { width: 16px; height: 16px; }
+  .tb-btn.active {
+    background: var(--umb-indigo);
+    border-color: var(--umb-cyan);
+    color: var(--umb-cyan-bright);
+  }
+  .tb-btn.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--umb-cyan);
+    opacity: 0.18;
+    -webkit-mask-image: url('../src/Images/fx/gold-sheen.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .tb-btn.active::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: -1px;
+    height: 2px;
+    background: var(--umb-cyan-bright);
+  }
+
+  /* Filter-active faceted Ruby Gem diamond pip (8x8, NO text label) */
+  .filter-pip {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--umb-ruby-pip);
+    border: 1px solid var(--umb-ruby-bright);
+    transform: rotate(45deg);
+  }
+
+  .top-main-items {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tb-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--umb-rim-soft);
+    margin: 0 4px;
+  }
+
+  /* Global Progress Bar — Combat HUD Mint-Jade HP bar (12px tall) */
+  .global-progress-wrap {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 6px;
+  }
+  .hp-progress {
+    position: relative;
+    width: 168px;
+    height: 12px;
+    background: var(--umb-abyss);
+    border: 1px solid var(--umb-rim);
+    border-radius: 6px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+  }
+  .hp-fill {
+    position: relative;
+    width: 68%;
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--umb-cyan-beam), var(--umb-mint));
+  }
+  .hp-fill::after {
+    content: "";
+    position: absolute;
+    right: -3px;
+    top: -1px;
+    width: 8px;
+    height: 8px;
+    background: var(--umb-cyan-bright);
+    transform: rotate(45deg);
+  }
+  .hp-label {
+    font-size: 11px;
+    color: var(--umb-ink-muted);
+    letter-spacing: 0.02em;
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .notif-btn {
+    position: relative;
+    width: 34px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--umb-ink-muted);
+    border-radius: var(--umb-radius-md);
+  }
+  .notif-btn svg { width: 16px; height: 16px; }
+  .notif-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    background: var(--umb-gold);
+    transform: rotate(45deg);
+  }
+
+  /* Window Caption Buttons */
+  .win-controls {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    margin-right: -12px;
+    padding-left: 8px;
+    border-left: 1px solid var(--umb-rim-soft);
+  }
+  .win-btn {
+    width: 42px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--umb-ink-muted);
+  }
+  .win-btn svg { width: 11px; height: 11px; }
+
+  /* ================= WORKSPACE BODY ================= */
+  .workspace {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ================= GAME LIST (left column, 246px) ================= */
+  .game-list {
+    position: relative;
+    width: 246px;
+    flex-shrink: 0;
+    background: var(--umb-night);
+    border-right: 1px solid var(--umb-rim-soft);
+    display: flex;
+    flex-direction: column;
+    padding: 8px 6px 10px 6px;
+    gap: 2px;
+    overflow: hidden;
+  }
+  .list-group-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 4px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--umb-gold-rim);
+  }
+  .list-group-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--umb-rim-soft), transparent);
+  }
+
+  .game-row {
+    position: relative;
+    height: 36px;
+    padding: 0 10px 0 10px;
+    border-radius: var(--umb-radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--umb-ink-muted);
+    font-size: 13.5px;
+    overflow: hidden;
+  }
+  .game-row .g-icon {
+    position: relative;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .game-row .g-name {
+    position: relative;
+    z-index: 2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  /* Hovered row — calm sapphire-cyan mist + 2px nudge + transparent hover play glyph */
+  .game-row.hovered {
+    background: linear-gradient(90deg, var(--umb-cyan-hover), transparent 92%);
+    color: var(--umb-ink);
+    padding-left: 12px;
+  }
+  .game-row.hovered .hover-play {
+    position: relative;
+    z-index: 2;
+    width: 14px;
+    height: 14px;
+    color: var(--umb-ink);
+    opacity: 0.85;
+  }
+
+  /* Selected row — Bayonetta 2 OPTIONS glowing electric Moon-Cyan rune beam! */
+  .game-row.selected {
+    background: linear-gradient(90deg, var(--umb-cyan-beam) 0%, var(--umb-cyan-wash) 62%, transparent 100%);
+    color: var(--umb-ink);
+    font-weight: 500;
+  }
+  .game-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 3px;
+    bottom: 3px;
+    width: 3px;
+    background: var(--umb-cyan-bright);
+    z-index: 3;
+  }
+  .game-row.selected::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--umb-cyan-bright);
+    opacity: 0.42;
+    -webkit-mask-image: url('../src/Images/fx/rune-band.png');
+    -webkit-mask-size: 100% 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .game-row.selected .g-icon {
+    border-color: var(--umb-cyan-bright);
+  }
+  .sel-spark {
+    position: relative;
+    z-index: 3;
+    width: 6px;
+    height: 6px;
+    background: var(--umb-cyan-bright);
+    transform: rotate(45deg);
+    margin-right: 2px;
+  }
+
+  /* Running row — Witch-Time Amethyst indicator + 3 Magic Orbs! */
+  .game-row.running {
+    background: linear-gradient(90deg, rgba(132, 50, 224, 0.34) 0%, rgba(132, 50, 224, 0.12) 78%, transparent 100%);
+    border: 1px solid var(--umb-amethyst);
+    color: var(--umb-ink);
+    padding-right: 44px;
+  }
+  .game-row.running::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--umb-amethyst-bright);
+    opacity: 0.34;
+    -webkit-mask-image: url('../src/Images/fx/climax-sweep.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .game-row.running::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 28%;
+    bottom: 0;
+    height: 2px;
+    background: var(--umb-amethyst-bright);
+    z-index: 2;
+  }
+  .magic-orbs {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    z-index: 3;
+    padding: 2px 4px;
+    background: var(--umb-abyss);
+    border-radius: 8px;
+    border: 1px solid var(--umb-amethyst);
+  }
+  .magic-orb {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #FFFFFF, var(--umb-amethyst-bright) 55%, var(--umb-amethyst));
+  }
+
+  /* ================= GAME PAGE (right pane) ================= */
+  .game-page {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    background: var(--umb-night);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Centered ghostly Umbran Watch watermark behind game body (6% opacity) */
+  .page-watch-wm {
+    position: absolute;
+    left: 165px;
+    top: 235px;
+    width: 440px;
+    height: 440px;
+    background: var(--umb-cyan);
+    opacity: 0.065;
+    -webkit-mask-image: url('../src/Images/fx/watch-watermark.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Hero Banner */
+  .hero-banner {
+    position: relative;
+    height: 222px;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 64% 34%, #18489C 0%, #0A2052 46%, #050E26 84%, var(--umb-abyss) 100%);
+  }
+  .hero-art-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hero-fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(6,17,42,0.08) 0%, rgba(6,17,42,0.34) 55%, var(--umb-night) 100%);
+  }
+  /* Cyan-flared Umbran Horizon seam separating hero art and page */
+  .hero-horizon {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--umb-rim) 18%, var(--umb-cyan) 50%, var(--umb-rim) 82%, transparent);
+    z-index: 3;
+  }
+  .hero-horizon-flare {
+    position: absolute;
+    left: 90px;
+    bottom: -10px;
+    width: 480px;
+    height: 20px;
+    background: var(--umb-cyan-bright);
+    opacity: 0.72;
+    -webkit-mask-image: url('../src/Images/fx/flare-beam.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  /* Title & Action Row overlapping lower banner */
+  .hero-header {
+    position: absolute;
+    left: 26px;
+    right: 26px;
+    bottom: 16px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .title-line {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .game-emblem {
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .game-title {
+    font-family: var(--umb-font-display);
+    font-size: 33px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--umb-ink);
+    line-height: 1.08;
+  }
+  .game-subtitle {
+    font-size: 12px;
+    color: var(--umb-cyan-bright);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Action Bar: HERO PLAY SLAB (staged in hovered end state!) + More / Edit squares */
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* HERO FOCAL PIECE 1: Solar Halo Gold Play Slab (Hovered End State) */
+  .play-btn {
+    position: relative;
+    height: 38px;
+    min-width: 168px;
+    padding: 0 28px;
+    border-radius: var(--umb-radius-md);
+    background: linear-gradient(180deg, var(--umb-gold-bright) 0%, var(--umb-gold) 50%, var(--umb-gold-deep) 100%);
+    border: 1.5px solid var(--umb-cyan-bright);
+    color: var(--umb-ink-dark);
+    font-family: var(--umb-font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    overflow: visible;
+  }
+  /* Inset engraved filigree hairline inside Play plate */
+  .play-btn::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(5, 11, 24, 0.28);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  /* Metallic satin polish overlay */
+  .play-btn .play-sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+    background: #FFFFFF;
+    opacity: 0.44;
+    -webkit-mask-image: url('../src/Images/fx/gold-sheen.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  /* Hovered horizontal Moon-Cyan & Gold optical star-flare slicing across top-right bevel (Title "2" motif) */
+  .play-btn .play-flare {
+    position: absolute;
+    left: -14px;
+    right: -24px;
+    top: -6px;
+    height: 16px;
+    background: var(--umb-cyan-bright);
+    opacity: 0.96;
+    -webkit-mask-image: url('../src/Images/fx/flare-beam.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .play-btn .play-flare-gold {
+    position: absolute;
+    left: 24px;
+    right: -22px;
+    bottom: -6px;
+    height: 14px;
+    background: var(--umb-gold-bright);
+    opacity: 0.82;
+    -webkit-mask-image: url('../src/Images/fx/flare-beam.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  /* Left & right crescent filigree diamond end-sparks */
+  .play-btn .notch-l, .play-btn .notch-r {
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--umb-cyan-bright);
+    border: 1.5px solid var(--umb-abyss);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .play-btn .notch-l { left: -5px; }
+  .play-btn .notch-r { right: -5px; }
+
+  /* Equal 32x32 icon-only More & Edit buttons */
+  .action-sq {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--umb-radius-md);
+    background: var(--umb-indigo);
+    border: 1px solid var(--umb-rim);
+    color: var(--umb-ink);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-sq::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 3px;
+    height: 3px;
+    background: var(--umb-gold-rim);
+    transform: rotate(45deg);
+  }
+  .action-sq svg { width: 15px; height: 15px; }
+
+  .playtime-pill {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    background: rgba(9, 24, 58, 0.78);
+    border: 1px solid var(--umb-rim-soft);
+    border-radius: var(--umb-radius-md);
+    font-size: 12.5px;
+    color: var(--umb-ink-muted);
+  }
+  .playtime-pill strong {
+    color: var(--umb-gold-bright);
+    font-weight: 500;
+  }
+
+  /* ================= TWO-COLUMN GAME BODY ================= */
+  .game-body {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 20px;
+    padding: 16px 24px 14px 26px;
+    overflow: hidden;
+  }
+
+  /* Left Column: Screenshots + Description */
+  .content-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--umb-font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--umb-cyan-bright);
+  }
+  .section-head .crest-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--umb-gold);
+    transform: rotate(45deg);
+  }
+  .section-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--umb-rim), transparent);
+  }
+
+  .screens-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .screen-card {
+    position: relative;
+    height: 126px;
+    border-radius: var(--umb-radius-md);
+    border: 1px solid var(--umb-rim);
+    overflow: hidden;
+    background: var(--umb-abyss);
+  }
+  .screen-card.featured {
+    border-color: var(--umb-cyan);
+  }
+  .screen-card svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .desc-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--umb-ink);
+    font-size: 15px;
+    line-height: 1.56;
+  }
+  .desc-block p {
+    color: var(--umb-ink);
+    opacity: 0.94;
+  }
+  .desc-note {
+    margin-top: auto;
+    padding-top: 6px;
+    font-size: 11px;
+    color: var(--umb-ink-dim);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* ================= HERO FOCAL PIECE 2: CHAPTER V TAROT METADATA DOSSIER (300px usable) ================= */
+  .metadata-pane {
+    position: relative;
+    width: 326px; /* 300px usable + 26px horizontal frame/padding */
+    flex-shrink: 0;
+    background: linear-gradient(180deg, var(--umb-sanctuary) 0%, var(--umb-abyss) 100%);
+    border: 1px solid var(--umb-gold-rim);
+    border-radius: var(--umb-radius-md);
+    padding: 10px 18px 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5.5px;
+    overflow: hidden;
+  }
+  /* Delicate vertical gold filigree lace strip along right edge (Codex & Tarot motif) */
+  .tarot-lace {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    right: 3px;
+    width: 12px;
+    background: var(--umb-gold-rim);
+    opacity: 0.44;
+    -webkit-mask-image: url('../src/Images/fx/filigree-border.png');
+    -webkit-mask-size: 100% auto;
+    -webkit-mask-repeat: repeat-y;
+    pointer-events: none;
+  }
+  /* Tarot antique-gold corner studs */
+  .tarot-stud {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: var(--umb-gold);
+    transform: rotate(45deg);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .tarot-stud.tl { top: 4px; left: 4px; }
+  .tarot-stud.tr { top: 4px; right: 4px; }
+  .tarot-stud.bl { bottom: 4px; left: 4px; }
+  .tarot-stud.br { bottom: 4px; right: 4px; }
+  /* Inner hairline frame */
+  .metadata-pane::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px solid var(--umb-rim-soft);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .tarot-crest {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-bottom: 2px;
+  }
+  .tarot-crest .line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--umb-gold-rim));
+  }
+  .tarot-crest .line.r {
+    background: linear-gradient(90deg, var(--umb-gold-rim), transparent);
+  }
+  .tarot-crest-title {
+    font-family: var(--umb-font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--umb-gold-bright);
+  }
+
+  /* Violet-Magenta HARD Rune Ribbon group breaks (pause.png / chapter.png — centered with flanking diamonds) */
+  .meta-ribbon {
+    position: relative;
+    z-index: 2;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    margin: 2px 0 1px 0;
+    background: linear-gradient(90deg, transparent 0%, var(--umb-ribbon-violet) 18%, var(--umb-ribbon-violet) 82%, transparent 100%);
+    border-top: 1px solid rgba(155, 69, 158, 0.55);
+    border-bottom: 1px solid rgba(155, 69, 158, 0.55);
+    font-family: var(--umb-font-display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--umb-ink);
+  }
+  .meta-ribbon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--umb-amethyst-bright);
+    opacity: 0.34;
+    -webkit-mask-image: url('../src/Images/fx/rune-band.png');
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .rib-dia {
+    position: relative;
+    z-index: 2;
+    width: 4px;
+    height: 4px;
+    background: var(--umb-gold-rim);
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  .meta-row {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12.5px;
+    line-height: 1.32;
+  }
+  .meta-cap {
+    color: var(--umb-ink-muted);
+    font-size: 12px;
+  }
+  .meta-val {
+    color: var(--umb-ink);
+  }
+  .meta-val.gold {
+    color: var(--umb-gold-bright);
+    font-weight: 500;
+  }
+
+  /* PropertyItemButton chips — chamfered sapphire tags with tiny gold end-pips */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 8px;
+    font-size: 11.5px;
+    color: var(--umb-ink);
+    background: var(--umb-indigo);
+    border: 1px solid var(--umb-rim);
+    border-radius: var(--umb-radius-sm);
+  }
+  .chip::before {
+    content: "";
+    width: 3px;
+    height: 3px;
+    background: var(--umb-gold-rim);
+    transform: rotate(45deg);
+    margin-right: 5px;
+  }
+  .chip.hovered {
+    background: var(--umb-cyan-wash);
+    border-color: var(--umb-cyan-bright);
+    color: var(--umb-cyan-bright);
+  }
+  .chip.hovered::before {
+    background: var(--umb-cyan-bright);
+  }
+
+  /* Combat HUD Spiky Gothic-Diamond Score Plaques */
+  .score-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .score-plaque {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 10px 2px 8px;
+    background: var(--umb-indigo);
+    border: 1px solid var(--umb-cyan);
+    border-radius: var(--umb-radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--umb-mint);
+  }
+  .score-plaque .dia {
+    width: 6px;
+    height: 6px;
+    background: var(--umb-mint);
+    transform: rotate(45deg);
+  }
+  .score-plaque.gold {
+    border-color: var(--umb-gold-rim);
+    color: var(--umb-gold-bright);
+  }
+  .score-plaque.gold .dia {
+    background: var(--umb-gold);
+  }
+
+  .links-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .meta-link {
+    color: var(--umb-cyan);
+    font-size: 12px;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(60, 203, 255, 0.35);
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="shell-nebula"></div>
+
+  <!-- 44px Compact Left Rail -->
+  <aside class="sidebar" data-part="sidebar">
+    <!-- Custom Animated Main Menu Mark (Umbran Crescent Watch) -->
+    <div class="main-menu-btn" data-part="PART_ElemMainMenu" title="Main Menu">
+      <svg class="menu-mark" viewBox="0 0 64 64" fill="none">
+        <circle cx="33" cy="32" r="24" stroke="var(--umb-cyan)" stroke-width="2.2" stroke-dasharray="116 34" transform="rotate(-38 33 32)" />
+        <path d="M36 9.5A22.5 22.5 0 1 0 36 54.5A17.8 17.8 0 1 1 36 9.5Z" fill="var(--umb-cyan-bright)" />
+        <circle cx="34" cy="32" r="12" stroke="var(--umb-gold-rim)" stroke-width="1.6" />
+        <path d="M34 15L37.5 28.5L47 32L37.5 35.5L34 49L30.5 35.5L21 32L30.5 28.5Z" fill="var(--umb-gold)" />
+      </svg>
+    </div>
+
+    <div class="rail-items">
+      <!-- Active Library View -->
+      <div class="rail-item active" title="All Games">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 3L20 7.5V16.5L12 21L4 16.5V7.5L12 3Z" />
+          <path d="M12 8L15.5 12L12 16L8.5 12Z" fill="currentColor" stroke="none" />
+        </svg>
+      </div>
+      <!-- Favorites -->
+      <div class="rail-item" title="Favorites">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M12 3L14.6 9.4L21 12L14.6 14.6L12 21L9.4 14.6L3 12L9.4 9.4Z" />
+        </svg>
+      </div>
+      <!-- Recent -->
+      <div class="rail-item" title="Recently Played">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7.5V12L15.2 14.2" />
+        </svg>
+      </div>
+      <!-- Installed -->
+      <div class="rail-item" title="Installed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M12 4V15M7.5 11L12 15.5L16.5 11M5 19H19" />
+        </svg>
+      </div>
+      <!-- Statistics -->
+      <div class="rail-item" title="Statistics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M5 19V12M12 19V5M19 19V9" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="rail-foot">
+      <div class="rail-foot-line"></div>
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <path d="M9.5 2A6 6 0 1 0 9.5 14A4.6 4.6 0 1 1 9.5 2Z" fill="var(--umb-gold-rim)" />
+      </svg>
+    </div>
+  </aside>
+
+  <!-- Right Main Column -->
+  <div class="main-col">
+    <!-- 50px Top Panel (Order: Search -> Filter -> Sorting first -> Group -> Icon-only View Switches) -->
+    <header class="top-panel" data-part="top-panel">
+      <div class="top-flare"></div>
+
+      <!-- 1. Search Box (first at top-left, persistent magnifier) -->
+      <div class="search-box" data-part="PART_TextMainSearch">
+        <span class="tick-l"></span>
+        <span class="tick-r"></span>
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="8.8" cy="8.8" r="5.5" />
+          <path d="M13 13L17.5 17.5" />
+        </svg>
+        <span class="search-text">Action</span>
+        <span class="search-clear">
+          <svg width="12" height="12" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 3L9 9M9 3L3 9" />
+          </svg>
+        </span>
+      </div>
+
+      <!-- 2. Filter Toggle (faceted Ruby Gem diamond pip, NO text label) -->
+      <div class="tb-btn active" data-part="PART_ToggleFilter" title="Filter">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M3 4.5H17L11.5 10.5V16L8.5 14.5V10.5L3 4.5Z" />
+        </svg>
+        <span class="filter-pip"></span>
+      </div>
+
+      <!-- 3. PART_PanelMainItems: Sorting FIRST, then Group, then Icon-Only View Switches -->
+      <div class="top-main-items" data-part="PART_PanelMainItems">
+        <!-- Sorting first -->
+        <div class="tb-btn" title="Sort Games">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M4 5.5H14M4 10H11M4 14.5H8M15 8V16M12.5 13.5L15 16L17.5 13.5" />
+          </svg>
+        </div>
+        <!-- Group -->
+        <div class="tb-btn" title="Group Games">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M3.5 5H16.5M6 10H16.5M6 15H16.5" />
+            <path d="M3.5 10L4.5 11L3.5 12L2.5 11Z" fill="currentColor" stroke="none" />
+          </svg>
+        </div>
+
+        <span class="tb-sep"></span>
+
+        <!-- Icon-only View Switches (Details active, Grid, List) -->
+        <div class="tb-btn active" title="Details View">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+            <rect x="3" y="4" width="5" height="12" rx="1" />
+            <rect x="10" y="4" width="7" height="5" rx="1" />
+            <path d="M10 12H17M10 15.5H15" />
+          </svg>
+        </div>
+        <div class="tb-btn" title="Grid View">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+            <rect x="3" y="3.5" width="6" height="6" rx="1" />
+            <rect x="11" y="3.5" width="6" height="6" rx="1" />
+            <rect x="3" y="11" width="6" height="6" rx="1" />
+            <rect x="11" y="11" width="6" height="6" rx="1" />
+          </svg>
+        </div>
+        <div class="tb-btn" title="List View">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M3.5 5.5H16.5M3.5 10H16.5M3.5 14.5H16.5" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Global Progress (Combat HUD Mint-Jade HP Bar) + Notifications -->
+      <div class="global-progress-wrap">
+        <span class="hp-label">Syncing library…</span>
+        <div class="hp-progress">
+          <div class="hp-fill"></div>
+        </div>
+        <div class="notif-btn" data-part="PART_ToggleNotifications" title="Notifications">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M10 3C7.2 3 5.5 5 5.5 7.8V12L4 14.5H16L14.5 12V7.8C14.5 5 12.8 3 10 3Z" />
+            <path d="M8.5 16.2C9 17 11 17 11.5 16.2" />
+          </svg>
+          <span class="notif-dot"></span>
+        </div>
+      </div>
+
+      <!-- Window Caption Controls -->
+      <div class="win-controls">
+        <div class="win-btn" title="Minimize">
+          <svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.4"><path d="M2 6H10" /></svg>
+        </div>
+        <div class="win-btn" title="Maximize">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="2.5" width="7" height="7" /></svg>
+        </div>
+        <div class="win-btn" title="Close">
+          <svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.5"><path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" /></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- Workspace Split: Game List (left) + Game Page (right) -->
+    <div class="workspace">
+      <!-- Game List -->
+      <nav class="game-list" data-part="game-list">
+        <div class="list-group-head">Installed · 12</div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M8 2L13 8L8 14L3 8Z" fill="var(--umb-gold-rim)"/></svg></span>
+          <span class="g-name">Astral Chain</span>
+        </div>
+
+        <!-- SELECTED ROW: Bayonetta 2 OPTIONS glowing Moon-Cyan rune beam -->
+        <div class="game-row selected">
+          <span class="g-icon"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M9.5 2.2A5.8 5.8 0 1 0 9.5 13.8A4.4 4.4 0 1 1 9.5 2.2Z" fill="var(--umb-cyan-bright)"/><circle cx="9.8" cy="8" r="2" fill="var(--umb-gold)"/></svg></span>
+          <span class="g-name">Nocturne Spire</span>
+          <span class="sel-spark"></span>
+        </div>
+
+        <!-- HOVERED ROW -->
+        <div class="game-row hovered">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M3 13L13 3M9 3H13V7" stroke="var(--umb-cyan)" stroke-width="1.7" fill="none"/></svg></span>
+          <span class="g-name">Devil May Cry 5</span>
+          <svg class="hover-play" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 3L13 8L4.5 13Z"/></svg>
+        </div>
+
+        <!-- RUNNING ROW: Witch-Time Amethyst sweep + 3 glowing Magic Orbs -->
+        <div class="game-row running">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" stroke="var(--umb-amethyst-bright)" stroke-width="1.6" fill="none"/><circle cx="8" cy="8" r="2" fill="var(--umb-amethyst-bright)"/></svg></span>
+          <span class="g-name">NieR: Automata</span>
+          <span class="magic-orbs">
+            <span class="magic-orb"></span>
+            <span class="magic-orb"></span>
+            <span class="magic-orb"></span>
+          </span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M8 2.5L10 6.5L14 8L10 9.5L8 13.5L6 9.5L2 8L6 6.5Z" fill="var(--umb-ink-muted)"/></svg></span>
+          <span class="g-name">Bloodstained: Ritual</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" stroke="var(--umb-ink-muted)" stroke-width="1.5" fill="none"/></svg></span>
+          <span class="g-name">Control Ultimate</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M3 11L8 3L13 11H3Z" stroke="var(--umb-ink-muted)" stroke-width="1.5" fill="none"/></svg></span>
+          <span class="g-name">Hades II</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" stroke="var(--umb-ink-muted)" stroke-width="1.5" fill="none"/></svg></span>
+          <span class="g-name">Hi-Fi RUSH</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M4 4L12 12M12 4L4 12" stroke="var(--umb-ink-muted)" stroke-width="1.5"/></svg></span>
+          <span class="g-name">Hollow Knight</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M8 2V14M2 8H14" stroke="var(--umb-ink-muted)" stroke-width="1.5"/></svg></span>
+          <span class="g-name">Metal Gear Rising</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M8 3L13 13H3Z" fill="var(--umb-ink-dim)"/></svg></span>
+          <span class="g-name">Okami HD</span>
+        </div>
+
+        <div class="list-group-head" style="margin-top:6px;">Backlog · 24</div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" stroke="var(--umb-ink-dim)" stroke-width="1.4" fill="none"/></svg></span>
+          <span class="g-name">Darksiders II</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M4 12L8 4L12 12" stroke="var(--umb-ink-dim)" stroke-width="1.4" fill="none"/></svg></span>
+          <span class="g-name">Vanquish</span>
+        </div>
+
+        <div class="game-row">
+          <span class="g-icon"><svg width="13" height="13" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" stroke="var(--umb-ink-dim)" stroke-width="1.4" fill="none"/></svg></span>
+          <span class="g-name">Wonderful 101</span>
+        </div>
+      </nav>
+
+      <!-- Game Page -->
+      <main class="game-page" data-part="game-page">
+        <div class="page-watch-wm"></div>
+
+        <!-- Hero Banner (original nocturnal crescent-cathedral art + cyan flare horizon seam) -->
+        <section class="hero-banner">
+          <svg class="hero-art-svg" viewBox="0 0 990 222" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <radialGradient id="moonGlow" cx="72%" cy="36%" r="48%">
+                <stop offset="0%" stop-color="#6CE4FF" stop-opacity="0.52" />
+                <stop offset="38%" stop-color="#1E5EC4" stop-opacity="0.34" />
+                <stop offset="100%" stop-color="#050F28" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="goldFlare" cx="76%" cy="32%" r="22%">
+                <stop offset="0%" stop-color="#FFE680" stop-opacity="0.72" />
+                <stop offset="45%" stop-color="#EAB832" stop-opacity="0.22" />
+                <stop offset="100%" stop-color="#EAB832" stop-opacity="0" />
+              </radialGradient>
+            </defs>
+            <rect width="990" height="222" fill="url(#moonGlow)" />
+            <rect width="990" height="222" fill="url(#goldFlare)" />
+            <!-- Giant celestial crescent & clockwork rings in sky -->
+            <circle cx="725" cy="94" r="118" stroke="#4BD6FF" stroke-opacity="0.34" stroke-width="1.6" fill="none" />
+            <circle cx="725" cy="94" r="102" stroke="#EAB832" stroke-opacity="0.32" stroke-width="1.2" stroke-dasharray="6 7" fill="none" />
+            <circle cx="725" cy="94" r="76" stroke="#8BF0FF" stroke-opacity="0.22" stroke-width="1" fill="none" />
+            <path d="M742 12A84 84 0 1 0 742 176A66 66 0 1 1 742 12Z" fill="#7CEBFF" fill-opacity="0.30" />
+            <!-- Umbran diamond lattice & clock hands -->
+            <polygon points="725,4 815,94 725,184 635,94" stroke="#8BF0FF" stroke-opacity="0.18" stroke-width="1" fill="none" />
+            <line x1="560" y1="94" x2="960" y2="94" stroke="#FBE07A" stroke-opacity="0.28" stroke-width="1" />
+            <!-- Gothic cathedral spires & moonlit rose-window arches -->
+            <path d="M0 222V162L38 148L54 102L70 148L108 158L138 120L156 68L174 120L210 144L255 162L320 156L378 134L412 86L446 134L510 154L590 142L665 112L695 54L725 18L755 54L785 112L848 132L888 82L922 134L990 154V222Z" fill="#050D22" fill-opacity="0.82" />
+            <!-- Glowing cathedral lancet windows -->
+            <g fill="#3CCBFF" fill-opacity="0.45">
+              <rect x="722" y="88" width="6" height="28" rx="3" />
+              <rect x="708" y="102" width="4" height="20" rx="2" />
+              <rect x="738" y="102" width="4" height="20" rx="2" />
+              <rect x="410" y="114" width="4" height="16" rx="2" />
+              <rect x="154" y="96" width="4" height="18" rx="2" />
+            </g>
+            <!-- Starlight pinpoints & 4-point sparkles -->
+            <g fill="#EBF4FF" fill-opacity="0.78">
+              <circle cx="120" cy="36" r="1.4" /><circle cx="268" cy="54" r="1.1" />
+              <circle cx="412" cy="28" r="1.6" /><circle cx="564" cy="46" r="1.2" />
+              <circle cx="640" cy="22" r="1.8" /><circle cx="845" cy="40" r="1.5" />
+              <circle cx="912" cy="64" r="1.1" /><circle cx="486" cy="74" r="1.0" />
+              <path d="M518 32L520 38L526 40L520 42L518 48L516 42L510 40L516 38Z" fill="#8BF0FF" />
+              <path d="M812 20L813.5 25L818.5 26.5L813.5 28L812 33L810.5 28L805.5 26.5L810.5 25Z" fill="#FBE07A" />
+            </g>
+            <!-- Subtle violet Witch-Time rift glow on left -->
+            <ellipse cx="220" cy="180" rx="260" ry="68" fill="#8432E0" fill-opacity="0.18" />
+          </svg>
+          <div class="hero-fade"></div>
+          <div class="hero-horizon"></div>
+          <div class="hero-horizon-flare"></div>
+
+          <!-- Header & Hero Actions -->
+          <div class="hero-header">
+            <div class="title-line">
+              <div class="game-emblem">
+                <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
+                  <path d="M36 9.5A22.5 22.5 0 1 0 36 54.5A17.8 17.8 0 1 1 36 9.5Z" fill="var(--umb-cyan-bright)" />
+                  <path d="M34 15L38 28L48 32L38 36L34 49L30 36L20 32L30 28Z" fill="var(--umb-gold)" />
+                </svg>
+              </div>
+              <div>
+                <h1 class="game-title">Nocturne Spire</h1>
+                <div class="game-subtitle">Chapter V · Cathedral of Cascades</div>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <!-- HERO FOCAL PIECE 1: Solar Halo Gold Play Slab (Hovered End State) -->
+              <div class="play-btn">
+                <span class="play-sheen"></span>
+                <span class="play-flare"></span>
+                <span class="play-flare-gold"></span>
+                <span class="notch-l"></span>
+                <span class="notch-r"></span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="position:relative;z-index:2;">
+                  <path d="M4 2.5L13.5 8L4 13.5Z" />
+                </svg>
+                <span style="position:relative;z-index:2;">PLAY</span>
+              </div>
+
+              <!-- Equal Icon-only More & Edit buttons -->
+              <div class="action-sq" title="More">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <circle cx="5" cy="10" r="1.5" /><circle cx="10" cy="10" r="1.5" /><circle cx="15" cy="10" r="1.5" />
+                </svg>
+              </div>
+              <div class="action-sq" title="Edit">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path d="M13.5 3.5L16.5 6.5L7 16H4V13L13.5 3.5Z" />
+                </svg>
+              </div>
+
+              <div class="playtime-pill">
+                <span>Time Played</span>
+                <strong>42h 18m</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Body Split: Screenshots + Description (left) | Chapter V Tarot Metadata Dossier (right) -->
+        <div class="game-body">
+          <div class="content-col">
+            <div class="section-head">
+              <span class="crest-dot"></span>
+              <span>Media &amp; Captures</span>
+            </div>
+
+            <div class="screens-grid">
+              <div class="screen-card featured">
+                <svg viewBox="0 0 300 126" preserveAspectRatio="xMidYMid slice">
+                  <defs>
+                    <radialGradient id="sc1" cx="50%" cy="44%" r="65%">
+                      <stop offset="0%" stop-color="#2769C9" />
+                      <stop offset="52%" stop-color="#0E2A6B" />
+                      <stop offset="100%" stop-color="#040B1F" />
+                    </radialGradient>
+                  </defs>
+                  <rect width="300" height="126" fill="url(#sc1)" />
+                  <!-- Glowing Umbran Seal Arena -->
+                  <ellipse cx="150" cy="94" rx="108" ry="22" stroke="#3CCBFF" stroke-opacity="0.65" stroke-width="1.6" fill="#3CCBFF" fill-opacity="0.08" />
+                  <ellipse cx="150" cy="94" rx="76" ry="14" stroke="#EAB832" stroke-opacity="0.55" stroke-width="1" stroke-dasharray="5 4" fill="none" />
+                  <circle cx="150" cy="48" r="36" stroke="#8BF0FF" stroke-opacity="0.45" stroke-width="1.4" fill="none" />
+                  <path d="M158 14A34 34 0 1 0 158 82A27 27 0 1 1 158 14Z" fill="#8BF0FF" fill-opacity="0.34" />
+                  <!-- Arch silhouette -->
+                  <path d="M0 126V48L24 38L44 126ZM256 126L276 38L300 48V126Z" fill="#040A1C" fill-opacity="0.88" />
+                  <path d="M150 26L155 44L174 48L155 52L150 70L145 52L126 48L145 44Z" fill="#FBE07A" fill-opacity="0.85" />
+                </svg>
+              </div>
+              <div class="screen-card">
+                <svg viewBox="0 0 300 126" preserveAspectRatio="xMidYMid slice">
+                  <defs>
+                    <radialGradient id="sc2" cx="62%" cy="40%" r="72%">
+                      <stop offset="0%" stop-color="#7B2CD6" />
+                      <stop offset="55%" stop-color="#2D1252" />
+                      <stop offset="100%" stop-color="#060E24" />
+                    </radialGradient>
+                  </defs>
+                  <rect width="300" height="126" fill="url(#sc2)" />
+                  <!-- Witch-Time shattered clockwork rift -->
+                  <circle cx="186" cy="52" r="44" stroke="#C588FF" stroke-opacity="0.55" stroke-width="1.5" fill="#C588FF" fill-opacity="0.1" />
+                  <circle cx="186" cy="52" r="30" stroke="#FBE07A" stroke-opacity="0.5" stroke-width="1" stroke-dasharray="3 5" fill="none" />
+                  <line x1="186" y1="52" x2="210" y2="26" stroke="#FBE07A" stroke-width="2" />
+                  <line x1="186" y1="52" x2="162" y2="62" stroke="#8BF0FF" stroke-width="1.6" />
+                  <!-- Silhouette bridge & gothic spires -->
+                  <path d="M0 126V92L46 82L70 46L94 82L150 96L215 76L255 90L300 72V126Z" fill="#050B1D" fill-opacity="0.9" />
+                  <path d="M40 70L248 34" stroke="#8BF0FF" stroke-opacity="0.65" stroke-width="1.4" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="section-head">
+              <span class="crest-dot"></span>
+              <span>Chronicle</span>
+            </div>
+
+            <div class="desc-block">
+              <p>Ascend the moonlit spires of a sunken astral cathedral where time fractures at the stroke of midnight. Chain acrobatic blade arts with precision dodges to trigger dilated Witch-Time bursts, turning every clash into an incandescent choreography of sapphire light and golden halos.</p>
+              <p>Equip forged relics, summon spectral guardians, and climb through ranked Verses across shifting clockwork arenas built for crisp, high-velocity mastery.</p>
+            </div>
+
+            <div class="desc-note">
+              <span>Last Played · Yesterday · 18:40</span>
+              <span>Umbralune · Unofficial Bayonetta 2-inspired theme</span>
+            </div>
+          </div>
+
+          <!-- HERO FOCAL PIECE 2: Chapter V Midnight-Sapphire & Gold Filigree Tarot Dossier -->
+          <aside class="metadata-pane" data-part="metadata">
+            <div class="tarot-lace"></div>
+            <span class="tarot-stud tl"></span>
+            <span class="tarot-stud tr"></span>
+            <span class="tarot-stud bl"></span>
+            <span class="tarot-stud br"></span>
+
+            <div class="tarot-crest">
+              <span class="line"></span>
+              <span class="tarot-crest-title">UMBRAN ARCHIVE</span>
+              <span class="line r"></span>
+            </div>
+
+            <div class="meta-ribbon"><span class="rib-dia"></span><span style="position:relative;z-index:2;">PLAY RECORD</span><span class="rib-dia"></span></div>
+            <div class="meta-row">
+              <span class="meta-cap">Time Played</span>
+              <span class="meta-val gold">42h 18m</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Last Played</span>
+              <span class="meta-val">Yesterday</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Completion</span>
+              <span class="meta-val">Completed</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Library</span>
+              <span class="meta-val">Steam</span>
+            </div>
+
+            <div class="meta-ribbon"><span class="rib-dia"></span><span style="position:relative;z-index:2;">DETAILS</span><span class="rib-dia"></span></div>
+            <div class="meta-row">
+              <span class="meta-cap">Release Date</span>
+              <span class="meta-val">Oct 24, 2014</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Platform</span>
+              <div class="chips"><span class="chip">PC (Windows)</span></div>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Genres</span>
+              <div class="chips">
+                <span class="chip hovered">Hack &amp; Slash</span>
+                <span class="chip">Action</span>
+              </div>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Developer</span>
+              <div class="chips"><span class="chip">Climax Atelier</span></div>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Tags</span>
+              <div class="chips">
+                <span class="chip">Witch Time</span>
+                <span class="chip">Gothic</span>
+              </div>
+            </div>
+
+            <div class="meta-ribbon"><span class="rib-dia"></span><span style="position:relative;z-index:2;">SCORES &amp; LINKS</span><span class="rib-dia"></span></div>
+            <div class="meta-row">
+              <span class="meta-cap">Scores</span>
+              <div class="score-row">
+                <span class="score-plaque"><span class="dia"></span>92 Critic</span>
+                <span class="score-plaque gold"><span class="dia"></span>95 User</span>
+              </div>
+            </div>
+            <div class="meta-row">
+              <span class="meta-cap">Links</span>
+              <div class="links-row">
+                <a class="meta-link" href="#">Store Page</a>
+                <a class="meta-link" href="#">PCGamingWiki</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+</body>
+</html>

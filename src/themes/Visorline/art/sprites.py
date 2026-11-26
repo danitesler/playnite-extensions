@@ -21,18 +21,18 @@ os.makedirs(OUT, exist_ok=True)
 rng = np.random.default_rng(211)
 
 
-def save_mask(alpha, name):
+def save_mask(alpha, name, dpi=96):
     """alpha: float array 0..1 -> RGBA PNG, white with that alpha."""
     a = np.clip(alpha, 0, 1)
     img = np.zeros(a.shape + (4,), dtype=np.uint8)
     img[..., :3] = 255
     img[..., 3] = np.round(a * 255).astype(np.uint8)
-    Image.fromarray(img, 'RGBA').save(os.path.join(OUT, name))
+    Image.fromarray(img, 'RGBA').save(os.path.join(OUT, name), dpi=(dpi, dpi))
     return img
 
 
 def hex_tile():
-    """Pointy-top honeycomb, flat-to-flat 24, point-to-point 28, rows 21 apart: the tile is 24 x 42 (two rows)."""
+    """Pointy-top honeycomb, 24x42 DIP at 192 DPI (48x84 px) for crisp lines on high-DPI displays."""
     S = 8
     w, h = 24 * S, 42 * S
     im = Image.new('L', (w, h), 0)
@@ -44,10 +44,10 @@ def hex_tile():
         for col in range(-2, 4):
             cx = col * 24 + off
             pts = [((cx + vx) * S, (cy + vy) * S) for vx, vy in verts]
-            d.line(pts + [pts[0]], fill=255, width=int(1.2 * S), joint='curve')
-    im = im.resize((24, 42), Image.LANCZOS)
+            d.line(pts + [pts[0]], fill=255, width=int(1.1 * S), joint='curve')
+    im = im.resize((48, 84), Image.LANCZOS)
     a = np.asarray(im, dtype=np.float32) / 255.0
-    return save_mask(a, 'hex.png')
+    return save_mask(a, 'hex.png', dpi=192)
 
 
 def bloom():
@@ -99,6 +99,30 @@ def ruler_v():
     return save_mask(a, 'ruler-v.png')
 
 
+def visor_vignette():
+    """256x256 Nano Visor HUD edge/corner vignette keeping the center calm for reading."""
+    n = 256
+    y, x = np.mgrid[0:n, 0:n].astype(np.float32)
+    nx = (x - (n - 1) * 0.5) / ((n - 1) * 0.5)
+    ny = (y - (n - 1) * 0.5) / ((n - 1) * 0.5)
+    r = np.hypot(nx * 0.90, ny * 0.90)
+    edge = np.clip((r - 0.34) / 0.92, 0.0, 1.0) ** 1.55
+    return save_mask(edge * 0.88, 'visor-vignette.png')
+
+
+def plate_sheen():
+    """128x48 tactical visor plate top catchlight + subtle scanline sheen."""
+    w, h = 128, 48
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    v = y / (h - 1)
+    u = np.abs(x - (w - 1) * 0.5) / ((w - 1) * 0.5)
+    top_edge = np.exp(-((v / 0.08) ** 2)) * 0.90
+    upper_sheen = np.clip(1.0 - v * 1.9, 0.0, 1.0) ** 1.3 * 0.32
+    scan_mod = np.where((y.astype(int) % 2) == 0, 1.0, 0.72)
+    horiz = np.clip(1.0 - (u ** 3.6) * 0.5, 0.0, 1.0)
+    return save_mask(np.clip((top_edge + upper_sheen * scan_mod) * horiz, 0.0, 1.0), 'plate-sheen.png')
+
+
 def sheet(imgs):
     """Review sheet: each sprite over the theme's near-black in mint, tiles repeated."""
     W, H = 760, 330
@@ -131,6 +155,7 @@ if __name__ == '__main__':
     imgs = {
         'hex': hex_tile(), 'bloom': bloom(), 'grain': grain(), 'scan': scan(), 'seg': seg(),
         'ruler-h': ruler_h(), 'ruler-v': ruler_v(),
+        'visor-vignette': visor_vignette(), 'plate-sheen': plate_sheen(),
     }
     sheet(imgs)
     print('wrote', ', '.join(sorted(imgs)), 'to', os.path.normpath(OUT))

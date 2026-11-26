@@ -107,6 +107,105 @@
         </Viewbox>
     </ControlTemplate>
 
+    <!-- Main menu mark: a sewer manhole lid (ring + three grate slots) over a Mutagen-lit hole, drawn in the host's Foreground.
+         Hover: the lid pops up and tilts, showing a crescent of Mutagen glow underneath (BackEase, reverses on exit).
+         Open (ContextMenu.IsOpen on the nearest Border, PART_ElemMainMenu): the lid slides off down to the right and a masked pair of
+         eyes rises in the hole (Vermilion band) and blinks every 3s until the menu closes.
+         Hover and open never animate the same element or property; each exit covers everything its enter animates.
+         The host's Padding sets the drawing size (24px in the rail, 18px in the top bar). -->
+    <ControlTemplate x:Key="LocalCanisterMenuMarkTemplate" TargetType="Control">
+        <Grid Background="Transparent">
+            <Viewbox Margin="{TemplateBinding Padding}" Stretch="Uniform" IsHitTestVisible="False">
+                <Canvas Width="24" Height="24">
+                    <Ellipse Canvas.Left="3.4" Canvas.Top="3.4" Width="17.2" Height="17.2" Fill="{DynamicResource GlyphBrush}" />
+                    <Canvas x:Name="Peek" Width="24" Height="24" Opacity="0">
+                        <Canvas.RenderTransform><TranslateTransform x:Name="PeekRise" Y="3" /></Canvas.RenderTransform>
+                        <Path Data="M4.2,9.6 H19.8 L20.2,14.6 H3.8 Z" Fill="{DynamicResource HeaderBandBrush}" />
+                        <Canvas>
+                            <Canvas.RenderTransform><ScaleTransform x:Name="EyesBlink" CenterY="12.1" ScaleX="1" ScaleY="1" /></Canvas.RenderTransform>
+                            <Path Data="M6.2,12.1 C6.6,10.4 9.6,10.2 10.6,11.4 C10.2,13.4 7.2,13.8 6.2,12.1 Z M17.8,12.1 C17.4,10.4 14.4,10.2 13.4,11.4 C13.8,13.4 16.8,13.8 17.8,12.1 Z"
+                                  Fill="{DynamicResource TextBrush}" />
+                            <Path Data="M8.6,11 H9.9 V12.6 H8.6 Z M14.1,11 H15.4 V12.6 H14.1 Z" Fill="{DynamicResource ShellBackgroundBrush}" />
+                        </Canvas>
+                    </Canvas>
+                    <Canvas Width="24" Height="24">
+                        <Canvas.RenderTransform>
+                            <TransformGroup>
+                                <RotateTransform x:Name="LidSlideTurn" CenterX="12" CenterY="12" Angle="0" />
+                                <TranslateTransform x:Name="LidSlide" X="0" Y="0" />
+                            </TransformGroup>
+                        </Canvas.RenderTransform>
+                        <Canvas Width="24" Height="24">
+                            <Canvas.RenderTransform>
+                                <TransformGroup>
+                                    <RotateTransform x:Name="LidTilt" CenterX="12" CenterY="12" Angle="0" />
+                                    <TranslateTransform x:Name="LidLift" X="0" Y="0" />
+                                </TransformGroup>
+                            </Canvas.RenderTransform>
+                            <Ellipse Canvas.Left="2.6" Canvas.Top="2.6" Width="18.8" Height="18.8"
+                                     Fill="{DynamicResource ShellBackgroundBrush}" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" />
+                            <Path Data="M7.5,7.6 H16.5 V9.6 H7.5 Z M6,11 H18 V13 H6 Z M7.5,14.4 H16.5 V16.4 H7.5 Z" Fill="{TemplateBinding Foreground}" />
+                        </Canvas>
+                    </Canvas>
+                </Canvas>
+            </Viewbox>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="LidLift" Storyboard.TargetProperty="Y" To="-3.6" Duration="0:0:0.26"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="LidLift" Storyboard.TargetProperty="X" To="1" Duration="0:0:0.26" />
+                            <DoubleAnimation Storyboard.TargetName="LidTilt" Storyboard.TargetProperty="Angle" To="-12" Duration="0:0:0.26"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.6" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LidLift" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LidLift" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LidTilt" Storyboard.TargetProperty="Angle" To="0" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="LidSlide" Storyboard.TargetProperty="X" To="7" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="LidSlide" Storyboard.TargetProperty="Y" To="10" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="LidSlideTurn" Storyboard.TargetProperty="Angle" To="35" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Peek" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.12" Duration="0:0:0.12" />
+                            <DoubleAnimation Storyboard.TargetName="PeekRise" Storyboard.TargetProperty="Y" To="0" BeginTime="0:0:0.12" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="EyesBlink" Storyboard.TargetProperty="ScaleY" BeginTime="0:0:0.5" RepeatBehavior="Forever">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:2.7" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:2.78" Value="0.1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:2.88" Value="1" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:3" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LidSlide" Storyboard.TargetProperty="X" To="0" BeginTime="0:0:0.06" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LidSlide" Storyboard.TargetProperty="Y" To="0" BeginTime="0:0:0.06" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="LidSlideTurn" Storyboard.TargetProperty="Angle" To="0" BeginTime="0:0:0.06" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Peek" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PeekRise" Storyboard.TargetProperty="Y" To="3" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="EyesBlink" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.05" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <!-- DividerTemplate: Dashed crimson conspiracy string centered on a 4-point comic star (<=10px, content-safe) -->
     <ControlTemplate x:Key="DividerTemplate" TargetType="Control">
         <Grid Height="10" IsHitTestVisible="False" ClipToBounds="True">

@@ -113,6 +113,98 @@
         </Viewbox>
     </ControlTemplate>
 
+    <!-- Main menu mark: an accordion-folded paper strip (three trapezoid pleats, the middle one in shadow), drawn in the host's
+         Foreground.
+         Hover: the concertina is pulled open, the outer pleats spring apart and the shadowed fold stretches (BackEase, reverses).
+         Open (ContextMenu.IsOpen on the nearest Border, PART_ElemMainMenu): the pleats fold flat into a paper envelope, its flap
+         flips up over a Hot-Magenta seal and flutters like paper in a breeze until the menu closes.
+         Hover and open never animate the same element or property; each exit covers everything its enter animates.
+         The host's Padding sets the drawing size (22px in the rail, 18px in the top bar). -->
+    <ControlTemplate x:Key="LocalFoldcraftMenuMarkTemplate" TargetType="Control">
+        <Grid Background="Transparent">
+            <Viewbox Margin="{TemplateBinding Padding}" Stretch="Uniform" IsHitTestVisible="False">
+                <Canvas Width="24" Height="24">
+                    <Canvas x:Name="Pleats" Width="24" Height="24">
+                        <Canvas.RenderTransform><ScaleTransform x:Name="PleatsFold" CenterX="12" CenterY="12" ScaleX="1" ScaleY="1" /></Canvas.RenderTransform>
+                        <Path Data="M5.5,9.5 H18.5 L21,15 H3 Z" Fill="{TemplateBinding Foreground}" Opacity="0.55">
+                            <Path.RenderTransform><ScaleTransform x:Name="MidStretch" CenterY="12.25" ScaleX="1" ScaleY="1" /></Path.RenderTransform>
+                        </Path>
+                        <Path Data="M3,4 H21 L18.5,9.5 H5.5 Z" Fill="{TemplateBinding Foreground}">
+                            <Path.RenderTransform><TranslateTransform x:Name="TopPull" Y="0" /></Path.RenderTransform>
+                        </Path>
+                        <Path Data="M3,15 H21 L18.5,20.5 H5.5 Z" Fill="{TemplateBinding Foreground}">
+                            <Path.RenderTransform><TranslateTransform x:Name="BottomPull" Y="0" /></Path.RenderTransform>
+                        </Path>
+                    </Canvas>
+                    <Canvas x:Name="Envelope" Width="24" Height="24" Opacity="0">
+                        <Canvas.RenderTransform><ScaleTransform x:Name="EnvelopePop" CenterX="12" CenterY="14" ScaleX="0.6" ScaleY="0.6" /></Canvas.RenderTransform>
+                        <Path Data="M3.5,9 H20.5 V20.5 H3.5 Z" Fill="{DynamicResource LocalPaperWhiteBrush}" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                        <Path Data="M3.5,20.5 L10,15 M20.5,20.5 L14,15" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.1" Opacity="0.6" />
+                        <Path x:Name="Seal" Data="M12,12.2 L14.3,14.5 L12,16.8 L9.7,14.5 Z" Fill="{DynamicResource LocalMagentaBrush}">
+                            <Path.RenderTransform><ScaleTransform x:Name="SealPop" CenterX="12" CenterY="14.5" ScaleX="0.2" ScaleY="0.2" /></Path.RenderTransform>
+                        </Path>
+                        <Path Data="M3.5,9 L12,15.5 L20.5,9 Z" Fill="{TemplateBinding Foreground}" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.5" StrokeLineJoin="Round">
+                            <Path.RenderTransform><ScaleTransform x:Name="FlapOpen" CenterY="9" ScaleX="1" ScaleY="1" /></Path.RenderTransform>
+                        </Path>
+                    </Canvas>
+                </Canvas>
+            </Viewbox>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="TopPull" Storyboard.TargetProperty="Y" To="-1.8" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.7" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="BottomPull" Storyboard.TargetProperty="Y" To="1.8" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.7" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="MidStretch" Storyboard.TargetProperty="ScaleY" To="1.65" Duration="0:0:0.32"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.7" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="TopPull" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="BottomPull" Storyboard.TargetProperty="Y" To="0" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="MidStretch" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.22"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+            <DataTrigger Binding="{Binding ContextMenu.IsOpen, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="PleatsFold" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.16"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseIn" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Pleats" Storyboard.TargetProperty="Opacity" To="0" BeginTime="0:0:0.08" Duration="0:0:0.08" />
+                            <DoubleAnimation Storyboard.TargetName="Envelope" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.08" />
+                            <DoubleAnimation Storyboard.TargetName="EnvelopePop" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.1" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="EnvelopePop" Storyboard.TargetProperty="ScaleY" To="1" BeginTime="0:0:0.1" Duration="0:0:0.28"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.5" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="FlapOpen" Storyboard.TargetProperty="ScaleY" To="-1" BeginTime="0:0:0.28" Duration="0:0:0.24"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="FlapOpen" Storyboard.TargetProperty="ScaleY" From="-1" To="-0.72" BeginTime="0:0:0.52" Duration="0:0:1.2" AutoReverse="True" RepeatBehavior="Forever"><DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="SealPop" Storyboard.TargetProperty="ScaleX" To="1" BeginTime="0:0:0.4" Duration="0:0:0.24"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.8" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="SealPop" Storyboard.TargetProperty="ScaleY" To="1" BeginTime="0:0:0.4" Duration="0:0:0.24"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.8" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="PleatsFold" Storyboard.TargetProperty="ScaleY" To="1" BeginTime="0:0:0.1" Duration="0:0:0.2"><DoubleAnimation.EasingFunction><BackEase Amplitude="0.4" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Pleats" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.1" Duration="0:0:0.08" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="Envelope" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="EnvelopePop" Storyboard.TargetProperty="ScaleX" To="0.6" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="EnvelopePop" Storyboard.TargetProperty="ScaleY" To="0.6" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="FlapOpen" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SealPop" Storyboard.TargetProperty="ScaleX" To="0.2" Duration="0:0:0.12" />
+                            <DoubleAnimation FillBehavior="Stop" Storyboard.TargetName="SealPop" Storyboard.TargetProperty="ScaleY" To="0.2" Duration="0:0:0.12" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <!-- Accordion Cardstock Crease Divider with Tri-Tab Paper Swatches (Magenta / Ochre / Teal) -->
     <ControlTemplate x:Key="LocalCardFoldDividerTemplate" TargetType="Control">
         <Grid Height="9" IsHitTestVisible="False" SnapsToDevicePixels="True">

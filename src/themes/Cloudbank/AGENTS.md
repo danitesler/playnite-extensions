@@ -83,7 +83,7 @@ Empty state (no game selected): content hidden; a 96x84 slot hexagon in the sele
 |---------------|----------------|
 | `Button`, `ToggleButton`, `RepeatButton` | Confirm button: cell, mint edge; default = aqua plate; Width=41 ThemeModifier detection, uniformly scaled to 32x32 with proportional content |
 | `PlayButton` | lit Turn() remainder with bloom; hover animates both ways: mint plate, bloom and arcs fade in over 0.22s, the arcs crawl and flicker while hovered, all fade out over 0.35s; pressed fades in its own teal plate |
-| `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox` | sunken Turn() cells; aqua focus; ComboBox reserves 32px for the chevron |
+| `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox` | sunken Turn() cells; `LocalCircuitFieldTemplate` overlay: a 1px circuit trace under the text ending in a hollow node (frame teal, soft mint on hover, circuit mint and filled on focus) and cyan [ ] brackets that close in on both ends on keyboard focus (0.18s). ComboBox reserves 24px plus its 8px padding for the chevron (`docs/themes/fields.md`) |
 | `CheckBox`, `RadioButton` | square slot pip; upgrade-slot hexagon |
 | `Slider`, `ProgressBar` | memory pips (4px lit, 2px gap, tiled mask) |
 | `GroupBox`, `TabControl`, `TreeView`, `ListBox`, `ToolTip` | section headers and panels; selection = glow fill plus a 2px aqua bar |

@@ -10,7 +10,6 @@ Writes src/Images/fx/:
   palms.png      640x420  three palm silhouettes leaning in from the right, bottom-anchored
   hills.png     1200x240  two rolling ridges for the desert panel, bottom-anchored
   sun.png        256x256  a sun disc with a soft halo
-  corona.png     512x256  the mission marker corona: an elliptical bloom with a brighter ring
   heli.png       240x120  a police helicopter silhouette with a searchlight beam
   car.png        480x150  a low two-door coupe in profile
   halftone.png    96x96   tileable print dots (8px pitch)
@@ -209,18 +208,6 @@ def sun():
     save_mask(np.maximum(disc, halo), "sun.png")
 
 
-def corona():
-    w, h = 512, 256
-    y, x = np.mgrid[0:h, 0:w]
-    nx = (x - w / 2) / (w / 2)
-    ny = (y - h / 2) / (h / 2)
-    r = np.hypot(nx, ny)
-    bloom = np.exp(-(r / 0.55) ** 2)
-    ring = np.exp(-((r - 0.62) / 0.07) ** 2) * 0.55
-    rays = (0.5 + 0.5 * np.cos(np.arctan2(ny, nx) * 12)) ** 6 * np.exp(-(r / 0.8) ** 2) * 0.25
-    save_mask(np.clip(bloom * 0.85 + ring + rays, 0, 1) * np.clip((1 - r) * 3, 0, 1), "corona.png")
-
-
 def heli():
     w, h = 240, 120
     im, d = canvas(w, h)
@@ -270,7 +257,7 @@ def sweep():
 
 
 def contact():
-    names = ["skyline", "windows", "bridge", "palms", "hills", "sun", "corona", "heli", "car", "halftone", "sweep"]
+    names = ["skyline", "windows", "bridge", "palms", "hills", "sun", "heli", "car", "halftone", "sweep"]
     tiles = []
     for n in names:
         im = Image.open(OUT / f"{n}.png")
@@ -294,7 +281,6 @@ if __name__ == "__main__":
     palms()
     hills()
     sun()
-    corona()
     heli()
     car()
     halftone()

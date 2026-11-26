@@ -6,6 +6,50 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalLauncherFieldTemplate: the launcher's input. A 1px light sheen along the inner top edge and a short
+        launcher-blue underline stub centred on the bottom at rest, like the menu rows. Hover: the sheen brightens, the
+        stub widens to 44px and a faint outer ring appears. Keyboard focus: a 2px launcher-blue
+        ring with a soft 3px blue halo outside it fades in (0.16s), the app's focus ring. State is read from the nearest
+        Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalLauncherFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Sheen" Height="1" VerticalAlignment="Top" Margin="2,1,2,0" Fill="{DynamicResource TextBrush}" Opacity="0.1" />
+            <Rectangle x:Name="Stub" Width="16" Height="2" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,1"
+                       Fill="{DynamicResource FocusBrush}" Opacity="0.55" />
+            <Border x:Name="Outer" Margin="-1" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}"
+                    BorderBrush="{DynamicResource InputHoverBorderBrush}" Opacity="0" />
+            <Border x:Name="Halo" Margin="-3" BorderThickness="3" CornerRadius="{DynamicResource ControlCornerRadius}"
+                    BorderBrush="{DynamicResource FocusBrush}" Opacity="0" />
+            <Border x:Name="Ring" BorderThickness="2" CornerRadius="{DynamicResource ControlCornerRadius}"
+                    BorderBrush="{DynamicResource FocusBrush}" Opacity="0" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Sheen" Property="Opacity" Value="0.16" />
+                <Setter TargetName="Stub" Property="Width" Value="44" />
+                <Setter TargetName="Stub" Property="Opacity" Value="1" />
+                <Setter TargetName="Outer" Property="Opacity" Value="0.6" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Outer" Property="Opacity" Value="0" />
+                <Setter TargetName="Stub" Property="Visibility" Value="Collapsed" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="RingIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Ring" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="Halo" Storyboard.TargetProperty="Opacity" To="0.28" Duration="0:0:0.16" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="RingIn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -22,20 +66,24 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" SnapsToDevicePixels="True"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" SnapsToDevicePixels="True"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalLauncherFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

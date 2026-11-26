@@ -1,0 +1,178 @@
+<!--
+    Umbralune: DefaultControls/TextBox.xaml.
+    Shared Field Signature (LocalUmbraluneFieldTemplate) hosted by TextBox, PasswordBox, and closed ComboBox:
+    - Edge: recessed abyssal-sapphire well with fine inner shadow rail.
+    - Rest mark: paired left & right 5px antique-gold diamond corner ticks centered vertically on the border edge.
+    - Hover: diamond ticks illuminate cyan and a crisp bottom cyan hairline fades in (never border-only).
+    - Focus (Tag="Active"): one-shot 180ms horizontal Moon-Cyan optical flare (flare-beam.png masked Rectangle)
+      ignites along the bottom edge while the diamond ticks light FocusBrush and scale up.
+    - Zero desired size: uses fixed-size ticks and a masked Rectangle (never Stretch=Fill Path/Line).
+    - BareTextBox defines its own chromeless template so SearchBox and editable ComboBox never double-frame.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Shared Field Signature Overlay (Zero Desired Size) -->
+    <ControlTemplate x:Key="LocalUmbraluneFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False">
+            <!-- Recessed upper inner depth hairline -->
+            <Rectangle Height="1" VerticalAlignment="Top" Margin="4,1,4,0"
+                       Fill="{DynamicResource ScrimBrush}" Opacity="0.45" />
+
+            <!-- Hover bottom cyan rail -->
+            <Rectangle x:Name="HoverRail" Height="1.5" VerticalAlignment="Bottom" Margin="8,0,8,0"
+                       Fill="{DynamicResource InputHoverBorderBrush}" Opacity="0" />
+
+            <!-- Active/Focus horizontal Moon-Cyan optical flare beam (masked Rectangle = zero desired size) -->
+            <Rectangle x:Name="ActiveFlare" Height="8" VerticalAlignment="Bottom" Margin="4,0,4,-2"
+                       Fill="{DynamicResource BeamBrush}" Visibility="Collapsed" Opacity="0"
+                       RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform>
+                    <ScaleTransform x:Name="ActiveFlareScale" ScaleX="0.2" ScaleY="1" />
+                </Rectangle.RenderTransform>
+                <Rectangle.OpacityMask>
+                    <ImageBrush ImageSource="{ThemeFile 'Images/fx/flare-beam.png'}" Stretch="Fill" />
+                </Rectangle.OpacityMask>
+            </Rectangle>
+
+            <!-- Paired Antique-Gold Diamond Edge Ticks (fixed 5x5 size, clear of text inset) -->
+            <Polygon x:Name="TickLeft" Width="5" Height="5" HorizontalAlignment="Left" VerticalAlignment="Center"
+                     Margin="-2,0,0,0" Points="2.5,0 5,2.5 2.5,5 0,2.5"
+                     Fill="{DynamicResource GiltDimBrush}" RenderTransformOrigin="0.5,0.5">
+                <Polygon.RenderTransform>
+                    <ScaleTransform x:Name="TickLeftScale" ScaleX="1" ScaleY="1" />
+                </Polygon.RenderTransform>
+            </Polygon>
+            <Polygon x:Name="TickRight" Width="5" Height="5" HorizontalAlignment="Right" VerticalAlignment="Center"
+                     Margin="0,0,-2,0" Points="2.5,0 5,2.5 2.5,5 0,2.5"
+                     Fill="{DynamicResource GiltDimBrush}" RenderTransformOrigin="0.5,0.5">
+                <Polygon.RenderTransform>
+                    <ScaleTransform x:Name="TickRightScale" ScaleX="1" ScaleY="1" />
+                </Polygon.RenderTransform>
+            </Polygon>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="TickLeft" Property="Fill" Value="{DynamicResource InputHoverBorderBrush}" />
+                <Setter TargetName="TickRight" Property="Fill" Value="{DynamicResource InputHoverBorderBrush}" />
+                <DataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="FieldHoverIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="HoverRail" Storyboard.TargetProperty="Opacity" To="0.72" Duration="0:0:0.12" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.EnterActions>
+                <DataTrigger.ExitActions>
+                    <BeginStoryboard x:Name="FieldHoverOut">
+                        <Storyboard FillBehavior="Stop">
+                            <DoubleAnimation Storyboard.TargetName="HoverRail" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.16" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </DataTrigger.ExitActions>
+            </DataTrigger>
+
+            <!-- Active/Focus Cue (driven explicitly by host Tag="Active" so ComboBox never sticks after close) -->
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="TickLeft" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="TickRight" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="FieldActiveIn">
+                        <Storyboard>
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ActiveFlare" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimation Storyboard.TargetName="ActiveFlare" Storyboard.TargetProperty="Opacity" To="0.95" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="ActiveFlareScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2">
+                                <DoubleAnimation.EasingFunction><PowerEase Power="3" EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="TickLeftScale" Storyboard.TargetProperty="ScaleX" To="1.25" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="TickLeftScale" Storyboard.TargetProperty="ScaleY" To="1.25" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="TickRightScale" Storyboard.TargetProperty="ScaleX" To="1.25" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="TickRightScale" Storyboard.TargetProperty="ScaleY" To="1.25" Duration="0:0:0.16" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="FieldActiveOut">
+                        <Storyboard FillBehavior="Stop">
+                            <DoubleAnimation Storyboard.TargetName="ActiveFlare" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="ActiveFlareScale" Storyboard.TargetProperty="ScaleX" To="0.2" Duration="0:0:0.18" />
+                            <DoubleAnimation Storyboard.TargetName="TickLeftScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="TickLeftScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="TickRightScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.16" />
+                            <DoubleAnimation Storyboard.TargetName="TickRightScale" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.16" />
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ActiveFlare" Storyboard.TargetProperty="Visibility">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.18" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <!-- Chromeless BareTextBox (SearchBox & editable ComboBox inner host) -->
+    <Style x:Key="BareTextBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource FocusBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource GlyphBrush}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                  HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                  Background="Transparent" BorderThickness="0"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
+        <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+        <Setter Property="Padding" Value="{DynamicResource InputPadding}" />
+        <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="CaretBrush" Value="{DynamicResource FocusBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource GlyphBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <Grid SnapsToDevicePixels="True">
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalUmbraluneFieldTemplate}"
+                                 Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource InputHoverBackgroundBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.48" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

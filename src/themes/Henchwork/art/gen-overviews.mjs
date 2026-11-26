@@ -236,17 +236,17 @@ ${indent(bannerDarkeningFloor(), 4)}
     <Rectangle>
         <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                <GradientStop Color="#000B1016" Offset="0.25" />
-                <GradientStop Color="#C80B1016" Offset="0.86" />
-                <GradientStop Color="#E60B1016" Offset="1" />
+                <GradientStop Color="#00070B10" Offset="0.25" />
+                <GradientStop Color="#C8070B10" Offset="0.86" />
+                <GradientStop Color="#E6070B10" Offset="1" />
             </LinearGradientBrush>
         </Rectangle.Fill>
     </Rectangle>
     <Rectangle>
         <Rectangle.Fill>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                <GradientStop Color="#990B1016" Offset="0" />
-                <GradientStop Color="#000B1016" Offset="0.55" />
+                <GradientStop Color="#99070B10" Offset="0" />
+                <GradientStop Color="#00070B10" Offset="0.55" />
             </LinearGradientBrush>
         </Rectangle.Fill>
     </Rectangle>
@@ -292,8 +292,9 @@ const titleStack = `<Grid HorizontalAlignment="Left" VerticalAlignment="Center">
     <Rectangle Height="13" VerticalAlignment="Bottom" Margin="-4,0,-12,-9" Fill="{DynamicResource LocalMustardBrush}" Opacity="0.85"
                OpacityMask="{DynamicResource LocalMarkerMaskBrush}" IsHitTestVisible="False" />
     <TextBlock x:Name="PART_TextDisplayName" VerticalAlignment="Center"
-               FontFamily="{DynamicResource HeadingFontFamily}" FontWeight="Bold" FontSize="{DynamicResource FontSizeLargest}"
-               Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap" />
+               FontFamily="{DynamicResource HeadingFontFamily}" FontWeight="Bold" FontSize="40"
+               Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap">
+<TextBlock.Effect><DropShadowEffect Color="#F3F0DC" ShadowDepth="1.2" Direction="0" BlurRadius="0" Opacity="1" /></TextBlock.Effect></TextBlock>
 </Grid>`;
 
 const iconPlate = maxSize => `<Grid DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0"
@@ -317,7 +318,7 @@ const pageTexture = `<Grid IsHitTestVisible="False" ClipToBounds="True">
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <Rectangle Fill="{DynamicResource LocalGridLineBrush}" Opacity="0.6" OpacityMask="{DynamicResource LocalMapContoursMaskBrush}" />
+    <Rectangle Fill="{DynamicResource LocalGridLineBrush}" Opacity="0.4" OpacityMask="{DynamicResource LocalBlueprintGridMaskBrush}" />
     <Rectangle Fill="{DynamicResource LocalBlueprintBrush}" Opacity="0.5" OpacityMask="{DynamicResource LocalGrungeMaskBrush}" />
 </Grid>`;
 
@@ -332,7 +333,7 @@ const emptyState = `<Grid VerticalAlignment="Top" Height="{Binding ViewportHeigh
             </Style.Triggers>
         </Style>
     </Grid.Style>
-    <Rectangle Fill="{DynamicResource LocalGridLineBrush}" OpacityMask="{DynamicResource LocalBlueprintGridMaskBrush}" IsHitTestVisible="False" />
+    <Rectangle Fill="{DynamicResource LocalGridLineBrush}" Opacity="0.4" OpacityMask="{DynamicResource LocalBlueprintGridMaskBrush}" IsHitTestVisible="False" />
     <Control Template="{DynamicResource EmptyGameTemplate}" Focusable="False" IsTabStop="False" />
 </Grid>`;
 

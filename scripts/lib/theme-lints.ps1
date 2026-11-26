@@ -472,6 +472,46 @@ function Test-PlayniteListBoxTriggers {
     return @($errors | Select-Object -Unique)
 }
 
+function Test-DropdownFocusTrigger {
+    <#
+        docs/themes/fields.md: in WPF, selecting an item from a ComboBox or Playnite list dropdown closes the popup while
+        leaving keyboard focus on the control. An unconditional IsKeyboardFocusWithin / IsFocused trigger on a dropdown
+        (or a shared Local*FieldTemplate binding directly to AncestorType={x:Type Control} IsKeyboardFocusWithin) leaves
+        the closed dropdown stuck looking active after selection. Drive dropdown active states from IsDropDownOpen (or
+        the list dropdown toggle's IsChecked), plus editable-only MultiTrigger (IsEditable=True + IsKeyboardFocusWithin=True),
+        and pass active state to shared field overlays via FieldOverlay Tag="Active".
+    #>
+    param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
+
+    $errors = [System.Collections.Generic.List[string]]::new()
+    foreach ($entry in Get-CachedThemeXamlEntries -Directory $Directory) {
+        $doc = $entry.Doc
+        if (-not $doc) { continue }
+        $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $entry.Relative
+
+        if ($entry.Relative -match 'DefaultControls/ComboBox\.xaml$' -or $entry.Relative -match 'CustomControls/(ComboBoxList|FilterSelectionBox)\.xaml$') {
+            foreach ($template in $doc.SelectNodes("//*[local-name()='ControlTemplate'][@TargetType]")) {
+                if ($template.GetAttribute('TargetType') -notmatch '(ComboBox|ComboBoxList|SelectionBox)\b') { continue }
+                foreach ($trigger in $template.SelectNodes("*[local-name()='ControlTemplate.Triggers']/*[local-name()='Trigger' and (@Property='IsKeyboardFocusWithin' or @Property='IsFocused') and not(@SourceName)]")) {
+                    $errors.Add("${where}: dropdown ControlTemplate has an unconditional $($trigger.GetAttribute('Property')) trigger, which leaves the closed dropdown stuck active after selection. Trigger on IsDropDownOpen (or toggle IsChecked for list dropdowns) and guard ComboBox focus with IsEditable=`"True`" in a MultiTrigger (docs/themes/fields.md).") | Out-Null
+                }
+            }
+        }
+
+        if ($entry.Relative -match 'DefaultControls/TextBox\.xaml$') {
+            foreach ($template in $doc.SelectNodes("//*[local-name()='ControlTemplate'][@TargetType='{x:Type Control}']")) {
+                foreach ($dt in $template.SelectNodes(".//*[local-name()='DataTrigger'][@Binding]")) {
+                    $binding = $dt.GetAttribute('Binding')
+                    if ($binding -match 'IsKeyboardFocusWithin|IsFocused' -and $binding -match 'AncestorType=\{x:Type Control\}') {
+                        $errors.Add("${where}: shared field overlay ControlTemplate binds directly to AncestorType={x:Type Control} focus, which leaves ComboBox stuck active after selection. Use <Trigger Property=`"Tag`" Value=`"Active`"> driven by each host's triggers (docs/themes/fields.md).") | Out-Null
+                    }
+                }
+            }
+        }
+    }
+    return @($errors | Select-Object -Unique)
+}
+
 function Test-FormControlHeight {
     <#
         src/themes/AGENTS.md "Form field height": every form field and button is the same height in every theme, ControlHeight (32).
@@ -1504,6 +1544,8 @@ function Test-WpfRuntimeTraps {
         2. Implicit ListBox style without ScrollViewer.CanContentScroll="True" (VirtualizingWrapPanel crashes Grid view with InvalidOperationException).
         3. PasswordBox ControlTemplate binding VerticalScrollBarVisibility / HorizontalScrollBarVisibility via TemplateBinding (PasswordBox lacks those properties; XamlParseException when opening a dialog).
         4. TextBlock.TextTrimming or TextBlock.TextWrapping used as attached attributes (not attached properties in WPF; XamlParseException on menu/ComboBox/TreeView open).
+        5-6. DynamicResource in BasedOn or trigger values; ScoreGroup enum names that do not exist.
+        7. Template triggers naming elements outside their own template, or ComboBox-only properties in a ToggleButton template.
     #>
     param([Parameter(Mandatory = $true)] [string]$Directory, [string]$SourceRoot)
 
@@ -1513,7 +1555,7 @@ function Test-WpfRuntimeTraps {
         $doc = $entry.Doc
         if (-not $doc) { continue }
         $where = Get-SourceDisplayPath -SourceRoot $SourceRoot -Relative $entry.Relative
-        $raw = $entry.Text
+        $raw = $entry.Raw
 
         # 1. Window style BasedOn a WindowBase style
         foreach ($style in $doc.SelectNodes("//*[local-name()='Style'][@TargetType and @BasedOn]")) {
@@ -1549,6 +1591,59 @@ function Test-WpfRuntimeTraps {
         if ($raw -match 'TextBlock\.(TextTrimming|TextWrapping)\s*=') {
             $errors.Add("${where}: TextBlock.$($Matches[1]) is not an attached property in WPF and throws XamlParseException at runtime. Apply it via <ContentPresenter.Resources><Style TargetType=`"TextBlock`"> instead.") | Out-Null
         }
+
+        # 5. DynamicResource where WPF needs a plain value: Style.BasedOn and trigger / condition Value are not
+        #    dependency properties. Inside a view template this parses and then crashes Playnite when the view loads.
+        if ($raw -match 'BasedOn\s*=\s*"\{DynamicResource') {
+            $errors.Add("${where}: Style BasedOn cannot be a DynamicResource (XamlParseException when Playnite loads the view). Drop BasedOn and set the base style's setters directly, or use StaticResource for a key in the same file.") | Out-Null
+        }
+        foreach ($node in $doc.SelectNodes("//*[(local-name()='Trigger' or local-name()='DataTrigger' or local-name()='Condition') and starts-with(normalize-space(@Value), '{DynamicResource')]")) {
+            $errors.Add("${where}: a $($node.LocalName) compares against Value=`"$($node.GetAttribute('Value'))`"; a trigger value cannot be a DynamicResource, so Playnite fails to load the theme. Compare against a literal or {x:Static}.") | Out-Null
+            break
+        }
+
+        # 6. Enum names Playnite does not have: score triggers use ScoreRating (None/Negative/Positive/Mixed);
+        #    ScoreGroup is the O0x..O9x bucket enum, so {x:Static ScoreGroup.Positive} fails the theme load.
+        if ($raw -match '\{x:Static\s+ScoreGroup\.(Positive|Negative|Mixed)\}') {
+            $errors.Add("${where}: {x:Static ScoreGroup.$($Matches[1])} does not exist (ScoreGroup is O0x..O9x); use {x:Static ScoreRating.$($Matches[1])}.") | Out-Null
+        }
+
+        # 7. A template trigger can only reach names inside its own template. A Setter TargetName, SourceName or
+        #    Storyboard.TargetName naming an element of an outer or nested template parses, then throws
+        #    KeyNotFoundException (TemplateContent.GetTypeForName) the first time the control is drawn: Ancient's
+        #    Settings window crashed this way when ComboBox field triggers landed in the inner ToggleButton template.
+        foreach ($template in $doc.SelectNodes("//*[local-name()='ControlTemplate' or local-name()='DataTemplate' or local-name()='HierarchicalDataTemplate']")) {
+            $names = [System.Collections.Generic.HashSet[string]]::new()
+            Add-TemplateScopeNames -Node $template -Names $names -XamlNs $xamlNs
+            $targetType = $template.GetAttribute("TargetType") -replace '^\{x:Type\s+([^}]+)\}$', '$1'
+            foreach ($triggers in @($template.ChildNodes | Where-Object { $_.NodeType -eq 'Element' -and $_.LocalName -like '*.Triggers' })) {
+                foreach ($node in $triggers.SelectNodes(".//*")) {
+                    foreach ($attr in @('TargetName', 'SourceName', 'Storyboard.TargetName')) {
+                        $value = $node.GetAttribute($attr)
+                        if ($value -and -not $names.Contains($value)) {
+                            $errors.Add("${where}: a $($node.LocalName) in a $($template.LocalName) ($targetType) uses $attr=`"$value`", which is not an element of that template; WPF throws KeyNotFoundException when the control is first drawn. Move the trigger to the template that owns '$value'.") | Out-Null
+                        }
+                    }
+                    if ($targetType -in @('ToggleButton', 'Button') -and ($node.LocalName -eq 'Trigger' -or $node.LocalName -eq 'Condition') -and -not $node.GetAttribute('SourceName') -and $node.GetAttribute('Property') -in @('IsDropDownOpen', 'IsEditable')) {
+                        $errors.Add("${where}: a $($node.LocalName) on Property=`"$($node.GetAttribute('Property'))`" in a $targetType template; $targetType has no such property (Property can not be null on Trigger). Put it in the ComboBox template.") | Out-Null
+                    }
+                }
+            }
+        }
     }
     return @($errors | Select-Object -Unique)
+}
+
+function Add-TemplateScopeNames {
+    # Names visible to a template's triggers: its visual tree, minus nested templates, resources and trigger blocks.
+    param($Node, $Names, [string]$XamlNs)
+    foreach ($child in $Node.ChildNodes) {
+        if ($child.NodeType -ne 'Element') { continue }
+        $local = $child.LocalName
+        if ($local -in @('ControlTemplate', 'DataTemplate', 'HierarchicalDataTemplate', 'ItemsPanelTemplate', 'Style') -or $local -like '*.Triggers' -or $local -like '*.Resources') { continue }
+        $name = $child.GetAttribute("Name", $XamlNs)
+        if (-not $name) { $name = $child.GetAttribute("Name") }
+        if ($name) { $Names.Add($name) | Out-Null }
+        Add-TemplateScopeNames -Node $child -Names $Names -XamlNs $XamlNs
+    }
 }

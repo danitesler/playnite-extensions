@@ -115,7 +115,11 @@ ${indent(blocks, 24)}
 }
 
 const sectionHeading = (loc) => `<DockPanel Margin="0,0,0,10">
-    <TextBlock DockPanel.Dock="Left" Text="{DynamicResource ${loc}}" Style="{DynamicResource HeadingTextBlock}" Margin="0,0,10,0" />
+    <TextBlock DockPanel.Dock="Left" Text="{DynamicResource ${loc}}" Style="{DynamicResource HeadingTextBlock}" Margin="0,0,10,0">
+        <TextBlock.LayoutTransform>
+            <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+        </TextBlock.LayoutTransform>
+    </TextBlock>
     <Rectangle Height="1.5" VerticalAlignment="Center" Fill="{DynamicResource HeadingRuleBrush}" IsHitTestVisible="False">
         <Rectangle.OpacityMask>
             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -236,6 +240,9 @@ const actionsRow = `<Grid MinWidth="172" Height="40">
 </Button>`;
 
 const titleStack = `<Grid VerticalAlignment="Center">
+    <Grid.LayoutTransform>
+        <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
+    </Grid.LayoutTransform>
     <!-- Crisp dark ink outline & theatrical shadow echoing Return to Monkey Island's carved title lettering -->
     <TextBlock Text="{Binding Text, ElementName=PART_TextDisplayName}" VerticalAlignment="Center"
                FontFamily="{DynamicResource HeadingFontFamily}" FontSize="{DynamicResource FontSizeLargest}"
@@ -329,13 +336,8 @@ ${indent(bannerSpacer('x * 204 / 300', 18, 'DetailsBannerSpacer'), 32)}
 ${indent(actionsRow, 40)}
                                     </StackPanel>
                                     <DockPanel>
-                                        <Border DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0"
-                                                Visibility="{Binding Visibility, ElementName=PART_ImageIcon}"
-                                                CornerRadius="{DynamicResource CornerRadiusLarge}" Padding="3"
-                                                Background="{DynamicResource PopupBackgroundBrush}"
-                                                BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1.5">
-                                            <Image x:Name="PART_ImageIcon" MaxWidth="44" MaxHeight="44" />
-                                        </Border>
+                                        <!-- Bare game icon: no plate, no frame, drawn large. -->
+                                        <Image x:Name="PART_ImageIcon" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,16,0" MaxWidth="52" MaxHeight="52" />
 ${indent(titleStack, 40)}
                                     </DockPanel>
                                 </DockPanel>
@@ -388,13 +390,8 @@ ${indent(bannerSpacer('x * 196 / 300', 14, 'GridBannerSpacer'), 40)}
                                         <StackPanel Panel.ZIndex="2" Margin="0,8,0,14">
                                             <DockPanel Panel.ZIndex="2">
 ${indent(inlineCloseButton(), 48)}
-                                                <Border DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,12,0"
-                                                        Visibility="{Binding Visibility, ElementName=PART_ImageIcon}"
-                                                        CornerRadius="{DynamicResource CornerRadiusLarge}" Padding="3"
-                                                        Background="{DynamicResource PopupBackgroundBrush}"
-                                                        BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1.5">
-                                                    <Image x:Name="PART_ImageIcon" MaxWidth="42" MaxHeight="42" />
-                                                </Border>
+                                                <!-- Bare game icon: no plate, no frame, drawn large. -->
+                                                <Image x:Name="PART_ImageIcon" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,14,0" MaxWidth="48" MaxHeight="48" />
 ${indent(titleStack, 48)}
                                             </DockPanel>
                                             <StackPanel Orientation="Horizontal" Margin="0,12,0,0">

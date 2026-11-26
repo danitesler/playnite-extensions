@@ -10,6 +10,8 @@
     after Play; leaving reverses in 0.15s with FillBehavior Stop and hides the panel at the end.
     GridTileButton is the V instructional key cap as a 52px square: a white key with a 2px black rim and a black glyph on a 3px hard
     black offset. Hover turns it mission yellow and lifts it 2px off its shadow (90ms); press lands it. The whole square is the hit area.
+    The Play key cap (Tag="Siren") also blips police car roof lamps behind it while hovered (a siren-blue lamp at the left end, a red one at the right,
+    taking turns, 1.2s), like the game page's Play slab.
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -27,6 +29,22 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid Background="Transparent" UseLayoutRounding="True">
+                        <!-- Police car roof lamps behind the hovered slab: a siren-blue lamp blips at the left end, a red one at the right end, taking turns. Only while hovered. -->
+                        <Grid x:Name="BlipHost" Opacity="0" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Grid Margin="-2,-2,1,1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="0.42*" />
+                                    <ColumnDefinition Width="0.16*" />
+                                    <ColumnDefinition Width="0.42*" />
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="BlipBlue" Grid.Column="0" Background="{DynamicResource RunningIndicatorBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0">
+                                    <Border.Effect><BlurEffect Radius="12" KernelType="Gaussian" /></Border.Effect>
+                                </Border>
+                                <Border x:Name="BlipRed" Grid.Column="2" Background="{DynamicResource LocalWastedBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" Opacity="0">
+                                    <Border.Effect><BlurEffect Radius="12" KernelType="Gaussian" /></Border.Effect>
+                                </Border>
+                            </Grid>
+                        </Grid>
                         <Border Margin="3,3,0,0" Background="{DynamicResource LocalGutterBrush}" CornerRadius="{DynamicResource ControlCornerRadius}" IsHitTestVisible="False" />
                         <Grid x:Name="Key" Margin="0,0,3,3" IsHitTestVisible="False">
                             <Grid.RenderTransform>
@@ -61,6 +79,60 @@
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
                         </Trigger>
+                        <!-- Tag="Siren" (the Play key cap only): the police siren glow pulses behind it while hovered. -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsMouseOver" Value="True" />
+                                <Condition Property="Tag" Value="Siren" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard Name="TileBlipFadeIn">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Visible}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                                <BeginStoryboard Name="TileBlipLoop">
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BlipBlue" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.03" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.13" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.16" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.24" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.27" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.37" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.4" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="BlipRed" Storyboard.TargetProperty="Opacity" Duration="0:0:1.2">
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.6" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.63" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.73" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.76" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.84" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.87" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:0.97" Value="1" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1" Value="0" />
+                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard Name="TileBlipFadeOut">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.2" />
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="BlipHost" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="{x:Static Visibility.Collapsed}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Key" Property="Margin" Value="3,3,0,0" />
                         </Trigger>
@@ -108,7 +180,7 @@
                                          Name="GameControls" Visibility="Hidden">
                                     <StackPanel Orientation="Horizontal" Margin="12">
                                         <Button Name="PART_ButtonPlay" Style="{StaticResource GridTileButton}" Margin="0,0,10,0"
-                                                Content="{DynamicResource IconPlay}" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                                Content="{DynamicResource IconPlay}" Tag="Siren" Opacity="0" RenderTransformOrigin="0.5,0.5">
                                             <Button.RenderTransform>
                                                 <TransformGroup>
                                                     <ScaleTransform x:Name="PlayScale" ScaleX="0.6" ScaleY="0.6" />

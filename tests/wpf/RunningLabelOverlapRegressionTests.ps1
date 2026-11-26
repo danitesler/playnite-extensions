@@ -138,7 +138,6 @@ function Measure-Row($res, [string]$surface, [string]$state, [bool]$selected) {
     $win.Content = $c; $win.Show(); Pump 80
     try {
         $el = $c.ItemContainerGenerator.ContainerFromIndex(0); $el.Width = 264
-        if ($selected) { $c.SelectedIndex = 0 }
         $game.IsLaunching = $state -eq 'launching'; $game.IsRunning = $state -eq 'running'
         Pump 120; $win.UpdateLayout()
         $cellW = $el.ActualWidth; $cellH = $el.ActualHeight
@@ -146,13 +145,14 @@ function Measure-Row($res, [string]$surface, [string]$state, [bool]$selected) {
         $frames = if ($state -eq 'launching') { 9 } else { 7 }; $interval = if ($state -eq 'launching') { 200 } else { 500 }
         $worst = $null; $needR = 0.0; $needL = 0.0
         # The name does not move while the mark plays: measure its pixels once, on the unselected row (a selected row's plates draw with the row's Foreground).
-        $c.SelectedIndex = -1; $win.UpdateLayout()
+        # Select only afterwards: deselecting here would start the row's selection-exit fade, and the two grabs would differ across the whole plate.
+        $win.UpdateLayout()
         $ind.Visibility = 'Collapsed'
         $with = Grab $el $cellW $cellH $back
         $el.Foreground = [Windows.Media.Brushes]::Transparent; $win.UpdateLayout()
         $without = Grab $el $cellW $cellH $back
         $el.ClearValue([Windows.Controls.Control]::ForegroundProperty); $ind.Visibility = 'Visible'
-        if ($selected) { $c.SelectedIndex = 0 }; $win.UpdateLayout()
+        if ($selected) { $c.SelectedIndex = 0; Pump 300 }; $win.UpdateLayout()
         $textFixed = Get-DiffRect $with $without
         for ($f = 0; $f -lt $frames; $f++) {
             $win.UpdateLayout()

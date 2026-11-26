@@ -1,6 +1,43 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalTornFieldTemplate: a field is a slip of paper torn off along its bottom edge. A drawn ragged tear (an original
+        zigzag geometry used as an OpacityMask on a Rectangle, so it stays crisp at any field width and adds no desired size) runs under the ink well as an 8px strip of slate rim; hover lifts it to
+        the lit slate, keyboard focus turns it card-glow cyan and drops a gold diamond (the filter mark) at its left end.
+        Hosted over TextBox and PasswordBox; state comes from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalTornFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Tear" Height="8" Margin="1,0,1,1" VerticalAlignment="Bottom" Fill="{DynamicResource NormalBorderBrush}" Opacity="0.85">
+                <Rectangle.OpacityMask>
+                    <DrawingBrush Stretch="Fill">
+                        <DrawingBrush.Drawing>
+                            <GeometryDrawing Brush="Black" Geometry="M0,8 L0.0,3.0 L2.1,1.8 L2.4,1.8 L4.7,1.0 L5.1,1.0 L6.5,4.2 L6.9,4.2 L8.4,4.2 L8.7,4.2 L10.1,4.2 L10.5,4.2 L12.3,1.0 L12.6,1.0 L15.0,1.0 L15.3,1.0 L17.2,4.2 L17.6,4.2 L19.9,4.2 L20.3,4.2 L21.8,1.8 L22.2,1.8 L25.1,4.2 L25.4,4.2 L29.1,4.2 L29.5,4.2 L32.3,1.0 L32.6,1.0 L36.4,1.0 L36.8,1.0 L39.5,1.8 L39.8,1.8 L41.8,1.8 L42.2,1.8 L44.8,4.2 L45.2,4.2 L47.2,5.0 L47.6,5.0 L49.3,4.2 L49.6,4.2 L52.4,1.8 L52.7,1.8 L54.9,4.2 L55.3,4.2 L58.4,4.2 L58.7,4.2 L60.1,1.8 L60.5,1.8 L63.0,4.2 L63.4,4.2 L65.7,2.6 L66.1,2.6 L68.6,3.4 L68.9,3.4 L71.1,1.8 L71.4,1.8 L74.8,5.0 L75.1,5.0 L78.4,1.0 L78.7,1.0 L81.5,4.2 L81.8,4.2 L84.4,2.6 L84.7,2.6 L87.9,2.6 L88.2,2.6 L91.0,1.0 L91.4,1.0 L93.0,3.4 L93.3,3.4 L95.0,2.6 L95.3,2.6 L97.0,3.4 L97.3,3.4 L99.7,5.0 L100,5.0 L100,8 Z" />
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="Pip" Width="6" Height="6" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="7,0,0,2" Visibility="Collapsed"
+                       Fill="{DynamicResource GlyphBrush}" RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform>
+                    <RotateTransform Angle="45" />
+                </Rectangle.RenderTransform>
+            </Rectangle>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Tear" Property="Fill" Value="{DynamicResource InputHoverBorderBrush}" />
+                <Setter TargetName="Tear" Property="Opacity" Value="1" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Tear" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="Tear" Property="Opacity" Value="1" />
+                <Setter TargetName="Pip" Property="Visibility" Value="Visible" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="AllowDrop" Value="True" />
@@ -17,20 +54,24 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" SnapsToDevicePixels="True"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" SnapsToDevicePixels="True"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalTornFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

@@ -57,10 +57,26 @@ These are this theme's own values: there is no published spec to quote.
 | File | What it draws |
 |------|---------------|
 | `Views/MainWindow.xaml`, `DerivedStyles/MainWindowStyle.xaml` | Frame on `ShellBackgroundBrush`; `MainWindowButton` (close hover = `DangerBrush`) |
-| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px left rail, items 44x40 with 16px glyphs, yellow marker and tinted plate on the current item; `MainMenuButton` Main menu mark: `LocalNightCityMenuMarkTemplate`, a chamfered panel with three data bars; hover glitches (the bars jump aside in stepped keyframes while a cyan ghost frame flashes), open fills the cut corner and flickers a cyan ghost frame (1.5s loop) until the menu closes. |
-| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 52px black strip, icon-only view switches (current = solid yellow plate, black glyph, one 8px cut corner), search box on the right (`TopPanelSearchBox`), 128px kept clear for the window buttons |
+| `Views/Sidebar.xaml`, `CustomControls/SidebarItem.xaml` | 44px left rail, items 44x40 with 16px glyphs, yellow marker and tinted plate on the current item; `MainMenuButton` Main menu mark: `LocalNightCityMenuMarkTemplate`, a netrunner's target lock: four chamfered red brackets around three yellow data rows; hover snaps the lock on (brackets jump 2.5px inward with a BackEase, the rows scramble in stepped keyframes, a cyan pip blinks), open tightens the frame to 0.82 under cyan brackets, dims the rows and sweeps a cyan scan line down and back (0.7s each way) until the menu closes. Rail foot: `rail-foot.png` (circuit trace, hex cells, tick ruler, barcode) rising from the bottom of a left or right rail, hidden on a top or bottom strip. |
+| `Views/TopPanel.xaml`, `CustomControls/TopPanelItem.xaml`, `CustomControls/SearchBox.xaml` | 52px black strip, icon-only view switches (current = solid yellow plate, black glyph, one 8px cut corner), search box on the right (`TopPanelSearchBox`), 128px kept clear for the window buttons; at the right end a circuit run with a tick ruler (`topbar-trace.png`, fades in from its left) and a strip of yellow slashes, both behind the controls |
 | `Views/Library.xaml` | Game art behind the top bar and the views only while Playnite's "Use game background image as window background" is on, at full strength: Playnite's darken and blur are the only treatment (no theme scrim, tint or mask). The top bar, side panels and game pages go see-through then; the banner collapses (repo rule "Window background"). |
 **Settings chrome** (`DefaultControls/TreeView.xaml`, `DerivedStyles/StandardWindowStyle.xaml`, `WindowBarButton.xaml`): the Settings section list is the game's menu list as cut-corner slabs, 30px rows in the body face. Hover is a yellow hairline plate with the label in yellow and a half-lit cyan ghost lip; selected is the solid yellow slab with its top-left and bottom-right corners cut (8px triangles in the rail brush), black label, and the cyan lip fully lit 2px off the slab. The title band is 40px: the title sits on a yellow slab with two 12px cut corners (heading face, black), a cyan sliver continues it along the band foot, yellow slashes are ghosted left of the 44x40 caption buttons and a yellow hairline closes the band.
+
+**Library backdrop** (`Views/Library.xaml`): a hex lattice (`hex-mesh.png`, `FrameBrush` at 7%) under the views, in the gaps between covers and rows; off while the window art shows.
+
+## Sprites (`art/sprites.py` -> `src/Images/fx/*.png`)
+
+White alpha masks, painted by `OpacityMask` with theme brushes (brushes `LocalNc*Mask` in `Common.xaml`), so ThemeModifier recolours them and the HTML previews reuse the same PNGs through a CSS mask. Seeded; run `python art/sprites.py` (Pillow, numpy) after editing it, then re-render the previews.
+
+| Sprite | Brush | Where |
+|--------|-------|-------|
+| `corner-body.png`, `corner-edge.png`, `corner-accent.png` (360x120, one chamfered 1px frame with ruled lines, a tick scale, a bracket, a commit bar and two pips; thin lines, no fills) | `FrameBrush` 40%, `GlyphBrush` 40%, `SelectedBrush` 45% (the in-game roles: red chrome, cyan state, yellow brand) | `LocalNightCityCornerTemplate`: top right of the game page (details and grid), foot of the empty grid panel, bottom right of dialog windows |
+| `circuit-vein.png` (380x260) | `FrameBrush` 30% | dialog windows, top right under the title band |
+| `rail-foot.png` (44x220) | `FrameBrush` 55% | foot of the left or right rail |
+| `topbar-trace.png` (460x52) | `FrameBrush` 50% | right end of the top bar |
+| `hex-mesh.png` (90x104, seamless) | `FrameBrush` 7% | library backdrop |
+
+Rules: the sprites sit under the content and never take hits. A sprite that sits in a layout that can be small (dialogs, the grid panel) is drawn by a `Rectangle` with no Width or Height whose brush is `Stretch="None"` against an edge, so it adds no desired size. The crosshair grid (`LocalNcCrossGridMask`, `FrameBrush` at 10%) textures the game pages (details and grid), and the details page has a 1px divider (`WindowPanelSeparatorBrush`) with a 3x44 red notch on its left edge against the game list; both go with the page background when the window art shows. The corner mark lies under the banner (a game with background art hides it) and is off while the window art shows.
 
 ## Game page
 

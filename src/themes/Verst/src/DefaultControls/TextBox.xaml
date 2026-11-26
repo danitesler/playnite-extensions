@@ -7,6 +7,38 @@
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        LocalGaugeFieldTemplate: a worn instrument scale along the bottom of a field, like the ruler on the watch and the
+        compass. A 1px tick every 6px (a tiled DrawingBrush on a rectangle, so it has no intrinsic size), 5px tall, dim at
+        rest; every fifth tick is longer. Hover: the ticks brighten. Keyboard focus: they light to the text colour and the
+        scale gets a 2px rule under it. State is read from the nearest Control above.
+    -->
+    <ControlTemplate x:Key="LocalGaugeFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Ticks" Height="6" Margin="4,0,4,2" VerticalAlignment="Bottom" Opacity="0.35">
+                <Rectangle.Fill>
+                    <DrawingBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0,0,30,6" Viewbox="0,0,30,6" ViewboxUnits="Absolute">
+                        <DrawingBrush.Drawing>
+                            <DrawingGroup>
+                                <GeometryDrawing Brush="{DynamicResource TextBrush}" Geometry="M0,2 H1 V6 H0 Z M6,4 H7 V6 H6 Z M12,4 H13 V6 H12 Z M18,4 H19 V6 H18 Z M24,4 H25 V6 H24 Z" />
+                            </DrawingGroup>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+            <Rectangle x:Name="Rule" Height="2" VerticalAlignment="Bottom" Fill="{DynamicResource TextBrush}" Visibility="Collapsed" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Ticks" Property="Opacity" Value="0.7" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Ticks" Property="Opacity" Value="1" />
+                <Setter TargetName="Rule" Property="Visibility" Value="Visible" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -26,6 +58,7 @@
                     <Grid SnapsToDevicePixels="True">
                         <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" BorderBrush="{TemplateBinding BorderBrush}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalGaugeFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                         <ScrollViewer x:Name="PART_ContentHost"
                                       VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
                                       HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
@@ -35,6 +68,7 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource TextBrushDarker}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

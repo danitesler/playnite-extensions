@@ -84,7 +84,7 @@ Empty state: an iron brazier with a flickering flame and breathing torchlight, `
 |---------------|--------------|
 | `Button`, `ToggleButton`, `RepeatButton` | Black plates with a worn gold edge and inner hairline; default = crimson plate; toggled = wine with ticks; Width=41 ThemeModifier detection, uniformly scaled to 32x32 with proportional content |
 | `PlayButton` | Torn crimson chevron pennant. Hover animates both ways: hotter plate and torchlight fade in over 0.22s, embers rise, light flickers, ticks spread; out over 0.35s. Pressed has its own plate |
-| `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox` | Sunken black item slots; ComboBox reserves 32px for the chevron |
+| `TextBox`, `PasswordBox`, `SearchBox`, `ComboBox` | Sunken black item slots in a broken gold frame (`LocalEmberFieldTemplate`: two gaps in the frame line; hover raises a dim ember glow; keyboard focus tears a blood-red ribbon in under the bottom-left and flickers the torch once). ComboBox reserves 24px plus its 9px padding for the chevron (`docs/themes/fields.md`) |
 | `CheckBox`, `RadioButton` | Double-lined slot with a chisel check; diamond pip |
 | `Slider`, `ProgressBar` | Health bar: black groove, crimson fill; diamond thumb |
 | `GroupBox` | Soot panel in the broken double frame, content-sized |

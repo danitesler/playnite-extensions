@@ -65,7 +65,7 @@ def value_noise2(h: int, w: int, cy: int, cx: int, seed: int) -> np.ndarray:
 def gen_damask_tile():
     """Seamless 128x128 DIP (256x256 px) fleur-de-lis & diamond lattice damask."""
     w = h = 128 * PX
-    ss = 2
+    ss = 4
     cw, ch = w * ss, h * ss
     img = Image.new("L", (cw, ch), 0)
     dr = ImageDraw.Draw(img)
@@ -80,7 +80,7 @@ def gen_damask_tile():
             (cx - 5 * sc, cy + 4 * sc),
             (cx - 8 * sc, cy - 10 * sc),
         ]
-        dr.polygon(petal_c, fill=215)
+        dr.polygon(petal_c, fill=225)
         for sign in (-1, 1):
             wing = [
                 (cx + sign * 5 * sc, cy + 2 * sc),
@@ -89,17 +89,17 @@ def gen_damask_tile():
                 (cx + sign * 17 * sc, cy + 8 * sc),
                 (cx + sign * 7 * sc, cy + 6 * sc),
             ]
-            dr.polygon(wing, fill=190)
+            dr.polygon(wing, fill=200)
         # Base band + diamond tail
-        dr.rectangle([cx - 12 * sc, cy + 6 * sc, cx + 12 * sc, cy + 11 * sc], fill=240)
-        dr.polygon([(cx, cy + 11 * sc), (cx + 7 * sc, cy + 22 * sc), (cx, cy + 30 * sc), (cx - 7 * sc, cy + 22 * sc)], fill=175)
+        dr.rectangle([cx - 12 * sc, cy + 6 * sc, cx + 12 * sc, cy + 11 * sc], fill=245)
+        dr.polygon([(cx, cy + 11 * sc), (cx + 7 * sc, cy + 22 * sc), (cx, cy + 30 * sc), (cx - 7 * sc, cy + 22 * sc)], fill=185)
 
     # Diagonal lattice lines spanning tiled period
     half = cw // 2
     for ox in (-half, 0, half, cw, cw + half):
         for oy in (-half, 0, half, ch, ch + half):
-            dr.line([(ox, oy - half), (ox + half, oy)], fill=85, width=4)
-            dr.line([(ox + half, oy), (ox, oy + half)], fill=85, width=4)
+            dr.line([(ox, oy - half), (ox + half, oy)], fill=90, width=int(1.2 * ss * PX))
+            dr.line([(ox + half, oy), (ox, oy + half)], fill=90, width=int(1.2 * ss * PX))
 
     # Place fleur-de-lis motifs at half-tile staggered centers (wrapping symmetrically)
     centers = [(half, half)]
@@ -107,33 +107,31 @@ def gen_damask_tile():
         for y in (0, ch):
             centers.append((x, y))
     for cx, cy in centers:
-        draw_fleur(cx, cy, sc=2.0)
+        draw_fleur(cx, cy, sc=2.0 * (ss / 2.0))
 
     small = img.resize((w, h), Image.Resampling.LANCZOS)
     arr = np.array(small, dtype=np.float32) / 255.0
     # Subtle damask silk grain
-    grain = 0.85 + 0.15 * value_noise2(h, w, 16, 16, 2015)
+    grain = 0.88 + 0.12 * value_noise2(h, w, 16, 16, 2015)
     return save_mask("damask-tile", arr * grain)
 
 
 def gen_sapphire_quilt():
-    """Seamless 48x48 DIP (96x96 px) beveled cushion diamond quilt (armello-wyld-chest/dlc sapphire CTA)."""
-    n = 48 * PX
-    # Tile diamond grid period in 2x2 cells per tile
+    """Seamless 64x64 DIP (128x128 px) crisp beveled cushion diamond quilt (armello-wyld-chest/dlc sapphire CTA)."""
+    n = 64 * PX
     y, x = np.mgrid[0:n, 0:n].astype(np.float32)
     cell = n / 2.0
-    # Rotated 45deg diamond coordinates repeated smoothly
     u = ((x + y) / cell) % 1.0 - 0.5
     v = ((x - y) / cell) % 1.0 - 0.5
     du = np.abs(u) * 2.0
     dv = np.abs(v) * 2.0
     d_edge = 1.0 - np.maximum(du, dv)
-    # Pillow dome + crisp bright stud diamond in center
-    cushion = np.clip(d_edge * 1.4, 0.0, 1.0) ** 0.55
-    grooves = 1.0 - np.exp(-((d_edge * 7.5) ** 2))
-    center_r = np.hypot(u, v) * 2.0
-    stud = np.exp(-((center_r * 3.8) ** 2)) * 0.45
-    alpha = np.clip(0.32 + 0.46 * cushion * grooves + stud, 0.18, 0.96)
+    # Crisp beveled pillow dome + sharp seam groove + bright diamond stud
+    cushion = np.clip(d_edge * 1.5, 0.0, 1.0) ** 0.50
+    grooves = 1.0 - np.exp(-((d_edge * 10.5) ** 2))
+    stud_d = np.abs(u) + np.abs(v)
+    stud = np.clip(1.0 - stud_d * 5.2, 0.0, 1.0) * 0.52
+    alpha = np.clip(0.24 + 0.52 * cushion * grooves + stud, 0.12, 0.98)
     return save_mask("sapphire-quilt", alpha)
 
 
@@ -275,6 +273,88 @@ def gen_spirit_sweep():
     return save_mask("spirit-sweep", np.clip((head * 0.6 + tail * 0.75) * v, 0.0, 1.0))
 
 
+def gen_tapestry_vignette():
+    """256x256 DIP radial corner tapestry wash & subtle weave for sparse page backgrounds."""
+    n = 256 * PX
+    y, x = np.mgrid[0:n, 0:n].astype(np.float32)
+    nx = (x - (n - 1) * 0.5) / ((n - 1) * 0.5)
+    ny = (y - (n - 1) * 0.5) / ((n - 1) * 0.5)
+    r = np.hypot(nx * 0.92, ny * 0.92)
+    # Clear calm center for reading, atmospheric indigo wash toward edges & corners
+    edge_wash = np.clip((r - 0.32) / 0.95, 0.0, 1.0) ** 1.55
+    weave = 0.86 + 0.14 * value_noise2(n, n, 24, 24, 4401)
+    # Subtle fine crosshatch tapestry threads
+    threads = 0.92 + 0.08 * np.sin((x + y) * 0.45) * np.sin((x - y) * 0.45)
+    return save_mask("tapestry-vignette", np.clip(edge_wash * weave * threads * 0.85, 0.0, 1.0))
+
+
+def gen_parchment_grain():
+    """128x128 DIP seamless aged vellum/parchment fiber grain + faint diamond watermark."""
+    n = 128 * PX
+    y, x = np.mgrid[0:n, 0:n].astype(np.float32)
+    coarse = value_noise2(n, n, 8, 8, 5501)
+    medium = value_noise2(n, n, 20, 20, 5502)
+    fine = value_noise2(n, n, 48, 48, 5503)
+    mottle = 0.48 * coarse + 0.32 * medium + 0.20 * fine
+    # Faint watermarked diamond lattice lines
+    cell = n / 2.0
+    u = np.abs(((x + y) / cell) % 1.0 - 0.5) * 2.0
+    v = np.abs(((x - y) / cell) % 1.0 - 0.5) * 2.0
+    lattice = np.exp(-(((1.0 - np.maximum(u, v)) * 18.0) ** 2)) * 0.22
+    alpha = np.clip(0.18 + 0.52 * mottle + lattice, 0.0, 0.92)
+    return save_mask("parchment-grain", alpha)
+
+
+def gen_button_bevel_sheen():
+    """128x48 DIP faceted heraldic metallic bevel highlight + center diamond glint."""
+    w, h = 128 * PX, 48 * PX
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    v = y / (h - 1)
+    u = np.abs(x - (w - 1) * 0.5) / ((w - 1) * 0.5)
+    # Crisp top bevel catchlight + soft upper-half specular sheen
+    top_edge = np.exp(-((v / 0.09) ** 2)) * 0.85
+    upper_sheen = np.clip(1.0 - v * 1.65, 0.0, 1.0) ** 1.4 * 0.38
+    # Subtle bottom reflected bounce
+    bot_edge = np.exp(-(((1.0 - v) / 0.08) ** 2)) * 0.28
+    # Center horizontal crown glint
+    center_glint = np.exp(-((u / 0.42) ** 2)) * np.exp(-(((v - 0.14) / 0.12) ** 2)) * 0.32
+    horiz_fade = np.clip(1.0 - (u ** 3.2) * 0.65, 0.0, 1.0)
+    alpha = np.clip((top_edge + upper_sheen + bot_edge + center_glint) * horiz_fade, 0.0, 1.0)
+    return save_mask("button-bevel-sheen", alpha)
+
+
+def gen_crest_divider():
+    """512x20 DIP heraldic section divider with centered crowned diamond medallion & side pips."""
+    w, h = 512 * PX, 20 * PX
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    cx = (w - 1) * 0.5
+    cy = (h - 1) * 0.5
+    nx = np.abs(x - cx) / (w * 0.5)
+    dy = np.abs(y - cy)
+
+    horiz = np.clip(1.0 - nx ** 1.35, 0.0, 1.0)
+    line = np.clip(1.0 - dy / (1.1 * PX), 0.0, 1.0) * 0.88
+    # Double hairline near center
+    double_line = np.clip(1.0 - np.abs(dy - 3.2 * PX) / (0.85 * PX), 0.0, 1.0) * np.clip(1.0 - nx * 2.4, 0.0, 1.0) * 0.55
+
+    # Center diamond medallion
+    cdx = np.abs(x - cx) / (8.0 * PX)
+    cdy = np.abs(y - cy) / (7.5 * PX)
+    outer_d = np.clip(1.0 - (cdx + cdy), 0.0, 1.0) * 3.0
+    inner_d = np.clip(1.0 - (cdx * 1.8 + cdy * 1.8), 0.0, 1.0) * 3.0
+    medallion = np.clip(outer_d * 0.7 + inner_d * 0.5, 0.0, 1.0)
+
+    # Flanking diamond pips at +-28 DIP
+    pips = np.zeros_like(line)
+    for off in (-28 * PX, 28 * PX):
+        pdx = np.abs(x - (cx + off)) / (3.8 * PX)
+        pdy = np.abs(y - cy) / (3.8 * PX)
+        pips = np.maximum(pips, np.clip(1.0 - (pdx + pdy), 0.0, 1.0) * 2.5)
+
+    a = np.clip((line + double_line) * horiz + medallion + pips, 0.0, 1.0)
+    return save_mask("crest-divider", a)
+
+
 def build_contact_sheet(sprites):
     cols = 3
     tile_w, tile_h = 340, 210
@@ -317,5 +397,9 @@ if __name__ == "__main__":
         ("checker-frieze", gen_checker_frieze()),
         ("wyld-star", gen_wyld_star()),
         ("spirit-sweep", gen_spirit_sweep()),
+        ("tapestry-vignette", gen_tapestry_vignette()),
+        ("parchment-grain", gen_parchment_grain()),
+        ("button-bevel-sheen", gen_button_bevel_sheen()),
+        ("crest-divider", gen_crest_divider()),
     ]
     build_contact_sheet(items)

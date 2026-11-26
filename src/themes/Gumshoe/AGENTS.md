@@ -79,7 +79,7 @@ Both game overview files include a designed empty state using `LOCErrorNoGameSel
 | `DerivedStyles/PlayButton.xaml` | The BUY-D sticker: black plate, cream inner outline, Anton label; hover squashes and springs, inverts to lit paper and pops impact ticks; pressed swells an ink splat |
 | `DerivedStyles/PropertyItemButton.xaml` | Ink links; chips are price tags (notched plate with a hole dot) |
 | `DefaultControls/Button, ToggleButton, RepeatButton` | Chalk plates with a 2px rim; the `Width == 41` ThemeModifier trigger |
-| `DefaultControls/TextBox, PasswordBox, ComboBox` | Void wells; the combo is the option row with a paper arrow plate; the drop-down is a chalkboard panel |
+| `DefaultControls/TextBox, PasswordBox, ComboBox` | Void wells; the combo is the option row with a paper arrow plate; the drop-down is a chalkboard panel. `LocalDeskLampFieldTemplate` overlay (behind the text): a wobbly hand-inked line under the text (paper grey, paper on hover, lamp yellow on focus); keyboard focus clicks the desk lamp on, a warm cone fading down from the top edge with one flicker. See `docs/themes/fields.md`. |
 | `DefaultControls/CheckBox, RadioButton` | Button-prompt discs: grey, lit paper when checked, ink check or dot |
 | `DefaultControls/Slider, ProgressBar` | Pip dashes; the slider thumb is a paper tab that tilts on hover |
 | `DefaultControls/ScrollViewer, Thumb` | The pencil: a 2px line and a ridged capsule |

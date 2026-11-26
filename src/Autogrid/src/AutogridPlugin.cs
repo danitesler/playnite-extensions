@@ -34,6 +34,12 @@ namespace Autogrid
         private bool wrapPanelResetBroken;
         private ScrollViewer trackedScrollViewer;
         private GridLayoutSignature? lastGridLayout;
+        private bool? lastDetailsPanelOpen;
+        private GridScrollAnchor? scrollAnchor;
+        private DateTime scrollAnchorTakenUtc;
+        // Long enough for the confirmation apply after Autogrid's own write (50ms debounce),
+        // short enough that a later re-fit can't pull the grid back after the user scrolls.
+        private static readonly TimeSpan ScrollAnchorLifetime = TimeSpan.FromSeconds(1);
 
         public override Guid Id => PluginId;
 
@@ -471,6 +477,7 @@ namespace Autogrid
 
             ResetGridTileSizeCache(window);
             ScheduleSaveAppSettings(appSettings);
+            RestoreScrollAnchorAfterLayout();
             return true;
         }
 
@@ -591,46 +598,103 @@ namespace Autogrid
 
         private void OnGridDetailsPanelToggled(object appSettings, bool open)
         {
+            // Still the layout from before the toggle: Playnite hasn't run its layout pass yet.
+            // ShowGameSideBarCommand re-sends "open" for every game shown; only a real toggle moves the grid.
+            if (lastDetailsPanelOpen != open)
+            {
+                lastDetailsPanelOpen = open;
+                CaptureScrollAnchor();
+            }
+
             if (open)
             {
                 Logger.Debug("Autogrid: grid game details opened.");
-                PinGridForDetailsPanel(appSettings);
-                return;
+                if (PinGridForDetailsPanel(appSettings))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                Logger.Debug("Autogrid: grid game details closed.");
+                gridPin.Release();
             }
 
-            Logger.Debug("Autogrid: grid game details closed.");
-            gridPin.Release();
-
-            // Loaded runs right after the layout pass that collapses the panel, so the scroll
-            // viewport already has its full width. Applying there (not through the debounce, which
-            // every layout pass of the reflow restarts) re-fits the covers in the next frame.
+            // Loaded runs right after the layout pass that opens or collapses the panel, so the
+            // scroll viewport already has its new width. Applying there (not through the debounce,
+            // which every layout pass of the reflow restarts) re-fits the covers in the next frame.
             PlayniteApi.MainView.UIDispatcher.BeginInvoke(
-                new Action(ApplyAfterDetailsClosed),
+                new Action(ApplyAfterDetailsToggled),
                 DispatcherPriority.Loaded);
         }
 
-        private void ApplyAfterDetailsClosed()
+        private void ApplyAfterDetailsToggled()
         {
             debounceTimer?.Stop();
             if (TryApplyOnce())
             {
-                Logger.Debug("Autogrid: grid re-fit after game details closed.");
+                Logger.Debug("Autogrid: grid re-fit after game details toggled.");
+                // The panel alone can move the offset even when the covers keep their size.
+                RestoreScrollAnchorAfterLayout();
                 return;
             }
 
             RequestDebouncedApply();
         }
 
-        private void PinGridForDetailsPanel(object appSettings)
+        private void CaptureScrollAnchor()
         {
-            if (reflectionBroken || !settings.Enabled || !settings.KeepGridWhileDetailsOpen)
+            scrollAnchor = null;
+            if (reflectionBroken || !settings.Enabled || PlayniteApi.MainView.ActiveDesktopView != DesktopView.Grid)
             {
                 return;
             }
 
-            if (PlayniteApi.MainView.ActiveDesktopView != DesktopView.Grid)
+            var window = hookedWindow ?? Application.Current?.MainWindow;
+            scrollAnchor = GridScrollAnchor.Capture(GridWidthPin.FindGamesScrollViewer(window));
+            scrollAnchorTakenUtc = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Puts the grid back where it was before the details panel toggled, once the layout pass
+        /// with the re-fit covers has run (Loaded comes right after it).
+        /// </summary>
+        private void RestoreScrollAnchorAfterLayout()
+        {
+            if (!scrollAnchor.HasValue)
             {
                 return;
+            }
+
+            if (DateTime.UtcNow - scrollAnchorTakenUtc > ScrollAnchorLifetime)
+            {
+                scrollAnchor = null;
+                return;
+            }
+
+            var anchor = scrollAnchor.Value;
+            PlayniteApi.MainView.UIDispatcher.BeginInvoke(
+                new Action(() =>
+                {
+                    var window = hookedWindow ?? Application.Current?.MainWindow;
+                    if (anchor.Restore(GridWidthPin.FindGamesScrollViewer(window)))
+                    {
+                        Logger.Debug("Autogrid: grid scroll position kept after game details toggled.");
+                    }
+                }),
+                DispatcherPriority.Loaded);
+        }
+
+        private bool PinGridForDetailsPanel(object appSettings)
+        {
+            if (reflectionBroken || !settings.Enabled || !settings.KeepGridWhileDetailsOpen)
+            {
+                return false;
+            }
+
+            if (PlayniteApi.MainView.ActiveDesktopView != DesktopView.Grid)
+            {
+                return false;
             }
 
             var window = hookedWindow ?? Application.Current?.MainWindow;
@@ -638,12 +702,16 @@ namespace Autogrid
             if (gridPin.TryPin(content, GridLayoutService.IsGridDetailsPanelOnLeft(appSettings)))
             {
                 Logger.Debug($"Autogrid: grid kept at {gridPin.PinnedWidth:0} px while game details are open.");
+                return true;
             }
-            else if (!gridPinMissingLogged)
+
+            if (!gridPinMissingLogged)
             {
                 gridPinMissingLogged = true;
                 Logger.Warn("Autogrid could not hold the grid view's games list; the grid reflows while game details are open.");
             }
+
+            return false;
         }
 
         private void CaptureUserLayoutIfNeeded(double currentWidth, int currentSpacing)

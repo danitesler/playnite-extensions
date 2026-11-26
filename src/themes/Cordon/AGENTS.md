@@ -78,7 +78,7 @@ Skeleton and metadata pane as in `../AGENTS.md`: Steam screenshots in the left c
 |---------------|------------------------|
 | Button, RepeatButton | "Use" / "Cancel" plate; hover brightens it and darkens the label, pressed shows the touched color |
 | ToggleButton, TabControl | Options tab plates, flush; current = lit plate, bright label, amber strip |
-| TextBox, PasswordBox, SearchBox | Value field with the hairline, amber edge on focus |
+| TextBox, PasswordBox, SearchBox | Value field with the hairline, amber edge on focus. `LocalLampFieldTemplate` overlay (also on the closed ComboBox): faint bevel light inside the top edge and a 5px unlit lamp in the top-right corner; hover glows it dim amber; keyboard focus strikes it amber with a bloom and warms an amber filament along the bottom with one flicker (0.22s). ComboBox value room: 22 reserve + 8 padding. See `docs/themes/fields.md`. |
 | ComboBox | Value field with a dim dropdown chevron |
 | CheckBox | Square lamp: an 8px square in a 16 x 16 housing, amber with a halo when on |
 | RadioButton | Round indicator lamp |

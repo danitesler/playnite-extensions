@@ -59,7 +59,7 @@ Reference captures, sampled swatches, typography stand-ins, and motion observati
 
 | File | What it draws |
 | --- | --- |
-| `Views/Sidebar.xaml` | 44px harbor rail with `curtain-drape.png` wash, `1.5px` Deep Aqua edge, `44×50` Curled Pirate Gold Main Menu Crest tile (folded bottom-right lip + `BrandMarkTemplate`), and winged-flourish colophon at foot |
+| `Views/Sidebar.xaml` | 44px harbor rail with `curtain-drape.png` wash, `1.5px` Deep Aqua edge, `44×50` Curled Pirate Gold Main Menu tile (folded bottom-right lip) holding the treasure-map mark (`LocalSwallowtailMenuMarkTemplate`, shared with `TopPanel.xaml`: hover unrolls the map, rolls spring apart and the sheet stretches; while the menu is open the ink rows fade, a dotted route marches to a crimson X that stamps down and breathes), and winged-flourish colophon at foot |
 | `CustomControls/SidebarItem.xaml` | `44×40` cell (`Padding="14,10"`, never stacked with `IconPadding`); hover washes nocturnal teal; selected locks harbor-teal plate with `3px` Pirate Gold bar & pennant notch |
 | `Views/TopPanel.xaml` | 50px harbor bar closed by a `1.5px` Deep Aqua seam with centered miniature gold skull; strict order Search -> Filter (`8×8` rotated Burnt Bronze diamond `TextFilter`) -> `PART_PanelMainItems` (Sorting col 0, icon-only view switches) -> Plugin items -> `12px` `PART_ProgressGlobal` -> Notifications -> 136px caption clearance; `TopPanelMenu` `BasedOn` `ContextMenu` |
 | `CustomControls/SearchBox.xaml` | 32px stitched espresso-leather satchel well with inner dashed seam, persistent magnifier `Glyph` outside `PART_SeachIcon`, full-hit transparent `PART_ClearTextIcon` |

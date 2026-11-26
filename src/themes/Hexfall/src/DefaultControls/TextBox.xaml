@@ -5,6 +5,44 @@
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        LocalLockOnFieldTemplate: Planetfall's targeting marks on a field, shared by TextBox, PasswordBox and ComboBox.
+        Rest: two dim brackets (top-left, bottom-right; the same 8px arms as CornerMarksTemplate). Hover: they turn cyan.
+        Keyboard focus: all four lock on, closing in from 7px outside to the edge while fading in (0.16s), the way a covers'
+        brackets lock on. State comes from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalLockOnFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Path x:Name="RestTL" Data="M0,8 L0,0 8,0 8,2 2,2 2,8Z" Fill="{DynamicResource InputHoverBorderBrush}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+            <Path x:Name="RestBR" Data="M6,0 L8,0 8,8 0,8 0,6 6,6Z" Fill="{DynamicResource InputHoverBorderBrush}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+            <Control x:Name="Lock" Template="{DynamicResource CornerMarksTemplate}" Foreground="{DynamicResource FocusBrush}" Margin="0" Opacity="0"
+                     Focusable="False" IsTabStop="False" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="RestTL" Property="Fill" Value="{DynamicResource GlyphBrush}" />
+                <Setter TargetName="RestBR" Property="Fill" Value="{DynamicResource GlyphBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="LockOn">
+                        <Storyboard>
+                            <ThicknessAnimation Storyboard.TargetName="Lock" Storyboard.TargetProperty="Margin" From="-7" To="0" Duration="0:0:0.16">
+                                <ThicknessAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseOut" />
+                                </ThicknessAnimation.EasingFunction>
+                            </ThicknessAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Lock" Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.12" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="LockOn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -22,6 +60,7 @@
                     <Grid SnapsToDevicePixels="True">
                         <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" BorderBrush="{TemplateBinding BorderBrush}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalLockOnFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                         <ScrollViewer x:Name="PART_ContentHost"
                                       VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
                                       HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
@@ -31,6 +70,7 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

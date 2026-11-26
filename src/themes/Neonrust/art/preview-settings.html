@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Neonrust — Settings Window Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1280px;
+    height: 720px;
+    overflow: hidden;
+    background: var(--nr-void);
+    color: var(--nr-ink);
+    font-family: var(--font-body);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 46% 52% at 14% 88%, rgba(255, 0, 174, 0.24), transparent 70%),
+      radial-gradient(ellipse 42% 48% at 88% 16%, rgba(76, 199, 173, 0.18), transparent 70%),
+      var(--nr-void);
+    z-index: 0;
+  }
+
+  /* === SETTINGS WINDOW (940x668, centered inside 1280x720) === */
+  .settings-window {
+    position: relative;
+    z-index: 2;
+    width: 940px;
+    height: 668px;
+    background: var(--nr-ground);
+    border: 1px solid var(--nr-teal);
+    display: grid;
+    grid-template-rows: 44px 1fr 56px;
+    overflow: hidden;
+  }
+  .settings-window::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-teal);
+    opacity: 0.13;
+    -webkit-mask-image: url("../src/Images/fx/datapad-mesh.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 256px 256px;
+    pointer-events: none;
+  }
+  .settings-window::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-tab-metal);
+    opacity: 0.18;
+    -webkit-mask-image: url("../src/Images/fx/bg-stains.png");
+    -webkit-mask-repeat: repeat;
+    -webkit-mask-size: 512px 512px;
+    pointer-events: none;
+  }
+  .win-glow-bl {
+    position: absolute;
+    left: -34px;
+    bottom: 18px;
+    width: 340px;
+    height: 118px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.32;
+    -webkit-mask-image: url("../src/Images/fx/spray-halo.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* === 44px TITLE BAND (StandardWindowStyle) === */
+  .title-band {
+    position: relative;
+    height: 44px;
+    background: var(--nr-top-bar);
+    border-bottom: 1px solid var(--nr-teal-dim);
+    display: flex;
+    align-items: center;
+    padding-left: 14px;
+    overflow: hidden;
+  }
+  .title-band::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 340px;
+    background: var(--nr-magenta-wash);
+    opacity: 0.88;
+    -webkit-mask-image: url("../src/Images/fx/grunge-header.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .title-band::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 340px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--nr-magenta-neon) 0%, var(--nr-yellow) 44%, var(--nr-teal) 90%, transparent 100%);
+  }
+
+  .title-mark {
+    position: relative;
+    z-index: 1;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+  }
+  .title-text {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-heading);
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--nr-yellow);
+  }
+  .title-watermark {
+    position: absolute;
+    right: 154px;
+    top: -10px;
+    opacity: 0.14;
+    pointer-events: none;
+  }
+
+  .win-btns {
+    margin-left: auto;
+    display: flex;
+    height: 44px;
+    position: relative;
+    z-index: 2;
+  }
+  .win-btn {
+    width: 46px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nr-ink-muted);
+  }
+  .win-btn.close {
+    color: var(--nr-ink);
+  }
+
+  /* === BODY: LEFT SECTION TREE (248px) + RIGHT CONTROLS PAGE === */
+  .window-body {
+    display: grid;
+    grid-template-columns: 248px 1fr;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+
+  .settings-nav {
+    background: var(--nr-surface);
+    border-right: 1px solid var(--nr-teal-dim);
+    padding: 8px 0 8px 6px;
+    display: grid;
+    grid-template-columns: 1fr 10px;
+    overflow: hidden;
+  }
+  .tree-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .tree-row {
+    height: 28px;
+    padding: 0 10px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--nr-ink-muted);
+    font-size: 13.5px;
+    position: relative;
+  }
+  .tree-row.child {
+    padding-left: 26px;
+  }
+  .tree-arrow {
+    width: 14px;
+    font-size: 10px;
+    color: var(--nr-teal);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .tree-arrow.empty { visibility: hidden; }
+
+  .tree-row.hovered {
+    background: rgba(26, 58, 53, 0.72);
+    color: var(--nr-ink);
+  }
+  .tree-row.selected {
+    background: linear-gradient(90deg, rgba(200, 0, 133, 0.36) 0%, rgba(26, 58, 53, 0.52) 100%);
+    color: var(--nr-white);
+  }
+  .tree-row.selected::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    background: var(--nr-yellow);
+  }
+
+  .tree-scroll-lane {
+    display: flex;
+    justify-content: center;
+    padding: 4px 0;
+  }
+  .tree-scroll-thumb {
+    width: 4px;
+    height: 186px;
+    background: var(--nr-teal-dim);
+    border-radius: 2px;
+  }
+
+  /* === RIGHT CONTENT PAGE === */
+  .settings-content {
+    padding: 18px 26px 14px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow: hidden;
+  }
+
+  .page-sec-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--nr-yellow);
+    padding: 5px 0 4px 0;
+  }
+  .page-sec-head::before {
+    content: "";
+    width: 4px;
+    height: 13px;
+    background: var(--nr-magenta-neon);
+    box-shadow: 0 0 10px rgba(255, 0, 174, 0.78);
+  }
+  .page-sec-head::after {
+    content: "";
+    flex: 1;
+    height: 4px;
+    background: linear-gradient(90deg, var(--nr-magenta-neon) 0%, var(--nr-teal) 45%, var(--nr-teal-dim) 100%);
+    -webkit-mask-image: url("../src/Images/fx/rough-edge-h.png");
+    -webkit-mask-size: 100% 100%;
+  }
+  .page-sec-glow {
+    position: absolute;
+    left: -10px;
+    bottom: 0;
+    width: 300px;
+    height: 36px;
+    background: var(--nr-magenta-neon);
+    opacity: 0.42;
+    -webkit-mask-image: url("../src/Images/fx/title-glow.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 188px 1fr;
+    row-gap: 11px;
+    column-gap: 16px;
+    align-items: center;
+  }
+  .form-lbl {
+    font-size: 13.5px;
+    color: var(--nr-ink);
+  }
+
+  /* === FIELDS: LocalNeonrustFieldTemplate signature (32px height) === */
+  .nr-field {
+    height: 32px;
+    background: var(--nr-void);
+    border: 1px solid var(--nr-teal-dim);
+    padding: 0 10px 0 12px;
+    display: flex;
+    align-items: center;
+    color: var(--nr-ink);
+    font-size: 13.5px;
+    position: relative;
+  }
+  .nr-field::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 7px;
+    bottom: 7px;
+    width: 3px;
+    background: var(--nr-teal);
+  }
+  .nr-field .f-ticks {
+    position: absolute;
+    left: 10px;
+    bottom: 1px;
+    display: flex;
+    gap: 3px;
+  }
+  .nr-field .f-ticks i {
+    width: 9px;
+    height: 2px;
+    background: var(--nr-teal-subtle);
+    display: block;
+  }
+  .nr-field.focused {
+    border-color: var(--nr-teal);
+  }
+  .nr-field.focused::before {
+    top: 3px;
+    bottom: 3px;
+    background: var(--nr-yellow);
+  }
+  .nr-field.focused::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--nr-yellow) 0%, var(--nr-magenta-neon) 55%, var(--nr-teal) 100%);
+  }
+  .nr-field.focused .f-ticks i {
+    background: var(--nr-magenta-neon);
+  }
+
+  .nr-combo {
+    padding-right: 40px;
+    width: 248px;
+  }
+  .nr-combo-cap {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: var(--nr-surface-hi);
+    border-left: 1px solid var(--nr-teal-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--nr-teal);
+  }
+
+  /* CheckBoxes: continuous 1px chamfered square */
+  .check-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .nr-check-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13.5px;
+    color: var(--nr-ink);
+  }
+  .nr-check-out {
+    width: 18px;
+    height: 18px;
+    background: var(--nr-teal-dim);
+    padding: 1px;
+    clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+    flex-shrink: 0;
+  }
+  .nr-check-out.checked {
+    background: var(--nr-yellow-bright);
+  }
+  .nr-check-box {
+    width: 100%;
+    height: 100%;
+    background: var(--nr-void);
+    clip-path: polygon(3.5px 0, 100% 0, 100% calc(100% - 3.5px), calc(100% - 3.5px) 100%, 0 100%, 0 3.5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nr-check-out.checked .nr-check-box {
+    background: var(--nr-yellow);
+    color: var(--nr-ink-dark);
+  }
+
+  /* Radio pair: chamfered diamond-ring with Hot Magenta core */
+  .radio-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .nr-radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+  }
+  .nr-radio-ring {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--nr-teal-dim);
+    background: var(--nr-void);
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nr-radio-ring.checked {
+    border-color: var(--nr-magenta-neon);
+  }
+  .nr-radio-ring.checked i {
+    width: 7px;
+    height: 7px;
+    background: var(--nr-magenta-neon);
+    display: block;
+  }
+
+  /* Slider: Authentic RAGE 2 Video Settings white-over-charcoal bar + stepped ticks */
+  .slider-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 326px;
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .slider-track {
+    position: relative;
+    flex: 1;
+    height: 8px;
+    background: var(--nr-void);
+    border: 1px solid var(--nr-teal-dim);
+  }
+  .slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 64%;
+    background: var(--nr-white);
+  }
+  .slider-thumb {
+    position: absolute;
+    left: 64%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 18px;
+    background: var(--nr-yellow);
+    border: 1px solid var(--nr-ink-dark);
+    clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+  }
+  .slider-val {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--nr-yellow);
+    width: 48px;
+    white-space: nowrap;
+  }
+  .slider-ticks {
+    display: flex;
+    gap: 4px;
+    width: calc(100% - 60px);
+  }
+  .slider-ticks i {
+    flex: 1;
+    height: 2px;
+    background: var(--nr-teal-subtle);
+  }
+  .slider-ticks i.on {
+    background: var(--nr-teal);
+  }
+
+  /* Button Row Showcase (generous padding inside solid dry-brush core + continuous chamfer secondary) */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding-top: 2px;
+  }
+  .btn-primary {
+    position: relative;
+    height: 32px;
+    min-width: 98px;
+    padding: 0 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--nr-white);
+  }
+  .btn-primary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-magenta);
+    -webkit-mask-image: url("../src/Images/fx/brush-bar.png");
+    -webkit-mask-size: 100% 100%;
+  }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-plain-out {
+    position: relative;
+    height: 32px;
+    display: inline-flex;
+  }
+  .btn-plain-out::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-teal);
+    opacity: 0.72;
+    -webkit-mask-image: url("../src/Images/fx/rough-border-row.png");
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+  .btn-plain {
+    position: relative;
+    height: 100%;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: var(--nr-ink);
+  }
+  .btn-plain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nr-surface-hi);
+    -webkit-mask-image: url("../src/Images/fx/yellow-slab.png");
+    -webkit-mask-size: 100% 100%;
+    z-index: -1;
+  }
+
+  /* Info tip card modeled on 03-settings.jpg magenta-rimmed help box */
+  .help-box {
+    margin-top: auto;
+    padding: 10px 14px;
+    background: var(--nr-void);
+    border: 1px solid var(--nr-magenta);
+    position: relative;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--nr-ink-muted);
+  }
+  .help-box strong {
+    color: var(--nr-yellow);
+    font-family: var(--font-heading);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* === BOTTOM BAR (settings-buttons) === */
+  .settings-buttons {
+    height: 56px;
+    background: var(--nr-surface);
+    border-top: 1px solid var(--nr-teal-dim);
+    padding: 0 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 2;
+  }
+  .restart-note {
+    font-size: 12.5px;
+    color: var(--nr-ink-muted);
+  }
+  .restart-note b { color: var(--nr-amber); }
+  .footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="settings-window" data-part="settings-window">
+  <div class="win-glow-bl"></div>
+
+  <!-- 44px Title Band -->
+  <header class="title-band">
+    <div class="title-mark">
+      <svg width="22" height="22" viewBox="0 0 64 64" fill="none">
+        <path fill-rule="evenodd" d="M 32 10 L 38 17 L 36 29 L 49 35 L 52 43 L 44 47 L 34 38 L 25 49 L 16 48 L 15.5 39 L 27 33 L 27 17 Z M 32 28 A 4 4 0 1 0 32 36 A 4 4 0 1 0 32 28 Z" fill="var(--nr-yellow)"/>
+        <circle cx="32" cy="32" r="3" fill="var(--nr-magenta-neon)"/>
+      </svg>
+    </div>
+    <span class="title-text">Settings</span>
+
+    <svg class="title-watermark" width="68" height="68" viewBox="0 0 64 64" fill="none">
+      <path d="M 15 9 L 49 9 L 55 15 L 55 26 L 50 26 L 50 17.5 L 46.5 14 L 17.5 14 L 14 17.5 L 14 26 L 9 26 L 9 15 Z" fill="var(--nr-teal)"/>
+      <path d="M 9 38 L 14 38 L 14 46.5 L 17.5 50 L 46.5 50 L 50 46.5 L 50 38 L 55 38 L 55 49 L 49 55 L 15 55 L 9 49 Z" fill="var(--nr-teal)"/>
+      <path fill-rule="evenodd" d="M 32 14 L 37.5 19.5 L 35.5 29.5 L 46.5 34.5 L 49 41.5 L 42 44.5 L 33.5 37.5 L 25.5 46 L 18 45 L 17.5 37.5 L 27.5 32.5 L 27.5 19.5 Z M 32 28.5 A 3.5 3.5 0 1 0 32 35.5 A 3.5 3.5 0 1 0 32 28.5 Z" fill="var(--nr-teal)"/>
+    </svg>
+
+    <div class="win-btns">
+      <div class="win-btn">
+        <svg width="11" height="11" viewBox="0 0 12 12"><rect x="1" y="6" width="10" height="1.5" fill="currentColor"/></svg>
+      </div>
+      <div class="win-btn">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polygon points="3,1 11,1 11,9 9,11 1,11 1,3" stroke="currentColor" stroke-width="1.3"/></svg>
+      </div>
+      <div class="win-btn close">
+        <svg width="11" height="11" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="window-body">
+    <!-- Left Section Tree -->
+    <nav class="settings-nav" data-part="settings-nav">
+      <div class="tree-list">
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>General</div>
+        <div class="tree-row"><span class="tree-arrow">▾</span>Appearance</div>
+        <div class="tree-row child"><span class="tree-arrow empty">▸</span>General</div>
+        <div class="tree-row child"><span class="tree-arrow empty">▸</span>Advanced</div>
+        <div class="tree-row child selected"><span class="tree-arrow empty">▸</span>Details View</div>
+        <div class="tree-row child hovered"><span class="tree-arrow empty">▸</span>Grid View</div>
+        <div class="tree-row child"><span class="tree-arrow empty">▸</span>List View</div>
+        <div class="tree-row child"><span class="tree-arrow empty">▸</span>Layout</div>
+        <div class="tree-row child"><span class="tree-arrow empty">▸</span>Top panel</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Search</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Updating</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Metadata</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Sorting</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Scripts</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Auto Close Clients</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Import Exclusion List</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Backup</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>For developers</div>
+        <div class="tree-row"><span class="tree-arrow empty">▸</span>Input</div>
+        <div class="tree-row"><span class="tree-arrow">▸</span>Advanced</div>
+      </div>
+      <div class="tree-scroll-lane">
+        <div class="tree-scroll-thumb"></div>
+      </div>
+    </nav>
+
+    <!-- Right Controls Showcase -->
+    <section class="settings-content" data-part="settings-content">
+      <div class="page-sec-head"><span class="page-sec-glow"></span>Appearance — Details View</div>
+
+      <div class="form-grid">
+        <span class="form-lbl">Language *</span>
+        <div class="nr-field nr-combo">
+          <span>English</span>
+          <span class="f-ticks"><i></i><i></i><i></i></span>
+          <span class="nr-combo-cap">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,4 10,4 6,9"/></svg>
+          </span>
+        </div>
+
+        <span class="form-lbl">Custom background path</span>
+        <div class="nr-field focused">
+          <span>D:\Media\Backdrops\ranger_sector_04.jpg</span>
+          <span class="f-ticks"><i></i><i></i><i></i><i></i></span>
+        </div>
+
+        <span class="form-lbl">Game list icon height</span>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <div class="slider-track">
+              <div class="slider-fill"></div>
+              <div class="slider-thumb"></div>
+            </div>
+            <span class="slider-val">32 px</span>
+          </div>
+          <div class="slider-ticks">
+            <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+
+        <span class="form-lbl">Image rendering</span>
+        <div class="radio-row">
+          <label class="nr-radio-item">
+            <span class="nr-radio-ring checked"><i></i></span>
+            Hardware accelerated
+          </label>
+          <label class="nr-radio-item">
+            <span class="nr-radio-ring"></span>
+            Software fallback
+          </label>
+        </div>
+      </div>
+
+      <div class="page-sec-head"><span class="page-sec-glow"></span>Display Options</div>
+
+      <div class="check-stack">
+        <label class="nr-check-row">
+          <span class="nr-check-out checked">
+            <span class="nr-check-box">
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square">
+                <polyline points="2.5,7.2 5.6,10.3 11.5,3.5"/>
+              </svg>
+            </span>
+          </span>
+          Show game icons on Details View list
+        </label>
+        <label class="nr-check-row">
+          <span class="nr-check-out checked">
+            <span class="nr-check-box">
+              <svg width="11" height="11" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square">
+                <polyline points="2.5,7.2 5.6,10.3 11.5,3.5"/>
+              </svg>
+            </span>
+          </span>
+          Use game background image as window background
+        </label>
+        <label class="nr-check-row">
+          <span class="nr-check-out"><span class="nr-check-box"></span></span>
+          Hide game names on Grid View when cover is available
+        </label>
+      </div>
+
+      <div class="btn-row">
+        <span class="btn-primary"><span>Apply Theme Preset</span></span>
+        <span class="btn-plain-out"><span class="btn-plain">Reset to Defaults</span></span>
+      </div>
+
+      <div class="help-box">
+        <strong>DATAPAD NOTE:</strong> Changes to banner height, metadata pane alignment, and accent brushes apply immediately through ThemeModifier. Unofficial theme inspired by RAGE 2.
+      </div>
+    </section>
+  </div>
+
+  <!-- Bottom Bar -->
+  <footer class="settings-buttons" data-part="settings-buttons">
+    <span class="restart-note"><b>*</b> Requires restart to apply</span>
+    <div class="footer-actions">
+      <span class="btn-primary"><span>Save</span></span>
+      <span class="btn-plain-out"><span class="btn-plain">Cancel</span></span>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

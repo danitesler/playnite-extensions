@@ -7,6 +7,63 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalPewterFieldTemplate: the options list's brushed pewter plate. At rest a dim pewter hairline under the text fades
+        out at both ends. Hover: it brightens to full pewter. Keyboard focus: the selection plate's pewter edges spread out
+        from the centre along the top and bottom (0.22s) and a faint vertical sheen settles inside, like the selected
+        option. State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalPewterFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Grid.Resources>
+                <LinearGradientBrush x:Key="LocalPewterEdgeMask" StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Offset="0" Color="#00FFFFFF" />
+                    <GradientStop Offset="0.2" Color="#FFFFFFFF" />
+                    <GradientStop Offset="0.8" Color="#FFFFFFFF" />
+                    <GradientStop Offset="1" Color="#00FFFFFF" />
+                </LinearGradientBrush>
+            </Grid.Resources>
+            <Rectangle x:Name="Sheen" Margin="1" Fill="{DynamicResource SelectedSheenBrush}" Opacity="0">
+                <Rectangle.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#38FFFFFF" />
+                        <GradientStop Offset="0.55" Color="#00FFFFFF" />
+                    </LinearGradientBrush>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <Rectangle x:Name="Rest" Height="1" VerticalAlignment="Bottom" Margin="1,0,1,3" Fill="{DynamicResource SelectedBorderBrush}" Opacity="0.7"
+                       OpacityMask="{StaticResource LocalPewterEdgeMask}" />
+            <Grid x:Name="Plate" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform x:Name="PlateScale" ScaleX="0" />
+                </Grid.RenderTransform>
+                <Rectangle Height="1" VerticalAlignment="Top" Fill="{DynamicResource SelectedBorderBrush}" OpacityMask="{StaticResource LocalPewterEdgeMask}" />
+                <Rectangle Height="1" VerticalAlignment="Bottom" Fill="{DynamicResource SelectedBorderBrush}" OpacityMask="{StaticResource LocalPewterEdgeMask}" />
+            </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Rest" Property="Opacity" Value="1" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Rest" Property="Visibility" Value="Collapsed" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="PlateIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="PlateScale" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.22">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="Sheen" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.08" Duration="0:0:0.2" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="PlateIn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -22,18 +79,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
-                            Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalPewterFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

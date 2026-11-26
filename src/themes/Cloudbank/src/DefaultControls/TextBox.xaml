@@ -5,6 +5,56 @@
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        LocalCircuitFieldTemplate: a Transistor circuit. A 1px trace runs under the text and ends in a hollow node on the
+        right, in the frame teal at rest. Hover: trace and node light soft mint. Keyboard focus: they light circuit mint,
+        the node fills, and the cyan selection brackets close in on both ends from 4px outside (0.18s).
+        State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalCircuitFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Rectangle x:Name="Trace" Height="1" VerticalAlignment="Bottom" Margin="6,0,10,3" Fill="{DynamicResource NormalBorderBrush}" />
+            <Ellipse x:Name="Node" Width="5" Height="5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,1"
+                     StrokeThickness="1" Stroke="{DynamicResource NormalBorderBrush}" Fill="{DynamicResource InputBackgroundBrush}" />
+            <Border x:Name="BracketL" Width="5" HorizontalAlignment="Left" Margin="-5,-2,0,-2" BorderThickness="2,2,0,2"
+                    BorderBrush="{DynamicResource FocusBrush}" Opacity="0">
+                <Border.RenderTransform><TranslateTransform x:Name="ShiftL" X="-4" /></Border.RenderTransform>
+            </Border>
+            <Border x:Name="BracketR" Width="5" HorizontalAlignment="Right" Margin="0,-2,-5,-2" BorderThickness="0,2,2,2"
+                    BorderBrush="{DynamicResource FocusBrush}" Opacity="0">
+                <Border.RenderTransform><TranslateTransform x:Name="ShiftR" X="4" /></Border.RenderTransform>
+            </Border>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Trace" Property="Fill" Value="{DynamicResource InputHoverBorderBrush}" />
+                <Setter TargetName="Node" Property="Stroke" Value="{DynamicResource InputHoverBorderBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Trace" Property="Fill" Value="{DynamicResource CheckBoxHoverBorderBrush}" />
+                <Setter TargetName="Node" Property="Stroke" Value="{DynamicResource CheckBoxHoverBorderBrush}" />
+                <Setter TargetName="Node" Property="Fill" Value="{DynamicResource CheckBoxHoverBorderBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="Lock">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="BracketL" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                            <DoubleAnimation Storyboard.TargetName="BracketR" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12" />
+                            <DoubleAnimation Storyboard.TargetName="ShiftL" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="ShiftR" Storyboard.TargetProperty="X" To="0" Duration="0:0:0.18">
+                                <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut" /></DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="Lock" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -19,17 +69,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
-                            CornerRadius="{DynamicResource ControlCornerRadius}" BorderBrush="{TemplateBinding BorderBrush}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
+                                CornerRadius="{DynamicResource ControlCornerRadius}" BorderBrush="{TemplateBinding BorderBrush}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalCircuitFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -43,5 +97,17 @@
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Padding" Value="0" />
+        <!-- Its own bare template, so hosts (editable dropdown, search) do not inherit the field's signature. -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <Border Background="{TemplateBinding Background}">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

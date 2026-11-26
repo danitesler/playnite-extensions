@@ -4,6 +4,59 @@
 -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        LocalNexusFieldTemplate: a recessed well cut with the Nexus' crystal facets. A small filled triangle sits in the
+        top-left and bottom-right corners (8px legs), dim at rest. Hover: the facets light cyan. Keyboard focus: they stay
+        lit and a cyan inner glow rises from the foot and falls from the head of the well (two 7px gradient strips,
+        0.2s), the storm energy the game's panels hold. State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalNexusFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False">
+            <Grid x:Name="Glow" Margin="1" Opacity="0">
+                <Rectangle Height="7" VerticalAlignment="Bottom" Fill="{DynamicResource FocusBrush}">
+                    <Rectangle.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                            <GradientStop Offset="0" Color="#66FFFFFF" />
+                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                        </LinearGradientBrush>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+                <Rectangle Height="5" VerticalAlignment="Top" Fill="{DynamicResource FocusBrush}">
+                    <Rectangle.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="#40FFFFFF" />
+                            <GradientStop Offset="1" Color="#00FFFFFF" />
+                        </LinearGradientBrush>
+                    </Rectangle.OpacityMask>
+                </Rectangle>
+            </Grid>
+            <Path x:Name="FacetTL" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="1"
+                  Fill="{DynamicResource NormalBorderBrush}" Data="M0,0 L8,0 L0,8 Z" />
+            <Path x:Name="FacetBR" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="1"
+                  Fill="{DynamicResource NormalBorderBrush}" Data="M8,0 L8,8 L0,8 Z" />
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="FacetTL" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="FacetBR" Property="Fill" Value="{DynamicResource FocusBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="FacetTL" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="FacetBR" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="GlowIn">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Glow" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="GlowIn" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -21,6 +74,7 @@
                     <Grid SnapsToDevicePixels="True">
                         <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" BorderBrush="{TemplateBinding BorderBrush}" />
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalNexusFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
                         <ScrollViewer x:Name="PART_ContentHost"
                                       VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
                                       HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
@@ -30,6 +84,7 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>

@@ -6,6 +6,52 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalDataFieldTemplate: a Cyberpunk readout. An open cyan-dim bracket hooks the top-right corner and a three-cell
+        data bar sits under the bottom-left (5x2 cells, 2px apart), dim red at rest. Hover: the bracket and cells turn
+        cyan. Keyboard focus: the cells light brand yellow one after another (0, 60, 120ms) like a boot sequence, and the
+        bracket turns yellow. State is read from the nearest Control above; no desired size.
+    -->
+    <ControlTemplate x:Key="LocalDataFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="True">
+            <Path x:Name="Bracket" Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-3,0"
+                  Fill="{DynamicResource NormalBorderBrush}" Data="M0,0 L9,0 L9,9 L7,9 L7,2 L0,2 Z" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,3">
+                <Rectangle x:Name="Cell1" Width="5" Height="2" Margin="0,0,2,0" Fill="{DynamicResource NormalBorderBrush}" />
+                <Rectangle x:Name="Cell2" Width="5" Height="2" Margin="0,0,2,0" Fill="{DynamicResource NormalBorderBrush}" />
+                <Rectangle x:Name="Cell3" Width="5" Height="2" Fill="{DynamicResource NormalBorderBrush}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="6,0,0,3">
+                <Rectangle x:Name="Lit1" Width="5" Height="2" Margin="0,0,2,0" Fill="{DynamicResource HeadingForegroundBrush}" Opacity="0" />
+                <Rectangle x:Name="Lit2" Width="5" Height="2" Margin="0,0,2,0" Fill="{DynamicResource HeadingForegroundBrush}" Opacity="0" />
+                <Rectangle x:Name="Lit3" Width="5" Height="2" Fill="{DynamicResource HeadingForegroundBrush}" Opacity="0" />
+            </StackPanel>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Bracket" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="Cell1" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="Cell2" Property="Fill" Value="{DynamicResource FocusBrush}" />
+                <Setter TargetName="Cell3" Property="Fill" Value="{DynamicResource FocusBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Bracket" Property="Fill" Value="{DynamicResource HeadingForegroundBrush}" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="Boot">
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="Lit1" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0" />
+                            <DoubleAnimation Storyboard.TargetName="Lit2" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.06" Duration="0:0:0" />
+                            <DoubleAnimation Storyboard.TargetName="Lit3" Storyboard.TargetProperty="Opacity" To="1" BeginTime="0:0:0.12" Duration="0:0:0" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="Boot" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -20,18 +66,22 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
-                            Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
-                            BorderBrush="{TemplateBinding BorderBrush}">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
+                                BorderBrush="{TemplateBinding BorderBrush}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
+                        </Border>
+                        <Control x:Name="FieldOverlay" Template="{DynamicResource LocalDataFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="BorderBrush" Value="{DynamicResource GlyphBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" TargetName="Border" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -45,5 +95,17 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Padding" Value="0" />
+        <!-- Its own bare template, so hosts (editable dropdown, search) do not inherit the field's data marks. -->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <Border Background="{TemplateBinding Background}">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                      HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

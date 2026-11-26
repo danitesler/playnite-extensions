@@ -7,7 +7,6 @@
 
 Compared against the last 5 themes in `src/themes/AGENTS.md` and `src/extensions.json`:
 - `Cogplate` (dark phosphor green CRT ordnance visor — HUD / Telemetry)
-- `Bathysphere` (dark submerged verdigris Art Deco brass — Diegetic / Artifact)
 - `Vesperglass` (dark twilight aubergine glass & astrolabe — Diegetic / Artifact)
 - `Runeskald` (dark frost-slate Norse equipment tablet — Diegetic / Artifact)
 - `Cropmark` (light Bristol comic illustration paper & non-photo blue cropmarks — Diegetic / Artifact)

@@ -8,6 +8,46 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--
+        LocalPlumbobFieldTemplate: the plumbob. A 6x11 faceted diamond hangs in the 10px left inset, outlined in the pill
+        rim colour at rest. Hover: the outline turns link blue. Keyboard focus: it fills two-tone green (bright left
+        facet, deep right facet) and bobs up 3px and settles (0.26s). State is read from the nearest Control above;
+        no desired size.
+    -->
+    <ControlTemplate x:Key="LocalPlumbobFieldTemplate" TargetType="{x:Type Control}">
+        <Grid IsHitTestVisible="False" SnapsToDevicePixels="False">
+            <Grid Width="6" Height="11" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0">
+                <Grid.RenderTransform><TranslateTransform x:Name="Bob" Y="0" /></Grid.RenderTransform>
+                <Path x:Name="FacetL" Data="M3,0 L3,11 L0,5.5 Z" Fill="{DynamicResource SelectedBrush}" Opacity="0" />
+                <Path x:Name="FacetR" Data="M3,0 L6,5.5 L3,11 Z" Fill="{DynamicResource SelectedBorderBrush}" Opacity="0" />
+                <Path x:Name="Outline" Data="M3,0.5 L5.5,5.5 L3,10.5 L0.5,5.5 Z M3,0.5 L3,10.5" StrokeThickness="1" Stroke="{DynamicResource NormalBorderBrush}" />
+            </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Control}}}" Value="True">
+                <Setter TargetName="Outline" Property="Stroke" Value="{DynamicResource InputHoverBorderBrush}" />
+            </DataTrigger>
+            <Trigger Property="Tag" Value="Active">
+                <Setter TargetName="Outline" Property="Stroke" Value="{DynamicResource SelectedBorderBrush}" />
+                <Setter TargetName="FacetL" Property="Opacity" Value="1" />
+                <Setter TargetName="FacetR" Property="Opacity" Value="1" />
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="BobUp">
+                        <Storyboard>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Bob" Storyboard.TargetProperty="Y">
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.12" Value="-3" />
+                                <LinearDoubleKeyFrame KeyTime="0:0:0.26" Value="0" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <RemoveStoryboard BeginStoryboardName="BobUp" />
+                </Trigger.ExitActions>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BaseStyle}">
         <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
         <Setter Property="KeyboardNavigation.TabNavigation" Value="None" />
@@ -25,13 +65,16 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
                     <Grid>
-                        <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
-                                Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
-                                BorderBrush="{TemplateBinding BorderBrush}">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
-                                          HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
-                        </Border>
+                        <Grid>
+                            <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}"
+                                    Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ControlCornerRadius}"
+                                    BorderBrush="{TemplateBinding BorderBrush}">
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"
+                                              HorizontalScrollBarVisibility="{TemplateBinding HorizontalScrollBarVisibility}"/>
+                            </Border>
+                            <Control x:Name="FieldOverlay" Template="{DynamicResource LocalPlumbobFieldTemplate}" Focusable="False" IsTabStop="False" IsHitTestVisible="False" />
+                        </Grid>
                         <Border x:Name="FocusRing" Visibility="Collapsed" IsHitTestVisible="False"
                                 BorderThickness="2" BorderBrush="{DynamicResource FocusBrush}"
                                 CornerRadius="{DynamicResource ControlCornerRadius}" />
@@ -41,6 +84,7 @@
                             <Setter Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" TargetName="Border" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="FieldOverlay" Property="Tag" Value="Active" />
                             <Setter Property="BorderBrush" Value="Transparent" TargetName="Border" />
                             <Setter Property="Visibility" Value="Visible" TargetName="FocusRing" />
                         </Trigger>
