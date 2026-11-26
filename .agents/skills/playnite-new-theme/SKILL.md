@@ -159,5 +159,6 @@ Implement all files listed in [src/themes/AGENTS.md](../../../src/themes/AGENTS.
    On Windows with Playnite installed, run the WPF regression tests (`tests/wpf/{GamePageBreakpoints,DetailsViewLayout,GridOverviewLayout,SidePanelCloseButton,SteamScreenshots,TopPanelLayout,SearchGlyph,SearchClear,RunningIndicator,RunningLabelOverlap}RegressionTests.ps1 -Keys <key>`, `RunningMotionFrames.ps1 -Keys <key> -OutDir <scratch>`, and 32-bit `tests/wpf/MenuRender.ps1 -Key <key> -Out <scratch>/<key>-menu.png`) and confirm `%APPDATA%\Playnite\playnite.log` shows `Application ... started` with zero `Unhandled exception occured` lines.
 3. **Catalog & READMEs**:
    - Complete `src/themes/<Name>/AGENTS.md` (following `src/themes/AGENTS.md` -> Per-theme notes) and `info/danitesler_<key>.yaml`.
-   - Add the theme's layout row to [src/themes/AGENTS.md](../../../src/themes/AGENTS.md), its menu signature row to [docs/themes/menus.md](../../../docs/themes/menus.md), and its table row to root [README.md](../../../README.md).
+   - Add the theme's layout row to [src/themes/AGENTS.md](../../../src/themes/AGENTS.md), its menu signature row to [docs/themes/menus.md](../../../docs/themes/menus.md), and its table cell anywhere in the Themes section of root [README.md](../../../README.md).
+   - Set `"group"` (an id from `scripts/data/theme-groups.json`) and `"developer"` (the source's studio or maker, as players know it) on the theme's `src/extensions.json` row.
    - Run `python3 scripts/sort-readme-themes.py`, `node scripts/generate-readmes.mjs`, and `npm run check:readmes`.

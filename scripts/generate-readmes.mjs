@@ -166,10 +166,17 @@ function themeCell(a, cell) {
   return [img, `${name} · ${releaseStatus(a)}`].join('<br>');
 }
 
+// Themes sit in one table per group (scripts/data/theme-groups.json) under a `#### <title>` heading; each theme's
+// group is its src/extensions.json row's "group". python3 scripts/sort-readme-themes.py writes that layout.
+const groupTitles = new Map(JSON.parse(read('scripts/data/theme-groups.json')).groups.map((g) => [g.id, g.title]));
+const misplaced = [];
+
 function updateRootReadme(text) {
   const lines = text.split('\n');
   const used = new Set();
+  let heading = '';
   const out = lines.map((line) => {
+    if (line.startsWith('#')) heading = line.replace(/^#+\s*/, '');
     if (!line.startsWith('| ')) return line;
     const cells = line.replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').split(/ \| /);
     // Check if this is a plugin row (single addon with icon.png)
@@ -188,6 +195,8 @@ function updateRootReadme(text) {
         const t = rowThemes[idx];
         if (!t) return c;
         used.add(t.key);
+        if (!groupTitles.has(t.group) || !t.developer) misplaced.push(`${t.key} (set "group" and "developer" in src/extensions.json)`);
+        else if (heading !== groupTitles.get(t.group)) misplaced.push(`${t.key} (under "${heading}", group is "${groupTitles.get(t.group)}")`);
         return themeCell(t, c);
       });
       return `| ${updatedCells.join(' | ')} |`;
@@ -222,6 +231,10 @@ if (rootNext !== rootCur) {
   stale++;
   if (check) note('out of date: README.md');
   else { fs.writeFileSync(path.join(root, 'README.md'), rootNext, 'utf8'); note('updated README.md'); }
+}
+if (misplaced.length) {
+  stale++;
+  note(`themes not in their README group (run python3 scripts/sort-readme-themes.py): ${misplaced.join(', ')}`);
 }
 if (!haveTags) note('warning: no git tags found; Download links assume nothing is released (fetch tags before --check)');
 if (check && stale) { console.error(`${stale} generated file(s) out of date: run node scripts/generate-readmes.mjs`); process.exit(1); }

@@ -1,13 +1,16 @@
-"""Re-sort the Themes table in the root README by overall visual similarity.
+"""Rewrite the Themes section of the root README: one table per group, ordered by look inside each group.
 
-Light themes first, then dark; inside each group a nearest-neighbour chain (plus 2-opt) over features taken
-from art/screenshot-details.png and art/screenshot-settings.png: 16x9 color layout, hue histogram, brightness,
-saturation and edge density. Theme cells keep their markup as they move.
+Groups and their order come from scripts/data/theme-groups.json; each theme's group and developer come from its row
+in src/extensions.json. Look order: light themes first, then dark, each a nearest-neighbour chain (plus 2-opt) over
+features taken from art/screenshot-details.png and art/screenshot-settings.png: 16x9 color layout, hue histogram,
+brightness, saturation and edge density. Inside a group, a developer with two or more themes there is kept together,
+placed where its first theme falls in the look order. Developers are never written to the README. Theme cells keep
+their markup as they move.
 
 Usage (repo root): python3 scripts/sort-readme-themes.py   (needs Pillow and numpy)
 Then run: node scripts/generate-readmes.mjs --check
 """
-import re,colorsys
+import re,colorsys,json
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
@@ -15,8 +18,9 @@ readme = Path('README.md')
 with readme.open(encoding='utf-8', newline='') as source:
     rows = source.readlines()
 start=next(i for i,l in enumerate(rows) if l.startswith('### Themes'))
-hdr=next(i for i in range(start+1,len(rows)) if rows[i].startswith('|'))+2
-end=next(i for i in range(hdr,len(rows)) if not rows[i].startswith('|'))
+end=next(i for i in range(start+1,len(rows)) if rows[i].startswith('## ') or rows[i].startswith('### '))
+catalog={e['dir'].split('/')[-1]:e for e in json.loads(Path('src/extensions.json').read_text(encoding='utf-8-sig'))['extensions'] if e['kind']=='theme'}
+groups=json.loads(Path('scripts/data/theme-groups.json').read_text(encoding='utf-8'))['groups']
 def feat(k):
     f=[]
     for n in ('details','settings'):
@@ -37,7 +41,9 @@ def feat(k):
         f.append(np.concatenate([lay.ravel()*0.6, hist*2.0, [edge*8, hs[:,1].mean()*2, hs[:,2].mean()*2, hs[:,2].std()*2]]))
     return np.mean(f,axis=0)
 cells = {}
-for row in rows[hdr:end]:
+for row in rows[start+1:end]:
+    if 'screenshot-details.png' not in row:
+        continue
     for cell in row.strip().strip('|').split(' | '):
         cell = cell.strip()
         if not cell:
@@ -74,12 +80,36 @@ def order(idx,startfn):
 lp=order(light,lambda i:-lum[i])
 dp=order(dark,lambda i:lum[i])
 final=lp+dp
-print('light',[keys[i] for i in lp]);print('dark',[keys[i] for i in dp])
-newline = '\r\n' if rows[hdr-1].endswith('\r\n') else '\n'
-ordered_cells = [cells[keys[i]] for i in final]
-rows[hdr:end] = [
-    '| ' + ' | '.join(ordered_cells[i:i+2]) + ' |' + newline
-    for i in range(0, len(ordered_cells), 2)
-]
+missing=sorted(set(catalog)-set(cells))
+if missing:
+    raise ValueError(f'Themes with no README cell (add one anywhere in the Themes section): {missing}')
+look=[keys[i] for i in final]
+ids=[g['id'] for g in groups]
+bad=[k for k in look if catalog.get(k,{}).get('group') not in ids or not catalog[k].get('developer')]
+if bad:
+    raise ValueError(f'Set "group" (one of {ids}) and "developer" on these src/extensions.json rows: {bad}')
+newline = '\r\n' if rows[start].endswith('\r\n') else '\n'
+section=['### Themes'+newline, newline]
+for g in groups:
+    members=[k for k in look if catalog[k]['group']==g['id']]
+    if not members:
+        continue
+    dev=lambda k: catalog[k]['developer']
+    count={}
+    for k in members: count[dev(k)]=count.get(dev(k),0)+1
+    ordered=[]
+    for k in members:
+        if k in ordered: continue
+        if count[dev(k)]>1 and dev(k)!='Unknown':
+            ordered+=[m for m in members if dev(m)==dev(k)]
+        else:
+            ordered.append(k)
+    print(g['id'],ordered)
+    section+=['#### '+g['title']+newline, newline, '| | |'+newline, '| :--- | :--- |'+newline]
+    for i in range(0,len(ordered),2):
+        pair=[cells[k] for k in ordered[i:i+2]]+([''] if len(ordered)-i==1 else [])
+        section.append('| '+' | '.join(pair).rstrip()+' |'+newline)
+    section.append(newline)
+rows[start:end]=section
 with readme.open('w', encoding='utf-8', newline='') as output:
     output.writelines(rows)
