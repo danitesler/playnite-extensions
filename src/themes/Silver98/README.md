@@ -6,7 +6,7 @@
 
 **Unofficial light retro desktop theme inspired by Microsoft Windows 95 and Windows 98 classic 3D silver chrome, navy title bars, Explorer 4.0 Web View, and 16-color VGA pixel icons.**
 
-_Not released yet._
+**[Download Silver 98 0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/silver98-v0.1.0)**
 
 ## Screenshots
 
@@ -32,7 +32,7 @@ Unofficial community theme; not affiliated with or endorsed by Microsoft Corpora
 ## Details
 
 - **Type:** Theme (Desktop mode)
-- **Latest release:** not released yet
+- **Latest release:** [0.1.0](https://github.com/danitesler/playnite-extensions/releases/tag/silver98-v0.1.0)
 - **Playnite theme API:** 2.9.0
 - **Tags:** Light, Retro, Pixel, Windows98, Desktop
 - **Source:** [src/themes/Silver98](https://github.com/danitesler/playnite-extensions/tree/main/src/themes/Silver98)
